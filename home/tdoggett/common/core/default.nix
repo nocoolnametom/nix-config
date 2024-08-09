@@ -31,8 +31,6 @@
 
       # Packages that don't have custom configs go here
 
-      # TODO: spaces before comment are removed by nixpkgs-fmt
-      # See: https://github.com/nix-community/nixpkgs-fmt/issues/305
       coreutils # basic gnu utils
       jq # JSON pretty printer and manipulator
       nix-tree # nix package tree viewer

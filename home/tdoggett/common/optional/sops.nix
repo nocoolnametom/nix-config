@@ -23,7 +23,7 @@ in
       };
       "yubico/u2f_keys" = {
         path = "${homeDirectory}/.config/Yubico/u2f_keys";
-        # mode = "0600"; #TODO Find out if the yubico keys need specific permissions
+        # mode = "0600";
       };
     };
   };

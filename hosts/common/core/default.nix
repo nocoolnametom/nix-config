@@ -22,11 +22,9 @@
 
   # Set up the root user (uses secrets from nix-secrets and ./sops.nix)
   users.users.root = {
-    # Use the same hashedPasswordFile or defined password as the main username has
-    hashedPasswordFile = config.users.users.${configVars.username}.hashedPasswordFile;
+    # Use the same hashedPassword or defined password as the main username has
+    hashedPassword = config.users.users.${configVars.username}.hashedPassword;
     password = lib.mkForce config.users.users.${configVars.username}.password;
-    # Use the same SSH public keys as the main username if, for some odd reason, SSH root login is active (it shouldn't ever be, though)
-    # TODO Not working? openssh.authorizedKeys.keys = config.users.users.${configVars}.openssh.authorizedKeys.keys;
   };
 
   # Ensure these tools are available for all users, even if it's just root on the system
@@ -42,22 +40,6 @@
     pkgs.screen
     pkgs.unrar
     pkgs.unzip
-  ];
-
-  #TODO Maybe font stuff needs to be moved to Home Manager?
-  # Font management
-  fonts.packages = with pkgs; [
-    cascadia-code
-    font-awesome
-    powerline-fonts
-    powerline-symbols
-    (nerdfonts.override {
-      fonts = [
-        "NerdFontsSymbolsOnly"
-        "FiraCode"
-        "DroidSansMono"
-      ];
-    })
   ];
 
   # Ensure HM has access to all outputs of the root flake (like configVars)

@@ -22,11 +22,11 @@
     },
     "hardware": {
       "locked": {
-        "lastModified": 1722332872,
-        "narHash": "sha256-2xLM4sc5QBfi0U/AANJAW21Bj4ZX479MHPMPkB+eKBU=",
+        "lastModified": 1723149858,
+        "narHash": "sha256-3u51s7jdhavmEL1ggtd8wqrTH2clTy5yaZmhLvAXTqc=",
         "owner": "nixos",
         "repo": "nixos-hardware",
-        "rev": "14c333162ba53c02853add87a0000cbd7aa230c2",
+        "rev": "107bb46eef1f05e86fc485ee8af9b637e5157988",
         "type": "github"
       },
       "original": {
@@ -74,10 +74,10 @@
     "nix-secrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1723147392,
-        "narHash": "sha256-wIziCz1P9Jc3b7vBfUQ2ARqNTYPZOrGr+JXKt5Ttufs=",
+        "lastModified": 1723164527,
+        "narHash": "sha256-b5CjvOo7jLBuFR5H0cufntdjG1uD7VSPj5jVhp/UBvI=",
         "ref": "main",
-        "rev": "48e65d697cd91cadd43d5e2cb45e7bf5a5d4ef2f",
+        "rev": "4e3c1cfaa011a17a501773186ef43e34eec00806",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"
@@ -91,11 +91,11 @@
     },
     "nixpkgs": {
       "locked": {
-        "lastModified": 1723146402,
-        "narHash": "sha256-Zrel9R7VlL5y2DdyUfIhwMtbFf8Hk2d09mYjlN/Ixl0=",
+        "lastModified": 1723150682,
+        "narHash": "sha256-xdQ/K5hdpatG4Ttnuttrk6qG+2AhiuD081rqHL3M4uE=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "f3b01d5fd5003b2b46865e0fe63794949fe82c4f",
+        "rev": "7b1e9b080738a32dee5df67344d327676b324d45",
         "type": "github"
       },
       "original": {

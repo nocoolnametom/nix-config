@@ -25,9 +25,6 @@ in
     age = {
       # automatically import host SSH keys as age keys
       sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-      #TODO I don't think I need the following two lines
-      # keyFile = "/var/lib/sops-nix/key.txt";
-      # generateKey = true;
     };
 
     secrets = {
@@ -50,20 +47,6 @@ in
         mode = "0600";
         owner = config.users.users.root.name;
         group = config.users.users.root.group;
-      };
-
-      #TODO This may not be needed if the Home-Manager-level sop is working!
-      "ssh/personal/id_ed25519" = {
-        mode = "0600";
-        owner = config.users.users.${configVars.username}.name;
-        group = config.users.users.${configVars.username}.group;
-      };
-
-      #TODO This may not be needed if the Home-Manager-level sop is working!
-      "yubico/u2f_keys" = {
-        path = "/home/${configVars.username}/.config/Yubico/u2f_keys";
-        owner = config.users.users.${configVars.username}.name;
-        group = config.users.users.${configVars.username}.group;
       };
     };
   };
