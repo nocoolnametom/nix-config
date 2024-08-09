@@ -1,24 +1,47 @@
-{ pkgs, ... }:
+#
+# greeter -> tuigreet https://github.com/apognu/tuigreet?tab=readme-ov-file
+# display manager -> greetd https://man.sr.ht/~kennylevinsen/greetd/
+#
+
 {
-  # Startup Greetd for wayland greeter
-  services.greetd = {
-    enable = true;
-    settings = {
-      default_session.command = "${pkgs.greetd.tuigreet}/bin/tuigreet --time --remember --cmd Hyprland";
-      default_session.user = "greeter";
+  config,
+  pkgs,
+  lib,
+  ...
+}:
+
+let
+  cfg = config.autoLogin;
+in
+{
+  # Declare custom options for conditionally enabling auto login
+  options.autoLogin = {
+    enable = lib.mkEnableOption "Enable automatic login";
+
+    username = lib.mkOption {
+      type = lib.types.str;
+      default = "tdoggett";
+      description = "User to automatically login";
     };
   };
-  systemd.services.greetd.serviceConfig = {
-    Type = "idle";
-    StandardInput = "tty";
-    StandardOutput = "tty";
-    StandardError = "journal"; # prevents errors from spamming screen!
-    TTYReset = true;
-    TTYVHanup = true;
-    TTYVTDisallocate = true;
+
+  config = {
+    #    environment.systemPackages = with pkgs; [ greetd.tuigreet ];
+    services.greetd = {
+      enable = true;
+
+      restart = true;
+      settings = {
+        default_session = {
+          command = "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time --time-format '%I:%M %p | %a • %h | %F' --cmd Hyprland";
+          user = "${cfg.username}";
+        };
+
+        initial_session = lib.mkIf cfg.enable {
+          command = "${pkgs.hyprland}/bin/Hyprland";
+          user = "${cfg.username}";
+        };
+      };
+    };
   };
-  environment.etc."greetd/environments".text = ''
-    Hyprland
-    bash
-  '';
 }

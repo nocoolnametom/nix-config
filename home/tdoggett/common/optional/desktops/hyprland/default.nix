@@ -16,7 +16,7 @@
       # Monitors - Remember to define system-specific ones explicity in home/tdoggett/<host>/default.nix!
       monitor = [
         # "name,resolution,position,scale"
-        ",preferred,auto-left,1" # Other screens
+        ",preferred,auto-left,1" # Fallback rule for other screens
       ];
 
       # Environment Variables

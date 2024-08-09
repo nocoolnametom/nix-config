@@ -30,7 +30,7 @@
         on-click = "activate";
         format = "{icon}";
         format-icons = {
-          default = "<U+EA71>";
+          default = "";
           "1" = "1";
           "2" = "2";
           "3" = "3";
@@ -40,8 +40,8 @@
           "7" = "7";
           "8" = "8";
           "9" = "9";
-          active = "<U+F14FB>";
-          urgent = "<U+F14FB>";
+          active = "󱓻";
+          urgent = "󱓻";
         };
         persistent_workspaces = {
           "1" = [ ];
@@ -53,7 +53,7 @@
       };
       memory = {
         interval = 5;
-        format = "<U+F035B> {}%";
+        format = "󰍛 {}%";
         max-length = 10;
       };
       tray = {
@@ -61,59 +61,59 @@
       };
       clock = {
         tooltip-format = "{calendar}";
-        format-alt = "<U+EAB0>  {:%a, %d %b %Y}";
+        format-alt = "  {:%a, %d %b %Y}";
         format = "⏲  {:%I:%M %p}";
       };
       pulseaudio = {
         format = "{icon}";
-        format-bluetooth = "<U+F00B0>";
+        format-bluetooth = "󰂰";
         nospacing = 1;
         tooltip-format = "Volume : {volume}%";
-        format-muted = "<U+F075F>";
+        format-muted = "󰝟";
         format-icons = {
-          headphone = "<U+F025>";
+          headphone = "";
           default = [
-            "<U+F0580>"
-            "<U+F057E>"
-            "<U+F028>"
+            "󰖀"
+            "󰕾"
+            ""
           ];
         };
         on-click = "pamixer -t";
         scroll-step = 1;
       };
       "custom/logo" = {
-        format = " <U+F17C> ";
+        format = "  ";
         tooltip = false;
       };
       battery = {
         format = "{capacity}% {icon}";
         format-icons = {
           charging = [
-            "<U+F089C>"
-            "<U+F0086>"
-            "<U+F0087>"
-            "<U+F0088>"
-            "<U+F089D>"
-            "<U+F0089>"
-            "<U+F089E>"
-            "<U+F008A>"
-            "<U+F008B>"
-            "<U+F0085>"
+            "󰢜"
+            "󰂆"
+            "󰂇"
+            "󰂈"
+            "󰢝"
+            "󰂉"
+            "󰢞"
+            "󰂊"
+            "󰂋"
+            "󰂅"
           ];
           default = [
-            "<U+F007A>"
-            "<U+F007B>"
-            "<U+F007C>"
-            "<U+F007D>"
-            "<U+F007E>"
-            "<U+F007F>"
-            "<U+F0080>"
-            "<U+F0081>"
-            "<U+F0082>"
-            "<U+F0079>"
+            "󰁺"
+            "󰁻"
+            "󰁼"
+            "󰁽"
+            "󰁾"
+            "󰁿"
+            "󰂀"
+            "󰂁"
+            "󰂂"
+            "󰁹"
           ];
         };
-        format-full = "Charged <U+F0E7>";
+        format-full = "Charged ";
         interval = 5;
         states = {
           warning = 20;
@@ -122,7 +122,7 @@
         tooltip = false;
       };
       "custom/power" = {
-        format = "<U+F0906>";
+        format = "󰤆";
         tooltip = false;
       };
     };

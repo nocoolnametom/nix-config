@@ -11,8 +11,6 @@
 { inputs, ... }:
 
 {
-  # imports = [ inputs.impermanence.nixosModules.impermanence ];
-
   # this folder is where the files will be stored (don't put it in tmpfs)
   # The directive for if persistence is enabled is in the system-level file, if used
   environment.persistence."/persist".users.tdoggett = {
@@ -24,7 +22,9 @@
       "Projects"
       # "Videos"
       # "VirtualBox VMs"
+      ".config/google-chrome"
       ".config/BraveSoftware/Brave-Browser"
+      ".config/Code"
       ".config/discord"
       ".config/jellyfin.org"
       ".config/obsidian"
@@ -59,10 +59,7 @@
     ];
     files = [
       ".bash_history"
-      # THIS FILE MUST EXIST TO USE ANY SECRETS LIKE WITH OPENSSH!
-      #TODO I'm actually loading this from the nix-secrets in the system-level hosts/common/core/sops.nix
-      # So this line probably isn't needed anymore
-      #".config/sops/age/keys.txt"
+      ".davmail.properties"
     ];
   };
 

@@ -20,16 +20,12 @@ in
     configLib.relativeToRoot "home/${configVars.username}/${config.networking.hostName}"
   );
 
-  sops.secrets."tdoggett/passwordHash" = {
-    # Needs to be placed in an explicit path, otherwise the `hashedPasswordFile` option doesn't work
-    path = "/run/tdoggett-passwordHash";
-    neededForUsers = true;
-  };
   users.mutableUsers = false;
 
   users.users.tdoggett = {
     isNormalUser = true;
-    hashedPasswordFile = config.sops.secrets."tdoggett/passwordHash".path;
+    # I never could get the sops secret version of this to work with a hashedPasswordFile
+    hashedPassword = "$y$j9T$5SGpsUDjjH9wZ61QMwXf0.$C.cQnNS.mmXLEQ34/cqfpU.LXJ0BydbEFr4oukpn8u/";
     openssh.authorizedKeys.keys = lib.lists.forEach pubKeys (key: builtins.readFile key);
     extraGroups =
       [ "wheel" ]
@@ -40,6 +36,8 @@ in
         "disk" # mount stuff
         "networkmanager" # connect to network
         "docker" # docker
+        "lxd"
+        "adbusers"
         "video" # monitor
         "dialout" # serial ports for arduino
       ];

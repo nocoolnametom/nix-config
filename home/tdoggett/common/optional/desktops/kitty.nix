@@ -1,0 +1,5 @@
+{
+  programs.kitty = {
+    settings = { };
+  };
+}

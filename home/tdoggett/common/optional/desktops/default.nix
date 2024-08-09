@@ -8,6 +8,8 @@
     ./wofi.nix
     ./hyprlock.nix
     ./waybar.nix
+    ./kitty.nix
+    ./vscode.nix
     ../browsers/brave.nix
 
     # Desktop-related Services (enable below)
@@ -16,28 +18,50 @@
     ./services/hyprpaper.nix
   ];
 
-  # User-level GUI packages to have installed - See if any have Home Manager modules!
+  # User-level GUI packages to have installed
   home.packages = with pkgs; [
+    protonmail-desktop
+    czkawka
     discord
     firefox
     foliate
     jellyfin-media-player
-    kitty
-    # networkmanagerapplet # Used by Hyprland startup but I'm not sure if I need it installed otherwise
+    networkmanagerapplet # having it installed allows the icon to show up correctly in waybar
     obsidian
     slack
     vlc
-    vscode
     xfce.thunar
+    todoist-electron
     zed-editor
+
+    # Fonts
+    cascadia-code
+    font-awesome
+    fira-code
+    fira-code-symbols
+    jetbrains-mono
+    liberation_ttf
+    powerline-fonts
+    powerline-symbols
+    (nerdfonts.override {
+      fonts = [
+        "NerdFontsSymbolsOnly"
+        "DroidSansMono"
+      ];
+    })
   ];
 
   wayland.windowManager.hyprland.enable = true;
+
+  fonts.fontconfig.enable = true;
 
   programs.wofi.enable = true;
   programs.hyprlock.enable = true;
   programs.waybar.enable = true;
   programs.brave.enable = true;
+  programs.kitty.enable = true;
+  programs.vscode.enable = true;
+  programs.google-chrome.enable = true;
 
   services.swaync.enable = true;
   services.hypridle.enable = true;

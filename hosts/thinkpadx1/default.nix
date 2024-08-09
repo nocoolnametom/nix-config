@@ -30,6 +30,8 @@
       "hosts/common/core"
 
       #################### Host-specific Optional Configs ####################
+      "hosts/common/optional/boot/plymouth.nix"
+      "hosts/common/optional/boot/silent.nix"
       "hosts/common/optional/services/greetd.nix"
       "hosts/common/optional/services/openssh.nix" # allow remote SSH access
       "hosts/common/optional/services/pipewire.nix" # audio
@@ -39,6 +41,7 @@
       "hosts/common/optional/steam.nix"
       "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
       "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
+      "hosts/common/optional/yubikey.nix"
 
       #################### Users to Create ####################
       "hosts/common/users/tdoggett"
@@ -52,9 +55,21 @@
     enableIPv6 = true;
   };
 
+  # Auto-login through Greetd and TuiGreet to Hyprland
+  autoLogin.enable = true;
+  autoLogin.username = "tdoggett";
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;
+  boot.initrd.systemd.enable = true;
+
+  # Hardware
+  hardware.bluetooth.enable = true;
+
+  # Security
+  security.sudo.wheelNeedsPassword = false;
+  security.apparmor.enable = true;
 
   # Optional, hint electron apps to use wayland:
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
@@ -71,6 +86,5 @@
 
   system.stateVersion = "24.05";
 
-  #TODO I'd like to load this from sops-nix nix-secrets instead...
   users.users.root.initialHashedPassword = "$y$j9T$kJlllzou9ACSf/q6LFgPi.$A49llCkktVbbfOHVvdjSRnPD27.jg4xSYaLlG5p9t5A";
 }
