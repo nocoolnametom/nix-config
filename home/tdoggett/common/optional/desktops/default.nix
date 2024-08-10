@@ -8,14 +8,12 @@
     ./wofi.nix
     ./hyprlock.nix
     ./waybar.nix
-    ./kitty.nix
     ./vscode.nix
     ../browsers/brave.nix
 
     # Desktop-related Services (enable below)
     ./services/swaync.nix
     ./services/hypridle.nix
-    ./services/hyprpaper.nix
   ];
 
   # User-level GUI packages to have installed
@@ -59,14 +57,10 @@
   programs.hyprlock.enable = true;
   programs.waybar.enable = true;
   programs.brave.enable = true;
-  programs.kitty.enable = true;
   programs.vscode.enable = true;
   programs.google-chrome.enable = true;
 
   services.swaync.enable = true;
   services.hypridle.enable = true;
   services.gnome-keyring.enable = true;
-
-  # This is very machine-specific since it references monitors, it should probably be pulled in explicitly on the machine config.
-  services.hyprpaper.enable = false;
 }

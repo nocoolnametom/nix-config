@@ -3,6 +3,7 @@
 # to /etc/nixos/configuration.nix instead.
 {
   config,
+  configVars,
   lib,
   pkgs,
   modulesPath,
@@ -53,7 +54,7 @@
     neededForBoot = true; # required
   };
 
-  fileSystems."/persist" = {
+  fileSystems."${configVars.persistFolder}" = {
     device = "/dev/mapper/root";
     fsType = "btrfs";
     options = [

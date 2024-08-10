@@ -8,12 +8,12 @@
 #
 ###############################################################################
 
-{ inputs, ... }:
+{ inputs, configVars, ... }:
 
 {
   # this folder is where the files will be stored (don't put it in tmpfs)
   # The directive for if persistence is enabled is in the system-level file, if used
-  environment.persistence."/persist".users.tdoggett = {
+  environment.persistence."${configVars.persistFolder}".users.tdoggett = {
     directories = [
       # "Documents"
       "Downloads"
@@ -27,6 +27,7 @@
       ".config/Code"
       ".config/discord"
       ".config/jellyfin.org"
+      ".config/Proton Mail"
       ".config/obsidian"
       ".config/Slack"
       ".config/vlc"
@@ -35,6 +36,7 @@
       ".mozilla"
       # ".config/Yubico"
       ".cache/czkawka"
+      ".vscode"
       {
         directory = ".gnupg";
         mode = "0700";

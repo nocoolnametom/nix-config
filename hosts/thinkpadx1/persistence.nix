@@ -4,13 +4,13 @@
 #
 ###############################################################################
 
-{ inputs, ... }:
+{ inputs, configVars, ... }:
 
 {
   imports = [ inputs.impermanence.nixosModules.impermanence ];
 
   # this folder is where the files will be stored (don't put it in tmpfs)
-  environment.persistence."/persist" = {
+  environment.persistence."${configVars.persistFolder}" = {
     enable = true;
     hideMounts = true;
     directories = [

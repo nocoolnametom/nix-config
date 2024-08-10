@@ -51,9 +51,6 @@
 
         border_size = "1";
 
-        "col.active_border" = "rgba(00ff99ee)";
-        "col.inactive_border" = "rgba(595959aa)";
-
         # Set to true enable resizing windows by clicking and dragging on borders and gaps
         resize_on_border = "true";
 
@@ -63,6 +60,7 @@
         layout = "dwindle"; # dwindle, hy3
       };
 
+      # Some decoration is handled by the stylix module
       decoration = {
         rounding = "5";
 
@@ -73,7 +71,6 @@
         drop_shadow = "true";
         shadow_range = "4";
         shadow_render_power = "3";
-        "col.shadow" = "rgba(1a1a1aee)";
 
         # https://wiki.hyprland.org/Configuring/Variables/#blur
         blur = {

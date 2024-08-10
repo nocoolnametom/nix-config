@@ -11,33 +11,31 @@
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    home-manager = {
-      url = "github:nix-community/home-manager/release-24.05";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    home-manager.inputs.nixpkgs.follows = "nixpkgs";
+
+    darwin.url = "github:LnL7/nix-darwin";
+    darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     #################### Utilities ####################
 
     # Declarative partitioning and formatting
-    disko = {
-      url = "github:nix-community/disko";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    disko.url = "github:nix-community/disko";
+    disko.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Styling for Visual Applications
+    stylix.url = "github:danth/stylix";
 
     # Secrets management. See ./docs/secretsmgmt.md
-    sops-nix = {
-      url = "github:Mic92/sops-nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    sops-nix.url = "github:Mic92/sops-nix";
+    sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     #################### Personal Repositories ####################
 
     # Private secrets repo.  See ./docs/secretsmgmt.md
     # Authenticate via ssh and use shallow clone
-    nix-secrets = {
-      url = "git+ssh://git@github.com/nocoolnametom/nix-secrets.git?ref=main&shallow=1";
-      flake = false;
-    };
+    nix-secrets.url = "git+ssh://git@github.com/nocoolnametom/nix-secrets.git?ref=main&shallow=1";
+    nix-secrets.flake = false;
   };
 
   outputs =
@@ -47,7 +45,9 @@
       impermanence,
       hardware,
       home-manager,
+      darwin,
       disko,
+      stylix,
       sops-nix,
       nix-secrets,
       ...
@@ -56,7 +56,7 @@
       inherit (self) outputs;
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux"
-        #"aarch64-darwin"
+        "aarch64-darwin"
       ];
       inherit (nixpkgs) lib;
       configVars = import ./vars { inherit inputs lib; };
