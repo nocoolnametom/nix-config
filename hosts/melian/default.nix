@@ -1,7 +1,7 @@
 ###############################################################################
 #
-#  Thinkpadx1 - Laptop
-#  NixOS running on Lenovo Thinkpad X1 Extreme 1st Generation
+#  Melian - Laptop
+#  NixOS running on Asus Zenbook 13 UX331U Utrabook
 #
 ###############################################################################
 
@@ -19,7 +19,8 @@
       ./hardware-configuration.nix
 
       ########################## Hardware Modules ###############################
-      inputs.hardware.nixosModules.lenovo-thinkpad-x1-extreme
+      inputs.hardware.nixosModules.asus-zenbook-ux371
+      # Double-check this? There's no other zenbook module, but this is a different model
 
       ########################### Impermanence ##################################
       ./persistence.nix
@@ -27,7 +28,7 @@
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix
 
-      #TODO move thinkpadx1 to disko
+      #TODO move melian to disko
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################
@@ -50,12 +51,12 @@
 
       #################### Users to Create ####################
       "hosts/common/users/tdoggett"
-      "home/tdoggett/thinkpadx1/persistence.nix"
+      "home/tdoggett/melian/persistence.nix"
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
-    hostName = "thinkpadx1";
+    hostName = "melian";
     networkmanager.enable = true;
     enableIPv6 = true;
   };
