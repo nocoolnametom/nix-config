@@ -16,7 +16,7 @@
   wayland.windowManager.hyprland.settings.monitor = [
     # Falback for all monitors already set up, named monitors go here
     # "name,resolution,position,scale"
-    # "desc:Chimei Innolux Corporation 0x15E8,preferred,auto,1" # TODO Laptop screen
+    "desc:AU Optronics 0x582D,preferred,auto,1" # Laptop screen
   ];
 
   services.gpg-agent.enable = true;
