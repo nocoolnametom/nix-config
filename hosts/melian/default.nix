@@ -63,8 +63,8 @@
 
   # Stylix wallpaper
   stylix.image = pkgs.fetchurl {
-    url = "https://www.pixelstalk.net/wp-content/uploads/images8/A-nyugalom-sarka-HD-Backgrounds-Green.jpg";
-    sha256 = "sha256-sYaK25CuA9EjKJWl3bSJwd3zZypIrx9jx7lepAIjFV0=";
+    url = "https://codeberg.org/exorcist/wallpapers/raw/branch/master/gruvbox/cottage.jpg";
+    sha256 = "sha256-NUDGJ13fF+0AZAFcN6HoiuaPhewsfwQ65FRXvuB7rKo=";
   };
   #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
