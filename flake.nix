@@ -114,6 +114,15 @@
             ./hosts/thinkpadx1
           ];
         };
+        # Asus Zenbook 13 Laptop
+        melian = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/melian
+          ];
+        };
       };
     };
 }
