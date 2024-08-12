@@ -13,20 +13,21 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a0aa-44357308117d";
+  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/9839604a-3e2e-4833-83ef-ce0dc7206aa6";
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"
-    "nvme"
+    "ahci"
     "usb_storage"
     "sd_mod"
+    "rtsx_pci_sdmmc"
   ];
   boot.initrd.kernelModules = [ ];
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-partuuid/65ce1a7e-f179-4d04-b1e4-0069543f9372";
+    device = "/dev/disk/by-partuuid/70b01ab1-7657-4878-baa8-a3314746f5ae";
     fsType = "vfat";
   };
 
@@ -88,7 +89,7 @@
 
   swapDevices = [
     {
-      device = "/dev/disk/by-partuuid/ddaa188d-4327-4648-8f99-3107ab10d351";
+      device = "/dev/disk/by-partuuid/8c970c87-5bc2-4c5e-ac1b-d8ebfe5681b1";
       randomEncryption.enable = true;
     }
   ];
@@ -98,8 +99,8 @@
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
   networking.useDHCP = lib.mkDefault true;
-  # networking.interfaces.enp0s31f6.useDHCP = lib.mkDefault true;
-  # networking.interfaces.wlp0s20f3.useDHCP = lib.mkDefault true;
+  # networking.interfaces.wlp2s0.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
