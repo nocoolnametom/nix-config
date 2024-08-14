@@ -67,7 +67,7 @@
     sha256 = "sha256-NUDGJ13fF+0AZAFcN6HoiuaPhewsfwQ65FRXvuB7rKo=";
   };
   #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
+  #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
 
   # Auto-login through Greetd and TuiGreet to Hyprland
   autoLogin.enable = true;
