@@ -17,9 +17,11 @@ let
   options = let
     # this line prevents hanging on network split
     automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
-    in [ "${automount_opts},credentials=/etc/nixos/smb-secrets,file_mode=0777,dir_mode=0777" ];
+    in [ "${automount_opts},credentials=${config.sops.secrets."bert-smb-secrets".path},file_mode=0777,dir_mode=0777" ];
 };
 in {
+  sops.secrets."bert-smb-secrets" = { };
+
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   boot.initrd.availableKernelModules = [
