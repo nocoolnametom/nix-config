@@ -1,0 +1,5 @@
+{
+  services.maestral = {
+    enable = true;
+  };
+}

@@ -1,0 +1,6 @@
+{ ... }:
+{
+  services.stashapp = {
+    enable = true;
+  };
+}

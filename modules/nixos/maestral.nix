@@ -47,6 +47,8 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    environment.systemPackages = [ cfg.package ];
+
     systemd.services.maestral = {
       enable = true;
       description = "Maestral daemon";
