@@ -27,25 +27,18 @@ in
         options = {
           certificate = mkOption {
             description = "Path to file containing certificate of VPN.";
-            type = path;
+            type = str;
           };
 
           tls-file = mkOption {
             default = null;
             description = "Path to file containing certificate of VPN.";
-            type = path;
+            type = str;
           };
 
-          credentials = {
-            username = mkOption {
-              description = "Path to file containing username to authenticate with VPN.";
-              type = path;
-            };
-
-            password = mkOption {
-              description = "Path to file containing password to authenticate with VPN.";
-              type = path;
-            };
+          credentialsFile = mkOption {
+            description = "Path to file containing username and password (first username then password on their own lines) to authenticate with VPN.";
+            type = str;
           };
 
           dns = {
@@ -439,7 +432,6 @@ in
         reneg-sec 0
 
         remote-cert-tls server
-        auth-user-pass
         fast-io
         script-security 2
 
@@ -539,11 +531,9 @@ in
       # Set up VPN service.
       services.openvpn.servers = mapAttrs (name: srv: {
         autoStart = true;
-        authUserPass = {
-          username = lib.removeSuffix "\n" (builtins.readFile srv.credentials.username);
-          password = lib.removeSuffix "\n" (builtins.readFile srv.credentials.password);
-        };
-        config = mkOpenVpnConfig name srv;
+        config = (mkOpenVpnConfig name srv) + ''
+          auth-user-pass ${srv.credentialsFile}
+        '';
         up = mkOpenVpnUpScript name srv;
         updateResolvConf = true;
       }) cfg.servers;

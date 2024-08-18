@@ -7,7 +7,7 @@
 }:
 
 let
-  cfg = config.services.sauron-sync;
+  cfg = config.services.sauronsync;
   sauronEquivalenceMoveScript =
     {
       local,
@@ -17,7 +17,7 @@ let
     pkgs.writeShellScriptBin "equivalenceMoveScript.sh" ''
       # Define variables
       local_directory="${local}"
-      remote_user="${cf.remoteUser}"
+      remote_user="${cfg.remoteUser}"
       remote_host="${cfg.ip}"
       remote_directory="${remoteSource}"
       remote_backup_directory="${remoteDest}"
@@ -65,7 +65,7 @@ let
     '';
 in
 {
-  options.services.sauron-sync = with lib; {
+  options.services.sauronsync = with lib; {
     enable = mkEnableOption "Video Sync from Sauron Windows PC";
 
     ip = mkOption {
@@ -123,7 +123,7 @@ in
       let
         script = pkgs.writeShellScriptBin "syncFiles.sh" ''
           mkdir -p ${cfg.localDestDir}/_unpack/
-          ${pkgs.rsync}/bin/rsync -avz -e "${pkgs.openssh}/bin/ssh -i ${cfg.sshPirvateKey}" ${cfg.remoteUser}@${cfg.ip}:${cfg.remoteSourceDir}/ ${cfg.localDestDir}/_unpack/
+          ${pkgs.rsync}/bin/rsync -avz -e "${pkgs.openssh}/bin/ssh -i ${cfg.sshPrivateKey}" ${cfg.remoteUser}@${cfg.ip}:${cfg.remoteSourceDir}/ ${cfg.localDestDir}/_unpack/
         '';
       in
       {

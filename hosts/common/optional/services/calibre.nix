@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, config, ... }:
 let
   calibreLibrary = "/media/g_drive/Calibre";
 in

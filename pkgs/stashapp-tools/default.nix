@@ -11,7 +11,7 @@
   p.lxml
   p.progressbar
   p.requests
-  # youtube_dl
+  # yt-dlp
   (p.buildPythonPackage rec {
     pname = "stashapp-tools";
     version = "0.2.49";

@@ -3,12 +3,9 @@
   # Per-User VPN Setup
   services.per-user-vpn.enable = true;
   services.per-user-vpn.servers."protonvpn" = {
-    certificate = config.sops.secrets."proton-vpn/bert/cert".path;
-    tls-file = config.sops.secrets."proton-vpn/bert/tls-auth".path;
-    credentials = {
-      username = config.sops.secrets."proton-vpn/bert/username".path;
-      password = config.sops.secrets."proton-vpn/bert/password".path;
-    };
+    certificate = "${builtins.toString config.sops.secrets."proton-vpn/bert/cert".path}";
+    tls-file = "${builtins.toString config.sops.secrets."proton-vpn/bert/tls-auth".path}";
+    credentialsFile = "${builtins.toString config.sops.secrets."proton-vpn/bert/credentials".path}";
     mark = "0x1";
     protocol = "udp";
     remotes = [

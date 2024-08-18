@@ -1,4 +1,4 @@
-{ ... }:
+{ pkgs, ... }:
 {
   # Note that I've set the url prefix in the sickgear config to be "/tv" to
   # aid in reverse proxying so you'll have to hit this at

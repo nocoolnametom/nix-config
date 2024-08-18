@@ -70,11 +70,11 @@
 
   environment.systemPackages = with pkgs; [
     fuse
-    glibLocales
+    glibcLocales
     gnumake
     nodejs
     p7zip
-    youtube-dl
+    yt-dlp
     samba
     screen
     unrar
@@ -85,7 +85,7 @@
   ];
 
   # Use the systemd-boot EFI boot loader.
-  boot.tmp.cleanupOnBoot = true;
+  boot.tmp.cleanOnBoot = true;
   boot.tmp.useTmpfs = true;
   boot.initrd.systemd.enable = true;
 
