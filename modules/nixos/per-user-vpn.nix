@@ -174,10 +174,8 @@ in
                   user,
                 }:
                 ''
-                  ${command} -t mangle -A ${chains.output} --dest "${networks}" -p udp \
-                    --dport domain -m owner --uid-owner ${user} -j MARK --set-mark ${srv.mark}
-                  ${command} -t mangle -A ${chains.output} --dest "${networks}" -p tcp \
-                    --dport domain -m owner --uid-owner ${user} -j MARK --set-mark ${srv.mark}
+                  ${command} -t mangle -A ${chains.output} --dest "${networks}" -p udp --dport domain -m owner --uid-owner ${user} -j MARK --set-mark ${srv.mark}
+                  ${command} -t mangle -A ${chains.output} --dest "${networks}" -p tcp --dport domain -m owner --uid-owner ${user} -j MARK --set-mark ${srv.mark}
                 '';
             in
             ''
@@ -186,16 +184,13 @@ in
               # multiple destinations and negate that check (i.e. `! --dest W.X.Y.Z/F,A.B.C.D/G`
               # is disallowed) and if these checks were split up then all but one would always be
               # triggered.
-              ip46tables -t mangle -A ${chains.output} ! -o lo -m owner --uid-owner ${user} \
-                -j MARK --set-mark ${srv.mark}
+              ip46tables -t mangle -A ${chains.output} ! -o lo -m owner --uid-owner ${user} -j MARK --set-mark ${srv.mark}
 
               # Unmark outgoing packets from the VPN user when being sent to a private network.
               # This means that hosts on the local network will still be able to browse to any web
               # services without being blocked.
-              iptables -t mangle -A ${chains.output} --dest "${ipv4Networks}" \
-                -m owner --uid-owner ${user} -j MARK --xor-mark ${srv.mark}
-              ip6tables -t mangle -A ${chains.output} --dest "${ipv6Networks}" \
-                -m owner --uid-owner ${user} -j MARK --xor-mark ${srv.mark}
+              iptables -t mangle -A ${chains.output} --dest "${ipv4Networks}" -m owner --uid-owner ${user} -j MARK --xor-mark ${srv.mark}
+              ip6tables -t mangle -A ${chains.output} --dest "${ipv6Networks}" -m owner --uid-owner ${user} -j MARK --xor-mark ${srv.mark}
 
               # Re-mark packets on the private network if they are DNS (forcing DNS to go through
               # the VPN).
@@ -249,12 +244,8 @@ in
                   user,
                 }:
                 ''
-                  ${command} -t nat -A ${chains.output} --dest "${networks}" \
-                    -p ${protocol} --dport domain -m owner --uid-owner ${user} -j DNAT \
-                    --to-destination ${dns.primary}
-                  ${command} -t nat -A ${chains.output} --dest "${networks}" \
-                    -p ${protocol} --dport domain -m owner --uid-owner ${user} -j DNAT \
-                    --to-destination ${dns.secondary}
+                  ${command} -t nat -A ${chains.output} --dest "${networks}" -p ${protocol} --dport domain -m owner --uid-owner ${user} -j DNAT --to-destination ${dns.primary}
+                  ${command} -t nat -A ${chains.output} --dest "${networks}" -p ${protocol} --dport domain -m owner --uid-owner ${user} -j DNAT --to-destination ${dns.secondary}
                 '';
             in
             builtins.concatStringsSep "\n" (builtins.map redirectDnsPacketForUser inputs);
@@ -262,10 +253,8 @@ in
           # Accept packets from the VPN user that are on the local interface or VPN interface.
           acceptAllLocalOrVpnInterface = user: ''
             # Accept all outgoing packets on `lo` and the VPN interface from the VPN user.
-            ip46tables -t filter -A ${chains.output} -o lo -m owner --uid-owner ${user} \
-              -j ACCEPT
-            ip46tables -t filter -A ${chains.output} -o tun-${name} -m owner \
-              --uid-owner ${user} -j ACCEPT
+            ip46tables -t filter -A ${chains.output} -o lo -m owner --uid-owner ${user} -j ACCEPT
+            ip46tables -t filter -A ${chains.output} -o tun-${name} -m owner --uid-owner ${user} -j ACCEPT
           '';
         in
         ''
@@ -313,10 +302,8 @@ in
           ip46tables -t nat -A POSTROUTING -j ${chains.postrouting}
 
           # Accept existing connections.
-          ip46tables -t filter -A ${chains.input} -m conntrack --ctstate RELATED,ESTABLISHED \
-            -j ACCEPT
-          ip46tables -t filter -A ${chains.output} -m conntrack --ctstate RELATED,ESTABLISHED \
-            -j ACCEPT
+          ip46tables -t filter -A ${chains.input} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
+          ip46tables -t filter -A ${chains.output} -m conntrack --ctstate RELATED,ESTABLISHED -j ACCEPT
 
           # Packets will go through the mangle table first..
 
@@ -353,12 +340,7 @@ in
           dir = pkgs.writeScriptBin name ''
             #! ${pkgs.runtimeShell} -e
             # Flush routes currently in the table.
-            HAS_TABLE="$(${pkgs.iproute}/bin/ip route show table all | \
-              ${pkgs.gnugrep}/bin/grep "table" | \
-              ${pkgs.gnused}/bin/sed 's/.*\(table.*\)/\1/g' | \
-              ${pkgs.gawk}/bin/awk '{ print $2 }' | \
-              ${pkgs.coreutils}/bin/sort -u | \
-              ${pkgs.gnugrep}/bin/grep -c "${srvName}" || true)"
+            HAS_TABLE="$(${pkgs.iproute}/bin/ip route show table all | ${pkgs.gnugrep}/bin/grep "table" | ${pkgs.gnused}/bin/sed 's/.*\(table.*\)/\1/g' | ${pkgs.gawk}/bin/awk '{ print $2 }' | ${pkgs.coreutils}/bin/sort -u | ${pkgs.gnugrep}/bin/grep -c "${srvName}" || true)"
             if [[ $HAS_TABLE == "1" ]]; then
               ${pkgs.iproute}/bin/ip route flush table ${builtins.toString srv.routeTableId}
             fi
@@ -367,30 +349,22 @@ in
             # priority order (lowest first - see `ip rule list`) and if no routes within match,
             # then the next rule is checked. This rule will be the second rule (the first being
             # local packets) and will apply for the marked packets.
-            HAS_RULE="$(${pkgs.iproute}/bin/ip rule list | \
-              ${pkgs.gnugrep}/bin/grep -c ${srv.mark} || true)"
+            HAS_RULE="$(${pkgs.iproute}/bin/ip rule list | ${pkgs.gnugrep}/bin/grep -c ${srv.mark} || true)"
             if [[ $HAS_RULE == "0" ]]; then
-              ${pkgs.iproute}/bin/ip rule add from all fwmark ${srv.mark} \
-                lookup ${builtins.toString srv.routeTableId}
+              ${pkgs.iproute}/bin/ip rule add from all fwmark ${srv.mark} lookup ${builtins.toString srv.routeTableId}
             fi
 
-            HAS_VPN_INTERFACE="$(${pkgs.iproute}/bin/ip -o link show | \
-              ${pkgs.gawk}/bin/awk -F': ' '{print $2}' | \
-              ${pkgs.gnugrep}/bin/grep -c tun-${srvName} || true)"
+            HAS_VPN_INTERFACE="$(${pkgs.iproute}/bin/ip -o link show | ${pkgs.gawk}/bin/awk -F': ' '{print $2}' | ${pkgs.gnugrep}/bin/grep -c tun-${srvName} || true)"
             if [[ $HAS_VPN_INTERFACE == "1" ]]; then
-              HAS_IP="$(${pkgs.iproute}/bin/ip addr show tun-${srvName} | \
-                ${pkgs.gnugrep}/bin/grep -cPo '(?<= inet )([0-9\.]+) ' || true)"
+              HAS_IP="$(${pkgs.iproute}/bin/ip addr show tun-${srvName} | ${pkgs.gnugrep}/bin/grep -cPo '(?<= inet )([0-9\.]+) ' || true)"
               if [[ $HAS_IP == "1" ]]; then
-                VPN_IP="$(${pkgs.iproute}/bin/ip addr show tun-${srvName} | \
-                  ${pkgs.gnugrep}/bin/grep -Po '(?<= inet )([0-9\.]+) ')"
+                VPN_IP="$(${pkgs.iproute}/bin/ip addr show tun-${srvName} | ${pkgs.gnugrep}/bin/grep -Po '(?<= inet )([0-9\.]+) ')"
 
-                ${pkgs.iproute}/bin/ip route replace default via $VPN_IP \
-                  table ${builtins.toString srv.routeTableId}
+                ${pkgs.iproute}/bin/ip route replace default via $VPN_IP table ${builtins.toString srv.routeTableId}
               fi
             fi
 
-            ${pkgs.iproute}/bin/ip route append default via 127.0.0.1 dev lo \
-              table ${builtins.toString srv.routeTableId}
+            ${pkgs.iproute}/bin/ip route append default via 127.0.0.1 dev lo table ${builtins.toString srv.routeTableId}
 
             ${pkgs.iproute}/bin/ip route flush cache
           '';
@@ -451,8 +425,7 @@ in
         # Workaround: OpenVPN will run `ip addr add` to assign an IP to the interface. However,
         # sometimes this won't do anything. In order to make sure that we always get an IP, sleep
         # and then run the command again.
-        HAS_IP="$(${pkgs.iproute}/bin/ip addr show tun-${name} | \
-          ${pkgs.gnugrep}/bin/grep -c '$4' || true)"
+        HAS_IP="$(${pkgs.iproute}/bin/ip addr show tun-${name} | ${pkgs.gnugrep}/bin/grep -c '$4' || true)"
         if [[ $HAS_IP == "0" ]]; then
           sleep 5
           ${pkgs.iproute}/bin/ip addr add dev tun-${name} local $4 peer $5
@@ -531,9 +504,11 @@ in
       # Set up VPN service.
       services.openvpn.servers = mapAttrs (name: srv: {
         autoStart = true;
-        config = (mkOpenVpnConfig name srv) + ''
-          auth-user-pass ${srv.credentialsFile}
-        '';
+        config =
+          (mkOpenVpnConfig name srv)
+          + ''
+            auth-user-pass ${srv.credentialsFile}
+          '';
         up = mkOpenVpnUpScript name srv;
         updateResolvConf = true;
       }) cfg.servers;

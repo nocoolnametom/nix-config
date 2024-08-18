@@ -71,13 +71,12 @@ stdenv.mkDerivation rec {
 
   installPhase = ''
     mkdir -p $out/bin
-    makeWrapper "${executable}" "$out/bin/stashapp" \
-      --prefix PATH ":" "${
-        lib.makeBinPath [
-          ffmpeg
-          stashapp-tools
-        ]
-      }"
+    makeWrapper "${executable}" "$out/bin/stashapp" --prefix PATH ":" "${
+      lib.makeBinPath [
+        ffmpeg
+        stashapp-tools
+      ]
+    }"
   '';
 
   meta = {
