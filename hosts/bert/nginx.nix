@@ -151,7 +151,7 @@
 
         # Redirect all but OPDS routes to final slashes
         "~ ^/(calibre|deluge|flood|jellyfin|nzbget|stash|tv)$".return = "302 $scheme://$host$request_uri/";
-        "/".root = homerPkg;
+        "/".root = pkgs.homer;
         "= /assets/config.yml".alias = pkgs.writeText "homerConfig.yml" (
           builtins.toJSON {
             title = "Dashboard";

@@ -28,6 +28,12 @@ in
     };
 
     secrets = {
+      "proton-vpn/bert/cert" = { };
+      "proton-vpn/bert/tls-auth" = { };
+      "proton-vpn/bert/credentials" = { };
+      "bert-stashapp-api-key" = { };
+      "ddclient-password" = { };
+
       # For home-manager a separate age key is used to decrypt secrets and must be placed onto the host. This is because
       # the user doesn't have read permission for the ssh service private key. However, we can bootstrap the age key from
       # the secrets decrypted by the host key, which allows home-manager secrets to work without manually copying over

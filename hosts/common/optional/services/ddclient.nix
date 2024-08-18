@@ -3,10 +3,9 @@
   services.ddclient = {
     enable = true;
     ssl = true;
-    ipv6 = true;
     protocol = "googledomains";
     username = "jIuresUnUC1pBaK1";
-    passwordFile = config.sops.secrets."ddclient-password".path;
+    passwordFile = "${config.sops.secrets."ddclient-password".path}";
     domains = [ "home.nocoolnametom.com" ];
   };
 }

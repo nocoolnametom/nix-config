@@ -104,6 +104,9 @@
       #################### NixOS Configurations ####################
       #
       # Building configurations available through `just rebuild` or `nixos-rebuild --flake .#hostname`
+      #
+      # You can dry-run any machine's config on another machine with the flake already in `/etc/nixos`
+      # via `nixos-rebuild dry-build --flake .#hostname`
 
       nixosConfigurations = {
         # Thinkpad X1 Carbon Laptop

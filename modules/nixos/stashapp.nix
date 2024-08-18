@@ -78,7 +78,7 @@ in
         openssl
         sqlite
         chromium
-        youtube-dl
+        yt-dlp
         cfg.tools-package
         cfg.ffmpeg-package
       ];
@@ -130,7 +130,7 @@ in
         (lib.attrsets.setAttrByPath [
           cfg.user
           "packages"
-        ] ([ cfg.package ] ++ cfg.tools-package))
+        ] [ cfg.package cfg.tools-package ])
       ];
 
       users.groups = lib.optionalAttrs (cfg.group == "stashapp") { stashapp = { }; };
