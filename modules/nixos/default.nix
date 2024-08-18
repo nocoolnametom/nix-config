@@ -7,4 +7,5 @@
   maestral = import ./maestral.nix;
   per-user-vpn = import ./per-user-vpn.nix;
   stashapp = import ./stashapp.nix;
+  sauronsync = import ./sauronsync.nix;
 }

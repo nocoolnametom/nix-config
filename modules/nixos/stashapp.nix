@@ -77,6 +77,8 @@ in
         bashInteractive
         openssl
         sqlite
+        chromium
+        youtube-dl
         cfg.tools-package
         cfg.ffmpeg-package
       ];

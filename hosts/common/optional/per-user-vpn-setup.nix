@@ -1,0 +1,28 @@
+{ config, ... }:
+{
+  # Per-User VPN Setup
+  services.per-user-vpn.enable = true;
+  services.per-user-vpn.servers."protonvpn" = {
+    certificate = config.sops.secrets."proton-vpn/bert/cert".path;
+    tls-file = config.sops.secrets."proton-vpn/bert/tls-auth".path;
+    credentials = {
+      username = config.sops.secrets."proton-vpn/bert/username".path;
+      password = config.sops.secrets."proton-vpn/bert/password".path;
+    };
+    mark = "0x1";
+    protocol = "udp";
+    remotes = [
+      "node-us-118.protonvpn.net 1194"
+      "node-us-118.protonvpn.net 5060"
+      "node-us-118.protonvpn.net 4569"
+      "node-us-118.protonvpn.net 51820"
+      "node-us-118.protonvpn.net 80"
+    ];
+
+    routeTableId = 42;
+    users = [
+      config.services.transmission.user
+      config.services.deluge.user
+    ];
+  };
+}

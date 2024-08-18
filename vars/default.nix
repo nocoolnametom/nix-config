@@ -10,4 +10,8 @@
   gitLabEmail = "tom@nocoolnametom.com";
   # workEmail = inputs.nix-secrets.work-email;
   persistFolder = "/persist";
+  bertIpAddress = "192.168.0.20";
+  sauronIpAddress = "192.168.0.168";
+  invokeaiPort = "9090";
+  cirdanIpAddress = "192.168.0.45";
 }
