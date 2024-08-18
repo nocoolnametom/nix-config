@@ -12,15 +12,22 @@
 
 let
   cirdanSmbConfig = name: {
-  device = "//${configVars.cirdanIpAddress}/${name}";
-  fsType = "cifs";
-  options = let
-    # this line prevents hanging on network split
-    automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
-    in [ "${automount_opts},credentials=${config.sops.secrets."bert-smb-secrets".path},file_mode=0777,dir_mode=0777" ];
-};
-in {
-  sops.secrets."bert-smb-secrets" = { 
+    device = "//${configVars.cirdanIpAddress}/${name}";
+    fsType = "cifs";
+    options =
+      let
+        # this line prevents hanging on network split
+        automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
+      in
+      [
+        "${automount_opts},credentials=${
+          config.sops.secrets."bert-smb-secrets".path
+        },file_mode=0777,dir_mode=0777"
+      ];
+  };
+in
+{
+  sops.secrets."bert-smb-secrets" = {
     neededForUsers = true;
   };
 

@@ -1,23 +1,34 @@
-{ pkgs, lib, config, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 let
+  rndb = "rndb.net";
+  hdb = "hdb.org";
   updateStashScript =
     paths:
-    pkgs.writeShellScriptBin "updateStash.sh" ''
-          ${pkgs.curl}/bin/curl --silent --output /dev/null -X POST \
-            -H "ApiKey: $(cat ${config.sops.secrets."bert-stashapp-api-key".path})" \
-            -H "Content-Type: application/json" \
-            --data-raw $'{ "operationName": "MetadataIdentify", "variables": { "input": { "sources": [{ "source": { "stash_box_endpoint": "https://stashdb.org/graphql" }}, {"source": { "stash_box_en
-      dpoint": "https://theporndb.net/graphql" }}, {"source": {"scraper_id": "builtin_autotag" }}], "options": { "fieldOptions": [{ "field": "title", "strategy": "OVERWRITE" }, { "field": "studio", 
-      "strategy": "MERGE", "createMissing": true }, { "field": "performers", "strategy": "MERGE", "createMissing": true }, { "field": "tags", "strategy": "MERGE", "createMissing": true }], "setCover
-      Image": true, "setOrganized": false, "includeMalePerformers": false }, "paths": [${
-        lib.concatMapStringsSep ", " (x: "\"${x}\"") paths
-      }] } }, "query": "mutation MetadataIdentify($input: Identif
-      yMetadataInput\u0021) { metadataIdentify(input: $input) } "}' \
-            $NZBPO_STASHHOST:$NZBPO_STASHPORT/graphql ;
-    '';
+    pkgs.writeShellScriptBin "updateStash.sh" (
+      let
+        pathsString = lib.concatMapStringsSep ", " (x: "\"${x}\"") paths;
+      in
+      ''
+        ${pkgs.curl}/bin/curl --silent --output /dev/null -X POST \
+          -H "ApiKey: $(cat ${config.sops.secrets."bert-stashapp-api-key".path})" \
+          -H "Content-Type: application/json" \
+          --data-raw $'{ "operationName": "MetadataIdentify", "variables": { "input": { "sources": [{ "source": { "stash_box_endpoint": "https://stas${hdb}/graphql" }}, {"source": { "stash_box_endpoint": "https://thepo${rndb}/graphql" }}, {"source": {"scraper_id": "builtin_autotag" }}], "options": { "fieldOptions": [{ "field": "title", "strategy": "OVERWRITE" }, { "field": "studio", "strategy": "MERGE", "createMissing": true }, { "field": "performers", "strategy": "MERGE", "createMissing": true }, { "field": "tags", "strategy": "MERGE", "createMissing": true }], "setCoverImage": true, "setOrganized": false, "includeMalePerformers": false }, "paths": [${pathsString}] } }, "query": "mutation MetadataIdentify($input: IdentifyMetadataInput\u0021) { metadataIdentify(input: $input) } "}' \
+          $NZBPO_STASHHOST:$NZBPO_STASHPORT/graphql ;
+      ''
+    );
 in
 {
   sops.secrets."bert-stashapp-api-key" = { };
+  sops.secrets."bert-stashapp-api-key-for-nzbget" = {
+    key = "bert-stashapp-api-key";
+    owner = config.services.nzbget.user;
+    group = config.services.nzbget.group;
+  };
   # NzbGet Server
   services.nzbget.enable = true;
   systemd.services.nzbget.path = with pkgs; [
@@ -47,9 +58,6 @@ in
         # Once a file has finished downloading we
         # want to have Stash start scanning it
 
-        # StashApp API Key
-        #StashKey=foobar
-
         # StashApp Host
         #StashHost=localhost
 
@@ -62,7 +70,7 @@ in
         ###########################################
         StashPath="$NZBOP_DESTDIR/$NZBPP_CATEGORY";
         ${pkgs.curl}/bin/curl --silent --output /dev/null -X POST \
-          -H "ApiKey: $NZBPO_STASHKEY" \
+          -H "ApiKey: $(cat ${config.sops.secrets."bert-stashapp-api-key-for-nzbget".path})" \
           -H "Content-Type: application/json" \
           --data "{\"query\":\"mutation{metadataScan(input:{paths:[\\\"$StashPath\\\"],scanGenerateCovers:true,scanGeneratePreviews:true,scanGenerateSprites:true,scanGeneratePhashes:true,scanGenerateThumbnails:true})}\"}" \
           $NZBPO_STASHHOST:$NZBPO_STASHPORT/graphql && exit 93 || exit 94;

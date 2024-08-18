@@ -127,10 +127,16 @@ in
             createHome = true;
           };
         })
-        (lib.attrsets.setAttrByPath [
-          cfg.user
-          "packages"
-        ] [ cfg.package cfg.tools-package ])
+        (lib.attrsets.setAttrByPath
+          [
+            cfg.user
+            "packages"
+          ]
+          [
+            cfg.package
+            cfg.tools-package
+          ]
+        )
       ];
 
       users.groups = lib.optionalAttrs (cfg.group == "stashapp") { stashapp = { }; };
