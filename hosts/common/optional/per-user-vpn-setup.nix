@@ -1,6 +1,9 @@
 { config, ... }:
 {
   # Per-User VPN Setup
+  sops.secrets."proton-vpn/bert/cert" = { };
+  sops.secrets."proton-vpn/bert/tls-auth" = { };
+  sops.secrets."proton-vpn/bert/credentials" = { };
   services.per-user-vpn.enable = true;
   services.per-user-vpn.servers."protonvpn" = {
     certificate = "${builtins.toString config.sops.secrets."proton-vpn/bert/cert".path}";

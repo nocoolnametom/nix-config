@@ -1,5 +1,6 @@
 { config, ... }:
 {
+  sops.secrets."deluge-auth" = { };
   # Deluge Server
   services.deluge.enable = true;
   services.deluge.declarative = false;

@@ -1,5 +1,6 @@
 { config, ... }:
 {
+  sops.secrets."ddclient-password" = { };
   services.ddclient = {
     enable = true;
     ssl = true;

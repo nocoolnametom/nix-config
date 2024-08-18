@@ -17,6 +17,7 @@ let
     '';
 in
 {
+  sops.secrets."bert-stashapp-api-key" = { };
   # NzbGet Server
   services.nzbget.enable = true;
   systemd.services.nzbget.path = with pkgs; [
