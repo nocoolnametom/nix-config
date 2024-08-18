@@ -55,8 +55,9 @@
     let
       inherit (self) outputs;
       forAllSystems = nixpkgs.lib.genAttrs [
-        "x86_64-linux"
-        "aarch64-darwin"
+        "x86_64-linux" # Most other systems
+        "aarch64-linux" # Raspberry Pi 4
+        "aarch64-darwin" # Apple Silicon
       ];
       inherit (nixpkgs) lib;
       configVars = import ./vars { inherit inputs lib; };

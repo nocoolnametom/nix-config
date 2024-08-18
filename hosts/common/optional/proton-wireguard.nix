@@ -2,7 +2,7 @@
 let
   protonWg = {
     ifaceName = "protonWg-bert";
-    privateKey = "MGJaa8OS4WRhQuFxX/H0PCEimE//CQIrBjaFILnQAls=";
+    privateKey = ""; # This config has been removed from Proton, but I still shouldn't share old keys
     address = "10.2.0.2";
     fullAddress = "${protonWg.address}/32";
     dns = "10.2.0.1";
