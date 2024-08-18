@@ -11,7 +11,7 @@
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
-    enable = true;
+    enable = false; # I'm not currently running persistence on the RasPi
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
