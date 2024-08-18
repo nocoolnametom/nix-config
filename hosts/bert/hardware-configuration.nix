@@ -20,7 +20,9 @@ let
     in [ "${automount_opts},credentials=${config.sops.secrets."bert-smb-secrets".path},file_mode=0777,dir_mode=0777" ];
 };
 in {
-  sops.secrets."bert-smb-secrets" = { };
+  sops.secrets."bert-smb-secrets" = { 
+    neededForUsers = true;
+  };
 
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
