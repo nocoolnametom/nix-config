@@ -2,6 +2,9 @@
 {
   stylix.enable = true;
   stylix.polarity = "dark";
+  stylix.cursor.package = pkgs.phinger-cursors;
+  stylix.cursor.name = "phinger-cursors-light";
+  stylix.cursor.size = 24;
   stylix.fonts = {
     serif = {
       package = pkgs.dejavu_fonts;

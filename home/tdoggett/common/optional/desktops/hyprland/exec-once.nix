@@ -6,7 +6,7 @@ let
 in
 {
   wayland.windowManager.hyprland.settings.exec-once = [
-    "${networkmanagerapplet} &"
+    # "${networkmanagerapplet} &"
     "${policykitAgentCmd} &"
   ];
 }

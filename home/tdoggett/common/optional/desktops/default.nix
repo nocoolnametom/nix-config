@@ -49,6 +49,10 @@
     })
   ];
 
+  home.pointerCursor.gtk.enable = true;
+
+  gtk.enable = true;
+
   wayland.windowManager.hyprland.enable = true;
 
   fonts.fontconfig.enable = true;

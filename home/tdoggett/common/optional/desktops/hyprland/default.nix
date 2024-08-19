@@ -9,7 +9,7 @@
   wayland.windowManager.hyprland = {
     systemd.enable = true;
     plugins = [
-      # pkgs.hyprlandPlugins.hypr-dynamic-cursors # In unstable, not 24.05
+      # pkgs.unstable.hyprlandPlugins.hypr-dynamic-cursors # In unstable, not 24.05
       pkgs.hyprlandPlugins.hy3
     ];
     settings = {
@@ -21,8 +21,8 @@
 
       # Environment Variables
       env = [
-        "XCURSOR_SIZE,24"
-        "HYPRCURSOR_SIZE,24"
+        "XCURSOR_SIZE,16"
+        "HYPRCURSOR_SIZE,16"
       ];
 
       # Dynamic Cursors
