@@ -39,6 +39,14 @@
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
+  # To enable hibrenation
+  boot.kernelParams = [ "mem_sleep_default=deep" ]; # suspend to RAW (deep) rather than `s2idle`
+  # suspend-then-hibernate
+  systemd.sleep.extraConfig = ''
+    HibernateDelaySec=30m
+    SuspendState=mem
+  '';
+
   fileSystems."/boot" = {
     device = "/dev/disk/by-partuuid/65ce1a7e-f179-4d04-b1e4-0069543f9372";
     fsType = "vfat";
