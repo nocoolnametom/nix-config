@@ -1,7 +1,7 @@
 ###############################################################################
 #
-#  Thinkpadx1 - Laptop
-#  NixOS running on Lenovo Thinkpad X1 Extreme 1st Generation
+#  Pangolin11 - Laptop
+#  NixOS running on System76 Pangolin11 AMD Laptop
 #
 ###############################################################################
 
@@ -25,7 +25,10 @@
       ./persistence.nix
 
       ############################## Stylix #####################################
-      inputs.stylix.nixosModules.stylix
+      inputs.stylix.nixosModules.stylix # Must also use the config below
+
+      ##################### Cosmic Desktop Enviornment ##########################
+      inputs.nixos-cosmic.nixosModules.default # Must also use the config below
 
       #TODO move pangolin11 to disko
     ]
@@ -37,17 +40,23 @@
       "hosts/common/optional/boot/hibernation.nix"
       "hosts/common/optional/boot/plymouth.nix"
       "hosts/common/optional/boot/silent.nix"
-      "hosts/common/optional/services/greetd.nix"
+      # "hosts/common/optional/services/greetd.nix"
       "hosts/common/optional/services/openssh.nix" # allow remote SSH access
       "hosts/common/optional/services/pipewire.nix" # audio
       "hosts/common/optional/services/printing.nix"
+      "hosts/common/optional/services/flatpak.nix"
       "hosts/common/optional/blinkstick.nix"
-      "hosts/common/optional/light.nix" # Monitor brightness
-      "hosts/common/optional/steam.nix"
-      "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
+      "hosts/common/optional/cosmic.nix" # System76 Cosmis Desktop Environment
       "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
-      "hosts/common/optional/yubikey.nix"
+      # "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
+      "hosts/common/optional/light.nix" # Monitor brightness
+      # "hosts/common/optional/plasma6.nix"
+      # "hosts/common/optional/sddm.nix"
+      "hosts/common/optional/steam.nix"
       "hosts/common/optional/stylix.nix" # System-wide styling
+      # "hosts/common/optional/sway.nix"
+      "hosts/common/optional/yubikey.nix"
+      # "hosts/common/optional/xfce.nix"
 
       #################### Users to Create ####################
       "hosts/common/users/tdoggett"
@@ -59,6 +68,30 @@
     hostName = "pangolin11";
     networkmanager.enable = true;
     enableIPv6 = true;
+    firewall = {
+      allowedTCPPortRanges = [
+        {
+          # KDE Connect
+          from = 1714;
+          to = 1764;
+        }
+        {
+          # mDNS
+          from = 5353;
+          to = 5353;
+        }
+      ];
+      allowedUDPPorts = [
+        51820 # Wireguard
+      ];
+      allowedUDPPortRanges = [
+        {
+          # KDE Connect
+          from = 1714;
+          to = 1764;
+        }
+      ];
+    };
   };
 
   # Stylix wallpaper
@@ -70,8 +103,8 @@
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
 
   # Auto-login through Greetd and TuiGreet to Hyprland
-  autoLogin.enable = true;
-  autoLogin.username = "tdoggett";
+  # autoLogin.enable = true;
+  # autoLogin.username = "tdoggett";
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
@@ -82,6 +115,10 @@
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
   services.blueman.enable = true;
+
+  # Enable Powertop
+  powerManagement.enable = true;
+  powerManagement.powertop.enable = true; # Should work fine with system76-power
 
   # Security
   security.sudo.wheelNeedsPassword = false;

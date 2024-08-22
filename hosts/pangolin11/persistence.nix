@@ -26,6 +26,7 @@
     ];
     files = [
       "/etc/machine-id"
+      "/etc/machine-info"
       "/etc/nix/id_rsa"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
       "/var/lib/logrotate.status"

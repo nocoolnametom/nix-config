@@ -14,6 +14,7 @@
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
   hardware.opengl.enable = true; # Enable OpenGL support
+  boot.kernelParams = [ "nvidia_drm.fbdev=1" ]; # NVidia's experimental framebuffer device
   services.xserver.videoDrivers = [ "nvidia" ]; # Load drivers for Xserver and Wayland
   hardware.nvidia.modesetting.enable = true; # Enable modesetting for Nvidia
   hardware.nvidia.powerManagement.enable = true; # Enable power management for Nvidia

@@ -14,4 +14,5 @@
   sauronIpAddress = "192.168.0.168";
   invokeaiPort = "9090";
   cirdanIpAddress = "192.168.0.45";
+  elrondIpAddress = "45.33.53.132";
 }
