@@ -13,21 +13,7 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  hardware.opengl.enable = true; # Enable OpenGL support
-  services.xserver.videoDrivers = [ "nvidia" ]; # Load drivers for Xserver and Wayland
-  hardware.nvidia.modesetting.enable = true; # Enable modesetting for Nvidia
-  hardware.nvidia.powerManagement.enable = true; # Enable power management for Nvidia
-  hardware.nvidia.open = false; # Disable open source drivers for Nvidia
-  hardware.nvidia.nvidiaSettings = true; # Enable Nvidia settings
-  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable; # Use stable Nvidia drivers
-  hardware.nvidia.prime = {
-    sync.enable = true;
-    # Make sure to use the correct Bus ID values for your system! `sudo lshw -C display` can help you find them.
-    intelBusId = "PCI:0:2:0"; # 0000:00:02.0
-    nvidiaBusId = "PCI:1:0:0"; # 0000:01:00.0
-  };
-
-  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a0aa-44357308117d";
+  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a1aa-44357308117d";
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"
@@ -35,12 +21,13 @@
     "usb_storage"
     "sd_mod"
   ];
-  boot.initrd.kernelModules = [ ];
+  boot.initrd.kernelModules = [ "amdgpu" ]; # pang11 has a Raedeon GPU
+  hardware.hardware.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
   boot.kernelModules = [ "kvm-intel" ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-partuuid/65ce1a7e-f179-4d04-b1e4-0069543f9372";
+    device = "/dev/disk/by-partuuid/65ce1a7e-f179-4d04-b1e4-0169543f9372";
     fsType = "vfat";
   };
 
@@ -102,7 +89,7 @@
 
   swapDevices = [
     {
-      device = "/dev/disk/by-partuuid/ddaa188d-4327-4648-8f99-3107ab10d351";
+      device = "/dev/disk/by-partuuid/ddaa188d-4327-4648-8f99-3107ab11d351";
       randomEncryption.enable = true;
     }
   ];
