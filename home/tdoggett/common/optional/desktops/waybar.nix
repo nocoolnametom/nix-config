@@ -37,7 +37,6 @@ with lib;
           "pulseaudio"
           "cpu"
           "memory"
-          "network"
           "battery"
           "custom/notification"
         ];
@@ -171,25 +170,6 @@ with lib;
             critical = 90;
           };
         };
-
-        # Network
-        network = {
-          format-icons = [
-            "󰤯"
-            "󰤟"
-            "󰤢"
-            "󰤥"
-            "󰤨"
-          ];
-          format-wifi = "{icon}";
-          format-ethernet = "󰈀"; # 󰈁
-          format-disconnected = "⚠";
-          tooltip-format-wifi = "WiFi: {essid} ({signalStrength}%)\n {bandwidthUpBytes}  {bandwidthDownBytes}";
-          tooltip-format-ethernet = "Ethernet: {ifname}\n {bandwidthUpBytes}  {bandwidthDownBytes}";
-          tooltip-format-disconnected = "Disconnected";
-          on-click = "${pkgs.networkmanagerapplet}/bin/nm-connection-editor";
-          interval = 5;
-        };
       }
     ];
 
@@ -257,7 +237,6 @@ with lib;
       #pulseaudio,
       #cpu,
       #memory,
-      #network,
       #battery,
       #custom-notification,
       #clock {
@@ -418,10 +397,6 @@ with lib;
         to {
           color: @base05;
         }
-      }
-
-      #network {
-        padding: 0.4rem 1.0rem 0.4rem 0.8rem;
       }
     '';
   };
