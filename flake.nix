@@ -30,6 +30,10 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Cosmis Desktop Environment
+    nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
+    nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs"; # "nixpkgs-unstable" might be useful here
+
     #################### Personal Repositories ####################
 
     # Private secrets repo.  See ./docs/secretsmgmt.md
@@ -49,6 +53,7 @@
       disko,
       stylix,
       sops-nix,
+      nixos-cosmic,
       nix-secrets,
       ...
     }@inputs:
@@ -109,6 +114,10 @@
       # via `nixos-rebuild dry-build --flake .#hostname`
 
       nixosConfigurations = {
+        # System76 Pangolin 11 AMD Laptop
+        pangolin11 = lib.nixosSystem {
+
+        };
         # Thinkpad X1 Carbon Laptop
         thinkpadx1 = lib.nixosSystem {
           inherit specialArgs;

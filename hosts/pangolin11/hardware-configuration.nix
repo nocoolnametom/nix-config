@@ -16,28 +16,53 @@
   boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a1aa-44357308117d";
 
   boot.initrd.availableKernelModules = [
-    "xhci_pci"
+    "ahci"
     "nvme"
-    "usb_storage"
+    "rtsx_pci_sdmmc"
     "sd_mod"
+    "usb_storage"
+    "xhci_pci"
   ];
-  boot.initrd.kernelModules = [ "amdgpu" ]; # pang11 has a Raedeon GPU
+  boot.initrd.kernelModules = [
+    "amdgpu" # pang11 has a Raedeon GPU
+    "dm-snapshot"
+  ];
   hardware.hardware.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
+  # Set up encrypted boot stuff
+  boot.initrd.luks.yubikeySupport = true;
+  boot.initrd.luks.devices."root".yubikey = {
+    slot = 2;
+    twoFactor = false; # We want to automatically unlock when key is present at boot
+    storage = {
+      # store yubikey identifier in the unencrypted boot partition => /boot/crypt-storage/default
+      device = "/dev/disk/by-partuuid/c360beea-5485-418e-ba95-62819b47537d";
+      fsType = "vfat";
+      path = "/crypt-storage/default";
+    };
+  };
+
   fileSystems."/boot" = {
-    device = "/dev/disk/by-partuuid/65ce1a7e-f179-4d04-b1e4-0169543f9372";
+    device = "/dev/disk/by-partuuid/c360beea-5485-418e-ba95-62819b47537d";
     fsType = "vfat";
+    neededForBoot = true; # Not necessary since it shouldn't be encrypted, but good to call it out anyways
+    options = [
+      "noatime"
+      "nodiratime"
+      "discard"
+    ]; # Supposedly better for the SSD.
   };
 
   fileSystems."/" = {
     device = "none";
     fsType = "tmpfs";
     options = [
-      "mode=755"
-      "uid=0"
-      "gid=0"
+      "size=12G" # Size of root filesystem built in memory, default of 50% of RAM if not present
+      "mode=755" # Needed for SSH to be happy!
+      "uid=0" # Root owns base / directory
+      "gid=0" # Root owns base / directory
     ];
     neededForBoot = true; # required
   };
@@ -99,8 +124,10 @@
   # still possible to use this option, but it's recommended to use it in conjunction
   # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
   networking.useDHCP = lib.mkDefault true;
-  # networking.interfaces.enp0s31f6.useDHCP = lib.mkDefault true;
-  # networking.interfaces.wlp0s20f3.useDHCP = lib.mkDefault true;
+  # networking.interfaces.enp2s0.useDHCP = lib.mkDefault true;
+  # networking.interfaces.wlo1.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+
+  hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
