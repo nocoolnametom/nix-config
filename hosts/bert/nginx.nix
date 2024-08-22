@@ -6,14 +6,10 @@
   ...
 }:
 {
-  # Use PAM Authentiaction for Nginx using in-system users
-  security.pam.services.nginx.setEnvironment = false;
-  systemd.services.nginx.serviceConfig = {
-    SupplementaryGroups = [ "shadow" ];
-  };
+  # Set up sops secret for basic auth file
+  sops.secrets."bert-nginx-web-authfile".owner = config.services.nginx.user;
 
   services.nginx.enable = true;
-  services.nginx.additionalModules = [ pkgs.nginxModules.pam ];
   services.nginx.recommendedProxySettings = true;
   services.nginx.recommendedTlsSettings = true;
   services.nginx.recommendedOptimisation = true;
@@ -297,10 +293,7 @@
         serverAliases = [ "home.nocoolnametom.com" ]; # This is the dynamic DNS subdomain
         enableACME = true;
         forceSSL = true;
-        extraConfig = ''
-          auth_pam  "Password Required";
-          auth_pam_service_name "nginx";
-        '';
+        basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         locations = (proxyPaths false) // {
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
@@ -316,9 +309,8 @@
       # "automatic.nocoolnametom.com" = {
       #   enableACME = false;
       #   forceSSL = false;
+      #   basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
       #   extraConfig = ''
-      #     auth_pam  "Password Required";
-      #     auth_pam_service_name "nginx";
       #     error_page 404 /automatic.nocoolnametom.com.404.html;
       #   '';
       #   locations = {
@@ -342,9 +334,8 @@
       "stable.nocoolnametom.com" = {
         enableACME = true;
         forceSSL = true;
+        basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
-          auth_pam  "Password Required";
-          auth_pam_service_name "nginx";
           error_page 404 /stable.nocoolnametom.com.404.html;
         '';
         locations = {
