@@ -32,7 +32,7 @@
 
     # Cosmis Desktop Environment
     nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
-    nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs"; # "nixpkgs-unstable" might be useful here
+    nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     #################### Personal Repositories ####################
 

@@ -59,7 +59,8 @@
     device = "none";
     fsType = "tmpfs";
     options = [
-      "size=12G" # Size of root filesystem built in memory, default of 50% of RAM if not present
+      # "size=12G" # Size of root filesystem built in memory, default of 50% of RAM if not present
+      "size=54G" # Size of root filesystem built in memory, default of 50% of RAM if not present
       "mode=755" # Needed for SSH to be happy!
       "uid=0" # Root owns base / directory
       "gid=0" # Root owns base / directory
