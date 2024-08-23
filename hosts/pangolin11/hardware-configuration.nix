@@ -13,7 +13,7 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a1aa-44357308117d";
+  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/50870cda-00f6-4e1d-8791-9c5efc872e43";
 
   boot.initrd.availableKernelModules = [
     "ahci"
@@ -38,14 +38,14 @@
     twoFactor = false; # We want to automatically unlock when key is present at boot
     storage = {
       # store yubikey identifier in the unencrypted boot partition => /boot/crypt-storage/default
-      device = "/dev/disk/by-partuuid/c360beea-5485-418e-ba95-62819b47537d";
+      device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
       fsType = "vfat";
       path = "/crypt-storage/default";
     };
   };
 
   fileSystems."/boot" = {
-    device = "/dev/disk/by-partuuid/c360beea-5485-418e-ba95-62819b47537d";
+    device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
     fsType = "vfat";
     neededForBoot = true; # Not necessary since it shouldn't be encrypted, but good to call it out anyways
     options = [
@@ -114,7 +114,7 @@
 
   swapDevices = [
     {
-      device = "/dev/disk/by-partuuid/ddaa188d-4327-4648-8f99-3107ab11d351";
+      device = "/dev/disk/by-partuuid/a73eac3a-0293-4996-a4c5-7ada673bc4be";
       randomEncryption.enable = true;
     }
   ];
