@@ -116,7 +116,12 @@
       nixosConfigurations = {
         # System76 Pangolin 11 AMD Laptop
         pangolin11 = lib.nixosSystem {
-
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/pangolin11
+          ];
         };
         # Thinkpad X1 Carbon Laptop
         thinkpadx1 = lib.nixosSystem {

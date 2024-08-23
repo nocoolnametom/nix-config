@@ -39,7 +39,6 @@
       ".config/zed"
       ".local/share/direnv"
       ".mozilla"
-      ".config/Yubico"
       ".cache/czkawka"
       ".vscode"
       {

@@ -27,22 +27,22 @@
     "amdgpu" # pang11 has a Raedeon GPU
     "dm-snapshot"
   ];
-  hardware.hardware.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
+  hardware.opengl.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  # Set up encrypted boot stuff
-  boot.initrd.luks.yubikeySupport = true;
-  boot.initrd.luks.devices."root".yubikey = {
-    slot = 2;
-    twoFactor = false; # We want to automatically unlock when key is present at boot
-    storage = {
-      # store yubikey identifier in the unencrypted boot partition => /boot/crypt-storage/default
-      device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
-      fsType = "vfat";
-      path = "/crypt-storage/default";
-    };
-  };
+  # TODO Set up encrypted boot stuff
+  # boot.initrd.luks.yubikeySupport = true;
+  # boot.initrd.luks.devices."root".yubikey = {
+  #   slot = 2;
+  #   twoFactor = false; # We want to automatically unlock when key is present at boot
+  #   storage = {
+  #     # store yubikey identifier in the unencrypted boot partition => /boot/crypt-storage/default
+  #     device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
+  #     fsType = "vfat";
+  #     path = "/crypt-storage/default";
+  #   };
+  # };
 
   fileSystems."/boot" = {
     device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
