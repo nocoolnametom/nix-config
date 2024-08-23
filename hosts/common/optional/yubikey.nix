@@ -10,8 +10,8 @@
   # security.pam.services.login.u1fAuth = true;
   # security.pam.services.sudo.u1fAuth = true;
 
-  # U2F PAM module for Yubikey auth
-  security.pam.u2f.settings.cue = true;
+  # U2F PAM module for Yubikey auth - Unstable/24.11+
+  # security.pam.u2f.settings.cue = true; # TODO Figure this out!
   security.pam.services.login.u2fAuth = true;
   security.pam.services.sudo.u2fAuth = true;
 
