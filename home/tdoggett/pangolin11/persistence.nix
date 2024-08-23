@@ -26,6 +26,7 @@
       "Projects"
       "Videos"
       "VirtualBox VMs"
+      "bin"
       ".config/google-chrome"
       ".config/BraveSoftware/Brave-Browser"
       ".config/Code"
@@ -66,6 +67,7 @@
     files = [
       ".bash_history"
       ".davmail.properties"
+      "intelephense/license.txt"
     ];
   };
 

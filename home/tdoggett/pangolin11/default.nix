@@ -8,6 +8,7 @@
     ../common/optional/sops.nix
     ../common/optional/git.nix
     ../common/optional/desktops
+    # ../common/optional/desktops/hyprland.nix
 
     ############### Service Configurations (Enable below) #################
     ../common/optional/services/gpg-agent.nix
