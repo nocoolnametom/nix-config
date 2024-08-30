@@ -18,20 +18,34 @@ in
 {
   wayland.windowManager.hyprland.settings."$mainMod" = "SUPER";
   wayland.windowManager.hyprland.settings.bind = [
-    "$mainMod, Q, exec, ${termCmd}"
-    "$mainMod, C, killactive,"
-    "$mainMod, M, exit,"
+    "$mainMod, enter, exec, ${termCmd}"
+    "$mainMod SHIFT, Q, killactive,"
+    "$mainMod SHIFT, E, exit,"
     "$mainMod, E, exec, ${fileBrowseCmd}"
-    "$mainMod, V, togglefloating,"
-    "$mainMod, R, exec, ${menuCmd}"
+    "$mainMod SHIFT, space, togglefloating,"
+    "$mainMod, D, exec, ${menuCmd}"
     "$mainMod, P, pseudo," # dwindle
-    "$mainMod, J, togglesplit," # dwindle
+    #"$mainMod, J, togglesplit," # dwindle
 
-    # Move focus with mainMod + arrow keys
+    # Move focus with mainMod + hjkl and arrow keys
+    "$mainMod, H, ${moveFocus}, l"
+    "$mainMod, J, ${moveFocus}, d"
+    "$mainMod, K, ${moveFocus}, u"
+    "$mainMod, L, ${moveFocus}, r"
     "$mainMod, left, ${moveFocus}, l"
-    "$mainMod, right, ${moveFocus}, r"
-    "$mainMod, up, ${moveFocus}, u"
     "$mainMod, down, ${moveFocus}, d"
+    "$mainMod, up, ${moveFocus}, u"
+    "$mainMod, right, ${moveFocus}, r"
+
+    # Move windows with mainMod + shift + hjkl and arrow keys
+    "$mainMod SHIFT, H, ${moveWindow}, l"
+    "$mainMod SHIFT, J, ${moveWindow}, d"
+    "$mainMod SHIFT, K, ${moveWindow}, u"
+    "$mainMod SHIFT, L, ${moveWindow}, r"
+    "$mainMod SHIFT, left, ${moveWindow}, l"
+    "$mainMod SHIFT, down, ${moveWindow}, d"
+    "$mainMod SHIFT, up, ${moveWindow}, u"
+    "$mainMod SHIFT, right, ${moveWindow}, r"
 
     # Switch workspaces with mainMod + [0-9]
     "$mainMod, 1, workspace, 1"
@@ -58,14 +72,13 @@ in
     "$mainMod SHIFT, 0, movetoworkspace, 10"
 
     # Example special workspace (scratchpad)
-    "$mainMod, S, togglespecialworkspace, magic"
-    "$mainMod SHIFT, S, movetoworkspace, special:magic"
+    "$mainMod, minus, togglespecialworkspace, magic"
+    "$mainMod SHIFT, minus, movetoworkspace, special:magic"
+  ];
 
-    # Scroll through existing workspaces with mainMod + scroll
-    "$mainMod, mouse_down, workspace, e+1"
-    "$mainMod, mouse_up, workspace, e-1"
-
-    # Special key handling
+  # Always active keys, no matter what
+  wayland.windowManager.hyprland.settings.bindl = [
+    # Special key handling, brightness is best handled by system-wide light service
     # ", XF86MonBrightnessDown, exec, ${pkgs.light}/bin/light -U 10"
     # ", XF86MonBrightnessUp,   exec, ${pkgs.light}/bin/light -A 10"
     ", XF86AudioRaiseVolume,  exec, ${pkgs.pamixer}/bin/pamixer -i 5"
@@ -78,4 +91,41 @@ in
     "$mainMod, mouse:272, ${moveWindow}"
     "$mainMod, mouse:273, resizewindow"
   ];
+
+  wayland.windowManager.hyprland.extraConfig = let
+    spotlightApp = keypress: exec: ''
+      bind = , ${keypress}, exec, ${exec}
+      bind = , ${keypress}, submap, reset
+    '';
+  in ''
+    # Window Resize Mode
+    bind = $mainMod, R, submap, resize
+
+    submap = resize
+    bind = , escape, submap, reset
+    binde = , H, resizeactive, -10 0
+    binde = , J, resizeactive, 0 10
+    binde = , K, resizeactive, 0 -10
+    binde = , L, resizeactive, 10 0
+    binde = , left, resizeactive, -10 0
+    binde = , down, resizeactive, 0 10
+    binde = , up, resizeactive, 0 -10
+    binde = , right, resizeactive, 10 0
+    submap = reset
+
+    # Spotlight Mode for Fast App Launching
+    bind = $mainMod, O, submap, spotlight
+    submap = spotlight
+    bind = , escape, submap, reset
+    ${spotlightApp "E" "brave"}
+    ${spotlightApp "C" "code"}
+    ${spotlightApp "F" "firefox"}
+    ${spotlightApp "G" "google-chrome-stable"}
+    ${spotlightApp "M" "android-messages-desktop"}
+    ${spotlightApp "C" "qtpass"}
+    ${spotlightApp "P" "code"}
+    ${spotlightApp "T" "thunderbird"}
+    ${spotlightApp "Z" "${termCmd} -e ssh zg02911vmu"}
+    submap = reset
+  '';
 }
