@@ -64,8 +64,7 @@ with lib;
 
         # Submap Indicator
         "hyprland/submap" = {
-          format = "{ }";
-          max-length = 30;
+          format = "{}";
           tooltip = false;
         };
 
@@ -347,6 +346,18 @@ with lib;
       #workspaces button.active:hover {
         background: lighter(@base0D);
         color: @black;
+      }
+
+      #submap {
+        background: @base08;
+        color: @base05;
+        border: 1px solid @base03;
+        border-bottom: 3px solid @base03;
+        border-radius: 3px;
+        padding: 0.4rem 0.8rem 0.4rem 0.8rem;
+        margin-right: 0;
+        margin: 0.7rem 0.35rem;
+        transition: 200ms linear;
       }
 
       /* Systray */

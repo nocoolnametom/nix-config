@@ -24,6 +24,19 @@ let
       "$mainMod"
     else
       "$mainMod F35";
+  spotlightApp = keypress: exec: ''
+    bind = , ${keypress}, exec, ${exec}
+    bind = , ${keypress}, submap, reset
+  '';
+  submap = name: startBind: binds: ''
+    bind = ${startBind}, submap, ${name}
+
+    submap = ${name}
+    ${binds}
+    bind = , Escape, submap, reset
+    bind = , Return, submap, reset
+    submap = reset
+  '';
 in
 {
   wayland.windowManager.hyprland.settings."$mainMod" = "SUPER";
@@ -36,7 +49,7 @@ in
     "$mainMod SHIFT, space, togglefloating,"
     "$mainMod, D, exec, ${menuCmd}"
     "$mainMod, P, pseudo," # dwindle
-    "$mainMod, F, fullscreen, 1" # fullscreen toggle
+    "$mainMod, A, fullscreen, 1" # fullscreen toggle (covers All of screen)
 
     # Move focus with mainMod + hjkl and arrow keys
     "$mainMod, H, ${moveFocus}, l"
@@ -119,17 +132,8 @@ in
   ];
 
   wayland.windowManager.hyprland.extraConfig =
-    let
-      spotlightApp = keypress: exec: ''
-        bind = , ${keypress}, exec, ${exec}
-        bind = , ${keypress}, submap, reset
-      '';
-    in
-    ''
-      # Window Resize Mode
-      bind = $mainMod, R, submap, resize
-
-      submap = resize
+    # Window Resize Mode
+    (submap "resize" "$mainMod, R" ''
       binde = , H, resizeactive, -10 0
       binde = , J, resizeactive, 0 10
       binde = , K, resizeactive, 0 -10
@@ -138,14 +142,9 @@ in
       binde = , Down, resizeactive, 0 10
       binde = , Up, resizeactive, 0 -10
       binde = , Right, resizeactive, 10 0
-      bind = , Escape, submap, reset
-      bind = , Return, submap, reset
-      submap = reset
-
-      # Spotlight Mode for Fast App Launching
-      bind = $mainMod, O, submap, spotlighter
-
-      submap = spotlighter
+    '')
+    # Spotlight Mode for Fast App Launching
+    + (submap "spotlighter" "$mainMod, O" ''
       ${spotlightApp "E" "brave"}
       ${spotlightApp "C" "code"}
       ${spotlightApp "F" "firefox"}
@@ -156,8 +155,5 @@ in
       ${spotlightApp "T" "thunderbird"}
       ${spotlightApp "Z" "${termCmd} -e ssh zg02911vmu"}
       ${spotlightApp "E" "${fileBrowseCmd}"}
-      bind = , Escape, submap, reset
-      bind = , Return, submap, reset
-      submap = reset
-    '';
+    '');
 }
