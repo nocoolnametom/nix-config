@@ -11,6 +11,7 @@
     plugins = [
       # pkgs.unstable.hyprlandPlugins.hypr-dynamic-cursors # In unstable, not 24.05
       pkgs.hyprlandPlugins.hy3
+      pkgs.myHyperlandPlugins.split-monitor-workspaces
     ];
     settings = {
       # Monitors - Remember to define system-specific ones explicity in home/tdoggett/<host>/default.nix!
@@ -42,6 +43,11 @@
           nearest = true;
           ipc = false;
         };
+      };
+
+      "plugin:split-monitor-workspaces" = {
+        enabled = true;
+        count = 5;
       };
 
       # Look and Feel
@@ -106,7 +112,8 @@
         preserve_split = "true"; # You probably want this
       };
 
-      plugin.hy3 = {
+      "plugin:hy3" = {
+        enabled = true;
         no_gaps_when_only = "1";
         group_inset = "5";
       };

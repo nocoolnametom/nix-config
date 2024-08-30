@@ -57,9 +57,6 @@ with lib;
           # all-outputs = true;
           all-outputs = false;
           show-special = true;
-          persistent-workspaces = {
-            "*" = 6;
-          };
         };
 
         # Submap Indicator
