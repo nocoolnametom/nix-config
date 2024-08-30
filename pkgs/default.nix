@@ -12,5 +12,6 @@ rec {
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
   calibre-update = pkgs.callPackage ./calibre-update { };
+  myHyperlandPlugins = import ./myHyperlandPlugins { inherit pkgs; };
 
 }

@@ -9,16 +9,35 @@ let
   menuCmd = "${pkgs.wofi}/bin/wofi --show drun";
   termCmd = "${pkgs.kitty}/bin/kitty";
   fileBrowseCmd = "${pkgs.xfce.thunar}/bin/thunar";
+
+  hlPlugEnableCmd =
+    pluginName: pluginCmd: nonpluginCmd:
+    if
+      (
+        builtins.hasAttr "plugin:${pluginName}" config.wayland.windowManager.hyprland.settings
+        && config.wayland.windowManager.hyprland.settings."plugin:${pluginName}".enabled ? false
+      )
+    then
+      pluginCmd
+    else
+      nonpluginCmd;
   moveFocus =
     if (config.wayland.windowManager.hyprland.settings.general.layout == "hy3") then
-      "hy3:movefocus"
+      (hlPlugEnableCmd "hy3" "hy3:movefocus" "movefocus")
     else
       "movefocus";
   moveWindow =
     if (config.wayland.windowManager.hyprland.settings.general.layout == "hy3") then
-      "hy3:movewindow"
+      (hlPlugEnableCmd "hy3" "hy3:movewindow" "movewindow")
     else
       "movewindow";
+  workspaceCmd = hlPlugEnableCmd "split-monitor-workspaces" "split-workspace" "workspace";
+  moveToWorkspaceCmd =
+    hlPlugEnableCmd "split-monitor-workspaces" "split-movetoworkspace"
+      "movetoworkspace";
+  moveToWorkspaceSilentCmd =
+    hlPlugEnableCmd "split-monitor-workspaces" "split-movetoworkspacesilent"
+      "movetoworkspacesilent";
   hy3mod =
     if (config.wayland.windowManager.hyprland.settings.general.layout == "hy3") then
       "$mainMod"
@@ -40,8 +59,8 @@ let
 in
 {
   wayland.windowManager.hyprland.settings."$mainMod" = "SUPER";
-  wayland.windowManager.hyprland.settings."$mehMod" = "ALT SUPER SHIFT";
-  wayland.windowManager.hyprland.settings."$hyperMod" = "CRLT ALT SUPER SHIFT";
+  wayland.windowManager.hyprland.settings."$mehMod" = "ALT_SUPER_SHIFT";
+  wayland.windowManager.hyprland.settings."$hyperMod" = "CONTROL_ALT_SUPER_SHIFT";
   wayland.windowManager.hyprland.settings.bind = [
     "$mainMod, Return, exec, ${termCmd}"
     "$mainMod SHIFT, Q, killactive,"
@@ -72,32 +91,34 @@ in
     "$mainMod SHIFT, Right, ${moveWindow}, r"
 
     # Move entire workspace to different monitor outputs
-    "$hyperMod, L, movecurrentworkspacetomonitor, r" # Move to monitor on right
-    "$hyperMod, H, movecurrentworkspacetomonitor, l" # Move to monitor on left
+    "$hyperMod, L, split-changemonitor, r" # Move to monitor on right
+    "$hyperMod, H, split-changemonitor, l" # Move to monitor on left
+    "$hyperMod, Right, split-changemonitor, r" # Move to monitor on right
+    "$hyperMod, Left, split-changemonitor, l" # Move to monitor on left
 
     # Switch workspaces with mainMod + [0-9]
-    "$mainMod, 1, workspace, 1"
-    "$mainMod, 2, workspace, 2"
-    "$mainMod, 3, workspace, 3"
-    "$mainMod, 4, workspace, 4"
-    "$mainMod, 5, workspace, 5"
-    "$mainMod, 6, workspace, 6"
-    "$mainMod, 7, workspace, 7"
-    "$mainMod, 8, workspace, 8"
-    "$mainMod, 9, workspace, 9"
-    "$mainMod, 0, workspace, 10"
+    "$mainMod, 1, ${workspaceCmd}, 1"
+    "$mainMod, 2, ${workspaceCmd}, 2"
+    "$mainMod, 3, ${workspaceCmd}, 3"
+    "$mainMod, 4, ${workspaceCmd}, 4"
+    "$mainMod, 5, ${workspaceCmd}, 5"
+    "$mainMod, 6, ${workspaceCmd}, 6"
+    "$mainMod, 7, ${workspaceCmd}, 7"
+    "$mainMod, 8, ${workspaceCmd}, 8"
+    "$mainMod, 9, ${workspaceCmd}, 9"
+    "$mainMod, 0, ${workspaceCmd}, 10"
 
     # Move active window to a workspace with mainMod + SHIFT + [0-9]
-    "$mainMod SHIFT, 1, movetoworkspace, 1"
-    "$mainMod SHIFT, 2, movetoworkspace, 2"
-    "$mainMod SHIFT, 3, movetoworkspace, 3"
-    "$mainMod SHIFT, 4, movetoworkspace, 4"
-    "$mainMod SHIFT, 5, movetoworkspace, 5"
-    "$mainMod SHIFT, 6, movetoworkspace, 6"
-    "$mainMod SHIFT, 7, movetoworkspace, 7"
-    "$mainMod SHIFT, 8, movetoworkspace, 8"
-    "$mainMod SHIFT, 9, movetoworkspace, 9"
-    "$mainMod SHIFT, 0, movetoworkspace, 10"
+    "$mainMod SHIFT, 1, ${moveToWorkspaceCmd}, 1"
+    "$mainMod SHIFT, 2, ${moveToWorkspaceCmd}, 2"
+    "$mainMod SHIFT, 3, ${moveToWorkspaceCmd}, 3"
+    "$mainMod SHIFT, 4, ${moveToWorkspaceCmd}, 4"
+    "$mainMod SHIFT, 5, ${moveToWorkspaceCmd}, 5"
+    "$mainMod SHIFT, 6, ${moveToWorkspaceCmd}, 6"
+    "$mainMod SHIFT, 7, ${moveToWorkspaceCmd}, 7"
+    "$mainMod SHIFT, 8, ${moveToWorkspaceCmd}, 8"
+    "$mainMod SHIFT, 9, ${moveToWorkspaceCmd}, 9"
+    "$mainMod SHIFT, 0, ${moveToWorkspaceCmd}, 10"
 
     # Floating Windows
     "$mainMod , F, togglefloating"
@@ -105,7 +126,7 @@ in
 
     # Example special workspace (scratchpad)
     "$mainMod, Minus, togglespecialworkspace, magic"
-    "$mainMod SHIFT, minus, movetoworkspace, special:magic"
+    "$mainMod SHIFT, minus, ${moveToWorkspaceCmd}, special:magic"
 
     # Hy3 Additional Bindings (when hy3 is not active will bind to F35 key)
     "${hy3mod}, B, hy3:makegroup, h"
