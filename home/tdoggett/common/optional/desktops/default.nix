@@ -24,7 +24,7 @@
     vlc
     xfce.thunar
     todoist-electron
-    zed-editor
+    unstable.zed-editor
 
     # Fonts
     cascadia-code
@@ -43,7 +43,7 @@
     })
   ];
 
-  home.pointerCursor.gtk.enable = true;
+  # home.pointerCursor.gtk.enable = true;
 
   gtk.enable = true;
 

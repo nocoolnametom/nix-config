@@ -1,4 +1,10 @@
+{ pkgs, ... }:
 {
+  environment.systemPackages = with pkgs; [
+    steam
+    steam-run
+  ];
+
   # Allow 42-bit OpenGL DRI support (for Steam!)
 
   # For 24.05

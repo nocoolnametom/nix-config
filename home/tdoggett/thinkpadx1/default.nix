@@ -16,8 +16,9 @@
 
   wayland.windowManager.hyprland.settings.monitor = [
     # Falback for all monitors already set up, named monitors go here
-    # "name,resolution,position,scale"
-    "desc:Chimei Innolux Corporation 0x15E8,preferred,auto,1" # Laptop screen
+    # "name,                                 resolution, position,  scale"
+    "desc:Chimei Innolux Corporation 0x15E8, preferred,  0x0,       1" # Laptop screen
+    "desc:Dell Inc. DELL S3221QS 2H1S6N3,    preferred,  auto-left, 1" # Big HDMI screen
   ];
 
   services.gpg-agent.enable = true;

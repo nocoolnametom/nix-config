@@ -58,15 +58,16 @@ in
         # Once a file has finished downloading we
         # want to have Stash start scanning it
 
+        ###########################################
+        ### OPTIONS                             ###
+
         # StashApp Host
-        #StashHost=localhost
+        #Stashhost=localhost
 
         # StashApp Port
-        #StashPort=9999
+        #Stashport=9999
 
         ### NZBGET POST-PROCESSING SCRIPT       ###
-        # Old query:
-        #  --data "{ \"query\": \"mutation { MetadataScan (input:{useFileMetadata: false, paths: [ \\\"$StashPath\\\" ], scanGenerateCovers: true, scanGeneratePreviews: true, scanGenerateSprites: true, scanGeneratePhashes: true, scanGenerateThumbnails: true, stripFileExtension: true})}\" }" \
         ###########################################
         StashPath="$NZBOP_DESTDIR/$NZBPP_CATEGORY";
         ${pkgs.curl}/bin/curl --silent --output /dev/null -X POST \
