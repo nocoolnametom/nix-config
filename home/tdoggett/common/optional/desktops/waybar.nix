@@ -29,6 +29,7 @@ with lib;
         modules-left = [
           "custom/nixlogo"
           "hyprland/workspaces"
+          "hyprland/submap"
         ];
         modules-center = [ "clock" ];
         modules-right = [
@@ -53,11 +54,19 @@ with lib;
           format = "{name}";
           on-click = "activate";
           disable-scroll = true;
-          all-outputs = true;
+          # all-outputs = true;
+          all-outputs = false;
           show-special = true;
           persistent-workspaces = {
             "*" = 6;
           };
+        };
+
+        # Submap Indicator
+        "hyprland/submap" = {
+          format = "{ }";
+          max-length = 30;
+          tooltip = false;
         };
 
         # Clock & Calendar
