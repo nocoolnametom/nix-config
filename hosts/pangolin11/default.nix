@@ -27,9 +27,6 @@
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix # Must also use the config below
 
-      ##################### Cosmic Desktop Enviornment ##########################
-      inputs.nixos-cosmic.nixosModules.default # Must also use the config below
-
       #TODO move pangolin11 to disko
     ]
     ++ (map configLib.relativeToRoot [
@@ -40,23 +37,24 @@
       "hosts/common/optional/boot/hibernation.nix"
       "hosts/common/optional/boot/plymouth.nix"
       "hosts/common/optional/boot/silent.nix"
-      # "hosts/common/optional/services/greetd.nix"
+      "hosts/common/optional/services/greetd.nix"
       "hosts/common/optional/services/openssh.nix" # allow remote SSH access
       "hosts/common/optional/services/pipewire.nix" # audio
       "hosts/common/optional/services/printing.nix"
       "hosts/common/optional/services/flatpak.nix"
       "hosts/common/optional/blinkstick.nix"
-      "hosts/common/optional/cosmic.nix" # System76 Cosmis Desktop Environment
+      # "hosts/common/optional/cosmic.nix" # System76 Cosmis Desktop Environment
       "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
-      # "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
+      "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
       "hosts/common/optional/light.nix" # Monitor brightness
       # "hosts/common/optional/plasma6.nix"
-      # "hosts/common/optional/sddm.nix"
+      # k"hosts/common/optional/sddm.nix"
       "hosts/common/optional/steam.nix"
       "hosts/common/optional/stylix.nix" # System-wide styling
       # "hosts/common/optional/sway.nix"
       "hosts/common/optional/yubikey.nix"
       # "hosts/common/optional/xfce.nix"
+      "hosts/common/optional/vr.nix"
 
       #################### Users to Create ####################
       "hosts/common/users/tdoggett"
@@ -101,10 +99,6 @@
   };
   #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
-
-  # Auto-login through Greetd and TuiGreet to Hyprland
-  # autoLogin.enable = true;
-  # autoLogin.username = "tdoggett";
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;

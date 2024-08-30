@@ -38,9 +38,12 @@
       ".config/vlc"
       ".config/Yubico"
       ".config/zed"
+      ".Immersed"
       ".local/share/direnv"
+      ".local/share/Steam"
       ".mozilla"
       ".cache/czkawka"
+      ".steam"
       ".vscode"
       {
         directory = ".gnupg";
@@ -67,6 +70,7 @@
     files = [
       ".bash_history"
       ".davmail.properties"
+      ".ImmersedConf"
       "intelephense/license.txt"
     ];
   };

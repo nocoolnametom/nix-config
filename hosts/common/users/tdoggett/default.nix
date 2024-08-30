@@ -4,6 +4,7 @@
   lib,
   configLib,
   configVars,
+  inputs,
   ...
 }:
 let

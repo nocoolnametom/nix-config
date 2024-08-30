@@ -26,7 +26,7 @@
     # Styling for Visual Applications
     stylix.url = "github:danth/stylix";
 
-    # Secrets management. See ./docs/secretsmgmt.md
+    # Secrets management
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -34,9 +34,14 @@
     nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
     nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    # Plasma Manager
+    plasma-manager.url = "github:nix-community/plasma-manager";
+    plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
+    plasma-manager.inputs.home-manager.follows = "home-manager";
+
     #################### Personal Repositories ####################
 
-    # Private secrets repo.  See ./docs/secretsmgmt.md
+    # Private secrets repo
     # Authenticate via ssh and use shallow clone
     nix-secrets.url = "git+ssh://git@github.com/nocoolnametom/nix-secrets.git?ref=main&shallow=1";
     nix-secrets.flake = false;
@@ -54,6 +59,7 @@
       stylix,
       sops-nix,
       nixos-cosmic,
+      plasma-manager,
       nix-secrets,
       ...
     }@inputs:
@@ -113,43 +119,57 @@
       # You can dry-run any machine's config on another machine with the flake already in `/etc/nixos`
       # via `nixos-rebuild dry-build --flake .#hostname`
 
-      nixosConfigurations = {
-        # System76 Pangolin 11 AMD Laptop
-        pangolin11 = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/pangolin11
-          ];
+      nixosConfigurations =
+        let
+          cosmicCacheModule = {
+            nix.settings = {
+              substituters = [ "https://cosmic.cachix.org/" ];
+              trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
+            };
+          };
+        in
+        {
+          # System76 Pangolin 11 AMD Laptop
+          pangolin11 = lib.nixosSystem {
+            inherit specialArgs;
+            modules = [
+              cosmicCacheModule
+              nixos-cosmic.nixosModules.default
+              home-manager.nixosModules.home-manager
+              { home-manager.extraSpecialArgs = specialArgs; }
+              ./hosts/pangolin11
+            ];
+          };
+          # Thinkpad X1 Carbon Laptop
+          thinkpadx1 = lib.nixosSystem {
+            inherit specialArgs;
+            modules = [
+              cosmicCacheModule
+              home-manager.nixosModules.home-manager
+              { home-manager.extraSpecialArgs = specialArgs; }
+              ./hosts/thinkpadx1
+            ];
+          };
+          # Asus Zenbook 13 Laptop
+          melian = lib.nixosSystem {
+            inherit specialArgs;
+            modules = [
+              cosmicCacheModule
+              home-manager.nixosModules.home-manager
+              { home-manager.extraSpecialArgs = specialArgs; }
+              ./hosts/melian
+            ];
+          };
+          # Raspberry Pi 4
+          bert = lib.nixosSystem {
+            inherit specialArgs;
+            modules = [
+              cosmicCacheModule
+              home-manager.nixosModules.home-manager
+              { home-manager.extraSpecialArgs = specialArgs; }
+              ./hosts/bert
+            ];
+          };
         };
-        # Thinkpad X1 Carbon Laptop
-        thinkpadx1 = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/thinkpadx1
-          ];
-        };
-        # Asus Zenbook 13 Laptop
-        melian = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/melian
-          ];
-        };
-        # Raspberry Pi 4
-        bert = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/bert
-          ];
-        };
-      };
     };
 }

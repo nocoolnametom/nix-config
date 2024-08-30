@@ -49,6 +49,11 @@
     fsType = "vfat";
     neededForBoot = true; # Not necessary since it shouldn't be encrypted, but good to call it out anyways
     options = [
+      "uid=0"
+      "gid=0"
+      "fmask=0077"
+      "dmask=0077"
+      # Above is to silence journalctl boot warning?
       "noatime"
       "nodiratime"
       "discard"
