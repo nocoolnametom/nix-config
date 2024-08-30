@@ -57,7 +57,7 @@
         # Please see https://wiki.hyprland.org/Configuring/Tearing/ before you turn this on
         allow_tearing = "false";
 
-        layout = "dwindle"; # dwindle, hy3
+        layout = "hy3"; # dwindle, hy3
       };
 
       # Some decoration is handled by the stylix module
@@ -108,7 +108,7 @@
 
       plugin.hy3 = {
         no_gaps_when_only = "1";
-        autotile = "true";
+        group_inset = "5";
       };
 
       master = {
