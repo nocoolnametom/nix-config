@@ -70,7 +70,7 @@ in
         ### NZBGET POST-PROCESSING SCRIPT       ###
         ###########################################
         StashPath="$NZBOP_DESTDIR/$NZBPP_CATEGORY";
-        ${pkgs.curl}/bin/curl --silent --output /dev/null -X POST \
+        ${pkgs.curl}/bin/curl \
           -H "ApiKey: $(cat ${config.sops.secrets."bert-stashapp-api-key-for-nzbget".path})" \
           -H "Content-Type: application/json" \
           --data "{\"query\":\"mutation{metadataScan(input:{paths:[\\\"$StashPath\\\"],scanGenerateCovers:true,scanGeneratePreviews:true,scanGenerateSprites:true,scanGeneratePhashes:true,scanGenerateThumbnails:true})}\"}" \
