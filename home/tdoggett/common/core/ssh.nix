@@ -1,9 +1,14 @@
-{ ocConfig, configVars, ... }:
+{
+  lib,
+  ocConfig,
+  configVars,
+  ...
+}:
 {
   programs.ssh = {
-    enable = true;
-    compression = true;
-    addKeysToAgent = "yes";
+    enable = lib.mkDefault true;
+    compression = lib.mkDefault true;
+    addKeysToAgent = lib.mkDefault "yes";
 
     matchBlocks."github.com".user = "git";
     matchBlocks."gitlab.com".user = "git";

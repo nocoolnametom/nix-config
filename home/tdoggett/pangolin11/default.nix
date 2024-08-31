@@ -9,6 +9,7 @@
     ../common/optional/git.nix
     ../common/optional/immersed-vr.nix
     ../common/optional/desktops
+    ../common/optional/desktops/services/waynergy.nix
     ../common/optional/desktops/hyprland.nix
 
     ############### Service Configurations (Enable below) #################
@@ -28,6 +29,7 @@
   services.gpg-agent.enable = true;
   services.playerctld.enable = true;
   services.blueman-applet.enable = true;
+  services.waynergy.host = "192.168.0.10";
   programs.git.userEmail = configVars.gitHubEmail;
 
   home = {

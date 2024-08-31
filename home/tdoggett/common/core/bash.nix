@@ -1,6 +1,7 @@
+{ lib, ... }:
 {
   programs.bash = {
-    enable = true;
-    enableCompletion = true;
+    enable = lib.mkDefault true;
+    enableCompletion = lib.mkDefault true;
   };
 }
