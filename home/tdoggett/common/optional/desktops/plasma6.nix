@@ -57,7 +57,7 @@ in
   imports = [ inputs.plasma-manager.homeManagerModules.plasma-manager ];
 
   programs.plasma = {
-    enable = true;
+    enable = lib.mkDefault true;
 
     # Not sure if I need this, but it popped up in the diff
     shortcuts."ksmserver"."_k_friendly_name" = "Session Management";

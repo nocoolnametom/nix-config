@@ -25,7 +25,7 @@ let
       # Listener ports
       davmail.caldavPort=1080
       davmail.imapPort=1145
-      davmail.ldapPort=1389
+      davmail.ldapPort=1389   
       davmail.popPort=
       davmail.smtpPort=1146
 

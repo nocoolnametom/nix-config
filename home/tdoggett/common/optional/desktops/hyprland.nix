@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   imports = [
     # Window Manager
@@ -14,12 +14,12 @@
     ./services/hypridle.nix
   ];
 
-  wayland.windowManager.hyprland.enable = true;
+  wayland.windowManager.hyprland.enable = lib.mkDefault true;
 
-  programs.wofi.enable = true;
-  programs.hyprlock.enable = true;
-  programs.waybar.enable = true;
+  programs.wofi.enable = lib.mkDefault true;
+  programs.hyprlock.enable = lib.mkDefault true;
+  programs.waybar.enable = lib.mkDefault true;
 
-  services.swaync.enable = true;
-  services.hypridle.enable = true;
+  services.swaync.enable = lib.mkDefault true;
+  services.hypridle.enable = lib.mkDefault true;
 }

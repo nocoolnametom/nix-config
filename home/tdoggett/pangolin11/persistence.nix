@@ -36,6 +36,7 @@
       ".config/obsidian"
       ".config/Slack"
       ".config/vlc"
+      ".config/waynergy/tls"
       ".config/Yubico"
       ".config/zed"
       ".Immersed"

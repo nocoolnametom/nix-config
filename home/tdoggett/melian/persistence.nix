@@ -30,6 +30,7 @@
       ".config/Proton Mail"
       ".config/obsidian"
       ".config/Slack"
+      ".config/waynergy/tls"
       ".config/vlc"
       ".config/zed"
       ".local/share/direnv"

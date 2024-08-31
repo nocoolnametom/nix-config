@@ -1,12 +1,13 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   imports = [
     # Program configurations (if needing enabling that is below)
+    ./brave.nix
+    ./kitty.nix
     ./vscode.nix
-    ../browsers/brave.nix
 
     # Desktop-related Services (enable below)
-    # ./services/swaync.nix
+    ./services/waynergy.nix
   ];
 
   # User-level GUI packages to have installed
@@ -45,12 +46,12 @@
 
   # home.pointerCursor.gtk.enable = true;
 
-  gtk.enable = true;
+  gtk.enable = lib.mkDefault true;
 
-  fonts.fontconfig.enable = true;
-  programs.brave.enable = true;
-  programs.vscode.enable = true;
-  programs.google-chrome.enable = true;
+  fonts.fontconfig.enable = lib.mkDefault true;
+  programs.brave.enable = lib.mkDefault true;
+  programs.vscode.enable = lib.mkDefault true;
+  programs.google-chrome.enable = lib.mkDefault true;
 
-  services.gnome-keyring.enable = true;
+  services.gnome-keyring.enable = lib.mkDefault true;
 }

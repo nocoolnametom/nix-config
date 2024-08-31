@@ -9,7 +9,7 @@
 with lib;
 {
   programs.waybar = {
-    enable = true;
+    enable = lib.mkDefault true;
     systemd.enable = true;
     systemd.target = "graphical-session.target";
 

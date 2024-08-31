@@ -1,8 +1,8 @@
-{ pkgs, ... }:
+{ pkgs, lib, ... }:
 {
   programs.vscode = {
-    enableUpdateCheck = false;
-    mutableExtensionsDir = true;
+    enableUpdateCheck = lib.mkDefault false;
+    mutableExtensionsDir = lib.mkDefault true;
     extensions = with pkgs.vscode-extensions; [
       vscodevim.vim
       ms-vscode-remote.remote-ssh
