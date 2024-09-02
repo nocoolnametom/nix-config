@@ -1,5 +1,6 @@
 {
   config,
+  osConfig,
   lib,
   pkgs,
   ...
@@ -413,7 +414,7 @@ in
 
       autoStart = lib.mkOption {
         type = lib.types.bool;
-        default = true;
+        default = false;
         description = "Whether to start waynergy on boot";
       };
 
@@ -453,6 +454,7 @@ in
           host = cfg.host;
           port = "${toString cfg.port}";
           xkb_key_offset = "${toString cfg.offset}";
+          name = osConfig.networking.hostName;
           # width = 1024;
           # height = 768;
           # restart_on_fatal = false;
@@ -494,7 +496,7 @@ in
       Unit = {
         Description = "Waynergy Client";
         After = [ "network.target" "graphical-session-pre.target" ];
-        PartOf = [ "graphical-session.target" ];
+        PartOf = if cfg.autoStart then [ "graphical-session.target" ] else [ ];
         X-Restart-Triggers = [ "${config.xdg.configFile."waynergy/config.ini".source}" ];
       };
 
