@@ -166,15 +166,15 @@ in
     '')
     # Spotlight Mode for Fast App Launching
     + (submap "spotlighter" "$mainMod, O" ''
-      ${spotlightApp "E" "brave"}
+      ${spotlightApp "B" "brave"}
       ${spotlightApp "C" "code"}
+      ${spotlightApp "C" "qtpass"}
+      ${spotlightApp "E" "${fileBrowseCmd}"}
       ${spotlightApp "F" "firefox"}
       ${spotlightApp "G" "google-chrome-stable"}
       ${spotlightApp "M" "android-messages-desktop"}
-      ${spotlightApp "C" "qtpass"}
       ${spotlightApp "P" "code"}
       ${spotlightApp "T" "thunderbird"}
       ${spotlightApp "Z" "${termCmd} -e ssh zg02911vmu"}
-      ${spotlightApp "E" "${fileBrowseCmd}"}
     '');
 }
