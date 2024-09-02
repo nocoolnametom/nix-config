@@ -9,7 +9,6 @@
     ../common/optional/git.nix
     ../common/optional/immersed-vr.nix
     ../common/optional/desktops
-    ../common/optional/desktops/services/waynergy.nix
     ../common/optional/desktops/hyprland.nix
 
     ############### Service Configurations (Enable below) #################
