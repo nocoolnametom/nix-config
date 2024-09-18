@@ -27,6 +27,7 @@
       ".config/Code"
       ".config/discord"
       ".config/jellyfin.org"
+      ".config/KADOKAWA"
       ".config/Proton Mail"
       ".config/obsidian"
       ".config/Slack"
