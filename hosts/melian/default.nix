@@ -44,6 +44,7 @@
       "hosts/common/optional/blinkstick.nix"
       "hosts/common/optional/light.nix" # Monitor brightness
       "hosts/common/optional/steam.nix"
+      "hosts/common/optional/thunar.nix" # Thunar File-Browser
       "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
       "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
       "hosts/common/optional/yubikey.nix"

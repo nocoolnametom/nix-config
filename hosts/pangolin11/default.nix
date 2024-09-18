@@ -52,6 +52,7 @@
       "hosts/common/optional/steam.nix"
       "hosts/common/optional/stylix.nix" # System-wide styling
       # "hosts/common/optional/sway.nix"
+      "hosts/common/optional/thunar.nix" # Thunar File-Browser
       "hosts/common/optional/yubikey.nix"
       # "hosts/common/optional/xfce.nix"
       "hosts/common/optional/vr.nix"
