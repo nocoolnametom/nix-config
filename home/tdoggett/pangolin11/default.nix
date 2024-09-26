@@ -1,4 +1,4 @@
-{ configVars, osConfig, ... }:
+{ pkgs, configVars, osConfig, ... }:
 {
   imports = [
     ########################## Required Configs ###########################
@@ -30,6 +30,8 @@
   services.blueman-applet.enable = true;
   services.waynergy.host = "192.168.0.10";
   programs.git.userEmail = configVars.gitHubEmail;
+
+  home.packages = with pkgs; [ remmina ];
 
   home = {
     stateVersion = "24.05";
