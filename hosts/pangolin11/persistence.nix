@@ -4,14 +4,19 @@
 #
 ###############################################################################
 
-{ inputs, configVars, ... }:
+{
+  inputs,
+  configVars,
+  lib,
+  ...
+}:
 
 {
   imports = [ inputs.impermanence.nixosModules.impermanence ];
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
-    enable = true;
+    enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"

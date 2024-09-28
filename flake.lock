@@ -154,6 +154,22 @@
         "type": "github"
       }
     },
+    "disposable-email-domains": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1727168207,
+        "narHash": "sha256-1k89f4IP526JTkhvib3vfZgRYy1K0vc2rL5QrpBq594=",
+        "owner": "disposable-email-domains",
+        "repo": "disposable-email-domains",
+        "rev": "02b5b482ba0d75216a452ada5634e8320bc8b89d",
+        "type": "github"
+      },
+      "original": {
+        "owner": "disposable-email-domains",
+        "repo": "disposable-email-domains",
+        "type": "github"
+      }
+    },
     "flake-compat": {
       "flake": false,
       "locked": {
@@ -337,10 +353,10 @@
     "nix-secrets": {
       "flake": false,
       "locked": {
-        "lastModified": 1724357856,
-        "narHash": "sha256-lQwZT+AAPJulgYIULACyvs4XCSoabBMjXb2ICQ+UOsQ=",
+        "lastModified": 1727548009,
+        "narHash": "sha256-ct6EZ8I/Hwbu3ZYQuyJyTL5hy8GcZQM5R8k2gijKq9E=",
         "ref": "main",
-        "rev": "125e9a1fc36fb9904e75a39229b24c46ada0da2d",
+        "rev": "bf3042c9fafc173f02b1a6fcfc34cd3d2f0f60aa",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"
@@ -449,11 +465,11 @@
     },
     "nixpkgs-unstable": {
       "locked": {
-        "lastModified": 1724224976,
-        "narHash": "sha256-Z/ELQhrSd7bMzTO8r7NZgi9g5emh+aRKoCdaAv5fiO0=",
+        "lastModified": 1727348695,
+        "narHash": "sha256-J+PeFKSDV+pHL7ukkfpVzCOO7mBSrrpJ3svwBFABbhI=",
         "owner": "NixOS",
         "repo": "nixpkgs",
-        "rev": "c374d94f1536013ca8e92341b540eba4c22f9c62",
+        "rev": "1925c603f17fc89f4c8f6bf6f631a802ad85d784",
         "type": "github"
       },
       "original": {
@@ -506,6 +522,7 @@
       "inputs": {
         "darwin": "darwin",
         "disko": "disko",
+        "disposable-email-domains": "disposable-email-domains",
         "hardware": "hardware",
         "home-manager": "home-manager",
         "impermanence": "impermanence",

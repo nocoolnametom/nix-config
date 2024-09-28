@@ -5,13 +5,16 @@
 }:
 rec {
 
-  #################### Packages with external source ####################
+  #################### Packages with external source ############################
+  # These need to all be direct derivations for `nix flake check` to work!
 
   homer = pkgs.callPackage ./homer { };
   stashapp = pkgs.callPackage ./stashapp { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
   calibre-update = pkgs.callPackage ./calibre-update { };
-  myHyperlandPlugins = import ./myHyperlandPlugins { inherit pkgs; };
+  myHyperlandPlugins-split-monitor-workspaces =
+    pkgs.callPackage ./myHyperlandPlugins/split-monitor-workspaces
+      { };
 
 }

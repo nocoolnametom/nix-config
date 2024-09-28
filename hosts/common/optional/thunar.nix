@@ -1,4 +1,5 @@
-{ pkgs, lib, ... }: {
+{ pkgs, lib, ... }:
+{
   programs.thunar.enable = lib.mkDefault true;
   programs.thunar.plugins = [
     pkgs.xfce.thunar-archive-plugin

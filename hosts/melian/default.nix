@@ -8,8 +8,10 @@
 {
   inputs,
   pkgs,
+  lib,
   configLib,
   config,
+  configVars,
   ...
 }:
 {

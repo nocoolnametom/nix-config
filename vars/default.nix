@@ -15,4 +15,5 @@
   invokeaiPort = "9090";
   cirdanIpAddress = "192.168.0.45";
   elrondIpAddress = "45.33.53.132";
+  glorfindelIpAddress = "72.14.183.148";
 }
