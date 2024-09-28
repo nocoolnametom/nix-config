@@ -54,8 +54,8 @@
       # Include the overlays from the root flake
       ++ builtins.attrValues outputs.overlays;
 
-    config.allowUnfree = true;
+    config.allowUnfree = lib.mkDefault true;
   };
 
-  hardware.enableRedistributableFirmware = true;
+  hardware.enableRedistributableFirmware = lib.mkDefault true;
 }

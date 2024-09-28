@@ -1,4 +1,9 @@
-{ pkgs, configVars, osConfig, ... }:
+{
+  pkgs,
+  configVars,
+  osConfig,
+  ...
+}:
 {
   imports = [
     ########################## Required Configs ###########################

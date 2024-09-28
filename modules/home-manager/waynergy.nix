@@ -495,7 +495,10 @@ in
 
       Unit = {
         Description = "Waynergy Client";
-        After = [ "network.target" "graphical-session-pre.target" ];
+        After = [
+          "network.target"
+          "graphical-session-pre.target"
+        ];
         PartOf = if cfg.autoStart then [ "graphical-session.target" ] else [ ];
         X-Restart-Triggers = [ "${config.xdg.configFile."waynergy/config.ini".source}" ];
       };

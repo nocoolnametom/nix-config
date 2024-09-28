@@ -39,6 +39,10 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
 
+    # Disposable email list
+    disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
+    disposable-email-domains.flake = false;
+
     #################### Personal Repositories ####################
 
     # Private secrets repo
@@ -60,6 +64,7 @@
       sops-nix,
       nixos-cosmic,
       plasma-manager,
+      disposable-email-domains,
       nix-secrets,
       ...
     }@inputs:
@@ -121,6 +126,7 @@
 
       nixosConfigurations =
         let
+          # Use this with the nixos-cosmic nixos modules to enable the cosmic desktop environment.
           cosmicCacheModule = {
             nix.settings = {
               substituters = [ "https://cosmic.cachix.org/" ];
@@ -144,7 +150,6 @@
           thinkpadx1 = lib.nixosSystem {
             inherit specialArgs;
             modules = [
-              cosmicCacheModule
               home-manager.nixosModules.home-manager
               { home-manager.extraSpecialArgs = specialArgs; }
               ./hosts/thinkpadx1
@@ -154,7 +159,6 @@
           melian = lib.nixosSystem {
             inherit specialArgs;
             modules = [
-              cosmicCacheModule
               home-manager.nixosModules.home-manager
               { home-manager.extraSpecialArgs = specialArgs; }
               ./hosts/melian
@@ -164,10 +168,18 @@
           bert = lib.nixosSystem {
             inherit specialArgs;
             modules = [
-              cosmicCacheModule
               home-manager.nixosModules.home-manager
               { home-manager.extraSpecialArgs = specialArgs; }
               ./hosts/bert
+            ];
+          };
+          # Linode 4GB VPS
+          glorfindel = lib.nixosSystem {
+            inherit specialArgs;
+            modules = [
+              home-manager.nixosModules.home-manager
+              { home-manager.extraSpecialArgs = specialArgs; }
+              ./hosts/glorfindel
             ];
           };
         };

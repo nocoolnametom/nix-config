@@ -11,7 +11,7 @@
     plugins = [
       # pkgs.unstable.hyprlandPlugins.hypr-dynamic-cursors # In unstable, not 24.05
       pkgs.hyprlandPlugins.hy3
-      pkgs.myHyperlandPlugins.split-monitor-workspaces
+      pkgs.myHyperlandPlugins-split-monitor-workspaces
     ];
     settings = {
       # Monitors - Remember to define system-specific ones explicity in home/tdoggett/<host>/default.nix!

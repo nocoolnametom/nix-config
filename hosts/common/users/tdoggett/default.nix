@@ -21,12 +21,12 @@ in
     configLib.relativeToRoot "home/${configVars.username}/${config.networking.hostName}"
   );
 
-  users.mutableUsers = false;
+  users.mutableUsers = lib.mkDefault false;
 
   users.users.tdoggett = {
     isNormalUser = true;
     # I never could get the sops secret version of this to work with a hashedPasswordFile
-    hashedPassword = "$y$j9T$5SGpsUDjjH9wZ61QMwXf0.$C.cQnNS.mmXLEQ34/cqfpU.LXJ0BydbEFr4oukpn8u/";
+    hashedPassword = lib.mkDefault "$y$j9T$5SGpsUDjjH9wZ61QMwXf0.$C.cQnNS.mmXLEQ34/cqfpU.LXJ0BydbEFr4oukpn8u/";
     openssh.authorizedKeys.keys = lib.lists.forEach pubKeys (key: builtins.readFile key);
     extraGroups =
       [ "wheel" ]
@@ -42,7 +42,5 @@ in
         "video" # monitor
         "dialout" # serial ports for arduino
       ];
-
-    shell = pkgs.bash; # default shell;
   };
 }

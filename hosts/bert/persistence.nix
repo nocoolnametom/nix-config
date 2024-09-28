@@ -4,14 +4,19 @@
 #
 ###############################################################################
 
-{ inputs, configVars, ... }:
+{
+  inputs,
+  configVars,
+  lib,
+  ...
+}:
 
 {
   imports = [ inputs.impermanence.nixosModules.impermanence ];
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
-    enable = false; # I'm not currently running persistence on the RasPi
+    enable = lib.mkDefault false; # I'm not currently running persistence on the RasPi
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"

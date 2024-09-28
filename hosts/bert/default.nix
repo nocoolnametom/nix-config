@@ -8,8 +8,10 @@
 {
   inputs,
   pkgs,
+  lib,
   configLib,
   config,
+  configVars,
   ...
 }:
 {
@@ -28,7 +30,7 @@
       ./nginx.nix
 
       ########################### Impermanence ##################################
-      # ./persistence.nix # I'm not currently running persistence on the RasPi
+      ./persistence.nix
 
       ############################## Stylix #####################################
       # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
@@ -57,7 +59,11 @@
 
       #################### Users to Create ####################
       "hosts/common/users/tdoggett"
+      "home/tdoggett/bert/persistence.nix"
     ]);
+
+  # I'm not currently running persistence on the RasPi! RAM is too limited.
+  environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
