@@ -106,8 +106,7 @@
   swapDevices = [
     {
       # Actual swap partition
-      device = "/dev/sdb"; # Ensure that sdb is swap!
-      randomEncryption.enable = true;
+      device = "/dev/disk/by-label/linode-swap";
     }
   ];
 
