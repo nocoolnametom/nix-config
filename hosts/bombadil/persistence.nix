@@ -23,7 +23,6 @@
       "/var/db/sudo/lectured"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
-      "/var/log"
       "/var/lib/postgresql"
       "/var/lib/elasticsearch"
       "/var/lib/mastodon"

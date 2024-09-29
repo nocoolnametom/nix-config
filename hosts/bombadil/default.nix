@@ -76,8 +76,6 @@ in
   # Mastodon setup
   services.mastodon.localDomain = exmormonSocialUrl;
 
-  boot.initrd.systemd.enable = true;
-
   time.timeZone = "America/Chicago";
 
   # Prevent systemd from logging too much
