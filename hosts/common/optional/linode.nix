@@ -14,6 +14,7 @@
   '';
 
   # Configure GRUB
+  boot.loader.grub.enable = true;
   boot.loader.grub.forceInstall = true;
   boot.loader.grub.device = "nodev";
   boot.loader.timeout = 10;
