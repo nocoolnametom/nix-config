@@ -103,12 +103,10 @@
   };
 
   # Swap
-  swapDevices = [
-    {
-      # Actual swap partition
-      device = "/dev/disk/by-label/linode-swap";
-    }
-  ];
+  swapDevices = [{
+    device = "/var/lib/swapfile";
+    size = 1*1024;
+  }];
 
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 
