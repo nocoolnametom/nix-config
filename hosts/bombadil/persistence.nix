@@ -25,15 +25,16 @@
       "/var/lib/systemd/coredump"
       "/var/lib/postgresql"
       "/var/lib/elasticsearch"
+      "/var/lib/fail2ban"
       "/var/lib/mastodon"
       "/var/lib/postfix"
       "/var/lib/redis-mastodon"
+      "/var/lib/acme"
     ];
     files = [
       "/etc/machine-id"
       "/etc/nix/id_rsa"
       "/var/lib/logrotate.status"
-      "/var/lib/fail2ban/fail2ban.sqlite3"
       {
         file = "/etc/ssh/ssh_host_ed25519_key";
         parentDirectory = {
