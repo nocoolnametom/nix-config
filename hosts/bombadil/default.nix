@@ -103,7 +103,12 @@ in
   programs.nix-ld.enable = true;
 
   # Enable the Time Protocol
-  services.ntp.enable = true;
+  # Use Chrony instead of NTP for a virtualized environment
+  services.chrony.enable = true;
+  services.chrony.enableNTS = true;
+  services.chrony.servers = [
+    "time.cloudflare.com"
+  ];
 
   # OpenSSH
   services.openssh.ports = [ 2222 ];
