@@ -76,6 +76,12 @@ in
   # Mastodon setup
   services.mastodon.localDomain = exmormonSocialUrl;
 
+  # Limit Elasticsearch Memory Usage - Minimum and Maximum
+  services.elasticsearch.extraJavaOptions = [
+    "-Xms256m"
+    "-Xmx410m"
+  ];
+
   time.timeZone = "America/Chicago";
 
   # Prevent systemd from logging too much
