@@ -20,7 +20,10 @@
     enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
+      "/var/backup/postgresql"
       "/var/db/sudo/lectured"
+      "/var/lib/acme"
+      "/var/lib/chrony"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
       "/var/lib/postgresql"
@@ -29,7 +32,6 @@
       "/var/lib/mastodon"
       "/var/lib/postfix"
       "/var/lib/redis-mastodon"
-      "/var/lib/acme"
     ];
     files = [
       "/etc/machine-id"
