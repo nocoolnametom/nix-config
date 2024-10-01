@@ -106,9 +106,7 @@ in
   # Use Chrony instead of NTP for a virtualized environment
   services.chrony.enable = true;
   services.chrony.enableNTS = true;
-  services.chrony.servers = [
-    "time.cloudflare.com"
-  ];
+  services.chrony.servers = [ "time.cloudflare.com" ];
 
   # OpenSSH
   services.openssh.ports = [ 2222 ];
