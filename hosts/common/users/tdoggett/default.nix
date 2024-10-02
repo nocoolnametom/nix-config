@@ -38,7 +38,8 @@ in
         "networkmanager" # connect to network
         "docker" # docker
         "lxd"
-        "adbusers"
+        "kvm" # virtualization
+        "adbusers" # android debugging
         "video" # monitor
         "dialout" # serial ports for arduino
       ];
