@@ -75,6 +75,8 @@ in
 
   # Mastodon setup
   services.mastodon.localDomain = exmormonSocialUrl;
+  services.mastodon.webProcesses = 0; # This is the WEB_CONCURRENCY env variable for Puma, 0 is a single process
+  services.mastodon.sidekiqThreads = 10; # This seems about right
 
   # Limit Elasticsearch Memory Usage - Minimum and Maximum
   services.elasticsearch.extraJavaOptions = [
