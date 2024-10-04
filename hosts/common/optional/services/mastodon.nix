@@ -85,6 +85,7 @@ in
     forceSSL = true;
     enableACME = true;
     extraConfig = ''
+      gzip_static on;
       limit_req zone=req_limit_per_ip burst=20 nodelay;
       limit_conn conn_limit_per_ip 10;
     '';
