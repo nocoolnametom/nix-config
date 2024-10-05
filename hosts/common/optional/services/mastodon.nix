@@ -139,22 +139,24 @@ in
               ${pkgs.curl}/bin/curl --silent -v -F spoiler_text="$HOOK_title" -F status="$POST_URL" -F sensitive="0" -F media_ids[]=$MEDIA_ID https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCE
         SS_TOKEN
       '';
-      confFile = pkgs.writeText "webhookConf.yaml" ''
-        - id: mastodon-reddit-hook
-          execute-command: ${redeployScript}
-          parse-parameters-as-json":
-            - title
-            - content
-            - url
-          pass-environment-to-command:
-            - source: payload
-              name: title
-            - source: payload
-              name: content
-            - source: payload
-              name: url
-            - source: payload
-              name: token
+      confFile = pkgs.writeText "webhookConf.json" ''
+        [
+          {
+            "id": "mastodon-reddit-hook",
+            "execute-command": "${redeployScript}",
+            "parse-parameters-as-json": [
+              { "source": "payload", "name": "title" },
+              { "source": "payload", "name": "content" },
+              { "source": "payload", "name": "url" }
+            ],
+            "pass-environment-to-command": [
+              { "source": "payload", "name": "title" },
+              { "source": "payload", "name": "content" },
+              { "source": "payload", "name": "url" },
+              { "source": "payload", "name": "token" },
+            ]
+          }
+        ]
       '';
     in
     {
