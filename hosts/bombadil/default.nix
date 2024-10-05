@@ -80,8 +80,8 @@ in
 
   # Limit Elasticsearch Memory Usage - Minimum and Maximum
   services.elasticsearch.extraJavaOptions = [
-    "-Xms256m"
-    "-Xmx410m"
+    "-Xms128m"
+    "-Xmx256m"
   ];
 
   time.timeZone = "America/Chicago";
