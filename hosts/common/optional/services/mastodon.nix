@@ -161,21 +161,26 @@ in
     in
     {
       enable = true;
+      after = [ "network.target" ];
+      wantedBy = [ "multi-user.target" ];
       path = with pkgs; [
         webhook
         curl
         jq
       ];
-      serviceConfig.ExecStart = "${pkgs.webhook}/bin/webhook -hooks ${confFile}";
+      serviceConfig.ExecStart = "${pkgs.webhook}/bin/webhook -hooks ${confFile} -verbose";
     };
   systemd.services.restart-reddit-feed-webhook = {
     enable = true;
+    after = [ "network.target" ];
+    wantedBy = [ "multi-user.target" ];
     script = "systemctl restart reddit-feed-webhook";
     serviceConfig.Type = "oneshot";
   };
   systemd.timers.restart-reddit-feed-webhook = {
     enable = true;
-    wantedBy = [ "timers.target" ];
+    after = [ "network.target" ];
+    wantedBy = [ "timers.target" "multi-user.target" ];
     timerConfig.Unit = "restart-reddit-feed-webhook.service";
     timerConfig.OnCalendar = "Mon *-*-1..7 4:00:00"; # First Monday of the month at 4am
   };
