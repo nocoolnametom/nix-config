@@ -136,8 +136,7 @@ in
               rm "$tmpfile"
               sleep 5
 
-              ${pkgs.curl}/bin/curl --silent -v -F spoiler_text="$HOOK_title" -F status="$POST_URL" -F sensitive="0" -F media_ids[]=$MEDIA_ID https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCE
-        SS_TOKEN
+              ${pkgs.curl}/bin/curl --silent -v -F spoiler_text="$HOOK_title" -F status="$POST_URL" -F sensitive="0" -F media_ids[]=$MEDIA_ID https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCESS_TOKEN
       '';
       confFile = pkgs.writeText "webhookConf.json" ''
         [
