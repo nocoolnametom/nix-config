@@ -9,7 +9,7 @@
 
   username = "tdoggett";
   handle = "nocoolnametom";
-  gitHubEmail = "tom@nocoolnametom.com";
-  gitLabEmail = "tom@nocoolnametom.com";
+  gitHubEmail = "810877+nocoolnametom@users.noreply.github.com";
+  gitLabEmail = "2724098-nocoolnametom@users.noreply.gitlab.com";
   persistFolder = "/persist";
 }

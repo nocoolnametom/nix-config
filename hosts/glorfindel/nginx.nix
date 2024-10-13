@@ -35,5 +35,5 @@
   ];
 
   security.acme.acceptTerms = true;
-  security.acme.defaults.email = "webmaster@nocoolnametom.com";
+  security.acme.defaults.email = "webmaster@${configVars.domain}";
 }
