@@ -340,7 +340,7 @@
         '';
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.sauron.ip}:${configVars.ports.tcp.invokeai}/";
+            proxyPass = "http://${configVars.networking.subnets.sauron.ip}:${configVars.networking.ports.tcp.invokeai}/";
             proxyWebsockets = true;
             extraConfig = ''
               proxy_buffering off;
