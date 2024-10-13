@@ -210,7 +210,7 @@
                         if internal then
                           "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
                         else
-                          "https://request.nocoolnametom.com";
+                          "https://request.${configVars.domain}";
                       target = "_blank";
                     }
                   ])
@@ -246,7 +246,7 @@
                         if internal then
                           "http://${configVars.networking.subnets.sauron.ip}:${builtins.toString configVars.networking.ports.tcp.invokeai}"
                         else
-                          "https://stable.nocoolnametom.com/";
+                          "https://stable.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]

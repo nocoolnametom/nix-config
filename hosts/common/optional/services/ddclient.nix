@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, configVars, ... }:
 {
   sops.secrets."ddclient-password" = { };
   services.ddclient = {
@@ -7,6 +7,6 @@
     protocol = "googledomains";
     username = "jIuresUnUC1pBaK1";
     passwordFile = "${config.sops.secrets."ddclient-password".path}";
-    domains = [ "home.nocoolnametom.com" ];
+    domains = [ "home.${configVars.domain}" ];
   };
 }

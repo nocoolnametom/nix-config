@@ -96,7 +96,7 @@
   boot.initrd.systemd.enable = true;
 
   # Navidrome Music Server
-  services.navidrome.settings.MusicFolder = "/mnt/Backup/Takeout/nocoolnametom/Google_Play_Music";
+  services.navidrome.settings.MusicFolder = "/mnt/Backup/Takeout/${configVars.handle}/Google_Play_Music";
 
   # Security
   security.sudo.wheelNeedsPassword = false;
