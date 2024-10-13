@@ -51,6 +51,24 @@ in
       "bombadil" = {
         host = configVars.networking.external.bombadil.mainUrl;
         port = configVars.networking.ports.tcp.remoteSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "bert" = {
+        host = configVars.networking.subnets.bert.name;
+        hostname = configVars.networking.subnets.bert.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "sauron" = {
+        host = configVars.networking.subnets.sauron.name;
+        hostname = configVars.networking.subnets.sauron.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "home.${configVars.domain}" = {
+        host = "home.${configVars.domain}";
+        port = configVars.networking.ports.tcp.remoteSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "steamdeck" = {
         host = configVars.networking.subnets.steamdeck.name;

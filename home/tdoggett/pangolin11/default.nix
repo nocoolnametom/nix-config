@@ -20,6 +20,8 @@
     ../common/optional/services/gpg-agent.nix
   ];
 
+  services.yubikey-touch-detector.enable = true;
+
   wayland.windowManager.hyprland.settings.monitor = [
     # Falback for all monitors already set up, named monitors go here
     # "name,                                 resolution, position,  scale"
