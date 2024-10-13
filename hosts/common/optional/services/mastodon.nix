@@ -118,25 +118,25 @@ in
   systemd.services.reddit-feed-webhook =
     let
       redeployScript = pkgs.writeShellScript "redeploy.sh" ''
-              ACCESS_TOKEN=$HOOK_token
-              POST_URL=${"$"}{HOOK_url/?utm_source=ifttt/}
+        ACCESS_TOKEN=$HOOK_token
+        POST_URL=${"$"}{HOOK_url/?utm_source=ifttt/}
 
-              if [[ $HOOK_content != https://*.jpg && $HOOK_content != https://*.jpeg && $HOOK_content != https://*.png && $HOOK_content != https://*.bmp && $HOOK_content != https://*.mp4 ]]; then
-                ${pkgs.curl}bin/curl -v -F spoiler_text="$HOOK_title" -F status="$HOOK_content $POST_URL" -F sensitive="0" https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCESS_TOKEN
-                exit 0
-              fi
+        if [[ $HOOK_content != https://*.jpg && $HOOK_content != https://*.jpeg && $HOOK_content != https://*.png && $HOOK_content != https://*.bmp && $HOOK_content != https://*.mp4 ]]; then
+          ${pkgs.curl}bin/curl -v -F spoiler_text="$HOOK_title" -F status="$HOOK_content $POST_URL" -F sensitive="0" https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCESS_TOKEN
+          exit 0
+        fi
 
-              # Get image
-              extension="${"$"}{HOOK_content##*.}"
-              tmpfile=$(mktemp /tmp/mastodon-reddit-feedXXXXXXXXXXXX).$extension
+        # Get image
+        extension="${"$"}{HOOK_content##*.}"
+        tmpfile=$(mktemp /tmp/mastodon-reddit-feedXXXXXXXXXXXX).$extension
 
-              ${pkgs.curl}/bin/curl --silent --output "$tmpfile" $HOOK_content
+        ${pkgs.curl}/bin/curl --silent --output "$tmpfile" $HOOK_content
 
-                MEDIA_ID=$(${pkgs.curl}/bin/curl -v -F file=@$tmpfile https://${config.services.mastodon.localDomain}/api/v2/media?access_token=$ACCESS_TOKEN | ${pkgs.jq}/bin/jq '.id' | sed 's/"//g')
-              rm "$tmpfile"
-              sleep 5
+          MEDIA_ID=$(${pkgs.curl}/bin/curl -v -F file=@$tmpfile https://${config.services.mastodon.localDomain}/api/v2/media?access_token=$ACCESS_TOKEN | ${pkgs.jq}/bin/jq '.id' | sed 's/"//g')
+        rm "$tmpfile"
+        sleep 5
 
-              ${pkgs.curl}/bin/curl --silent -v -F spoiler_text="$HOOK_title" -F status="$POST_URL" -F sensitive="0" -F media_ids[]=$MEDIA_ID https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCESS_TOKEN
+        ${pkgs.curl}/bin/curl --silent -v -F spoiler_text="$HOOK_title" -F status="$POST_URL" -F sensitive="0" -F media_ids[]=$MEDIA_ID https://${config.services.mastodon.localDomain}/api/v1/statuses?access_token=$ACCESS_TOKEN
       '';
       confFile = pkgs.writeText "webhookConf.json" ''
         [
@@ -179,7 +179,10 @@ in
   systemd.timers.restart-reddit-feed-webhook = {
     enable = true;
     after = [ "network.target" ];
-    wantedBy = [ "timers.target" "multi-user.target" ];
+    wantedBy = [
+      "timers.target"
+      "multi-user.target"
+    ];
     timerConfig.Unit = "restart-reddit-feed-webhook.service";
     timerConfig.OnCalendar = "Mon *-*-1..7 4:00:00"; # First Monday of the month at 4am
   };

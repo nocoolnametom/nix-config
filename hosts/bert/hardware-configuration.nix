@@ -12,7 +12,7 @@
 
 let
   cirdanSmbConfig = name: {
-    device = "//${configVars.cirdanIpAddress}/${name}";
+    device = "//${configVars.networking.subnets.cirdan.ip}/${name}";
     fsType = "cifs";
     options =
       let

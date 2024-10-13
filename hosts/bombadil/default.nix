@@ -15,7 +15,7 @@
   ...
 }:
 let
-  exmormonSocialUrl = "exmormon.social";
+  socialUrl = configVars.networking.external.bombadil.mainUrl;
 in
 {
   imports =
@@ -52,10 +52,10 @@ in
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
-  networking.hostName = "bombadil";
-  networking.hosts."${configVars.bombadilIpAddress}" = [
-    exmormonSocialUrl
-    "www.${exmormonSocialUrl}"
+  networking.hostName = configVars.networking.external.bombadil.name;
+  networking.hosts."${configVars.networking.external.bombadil.ip}" = [
+    socialUrl
+    "www.${socialUrl}"
   ];
   networking.useDHCP = false; # I'm using a static IP through Linode
   networking.enableIPv6 = true;
@@ -65,8 +65,8 @@ in
   networking.firewall.allowedTCPPorts = [
     80 # HTTP
     443 # HTTPS
-    2222 # SSH
-    22 # SSH
+    configVars.networking.ports.tcp.remoteSsh
+    configVars.networking.ports.tcp.localSsh
   ];
   networking.firewall.allowedUDPPorts = [
     443 # HTTPS
@@ -74,7 +74,7 @@ in
   networking.firewall.allowPing = true; # Linode's LISH console requires ping
 
   # Mastodon setup
-  services.mastodon.localDomain = exmormonSocialUrl;
+  services.mastodon.localDomain = socialUrl;
   services.mastodon.webProcesses = 0; # This is the WEB_CONCURRENCY env variable for Puma, 0 is a single process
   services.mastodon.sidekiqThreads = 10; # This seems about right
 
@@ -111,7 +111,9 @@ in
   services.chrony.servers = [ "time.cloudflare.com" ];
 
   # OpenSSH
-  services.openssh.ports = [ 2222 ];
+  services.openssh.ports = [
+    configVars.networking.ports.tcp.remoteSsh # Only accessible via remote SSH port
+  ];
   services.openssh.openFirewall = true;
 
   # Fail2Ban

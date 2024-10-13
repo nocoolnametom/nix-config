@@ -91,7 +91,7 @@
           '';
         };
         "/jellyfin/" = {
-          proxyPass = "http://${configVars.cirdanIpAddress}:8096/jellyfin/";
+          proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
           proxyWebsockets = true;
           extraConfig = ''
             proxy_buffering off;
@@ -208,7 +208,7 @@
                       icon = "fas fa-television";
                       url =
                         if internal then
-                          "http://${configVars.bertIpAddress}:${builtins.toString config.services.ombi.port}/"
+                          "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
                         else
                           "https://request.nocoolnametom.com";
                       target = "_blank";
@@ -244,7 +244,7 @@
                       icon = "fas fa-gears";
                       url =
                         if internal then
-                          "http://${configVars.sauronIpAddress}:${configVars.invokeaiPort}"
+                          "http://${configVars.networking.subnets.sauron.ip}:${builtins.toString configVars.networking.ports.tcp.invokeai}"
                         else
                           "https://stable.nocoolnametom.com/";
                       target = "_blank";
@@ -285,12 +285,12 @@
         default = true;
         serverAliases = [
           config.networking.hostName
-          configVars.bertIpAddress
+          configVars.networking.subnets.bert.ip
         ];
         locations = proxyPaths true;
       };
-      "house.nocoolnametom.com" = {
-        serverAliases = [ "home.nocoolnametom.com" ]; # This is the dynamic DNS subdomain
+      "house.${configVars.domain}" = {
+        serverAliases = [ "home.${configVars.domain}" ]; # This is the dynamic DNS subdomain
         enableACME = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
@@ -298,24 +298,24 @@
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
       };
-      "requests.nocoolnametom.com" = {
-        serverAliases = [ "request.nocoolnametom.com" ];
+      "requests.${configVars.domain}" = {
+        serverAliases = [ "request.${configVars.domain}" ];
         enableACME = true;
         forceSSL = true;
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
       };
-      # "automatic.nocoolnametom.com" = {
+      # "automatic.${configVars.domain}" = {
       #   enableACME = false;
       #   forceSSL = false;
       #   basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
       #   extraConfig = ''
-      #     error_page 404 /automatic.nocoolnametom.com.404.html;
+      #     error_page 404 /automatic.${configVars.domain}.404.html;
       #   '';
       #   locations = {
       #     "/" = {
-      #       proxyPass = "http://${sauronIpAddress}:7860/";
+      #       proxyPass = "http://${configVars.networking.subnets.sauron.ip}:7860/";
       #       proxyWebsockets = true;
       #       extraConfig = ''
       #         proxy_buffering off;
@@ -323,24 +323,24 @@
       #         chunked_transfer_encoding off;
       #       '';
       #     };
-      #     "/automatic.nocoolnametom.com.404.html".extraConfig = ''
+      #     "/automatic.${configVars.domain}.404.html".extraConfig = ''
       #       root html
       #       allow all
-      #       index easy.nocoolnametom.com.404.html
-      #       rewrite ^ $scheme://stable.nocoolnametom.com$request_uri redirect;
+      #       index easy.${configVars.domain}.404.html
+      #       rewrite ^ $scheme://stable.${configVars.domain}$request_uri redirect;
       #     '';
       #   };
       # };
-      "stable.nocoolnametom.com" = {
+      "stable.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
-          error_page 404 /stable.nocoolnametom.com.404.html;
+          error_page 404 /stable.${configVars.domain}.404.html;
         '';
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.sauronIpAddress}:${configVars.invokeaiPort}/";
+            proxyPass = "http://${configVars.networking.subnets.sauron.ip}:${configVars.ports.tcp.invokeai}/";
             proxyWebsockets = true;
             extraConfig = ''
               proxy_buffering off;
@@ -348,20 +348,20 @@
               chunked_transfer_encoding off;
             '';
           };
-          # "/stable.nocoolnametom.com.404.html".extraConfig = ''
+          # "/stable.${configVars.domain}.404.html".extraConfig = ''
           #   root html
           #   allow all
-          #   index stable.nocoolnametom.com.404.html
-          #   rewrite ^ $scheme://easy.nocoolnametom.com$request_uri redirect;
+          #   index stable.${configVars.domain}.404.html
+          #   rewrite ^ $scheme://easy.${configVars.domain}$request_uri redirect;
           # '';
         };
       };
     };
   security.acme.acceptTerms = true;
   security.acme.certs = {
-    "house.nocoolnametom.com".email = "tom+letsencrypt@nocoolnametom.com";
-    "stable.nocoolnametom.com".email = "tom+letsencrypt@nocoolnametom.com";
-    "requests.nocoolnametom.com".email = "tom+letsencrypt@nocoolnametom.com";
-    # "automatic.nocoolnametom.com".email = "tom+letsencrypt@nocoolnametom.com";
+    "house.${configVars.domain}".email = configVars.email.letsencrypt;
+    "stable.${configVars.domain}".email = configVars.email.letsencrypt;
+    "requests.${configVars.domain}".email = configVars.email.letsencrypt;
+    # "automatic.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }

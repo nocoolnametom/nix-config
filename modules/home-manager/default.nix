@@ -4,4 +4,5 @@
   # List your module files here
   davmail-config = import ./davmail-config.nix;
   waynergy = import ./waynergy.nix;
+  yubikey-touch-detector = import ./yubikey-touch-detector.nix;
 }
