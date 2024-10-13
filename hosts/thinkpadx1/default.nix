@@ -87,7 +87,6 @@
   services.blueman.enable = true;
 
   # Security
-  security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
 
   # Optional, hint electron apps to use wayland:

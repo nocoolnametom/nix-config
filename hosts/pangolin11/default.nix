@@ -119,7 +119,6 @@
   powerManagement.powertop.enable = true; # Should work fine with system76-power
 
   # Security
-  security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
 
   # Optional, hint electron apps to use wayland:
