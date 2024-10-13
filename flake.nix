@@ -5,6 +5,7 @@
     #################### Official NixOS and HM Package Sources ####################
 
     nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
 
     impermanence.url = "github:nix-community/impermanence";
@@ -30,6 +31,12 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Pre-commit hooks
+    pre-commit-hooks = {
+      url = "github:cachix/git-hooks.nix";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
+
     # Cosmis Desktop Environment
     nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
     nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -48,7 +55,7 @@
     # Private secrets repo
     # Authenticate via ssh and use shallow clone
     nix-secrets.url = "git+ssh://git@github.com/nocoolnametom/nix-secrets.git?ref=main&shallow=1";
-    nix-secrets.flake = false;
+    nix-secrets.inputs = { };
   };
 
   outputs =
@@ -103,6 +110,14 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         import ./pkgs { inherit pkgs; }
+      );
+
+      checks = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        import ./checks { inherit inputs system pkgs; }
       );
 
       # Nix formatter available through 'nix fmt' https://github.com/NixOS/nixfmt 

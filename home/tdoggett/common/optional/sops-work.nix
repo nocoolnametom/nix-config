@@ -1,5 +1,10 @@
 # This is the Home Manager-level sops configuration for my work machine
-{ inputs, config, ... }:
+{
+  inputs,
+  config,
+  configVars,
+  ...
+}:
 
 let
   secretspath = builtins.toString inputs.nix-secrets;
@@ -31,9 +36,10 @@ in
     config.sops.secrets."ssh/personal/id_ed25519".path;
   programs.ssh.matchBlocks."gitlab.com".identityFile =
     config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."elrond".identityFile = config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."exmormon.social".identityFile =
+  programs.ssh.matchBlocks."${configVars.networking.external.elrond.name}".identityFile =
     config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."steamdeck".identityFile =
+  programs.ssh.matchBlocks."${configVars.networking.external.bombadil.mainUrl}".identityFile =
+    config.sops.secrets."ssh/personal/id_ed25519".path;
+  programs.ssh.matchBlocks."${configVars.networking.subnets.steamdeck}".identityFile =
     config.sops.secrets."ssh/personal/id_ed25519".path;
 }

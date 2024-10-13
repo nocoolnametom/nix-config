@@ -25,6 +25,7 @@
     # Use the same hashedPassword or defined password as the main username has
     hashedPassword = config.users.users.${configVars.username}.hashedPassword;
     password = lib.mkForce config.users.users.${configVars.username}.password;
+    openssh.authorizedKeys.keys = config.users.users.${configVars.username}.openssh.authorizedKeys.keys;
   };
 
   # Ensure these tools are available for all users, even if it's just root on the system

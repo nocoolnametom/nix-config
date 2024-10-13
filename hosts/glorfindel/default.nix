@@ -15,7 +15,7 @@
   ...
 }:
 let
-  exmormonSocialUrl = "exmormon.social";
+  socialUrl = configVars.networking.external.glorfindel.mainUrl;
 in
 {
   imports =
@@ -58,10 +58,10 @@ in
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
-  networking.hostName = "glorfindel";
-  networking.hosts."${configVars.glorfindelIpAddress}" = [
-    exmormonSocialUrl
-    "www.${exmormonSocialUrl}"
+  networking.hostName = configVars.networking.external.glorfindel.name;
+  networking.hosts."${configVars.networking.external.glorfindel.ip}" = [
+    socialUrl
+    "www.${socialUrl}"
   ];
   networking.useDHCP = false; # I'm using a static IP through Linode
   networking.enableIPv6 = true;
@@ -71,8 +71,8 @@ in
   networking.firewall.allowedTCPPorts = [
     80 # HTTP
     443 # HTTPS
-    2222 # SSH
-    22 # SSH
+    configVars.networking.ports.tcp.remoteSsh
+    configVars.networking.ports.tcp.localSsh
   ];
   networking.firewall.allowedUDPPorts = [
     443 # HTTPS
@@ -80,7 +80,7 @@ in
   networking.firewall.allowPing = true; # Linode's LISH console requires ping
 
   # Mastodon setup
-  services.mastodon.localDomain = exmormonSocialUrl;
+  services.mastodon.localDomain = socialUrl;
 
   # Use the Grub 2 boot loader
   boot.loader.grub.enable = true;
@@ -127,7 +127,9 @@ in
   services.ntp.enable = true;
 
   # OpenSSH
-  services.openssh.ports = [ 2222 ];
+  services.openssh.ports = [
+    configVars.networking.ports.tcp.remoteSsh # Only accessible via remote SSH port
+  ];
   services.openssh.openFirewall = true;
 
   # Fail2Ban
