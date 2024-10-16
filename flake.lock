@@ -99,26 +99,6 @@
         "type": "github"
       }
     },
-    "darwin": {
-      "inputs": {
-        "nixpkgs": [
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1728901530,
-        "narHash": "sha256-I9Qd0LnAsEGHtKE9+uVR0iDFmsijWSy7GT0g3jihG4Q=",
-        "owner": "LnL7",
-        "repo": "nix-darwin",
-        "rev": "a60ac02f9466f85f092e576fd8364dfc4406b5a6",
-        "type": "github"
-      },
-      "original": {
-        "owner": "LnL7",
-        "repo": "nix-darwin",
-        "type": "github"
-      }
-    },
     "disko": {
       "inputs": {
         "nixpkgs": [
@@ -547,6 +527,26 @@
         "type": "github"
       }
     },
+    "nix-darwin": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1728901530,
+        "narHash": "sha256-I9Qd0LnAsEGHtKE9+uVR0iDFmsijWSy7GT0g3jihG4Q=",
+        "owner": "LnL7",
+        "repo": "nix-darwin",
+        "rev": "a60ac02f9466f85f092e576fd8364dfc4406b5a6",
+        "type": "github"
+      },
+      "original": {
+        "owner": "LnL7",
+        "repo": "nix-darwin",
+        "type": "github"
+      }
+    },
     "nix-filter": {
       "locked": {
         "lastModified": 1693833173,
@@ -564,10 +564,10 @@
     },
     "nix-secrets": {
       "locked": {
-        "lastModified": 1729027544,
-        "narHash": "sha256-fvGZStUAE2BIHyr5Sm0+v72BXA3TkBdCt2lMhN2GmB8=",
+        "lastModified": 1729120316,
+        "narHash": "sha256-IEMRhmXpEBJE6dINF/PnzNa3zl3/21fEGjh5tnwZuYY=",
         "ref": "main",
-        "rev": "845e383fe2f82bab05e3d23cd48b53d0b6a9c5ea",
+        "rev": "4c7405b9bdbda36bdd9a6d417a50bdf3cd017acf",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"
@@ -589,11 +589,11 @@
         "rust-overlay": "rust-overlay"
       },
       "locked": {
-        "lastModified": 1729114259,
-        "narHash": "sha256-P2OPyZlJZA0LbrXPy2yc/aMfiFVR03xgqdxPiMyRi/k=",
+        "lastModified": 1729119726,
+        "narHash": "sha256-Z0oL81zpXHTvlMwkrGmsO0OfQMZqAzDMgDoEho6p80U=",
         "owner": "lilyinstarlight",
         "repo": "nixos-cosmic",
-        "rev": "9a5c09bf963b40030df25f22f8f8955aa4c878e1",
+        "rev": "8adaea8532005dc1501f81f62ee8a4360eab33a8",
         "type": "github"
       },
       "original": {
@@ -818,13 +818,13 @@
     },
     "root": {
       "inputs": {
-        "darwin": "darwin",
         "disko": "disko",
         "disposable-email-domains": "disposable-email-domains",
         "hardware": "hardware",
         "home-manager": "home-manager",
         "hyprland": "hyprland",
         "impermanence": "impermanence",
+        "nix-darwin": "nix-darwin",
         "nix-secrets": "nix-secrets",
         "nixos-cosmic": "nixos-cosmic",
         "nixpkgs": "nixpkgs_2",
