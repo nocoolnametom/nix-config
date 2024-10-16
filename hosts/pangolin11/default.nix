@@ -21,7 +21,7 @@
       ./hardware-configuration.nix
 
       ########################## Hardware Modules ###############################
-      inputs.hardware.nixosModules.system76
+      #inputs.hardware.nixosModules.system76
 
       ########################### Impermanence ##################################
       ./persistence.nix

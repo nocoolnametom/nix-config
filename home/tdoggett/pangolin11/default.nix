@@ -12,7 +12,7 @@
     #################### Host-specific Optional Configs ####################
     ../common/optional/sops.nix
     ../common/optional/git.nix
-    ../common/optional/immersed-vr.nix
+    ../common/optional/immersed.nix
     ../common/optional/desktops
     ../common/optional/desktops/hyprland.nix
 

@@ -1,9 +1,8 @@
 { pkgs, config, ... }:
 {
-  # hardware.graphics in 24.11+
-  hardware.opengl = {
+  hardware.graphics = {
     enable = true;
-    driSupport32Bit = true; # enable32Bit in 24.11+
+    enable32Bit = true;
     extraPackages = with pkgs; [
       libva
       vaapiVdpau
