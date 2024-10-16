@@ -1,6 +1,7 @@
 { pkgs, config, ... }:
 let
   calibreLibrary = "/media/g_drive/Calibre";
+  calibre-update = pkgs.callPackage ./calibre-update-pkg.nix { };
 in
 {
   # Calibre Server
@@ -21,7 +22,7 @@ in
   systemd.services.calibre-server-dropbox-sync =
     if config.services.calibre-server.enable then
       {
-        script = "${pkgs.calibre-update}/bin/calibre-update ${config.users.users.maestral.home}/Dropbox/Books ${calibreLibrary}";
+        script = "${calibre-update}/bin/calibre-update ${config.users.users.maestral.home}/Dropbox/Books ${calibreLibrary}";
         serviceConfig = {
           Type = "oneshot";
           User = "${config.services.calibre-server.user}";

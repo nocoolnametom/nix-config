@@ -96,7 +96,7 @@ in
   powerManagement.cpuFreqGovernor = "ondemand";
 
   # Disable TPM2 support - Allows building on non-TPM2 systems
-  boot.initrd.systemd.enableTpm2 = false;
+  boot.initrd.systemd.tpm2.enable = false;
 
   # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
   # (the default) this is the recommended approach. When using systemd-networkd it's
