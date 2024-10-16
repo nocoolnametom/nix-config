@@ -4,15 +4,17 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    nixpkgs.url = "github:NixOS/nixpkgs/release-24.05";
+    #nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
 
     impermanence.url = "github:nix-community/impermanence";
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.05";
+    #home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     darwin.url = "github:LnL7/nix-darwin";
@@ -46,6 +48,11 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
 
+    # Hyprland
+    hyprland.url = "github:hyprwm/Hyprland";
+    split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
+    split-monitor-workspaces.inputs.hyprland.follows = "hyprland"; # <- make sure this line is present for the plugin to work as intended
+
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
     disposable-email-domains.flake = false;
@@ -71,6 +78,7 @@
       sops-nix,
       nixos-cosmic,
       plasma-manager,
+      split-monitor-workspaces,
       disposable-email-domains,
       nix-secrets,
       ...

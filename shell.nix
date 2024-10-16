@@ -16,7 +16,7 @@
 }:
 {
   default = pkgs.mkShell {
-    NIX_CONFIG = "extra-experimental-features = nix-command flakes repl-flake";
+    NIX_CONFIG = "extra-experimental-features = nix-command flakes";
     nativeBuildInputs = builtins.attrValues {
       inherit (pkgs)
         # Required for pre-commit hook 'nixpkgs-fmt' only on Darwin

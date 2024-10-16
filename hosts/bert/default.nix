@@ -43,7 +43,7 @@
 
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/per-user-vpn-setup.nix"
-      "hosts/common/optional/services/calibre.nix"
+      "hosts/common/optional/services/calibre/default.nix"
       "hosts/common/optional/services/ddclient.nix"
       "hosts/common/optional/services/deluge.nix"
       "hosts/common/optional/services/flood.nix"

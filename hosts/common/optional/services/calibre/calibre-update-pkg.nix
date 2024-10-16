@@ -2,6 +2,8 @@
   pkgs ? import <nixpkgs> { },
 }:
 
+# This is here instead of the global pkgs because calibre cannot be built on darwin
+# and the global pkgs must be available for all systems
 pkgs.writeShellApplication (
   let
     calibreFileUpdate = pkgs.writeShellApplication {

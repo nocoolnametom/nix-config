@@ -2,7 +2,9 @@
 
 {
   pkgs ? import <nixpkgs> { },
+  ...
 }:
+
 rec {
 
   #################### Packages with external source ############################
@@ -12,9 +14,4 @@ rec {
   stashapp = pkgs.callPackage ./stashapp { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
-  calibre-update = pkgs.callPackage ./calibre-update { };
-  myHyperlandPlugins-split-monitor-workspaces =
-    pkgs.callPackage ./myHyperlandPlugins/split-monitor-workspaces
-      { };
-
 }

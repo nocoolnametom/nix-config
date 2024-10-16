@@ -153,11 +153,10 @@ in
       sshAgentAuth.enable = true;
       u2f = {
         enable = true;
-        # These settings are part of 24.11+/unstable!
-        # settings = {
-        #   cue = true; # Tells user they need to press the button
-        #   authFile = "${homeDirectory}/.config/Yubico/u2f_keys";
-        # };
+        settings = {
+          cue = true; # Tells user they need to press the button
+          authFile = "${homeDirectory}/.config/Yubico/u2f_keys";
+        };
       };
       services = {
         login.u2fAuth = true;
@@ -171,7 +170,7 @@ in
         #gnome-keyring = {
         #  text = ''
         #    session    include                     login
-        #    session optional ${pkgs.gnome.gnome-keyring}/lib/security/pam_gnome_keyring.so auto_start
+        #    session optional ${pkgs.gnome-keyring}/lib/security/pam_gnome_keyring.so auto_start
         #  '';
         #};
       };
