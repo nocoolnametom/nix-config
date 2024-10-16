@@ -17,8 +17,8 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    darwin.url = "github:LnL7/nix-darwin";
-    darwin.inputs.nixpkgs.follows = "nixpkgs";
+    nix-darwin.url = "github:LnL7/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     #################### Utilities ####################
 
@@ -72,7 +72,7 @@
       impermanence,
       hardware,
       home-manager,
-      darwin,
+      nix-darwin,
       disko,
       stylix,
       sops-nix,
@@ -93,6 +93,7 @@
       inherit (nixpkgs) lib;
       configVars = import ./vars { inherit inputs lib; };
       configLib = import ./lib { inherit lib; };
+      configurationRevision = self.rev or self.dirtyRev or null;
       specialArgs = {
         inherit
           inputs
@@ -100,6 +101,7 @@
           configVars
           configLib
           nixpkgs
+          configurationRevision
           ;
       };
     in
@@ -142,7 +144,7 @@
 
       #################### NixOS Configurations ####################
       #
-      # Building configurations available through `just rebuild` or `nixos-rebuild --flake .#hostname`
+      # Building configurations available through `nixos-rebuild --flake .#hostname`
       #
       # You can dry-run any machine's config on another machine with the flake already in `/etc/nixos`
       # via `nixos-rebuild dry-build --flake .#hostname`
@@ -215,5 +217,21 @@
             ];
           };
         };
+
+      #################### Nix-Darwin Configurations ####################
+      #
+      # Building configurations available through `darwin-rebuild --flake ~/.config/nix-darwin#hostname`
+      #
+      darwinConfigurations = {
+        # Apple Macbook Pro 16 2003"
+        "${nix-secrets.networking.work.macbookpro.name}" = nix-darwin.lib.darwinSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.darwinModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/work/macbookpro
+          ];
+        };
+      };
     };
 }
