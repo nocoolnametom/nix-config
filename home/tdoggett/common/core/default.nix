@@ -9,8 +9,6 @@
 {
   imports = (configLib.scanPaths ./.) ++ (builtins.attrValues outputs.homeManagerModules);
 
-  services.ssh-agent.enable = true;
-
   home = {
     username = lib.mkDefault "tdoggett";
     homeDirectory = lib.mkDefault "/home/${config.home.username}";
@@ -42,8 +40,8 @@
       unzip # zip extraction
       unrar # rar extraction
       wget # downloader
-      zip
-      ; # zip compression
+      zip # zip compression
+      ;
   };
 
   nixpkgs = {
