@@ -14,6 +14,7 @@ let
     if pkgs.stdenv.isLinux then "/home/${configVars.username}" else "/Users/${configVars.username}";
 in
 {
+  # I'm pretty sure we can't load this on darwin!
   imports = [ inputs.sops-nix.nixosModules.sops ];
 
   environment.systemPackages = [ pkgs.sops ];

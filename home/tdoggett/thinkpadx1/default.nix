@@ -11,6 +11,7 @@
     ../common/optional/desktops/hyprland.nix
 
     ############### Service Configurations (Enable below) #################
+    ../common/optional/services/ssh-agent.nix
     ../common/optional/services/gpg-agent.nix
   ];
 
