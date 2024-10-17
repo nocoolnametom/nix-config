@@ -19,11 +19,11 @@ in
   # Here is where the Home Manager magic happens!
   home-manager.users.${configVars.username} = import (
     configLib.relativeToRoot "home/${configVars.username}/${
-      inputs.nix-secrets.networking.work.aliases."${config.networking.hostName}"
+      configVars.networking.work.aliases."${config.networking.hostName}"
     }"
   );
 
-  users.users.tdoggett = {
+  users.users.${configVars.username} = {
     # Right now we're only using this for the authorizedKeys
     openssh.authorizedKeys.keys = lib.lists.forEach pubKeys (key: builtins.readFile key);
   };

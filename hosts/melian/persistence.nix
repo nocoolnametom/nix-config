@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# System-Level Persistence (User-level is handled in home/tdoggett/thinkpadx1/persistence.nix
+# System-Level Persistence (User-level is handled in home/<user>/melian/persistence.nix
 #
 ###############################################################################
 

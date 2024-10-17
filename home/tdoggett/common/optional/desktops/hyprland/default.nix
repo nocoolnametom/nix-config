@@ -19,7 +19,7 @@
       inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
     ];
     settings = {
-      # Monitors - Remember to define system-specific ones explicity in home/tdoggett/<host>/default.nix!
+      # Monitors - Remember to define system-specific ones explicity in home/<user>/<host>/default.nix!
       monitor = [
         # "name,resolution,position,scale"
         ",preferred,auto-left,1" # Fallback rule for other screens

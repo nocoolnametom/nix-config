@@ -2,12 +2,12 @@
 {
   services.sauronsync = {
     enable = true;
-    ip = "192.168.0.168";
+    ip = configVars.networking.subnet.sauron.ip;
     localUser = configVars.username;
     remoteUser = configVars.username;
     sshPrivateKey = config.sops.secrets."root-github-key".path;
     localDestDir = "/media/g_drive/nzbget/dest/software/finished";
-    remoteSourceDir = "/home/tdoggett/WindowsDocuments/films_to_double/finished";
-    remoteFinishedDir = "/home/tdoggett/WindowsDocuments/films_to_double/transferred";
+    remoteSourceDir = "/home/${configVars.username}/WindowsDocuments/films_to_double/finished";
+    remoteFinishedDir = "/home/${configVars.username}/WindowsDocuments/films_to_double/transferred";
   };
 }
