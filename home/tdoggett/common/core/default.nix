@@ -28,7 +28,7 @@
     inherit (pkgs)
 
       # Packages that don't have custom configs go here
-
+      sops # secrets encryption
       coreutils # basic gnu utils
       jq # JSON pretty printer and manipulator
       nix-tree # nix package tree viewer
