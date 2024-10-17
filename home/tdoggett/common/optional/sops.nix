@@ -1,5 +1,10 @@
 # This is the Home Manager-level sops configuration
-{ inputs, config, lib, ... }:
+{
+  inputs,
+  config,
+  lib,
+  ...
+}:
 
 let
   secretspath = builtins.toString inputs.nix-secrets;

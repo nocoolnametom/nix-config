@@ -6,9 +6,15 @@
   sops.secrets."proton-vpn/${config.networking.hostname}/credentials" = { };
   services.per-user-vpn.enable = true;
   services.per-user-vpn.servers."protonvpn" = {
-    certificate = "${builtins.toString config.sops.secrets."proton-vpn/${config.networking.hostname}/cert".path}";
-    tls-file = "${builtins.toString config.sops.secrets."proton-vpn/${config.networking.hostname}/tls-auth".path}";
-    credentialsFile = "${builtins.toString config.sops.secrets."proton-vpn/${config.networking.hostname}/credentials".path}";
+    certificate = "${builtins.toString
+      config.sops.secrets."proton-vpn/${config.networking.hostname}/cert".path
+    }";
+    tls-file = "${builtins.toString
+      config.sops.secrets."proton-vpn/${config.networking.hostname}/tls-auth".path
+    }";
+    credentialsFile = "${builtins.toString
+      config.sops.secrets."proton-vpn/${config.networking.hostname}/credentials".path
+    }";
     mark = "0x1";
     protocol = "udp";
     remotes = [
@@ -25,5 +31,11 @@
       config.services.deluge.user
     ];
   };
-  networking.firewall.allowedUDPPorts = [ 1194 5060 4569 51820 80 ];
+  networking.firewall.allowedUDPPorts = [
+    1194
+    5060
+    4569
+    51820
+    80
+  ];
 }
