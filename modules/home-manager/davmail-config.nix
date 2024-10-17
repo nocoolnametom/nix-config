@@ -203,13 +203,13 @@ in
     systemd.user.services.davmail-immutable = {
       Unit = {
         Description = "Allowing for immutable davmail config file with login state values";
-        ConditionPathExists = "/home/tdoggett/.davmail.properties.immutable";
+        ConditionPathExists = "${config.home.homeDirectory}/.davmail.properties.immutable";
       };
 
       Service = {
         Type = "oneshot";
         RemainAfterExit = false;
-        WorkingDirectory = "/home/tdoggett";
+        WorkingDirectory = config.home.homeDirectory;
         ExecStart = "${pkgs.writeShellScript "davmail-immutable-copy" ''
           ${pkgs.coreutils}/bin/touch .davmail.properties \
             && $(${pkgs.gnugrep}/bin/grep -v -x -f .davmail.properties.immutable .davmail.properties > .davmailnew.properties || ${pkgs.coreutils}/bin/touch .davmailnew.properties) \

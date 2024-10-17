@@ -16,7 +16,7 @@
     ../common/optional/git.nix
   ];
 
-  programs.git.userEmail = inputs.nix-secrets.email.work;
+  programs.git.userEmail = configVars.email.work;
 
   # We don't have a system-level sops config on darwin, so we'll use the home-manager-level
   # sops config to set the age keyfile for sops (it's a bit circular, but it works)
@@ -31,14 +31,14 @@
   programs.bash.initExtra = ''
     # >>> conda initialize >>>
     # !! Contents within this block are managed by 'conda init' !!
-    __conda_setup="$('/Users/tdoggett/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
+    __conda_setup="$('${config.home.homeDirectory}/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
     if [ $? -eq 0 ]; then
         eval "$__conda_setup"
     else
-        if [ -f "/Users/tdoggett/anaconda3/etc/profile.d/conda.sh" ]; then
-            . "/Users/tdoggett/anaconda3/etc/profile.d/conda.sh"
+        if [ -f "${config.home.homeDirectory}/anaconda3/etc/profile.d/conda.sh" ]; then
+            . "${config.home.homeDirectory}/anaconda3/etc/profile.d/conda.sh"
         else
-            export PATH="/Users/tdoggett/anaconda3/bin:$PATH"
+            export PATH="${config.home.homeDirectory}/anaconda3/bin:$PATH"
         fi
     fi
     unset __conda_setup

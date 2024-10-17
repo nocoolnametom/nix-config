@@ -49,8 +49,8 @@ in
       "hosts/common/optional/linode.nix"
 
       #################### Users to Create ####################
-      "hosts/common/users/tdoggett"
-      "home/tdoggett/glorfindel/persistence.nix"
+      "hosts/common/users/${configVars.username}"
+      "home/${configVars.username}/glorfindel/persistence.nix"
     ]);
 
   # I'm not currently running persistence on the Linode as I need to figure out

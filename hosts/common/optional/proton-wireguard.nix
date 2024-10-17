@@ -1,14 +1,15 @@
-{ ... }:
+{ configVars, ... }:
 let
+  hostConfig = configVars.networking.subnets."${config.networking.hostName}".protonWg;
   protonWg = {
-    ifaceName = "protonWg-bert";
-    privateKey = ""; # This config has been removed from Proton, but I still shouldn't share old keys
-    address = "10.2.0.2";
+    ifaceName = "protonWg-${config.networking.hostName}";
+    privateKey = hostConfig.privateKey; # This config has been removed from Proton, but I still shouldn't share old keys
+    address = hostConfig.address;
     fullAddress = "${protonWg.address}/32";
-    dns = "10.2.0.1";
-    peer1.public = "Lnp+1fMB1vwK7kNKH2DD7LYIHwdlgYfrKEj0op1SsGk=";
-    peer1.address = "193.148.18.98";
-    peer1.port = 51820;
+    dns = hostConfig.dns;
+    peer1.public = hostConfig.peer1.public;
+    peer1.address = hostConfig.peer1.address;
+    peer1.port = hostConfig.peer1.port;
     peer1.allowedIPs = [ "0.0.0.0/0" ];
   };
 in

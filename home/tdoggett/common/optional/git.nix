@@ -1,8 +1,8 @@
-{ lib, ... }:
+{ lib, configVars, ... }:
 {
   programs.git.enable = true;
   programs.git.userName = "Tom Doggett";
-  programs.git.signing.key = "5279843C73EB8029F9F6AF0EC4252D5677A319CA";
+  programs.git.signing.key = "7EC0EE35DDC9D227";
   # I want to figure out how to use nix-secrets and sops to automatically set up my GPG keys!
   programs.git.signing.signByDefault = lib.mkDefault false;
   programs.git.aliases.co = "checkout";

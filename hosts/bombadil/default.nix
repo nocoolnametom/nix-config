@@ -47,8 +47,8 @@ in
       "hosts/common/optional/linode.nix"
 
       #################### Users to Create ####################
-      "hosts/common/users/tdoggett"
-      "home/tdoggett/bombadil/persistence.nix"
+      "hosts/common/users/${configVars.username}"
+      "home/${configVars.username}/bombadil/persistence.nix"
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!

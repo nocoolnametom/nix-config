@@ -30,10 +30,10 @@
       "hosts/common/optional/tmux.nix"
 
       #################### Users to Manage ####################
-      "hosts/common/users/tdoggett/darwin.nix"
+      "hosts/common/users/${configVars.username}/darwin.nix"
     ]);
 
-  networking.hostName = inputs.nix-secrets.networking.work.macbookpro.name;
+  networking.hostName = configVars.networking.work.macbookpro.name;
 
   homebrew.enable = true;
   homebrew.onActivation.autoUpdate = true;

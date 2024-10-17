@@ -23,7 +23,7 @@ in
 
   users.mutableUsers = lib.mkDefault false;
 
-  users.users.tdoggett = {
+  users.users.${configVars.username} = {
     isNormalUser = true;
     # I never could get the sops secret version of this to work with a hashedPasswordFile
     hashedPassword = lib.mkDefault "$y$j9T$5SGpsUDjjH9wZ61QMwXf0.$C.cQnNS.mmXLEQ34/cqfpU.LXJ0BydbEFr4oukpn8u/";

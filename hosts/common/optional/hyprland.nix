@@ -1,4 +1,4 @@
-{ pkgs, ... }:
+{ pkgs, configVars, ... }:
 {
   services.hypridle.enable = true;
 
@@ -12,7 +12,7 @@
 
   # Auto-login through Greetd and TuiGreet to Hyprland
   autoLogin.enable = true;
-  autoLogin.username = "tdoggett";
+  autoLogin.username = configVars.username;
 
   environment.systemPackages = with pkgs; [
     lxqt.lxqt-policykit # Pop-up for GUI authentication in desktop

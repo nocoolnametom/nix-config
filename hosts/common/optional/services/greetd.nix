@@ -5,6 +5,7 @@
 
 {
   config,
+  configVars,
   pkgs,
   lib,
   ...
@@ -20,7 +21,7 @@ in
 
     username = lib.mkOption {
       type = lib.types.str;
-      default = "tdoggett";
+      default = configVars.username;
       description = "User to automatically login";
     };
   };
