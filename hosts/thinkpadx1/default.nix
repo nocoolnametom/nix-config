@@ -53,8 +53,8 @@
       "hosts/common/optional/stylix.nix" # System-wide styling
 
       #################### Users to Create ####################
-      "hosts/common/users/tdoggett"
-      "home/tdoggett/thinkpadx1/persistence.nix"
+      "hosts/common/users/${configVars.username}"
+      "home/${configVars.username}/thinkpadx1/persistence.nix"
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
@@ -74,7 +74,7 @@
 
   # Auto-login through Greetd and TuiGreet to Hyprland
   autoLogin.enable = true;
-  autoLogin.username = "tdoggett";
+  autoLogin.username = configVars.username;
 
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;

@@ -19,7 +19,7 @@
 {
   # this folder is where the files will be stored (don't put it in tmpfs)
   # The directive for if persistence is enabled is in the system-level file, if used
-  environment.persistence."${configVars.persistFolder}".users.tdoggett =
+  environment.persistence."${configVars.persistFolder}".users."${configVars.username}" =
     lib.optionals (config.environment.persistence."${configVars.persistFolder}".enable)
       {
         directories = [

@@ -77,22 +77,20 @@ in
 
     localUser = mkOption {
       type = types.str;
-      default = "tdoggett";
-      example = "tdoggett";
+      default = "root";
       description = "User on the local machine";
     };
 
     remoteUser = mkOption {
       type = types.str;
-      default = "tdoggett";
-      example = "tdoggett";
+      default = "root";
       description = "User on the remote machine";
     };
 
     sshPrivateKey = mkOption {
       type = types.path;
-      default = "/home/tdoggett/.ssh/id_rsa";
-      example = "/home/tdoggett/.ssh/id_rsa";
+      default = "~/.ssh/id_rsa";
+      example = "~/.ssh/id_rsa";
       description = "Path to the private key for the SSH connection";
     };
 
@@ -105,15 +103,15 @@ in
 
     remoteSourceDir = mkOption {
       type = types.str;
-      default = "/home/tdoggett/WindowsDocuments/films_to_double/finished";
-      example = "/home/tdoggett/WindowsDocuments/films_to_double/finished";
+      default = "~/WindowsDocuments/films_to_double/finished";
+      example = "~/WindowsDocuments/films_to_double/finished";
       description = "Directory on Sauron where the finished files are stored";
     };
 
     remoteFinishedDir = mkOption {
       type = types.str;
-      default = "/home/tdoggett/WindowsDocuments/films_to_double/transferred";
-      example = "/home/tdoggett/WindowsDocuments/films_to_double/transferred";
+      default = "~/WindowsDocuments/films_to_double/transferred";
+      example = "~/WindowsDocuments/films_to_double/transferred";
       description = "Directory on Sauron where the finished files are moved after being copied to the local machine";
     };
   };

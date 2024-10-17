@@ -58,8 +58,8 @@
       "hosts/common/optional/services/stashapp.nix"
 
       #################### Users to Create ####################
-      "hosts/common/users/tdoggett"
-      "home/tdoggett/bert/persistence.nix"
+      "hosts/common/users/${configVars.username}"
+      "home/${configVars.username}/bert/persistence.nix"
     ]);
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
