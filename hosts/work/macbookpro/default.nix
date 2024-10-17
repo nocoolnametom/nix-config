@@ -28,6 +28,7 @@
       # Be very careful, most of these are meant for NixOS, not Darwin!
       "hosts/common/optional/direnv.nix"
       "hosts/common/optional/tmux.nix"
+      "hosts/common/optional/yubikey.nix"
 
       #################### Users to Manage ####################
       "hosts/common/users/${configVars.username}/darwin.nix"
