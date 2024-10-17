@@ -1,6 +1,12 @@
+{ lib, pkgs, ... }:
 {
-  programs.zsh = {
-    enable = true;
-    enableCompletion = true;
-  };
+  programs.zsh = lib.mkMerge [
+    {
+      enable = true;
+      enableCompletion = true;
+    }
+    (lib.optionalAttrs (pkgs.stdenv.isDarwin) {
+      enableSyntaxHighlighting = true;
+    })
+  ];
 }

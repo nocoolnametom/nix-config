@@ -30,7 +30,6 @@
 
   # Ensure these tools are available for all users, even if it's just root on the system
   programs.zsh.enable = true;
-  programs.git.enable = true;
   environment.systemPackages = [
     pkgs.rsync
     pkgs.wget
