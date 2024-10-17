@@ -1,5 +1,5 @@
 # This is the Home Manager-level sops configuration
-{ inputs, config, ... }:
+{ inputs, config, lib, ... }:
 
 let
   secretspath = builtins.toString inputs.nix-secrets;
@@ -11,7 +11,7 @@ in
 
   sops = {
     # This should have been placed by the system-level sops config
-    age.keyFile = "${homeDirectory}/.config/sops/age/keys.txt";
+    age.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
 
     defaultSopsFile = "${secretsFile}";
     validateSopsFiles = false;
