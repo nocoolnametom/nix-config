@@ -14,4 +14,5 @@ rec {
   stashapp = pkgs.callPackage ./stashapp { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
+  xpc_set_event_stream_handler = pkgs.callPackage ./xpc_set_event_stream_handler { };
 }
