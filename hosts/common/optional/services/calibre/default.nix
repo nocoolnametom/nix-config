@@ -6,6 +6,7 @@ in
 {
   # Calibre Server
   services.calibre-server.enable = true;
+  services.calibre-server.package = pkgs.stable.calibre;
   services.calibre-server.libraries = [ "${calibreLibrary}" ];
   systemd.services.calibre-server.serviceConfig.ExecStart =
     if config.services.calibre-server.enable then
