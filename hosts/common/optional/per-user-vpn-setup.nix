@@ -1,19 +1,19 @@
 { config, ... }:
 {
   # Per-User VPN Setup
-  sops.secrets."proton-vpn/${config.networking.hostname}/cert" = { };
-  sops.secrets."proton-vpn/${config.networking.hostname}/tls-auth" = { };
-  sops.secrets."proton-vpn/${config.networking.hostname}/credentials" = { };
+  sops.secrets."proton-vpn/${config.networking.hostName}/cert" = { };
+  sops.secrets."proton-vpn/${config.networking.hostName}/tls-auth" = { };
+  sops.secrets."proton-vpn/${config.networking.hostName}/credentials" = { };
   services.per-user-vpn.enable = true;
   services.per-user-vpn.servers."protonvpn" = {
     certificate = "${builtins.toString
-      config.sops.secrets."proton-vpn/${config.networking.hostname}/cert".path
+      config.sops.secrets."proton-vpn/${config.networking.hostName}/cert".path
     }";
     tls-file = "${builtins.toString
-      config.sops.secrets."proton-vpn/${config.networking.hostname}/tls-auth".path
+      config.sops.secrets."proton-vpn/${config.networking.hostName}/tls-auth".path
     }";
     credentialsFile = "${builtins.toString
-      config.sops.secrets."proton-vpn/${config.networking.hostname}/credentials".path
+      config.sops.secrets."proton-vpn/${config.networking.hostName}/credentials".path
     }";
     mark = "0x1";
     protocol = "udp";

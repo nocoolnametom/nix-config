@@ -11,7 +11,7 @@ pkgs.writeShellApplication (
 
       runtimeInputs = [
         pkgs.bash
-        pkgs.calibre
+        pkgs.stable.calibre
         pkgs.gnugrep
         pkgs.gawk
         pkgs.xxHash
