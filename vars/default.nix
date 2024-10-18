@@ -5,6 +5,7 @@
     domain
     email
     networking
+    work
     ;
 
   username = "tdoggett";
