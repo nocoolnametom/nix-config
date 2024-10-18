@@ -19,14 +19,6 @@
 
   programs.git.userEmail = configVars.email.work;
 
-  # We don't have a system-level sops config on darwin, so we'll use the home-manager-level
-  # sops config to set the age keyfile for sops (it's a bit circular, but it works)
-  sops.age.sshKeyPaths = [ "/etc/ssh/ssh_host_ed25519_key" ];
-  sops.secrets."user_age_keys/${configVars.username}_${osConfig.networking.hostName}" = {
-    path = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
-    mode = "0600";
-  };
-
   programs.bash.initExtra = ''
     # >>> conda initialize >>>
     # !! Contents within this block are managed by 'conda init' !!

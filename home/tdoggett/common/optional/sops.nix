@@ -13,6 +13,7 @@ let
 in
 {
   imports = [ inputs.sops-nix.homeManagerModules.sops ];
+
   # This should have been placed by the system-level sops config
   sops.age.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
 
