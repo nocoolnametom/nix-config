@@ -2,7 +2,7 @@
 {
   services.sauronsync = {
     enable = true;
-    ip = configVars.networking.subnet.sauron.ip;
+    ip = configVars.networking.subnets.sauron.ip;
     localUser = configVars.username;
     remoteUser = configVars.username;
     sshPrivateKey = config.sops.secrets."root-github-key".path;

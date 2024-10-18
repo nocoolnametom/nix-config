@@ -12,8 +12,7 @@
     ../common/core # required
 
     #################### Host-specific Optional Configs ####################
-    ../common/optional/sops.nix
-    ../common/optional/sops-work.nix
+    ../common/optional/sops-work.nix # used instead of sops.nix!
     ../common/optional/ssh-work.nix
     ../common/optional/git.nix
   ];
@@ -27,8 +26,6 @@
     path = "${config.home.homeDirectory}/.config/sops/age/keys.txt";
     mode = "0600";
   };
-
-  programs.ssh.enable = false;
 
   programs.bash.initExtra = ''
     # >>> conda initialize >>>
