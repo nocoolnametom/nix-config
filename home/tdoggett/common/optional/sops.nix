@@ -14,7 +14,7 @@ in
 {
   imports = [ inputs.sops-nix.homeManagerModules.sops ];
   # This should have been placed by the system-level sops config
-  sops.sage.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
+  sops.age.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
 
   sops.defaultSopsFile = "${secretsFile}";
   sops.validateSopsFiles = false;
