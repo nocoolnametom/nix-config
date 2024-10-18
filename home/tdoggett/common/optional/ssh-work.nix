@@ -5,14 +5,14 @@
   ...
 }:
 {
-  programs.ssh.addKeysToAgent = lib.mkForce null;
+  programs.ssh.addKeysToAgent = lib.mkForce "no";
   programs.ssh.forwardAgent = true;
   programs.ssh.hashKnownHosts = false;
   programs.ssh.serverAliveInterval = 0;
   programs.ssh.serverAliveCountMax = 3;
-  programs.ssh.identityFile = [
-    "${config.home.homeDirectory}/.ssh/id_yubikey"
-    "${config.home.homeDirectory}/.ssh/work_rsa"
-  ];
+  programs.ssh.extraConfig = ''
+    IdentityFile ${config.home.homeDirectory}/.ssh/id_yubikey
+    IdentityFile ${config.home.homeDirectory}/.ssh/work_rsa
+  '';
   programs.ssh.matchBlocks = configVars.work.sshMatchBlocks { inherit config; };
 }

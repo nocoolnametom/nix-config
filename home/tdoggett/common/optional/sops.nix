@@ -1,4 +1,4 @@
-# This is the Home Manager-level sops configuration
+# This is the Home Manager-level sops configuration - Can't be used WITH work-sops.nix!
 {
   inputs,
   config,
@@ -13,39 +13,34 @@ let
 in
 {
   imports = [ inputs.sops-nix.homeManagerModules.sops ];
+  # This should have been placed by the system-level sops config
+  sops.sage.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
 
-  sops = {
-    # This should have been placed by the system-level sops config
-    age.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
+  sops.defaultSopsFile = "${secretsFile}";
+  sops.validateSopsFiles = false;
 
-    defaultSopsFile = "${secretsFile}";
-    validateSopsFiles = false;
-
-    secrets = {
-      "ssh/personal/id_ed25519" = {
-        path = "${homeDirectory}/.ssh/id_ed25519";
-        mode = "0600";
-      };
-      "ssh/yubikey/ykbackup" = {
-        path = "${homeDirectory}/.ssh/id_ykbackup";
-        mode = "0600";
-      };
-      "ssh/yubikey/ykkeychain" = {
-        path = "${homeDirectory}/.ssh/id_ykkeychain";
-        mode = "0600";
-      };
-      "ssh/yubikey/yklappy" = {
-        path = "${homeDirectory}/.ssh/id_yklappy";
-        mode = "0600";
-      };
-      "ssh/yubikey/ykmbp" = {
-        path = "${homeDirectory}/.ssh/id_ykmbp";
-        mode = "0600";
-      };
-      "yubico/u2f_keys" = {
-        path = "${homeDirectory}/.config/Yubico/u2f_keys";
-        # mode = "0600";
-      };
-    };
+  sops.secrets."ssh/personal/id_ed25519" = {
+    path = "${homeDirectory}/.ssh/id_ed25519";
+    mode = "0600";
+  };
+  sops.secrets."ssh/yubikey/ykbackup" = {
+    path = "${homeDirectory}/.ssh/id_ykbackup";
+    mode = "0600";
+  };
+  sops.secrets."ssh/yubikey/ykkeychain" = {
+    path = "${homeDirectory}/.ssh/id_ykkeychain";
+    mode = "0600";
+  };
+  sops.secrets."ssh/yubikey/yklappy" = {
+    path = "${homeDirectory}/.ssh/id_yklappy";
+    mode = "0600";
+  };
+  sops.secrets."ssh/yubikey/ykmbp" = {
+    path = "${homeDirectory}/.ssh/id_ykmbp";
+    mode = "0600";
+  };
+  sops.secrets."yubico/u2f_keys" = {
+    path = "${homeDirectory}/.config/Yubico/u2f_keys";
+    # mode = "0600";
   };
 }
