@@ -30,9 +30,9 @@ in
     addKeysToAgent = lib.mkDefault "yes"; # req'd for enabling yubikey-agent
 
     # FIXME: This should probably be for git systems only?
-    controlMaster = "auto";
-    controlPath = "~/.ssh/sockets/S.%r@%h:%p";
-    controlPersist = "10m";
+    controlMaster = lib.mkDefault "auto";
+    controlPath = lib.mkDefault "~/.ssh/sockets/master-%r@%h:%p";
+    controlPersist = lib.mkDefault "10m";
 
     matchBlocks = {
       "git" = {

@@ -13,6 +13,8 @@
 
     #################### Host-specific Optional Configs ####################
     ../common/optional/sops.nix
+    ../common/optional/sops-work.nix
+    ../common/optional/ssh-work.nix
     ../common/optional/git.nix
   ];
 

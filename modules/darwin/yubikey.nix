@@ -7,6 +7,7 @@
 }:
 let
   homeDirectory = "/Users/${configVars.username}";
+  xpc_set_event_stream_handler = pkgs.callPackage ./pkgs/xpc_set_event_stream_handler { };
   yubikey-up =
     let
       yubikeyIds = lib.concatStringsSep " " (
@@ -91,7 +92,7 @@ in
         StandardOutPath = "/tmp/yubikey-up.log";
         StandardErrorPath = "/tmp/yubikey-up.log";
         ProgramArguments = [
-          "${pkgs.xpc_set_event_stream_handler}/bin/xpc_set_event_stream_handler"
+          "${xpc_set_event_stream_handler}/bin/xpc_set_event_stream_handler"
           "${yubikey-up}/bin/yubikey-up"
         ];
         LaunchEvents."com.apple.iokit.matching" = {

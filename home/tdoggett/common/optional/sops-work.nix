@@ -24,22 +24,24 @@ in
     secrets = {
       "ssh/personal/id_ed25519" = {
         mode = "0600";
+        path = "${homeDirectory}/.ssh/personal_ed25519";
       };
-      "ssh/work/id_ed25519" = {
-        path = "${homeDirectory}/.ssh/id_ed25519";
+      "ssh/yubikey/ykbackup" = {
+        path = "${homeDirectory}/.ssh/id_ykbackup";
         mode = "0600";
       };
-    };
+      "ssh/yubikey/ykkeychain" = {
+        path = "${homeDirectory}/.ssh/id_ykkeychain";
+        mode = "0600";
+      };
+      "ssh/yubikey/yklappy" = {
+        path = "${homeDirectory}/.ssh/id_yklappy";
+        mode = "0600";
+      };
+      "ssh/yubikey/ykmbp" = {
+        path = "${homeDirectory}/.ssh/id_ykmbp";
+        mode = "0600";
+      };
+    } // configVars.work.sops.secrets { inherit config; };
   };
-
-  programs.ssh.matchBlocks."github.com".identityFile =
-    config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."gitlab.com".identityFile =
-    config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."${configVars.networking.external.elrond.name}".identityFile =
-    config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."${configVars.networking.external.bombadil.mainUrl}".identityFile =
-    config.sops.secrets."ssh/personal/id_ed25519".path;
-  programs.ssh.matchBlocks."${configVars.networking.subnets.steamdeck}".identityFile =
-    config.sops.secrets."ssh/personal/id_ed25519".path;
 }
