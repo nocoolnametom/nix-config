@@ -224,13 +224,27 @@
       # Building configurations available through `darwin-rebuild --flake ~/.config/nix-darwin#hostname`
       #
       darwinConfigurations = {
-        # Apple Macbook Pro 16 2003"
+        # Apple Macbook Pro 16 2003
         "${nix-secrets.networking.work.macbookpro.name}" = nix-darwin.lib.darwinSystem {
           inherit specialArgs;
           modules = [
             home-manager.darwinModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/work/macbookpro
+          ];
+        };
+      };
+
+      #################### HM-Only Configurations ####################
+      #
+      # Building configurations available through `home-manager switch --flake ~/.config/home-manager#user@hostname`
+      #
+      homeConfigurations = {
+        # Ubuntu VM 1
+        "${configVars.username}@${nix-secrets.networking.work.vm1.name}" = home-manager.lib.homeManagerConfiguration {
+          inherit specialArgs;
+          modules = [
+            ./home/tdoggett/vm1
           ];
         };
       };
