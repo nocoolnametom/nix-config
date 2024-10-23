@@ -15,6 +15,7 @@
     ../common/optional/sops-work.nix # used instead of sops.nix!
     ../common/optional/ssh-work.nix
     ../common/optional/git.nix
+    ../common/optional/devenv.nix
   ];
 
   programs.git.userEmail = configVars.email.work;
