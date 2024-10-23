@@ -26,6 +26,8 @@
   services.blueman-applet.enable = true;
   programs.git.userEmail = configVars.gitHubEmail;
 
+  home.packages = with pkgs; [ gnumake remmina ];
+
   home = {
     stateVersion = "24.05";
     username = configVars.username;

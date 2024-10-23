@@ -104,6 +104,8 @@
   #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
 
+  environment.systemPackages = [ pkgs.gparted ];
+
   # Use the systemd-boot EFI boot loader.
   boot.loader.systemd-boot.enable = true;
   boot.loader.efi.canTouchEfiVariables = true;

@@ -39,7 +39,7 @@
   services.waynergy.host = "192.168.0.10";
   programs.git.userEmail = configVars.gitHubEmail;
 
-  home.packages = with pkgs; [ remmina ];
+  home.packages = with pkgs; [ gnumake remmina ];
 
   home = {
     stateVersion = "24.05";
