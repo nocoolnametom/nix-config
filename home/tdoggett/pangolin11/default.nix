@@ -15,6 +15,7 @@
     ../common/optional/immersed.nix
     ../common/optional/desktops
     ../common/optional/desktops/hyprland.nix
+    ../common/optional/devenv.nix
 
     ############### Service Configurations (Enable below) #################
     ../common/optional/services/ssh-agent.nix
