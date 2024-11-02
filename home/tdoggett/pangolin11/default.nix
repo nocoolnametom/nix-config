@@ -16,6 +16,7 @@
     ../common/optional/desktops
     ../common/optional/desktops/hyprland.nix
     ../common/optional/devenv.nix
+    ../common/optional/wakatime.nix
 
     ############### Service Configurations (Enable below) #################
     ../common/optional/services/ssh-agent.nix
@@ -40,7 +41,10 @@
   services.waynergy.host = "192.168.0.10";
   programs.git.userEmail = configVars.gitHubEmail;
 
-  home.packages = with pkgs; [ gnumake remmina ];
+  home.packages = with pkgs; [
+    gnumake
+    remmina
+  ];
 
   home = {
     stateVersion = "24.05";

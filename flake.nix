@@ -241,12 +241,14 @@
       #
       homeConfigurations = {
         # Ubuntu VM 1
-        "${configVars.username}@${nix-secrets.networking.work.vm1.name}" = home-manager.lib.homeManagerConfiguration {
-          inherit specialArgs;
-          modules = [
-            ./home/tdoggett/vm1
-          ];
-        };
+        "${configVars.username}@${nix-secrets.networking.work.vm1.name}" =
+          home-manager.lib.homeManagerConfiguration
+            {
+              inherit specialArgs;
+              modules = [
+                ./home/tdoggett/vm1
+              ];
+            };
       };
     };
 }
