@@ -20,6 +20,7 @@ in
   sops.defaultSopsFile = "${secretsFile}";
   sops.validateSopsFiles = false;
 
+  sops.secrets."wakatime-key" = { };
   sops.secrets."ssh/personal/id_ed25519" = {
     path = "${homeDirectory}/.ssh/id_ed25519";
     mode = "0600";
