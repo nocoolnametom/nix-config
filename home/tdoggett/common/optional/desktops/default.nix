@@ -18,7 +18,7 @@
     firefox
     foliate
     jellyfin-media-player
-    kdeconnect
+    plasma5Packages.kdeconnect-kde
     networkmanagerapplet # having it installed allows the icon to show up correctly in waybar
     obsidian
     slack
