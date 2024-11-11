@@ -44,7 +44,7 @@
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/per-user-vpn-setup.nix"
       # Calibre is broken on raspi architecture! 2024-10-18
-      # "hosts/common/optional/services/calibre/default.nix"
+      "hosts/common/optional/services/calibre/default.nix"
       "hosts/common/optional/services/ddclient.nix"
       "hosts/common/optional/services/deluge.nix"
       "hosts/common/optional/services/flood.nix"
@@ -65,6 +65,10 @@
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
+
+  # Imports overrides
+  # services.deluge.enable = false;
+  # services.flood.enable = false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
