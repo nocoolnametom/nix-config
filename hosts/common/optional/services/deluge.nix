@@ -1,8 +1,8 @@
-{ config, ... }:
+{ config, lib, ... }:
 {
   sops.secrets."deluge-auth" = { };
   # Deluge Server
-  services.deluge.enable = true;
+  services.deluge.enable = lib.mkDefault true;
   services.deluge.declarative = false;
   services.deluge.config = {
     add_paused = false;
@@ -87,5 +87,5 @@
   services.deluge.authFile = config.sops.secrets."deluge-auth".path;
 
   # Deluge Web Server
-  services.deluge.web.enable = true;
+  services.deluge.web.enable = lib.mkDefault config.services.deluge.enable;
 }

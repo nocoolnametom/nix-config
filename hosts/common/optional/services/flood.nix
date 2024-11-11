@@ -1,4 +1,5 @@
+{ lib, ... }:
 {
   # Flood UI
-  services.flood.enable = true;
+  services.flood.enable = lib.mkDefault true;
 }

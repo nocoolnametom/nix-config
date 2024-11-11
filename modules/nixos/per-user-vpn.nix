@@ -340,33 +340,33 @@ in
           dir = pkgs.writeScriptBin name ''
             #! ${pkgs.runtimeShell} -e
             # Flush routes currently in the table.
-            HAS_TABLE="$(${pkgs.iproute}/bin/ip route show table all | ${pkgs.gnugrep}/bin/grep "table" | ${pkgs.gnused}/bin/sed 's/.*\(table.*\)/\1/g' | ${pkgs.gawk}/bin/awk '{ print $2 }' | ${pkgs.coreutils}/bin/sort -u | ${pkgs.gnugrep}/bin/grep -c "${srvName}" || true)"
+            HAS_TABLE="$(${pkgs.iproute2}/bin/ip route show table all | ${pkgs.gnugrep}/bin/grep "table" | ${pkgs.gnused}/bin/sed 's/.*\(table.*\)/\1/g' | ${pkgs.gawk}/bin/awk '{ print $2 }' | ${pkgs.coreutils}/bin/sort -u | ${pkgs.gnugrep}/bin/grep -c "${srvName}" || true)"
             if [[ $HAS_TABLE == "1" ]]; then
-              ${pkgs.iproute}/bin/ip route flush table ${builtins.toString srv.routeTableId}
+              ${pkgs.iproute2}/bin/ip route flush table ${builtins.toString srv.routeTableId}
             fi
 
             # Add a rule to the routing rules for marked packets. These rules are checked in
             # priority order (lowest first - see `ip rule list`) and if no routes within match,
             # then the next rule is checked. This rule will be the second rule (the first being
             # local packets) and will apply for the marked packets.
-            HAS_RULE="$(${pkgs.iproute}/bin/ip rule list | ${pkgs.gnugrep}/bin/grep -c ${srv.mark} || true)"
+            HAS_RULE="$(${pkgs.iproute2}/bin/ip rule list | ${pkgs.gnugrep}/bin/grep -c ${srv.mark} || true)"
             if [[ $HAS_RULE == "0" ]]; then
-              ${pkgs.iproute}/bin/ip rule add from all fwmark ${srv.mark} lookup ${builtins.toString srv.routeTableId}
+              ${pkgs.iproute2}/bin/ip rule add from all fwmark ${srv.mark} lookup ${builtins.toString srv.routeTableId}
             fi
 
-            HAS_VPN_INTERFACE="$(${pkgs.iproute}/bin/ip -o link show | ${pkgs.gawk}/bin/awk -F': ' '{print $2}' | ${pkgs.gnugrep}/bin/grep -c tun-${srvName} || true)"
+            HAS_VPN_INTERFACE="$(${pkgs.iproute2}/bin/ip -o link show | ${pkgs.gawk}/bin/awk -F': ' '{print $2}' | ${pkgs.gnugrep}/bin/grep -c tun-${srvName} || true)"
             if [[ $HAS_VPN_INTERFACE == "1" ]]; then
-              HAS_IP="$(${pkgs.iproute}/bin/ip addr show tun-${srvName} | ${pkgs.gnugrep}/bin/grep -cPo '(?<= inet )([0-9\.]+) ' || true)"
+              HAS_IP="$(${pkgs.iproute2}/bin/ip addr show tun-${srvName} | ${pkgs.gnugrep}/bin/grep -cPo '(?<= inet )([0-9\.]+) ' || true)"
               if [[ $HAS_IP == "1" ]]; then
-                VPN_IP="$(${pkgs.iproute}/bin/ip addr show tun-${srvName} | ${pkgs.gnugrep}/bin/grep -Po '(?<= inet )([0-9\.]+) ')"
+                VPN_IP="$(${pkgs.iproute2}/bin/ip addr show tun-${srvName} | ${pkgs.gnugrep}/bin/grep -Po '(?<= inet )([0-9\.]+) ')"
 
-                ${pkgs.iproute}/bin/ip route replace default via $VPN_IP table ${builtins.toString srv.routeTableId}
+                ${pkgs.iproute2}/bin/ip route replace default via $VPN_IP table ${builtins.toString srv.routeTableId}
               fi
             fi
 
-            ${pkgs.iproute}/bin/ip route append default via 127.0.0.1 dev lo table ${builtins.toString srv.routeTableId}
+            ${pkgs.iproute2}/bin/ip route append default via 127.0.0.1 dev lo table ${builtins.toString srv.routeTableId}
 
-            ${pkgs.iproute}/bin/ip route flush cache
+            ${pkgs.iproute2}/bin/ip route flush cache
           '';
         in
         "${dir}/bin/${name}";
@@ -425,10 +425,10 @@ in
         # Workaround: OpenVPN will run `ip addr add` to assign an IP to the interface. However,
         # sometimes this won't do anything. In order to make sure that we always get an IP, sleep
         # and then run the command again.
-        HAS_IP="$(${pkgs.iproute}/bin/ip addr show tun-${name} | ${pkgs.gnugrep}/bin/grep -c '$4' || true)"
+        HAS_IP="$(${pkgs.iproute2}/bin/ip addr show tun-${name} | ${pkgs.gnugrep}/bin/grep -c '$4' || true)"
         if [[ $HAS_IP == "0" ]]; then
           sleep 5
-          ${pkgs.iproute}/bin/ip addr add dev tun-${name} local $4 peer $5
+          ${pkgs.iproute2}/bin/ip addr add dev tun-${name} local $4 peer $5
         fi
 
         # Routing script is invoked here and at startup. When run from the OpenVPN up script, it
@@ -482,7 +482,7 @@ in
           before = [ "network-pre.target" ];
           description = "Routing for ${name} VPN";
           path = [
-            pkgs.iproute
+            pkgs.iproute2
             pkgs.gnugrep
             pkgs.gawk
           ];
