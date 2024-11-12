@@ -28,6 +28,7 @@
           # "Music"
           # "Pictures"
           "Projects"
+          "Sync"
           # "Videos"
           # "VirtualBox VMs"
           ".config/google-chrome"

@@ -16,6 +16,7 @@
     ../common/optional/ssh-work.nix
     ../common/optional/git.nix
     ../common/optional/devenv.nix
+    ../common/optional/services/syncthing.nix
   ];
 
   programs.git.userEmail = configVars.email.work;
