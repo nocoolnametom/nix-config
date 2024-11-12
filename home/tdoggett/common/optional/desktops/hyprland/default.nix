@@ -51,7 +51,7 @@
       };
 
       "plugin:split-monitor-workspaces" = {
-        enabled = true;
+        enabled = false;
         count = 5;
       };
 
