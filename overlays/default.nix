@@ -14,6 +14,7 @@
     # example = prev.example.overrideAttrs (oldAttrs: let ... in {
     # ...
     # });
+    zen-browser-flake = inputs.zen-browser.packages.${final.system};
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
