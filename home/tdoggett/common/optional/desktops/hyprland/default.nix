@@ -51,6 +51,7 @@
       };
 
       "plugin:split-monitor-workspaces" = {
+        # TODO: This broke on 12-Nov-2024, maybe it's working again now?
         enabled = false;
         count = 5;
       };
