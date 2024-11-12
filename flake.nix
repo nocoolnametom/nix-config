@@ -48,6 +48,10 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
 
+     # Zen Browser
+    zen-browser.url = "github:0xc000022070/zen-browser-flake";
+    zen-browser.inputs.nixkpkgs.follows = "nixpkgs";
+
     # Hyprland
     hyprland.url = "github:hyprwm/Hyprland";
     split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
@@ -78,6 +82,7 @@
       sops-nix,
       nixos-cosmic,
       plasma-manager,
+      zen-browser,
       split-monitor-workspaces,
       disposable-email-domains,
       nix-secrets,

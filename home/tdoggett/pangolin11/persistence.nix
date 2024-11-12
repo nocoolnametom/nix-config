@@ -52,10 +52,12 @@
           ".Immersed"
           ".local/share/direnv"
           ".local/share/Steam"
+          ".local/state/syncthing"
           ".mozilla"
           ".cache/czkawka"
           ".steam"
           ".vscode"
+          ".zen"
           {
             directory = ".gnupg";
             mode = "0700";
