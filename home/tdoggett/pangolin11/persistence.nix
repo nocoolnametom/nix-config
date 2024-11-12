@@ -32,6 +32,7 @@
           "Music"
           "Pictures"
           "Projects"
+          "Sync"
           "Videos"
           "VirtualBox VMs"
           "bin"

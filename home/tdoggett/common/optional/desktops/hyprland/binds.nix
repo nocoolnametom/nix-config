@@ -31,6 +31,12 @@ let
       (hlPlugEnableCmd "hy3" "hy3:movewindow" "movewindow")
     else
       "movewindow";
+  splitChangeMonitorLeftCmd =
+    hlPlugEnableCmd "split-monitor-workspaces" "split-changemonitor, l"
+      "exec, :";
+  splitChangeMonitorRightCmd =
+    hlPlugEnableCmd "split-monitor-workspaces" "split-changemonitor, r"
+      "exec, :";
   workspaceCmd = hlPlugEnableCmd "split-monitor-workspaces" "split-workspace" "workspace";
   moveToWorkspaceCmd =
     hlPlugEnableCmd "split-monitor-workspaces" "split-movetoworkspace"
@@ -90,12 +96,6 @@ in
     "$mainMod SHIFT, Up, ${moveWindow}, u"
     "$mainMod SHIFT, Right, ${moveWindow}, r"
 
-    # Move entire workspace to different monitor outputs
-    "$hyperMod, L, split-changemonitor, r" # Move to monitor on right
-    "$hyperMod, H, split-changemonitor, l" # Move to monitor on left
-    "$hyperMod, Right, split-changemonitor, r" # Move to monitor on right
-    "$hyperMod, Left, split-changemonitor, l" # Move to monitor on left
-
     # Switch workspaces with mainMod + [0-9]
     "$mainMod, 1, ${workspaceCmd}, 1"
     "$mainMod, 2, ${workspaceCmd}, 2"
@@ -134,6 +134,12 @@ in
     "${hy3mod}, S, hy3:changegroup, untab" # Stacked Layout
     "${hy3mod}, W, hy3:changegroup, tab" # Layout Tabbed
     "${hy3mod}, E, hy3:changegroup, opposite" # Toggle Split
+
+    # Move entire workspace to different monitor outputs
+    "$hyperMod, L, ${splitChangeMonitorRightCmd}" # Move to monitor on right
+    "$hyperMod, Right, ${splitChangeMonitorRightCmd}" # Move to monitor on right
+    "$hyperMod, H, ${splitChangeMonitorLeftCmd}" # Move to monitor on left
+    "$hyperMod, Left, ${splitChangeMonitorLeftCmd}" # Move to monitor on left
   ];
 
   # Always active keys, no matter what
