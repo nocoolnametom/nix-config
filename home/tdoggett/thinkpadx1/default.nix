@@ -19,6 +19,7 @@
     ############### Service Configurations (Enable below) #################
     ../common/optional/services/ssh-agent.nix
     ../common/optional/services/gpg-agent.nix
+    ../common/optional/services/syncthing.nix
   ];
 
   wayland.windowManager.hyprland.settings.monitor = [
