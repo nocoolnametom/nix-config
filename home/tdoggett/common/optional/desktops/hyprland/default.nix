@@ -16,7 +16,7 @@
     plugins = [
       pkgs.hyprlandPlugins.hypr-dynamic-cursors
       pkgs.hyprlandPlugins.hy3
-      # inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces # TODO Broken as of 2024-11-12
+      inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
     ];
     settings = {
       # Monitors - Remember to define system-specific ones explicity in home/<user>/<host>/default.nix!
@@ -51,8 +51,7 @@
       };
 
       "plugin:split-monitor-workspaces" = {
-        # TODO: This broke on 12-Nov-2024, maybe it's working again now?
-        enabled = false;
+        enabled = true;
         count = 5;
       };
 
@@ -79,10 +78,6 @@
         # Change transparency of focused and unfocused windows
         active_opacity = "1.0";
         inactive_opacity = "0.95";
-
-        drop_shadow = "true";
-        shadow_range = "4";
-        shadow_render_power = "3";
 
         # https://wiki.hyprland.org/Configuring/Variables/#blur
         blur = {
@@ -113,7 +108,6 @@
       };
 
       dwindle = {
-        no_gaps_when_only = "1";
         pseudotile = "true"; # Master switch for pseudotiling. Enabling is bound to mainMod + P in the keybinds section below
         preserve_split = "true"; # You probably want this
       };
