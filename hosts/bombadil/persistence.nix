@@ -30,6 +30,7 @@
       "/var/lib/elasticsearch"
       "/var/lib/fail2ban"
       "/var/lib/mastodon"
+      "/var/lib/mysql"
       "/var/lib/postfix"
       "/var/lib/redis-mastodon"
     ];
