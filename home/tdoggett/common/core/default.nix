@@ -13,7 +13,7 @@
   home = {
     username = lib.mkDefault configVars.username;
     homeDirectory = lib.mkDefault "/home/${config.home.username}";
-    stateVersion = lib.mkDefault "24.05";
+    stateVersion = lib.mkDefault "24.11";
     sessionPath = [
       # Add to the user's $PATH
       # "$HOME/.local/bin"

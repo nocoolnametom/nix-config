@@ -7,11 +7,11 @@
 
 stdenv.mkDerivation rec {
   pname = "homer";
-  version = "24.05.1";
+  version = "24.11.4";
 
   src = fetchurl {
     urls = [ "https://github.com/bastienwirtz/${pname}/releases/download/v${version}/${pname}.zip" ];
-    sha256 = "0zlg0jlv1hf6wgqnllbxpi2r3h8x2dw1l7fjw1ipi7l2482znbr6";
+    sha256 = "0lafa8r5lc66ph0jxmmxr661xrrnx2wv81h5ir844b99f28cg4f2";
   };
 
   nativeBuildInputs = [ unzip ];

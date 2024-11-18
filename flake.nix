@@ -5,16 +5,15 @@
     #################### Official NixOS and HM Package Sources ####################
 
     #nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
+    nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
 
     impermanence.url = "github:nix-community/impermanence";
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    #home-manager.url = "github:nix-community/home-manager/release-24.11";
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-24.11";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-darwin.url = "github:LnL7/nix-darwin";
