@@ -25,6 +25,7 @@ in
 
       ############################## Nginx ######################################
       ./nginx.nix
+      ./wordpress.nix
 
       ########################### Impermanence ##################################
       ./persistence.nix
@@ -56,6 +57,7 @@ in
   networking.hosts."${configVars.networking.external.bombadil.ip}" = [
     socialUrl
     "www.${socialUrl}"
+    "${configVars.friendBlogDomain}"
   ];
   networking.useDHCP = false; # I'm using a static IP through Linode
   networking.enableIPv6 = true;
