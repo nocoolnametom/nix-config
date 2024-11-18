@@ -14,8 +14,8 @@
   wayland.windowManager.hyprland = {
     systemd.enable = true;
     plugins = [
-      pkgs.unstable.hyprlandPlugins.hypr-dynamic-cursors # In unstable, not 24.05
-      pkgs.unstable.hyprlandPlugins.hy3
+      pkgs.hyprlandPlugins.hypr-dynamic-cursors
+      pkgs.hyprlandPlugins.hy3
       # inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces # TODO Broken as of 2024-11-12
     ];
     settings = {

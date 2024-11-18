@@ -1,4 +1,4 @@
-{
+{ lib, ... }: {
   programs.hyprlock = {
     settings = {
       general = {
@@ -8,7 +8,7 @@
         no_fade_in = false;
       };
 
-      background = [
+      background = lib.mkDefault [
         {
           path = "screenshot";
           blur_passes = 3;
@@ -17,7 +17,7 @@
       ];
 
       # TODO Can this be styled with Stylix?
-      input-field = [
+      input-field = lib.mkDefault [
         {
           size = "200, 50";
           position = "0, -80";
