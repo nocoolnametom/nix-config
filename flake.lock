@@ -564,10 +564,10 @@
     },
     "nix-secrets": {
       "locked": {
-        "lastModified": 1731358454,
-        "narHash": "sha256-1xxxsLl9mjK5zlc/Rezp31bYgMAm44WiB+JsEjNFoqY=",
+        "lastModified": 1731888599,
+        "narHash": "sha256-ynZR1y8UeMwyrVlN+oeDvrKJxsARAzqW1D0oXLQ38iw=",
         "ref": "main",
-        "rev": "c5b947cbdd56eb4d4d80fe74b51d737174f5c948",
+        "rev": "16d2b05e534a7504cb98ea2b6688bb69f10f3876",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"
@@ -746,22 +746,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_4": {
-      "locked": {
-        "lastModified": 1727348695,
-        "narHash": "sha256-J+PeFKSDV+pHL7ukkfpVzCOO7mBSrrpJ3svwBFABbhI=",
-        "owner": "nixos",
-        "repo": "nixpkgs",
-        "rev": "1925c603f17fc89f4c8f6bf6f631a802ad85d784",
-        "type": "github"
-      },
-      "original": {
-        "owner": "nixos",
-        "ref": "nixos-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "plasma-manager": {
       "inputs": {
         "home-manager": [
@@ -851,6 +835,7 @@
         "sops-nix": "sops-nix",
         "split-monitor-workspaces": "split-monitor-workspaces",
         "stylix": "stylix",
+        "wp-main": "wp-main",
         "zen-browser": "zen-browser"
       }
     },
@@ -1027,6 +1012,22 @@
         "type": "github"
       }
     },
+    "wp-main": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1731851061,
+        "narHash": "sha256-XApQwAzvAdLrpbfgGDkzrZOaCe94v1F8AKzmQ9075Fo=",
+        "owner": "WordPress",
+        "repo": "WordPress",
+        "rev": "8f92dfad4d991e8aa93ed40a0f42363ddf7ae168",
+        "type": "github"
+      },
+      "original": {
+        "owner": "WordPress",
+        "repo": "WordPress",
+        "type": "github"
+      }
+    },
     "xdph": {
       "inputs": {
         "hyprland-protocols": [
@@ -1070,7 +1071,9 @@
     },
     "zen-browser": {
       "inputs": {
-        "nixpkgs": "nixpkgs_4"
+        "nixpkgs": [
+          "nixpkgs"
+        ]
       },
       "locked": {
         "lastModified": 1731411879,

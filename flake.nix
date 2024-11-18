@@ -48,7 +48,7 @@
     plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     plasma-manager.inputs.home-manager.follows = "home-manager";
 
-     # Zen Browser
+    # Zen Browser
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
     zen-browser.inputs.nixpkgs.follows = "nixpkgs";
 
@@ -60,6 +60,10 @@
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
     disposable-email-domains.flake = false;
+
+    # Wordpress Themes and Plugins
+    wp-main.url = "github:WordPress/WordPress";
+    wp-main.flake = false;
 
     #################### Personal Repositories ####################
 
@@ -85,6 +89,7 @@
       zen-browser,
       split-monitor-workspaces,
       disposable-email-domains,
+      wp-main,
       nix-secrets,
       ...
     }@inputs:
@@ -125,7 +130,7 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        import ./pkgs { inherit pkgs; }
+        import ./pkgs { inherit inputs pkgs; }
       );
 
       checks = forAllSystems (
