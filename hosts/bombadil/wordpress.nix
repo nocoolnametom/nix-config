@@ -8,8 +8,10 @@
 {
   # Testing WP Install
   services.wordpress.webserver = "nginx";
-  services.nginx.virtualHosts."${configVars.friendBlogDomain}".forceSSL = true;
-  services.nginx.virtualHosts."${configVars.friendBlogDomain}".enableACME = true;
+  services.nginx.virtualHosts."${configVars.friendBlogDomain}" = {
+    # forceSSL = true;
+    enableACME = true;
+  };
   services.wordpress.sites."${configVars.friendBlogDomain}" = {
     database = {
       name = configVars.networking.blog.friends.name;
