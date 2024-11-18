@@ -2,6 +2,7 @@
 
 {
   pkgs ? import <nixpkgs> { },
+  inputs,
   ...
 }:
 
@@ -14,4 +15,8 @@ rec {
   stashapp = pkgs.callPackage ./stashapp { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
+  wp-theme-twentyten-ken = pkgs.callPackage ./wp-theme-twentyten-ken {
+    inherit (inputs) wp-main;
+  };
+  myWpPlugins = pkgs.callPackage ./my-wp-plugins { inherit (inputs) wp-main; };
 }
