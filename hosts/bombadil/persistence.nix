@@ -33,6 +33,7 @@
       "/var/lib/mysql"
       "/var/lib/postfix"
       "/var/lib/redis-mastodon"
+      "/var/lib/wordpress"
     ];
     files = [
       "/etc/machine-id"
