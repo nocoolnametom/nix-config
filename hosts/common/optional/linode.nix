@@ -54,7 +54,7 @@
   services.longview.mysqlUser = lib.mkDefault (
     if config.services.mysql.enable then "linode-longview" else ""
   );
-  services.longview.mysqlPassword =
-    if config.services.mysql.enable then config.sops.secrets."longview-mysql-password".key else "";
+  services.longview.mysqlPasswordFile =
+    if config.services.mysql.enable then config.sops.secrets."longview-mysql-password".path else "";
   services.nginx.statusPage = lib.mkDefault config.services.nginx.enable; # Ensure the status page is enabled if nginx is enabled
 }
