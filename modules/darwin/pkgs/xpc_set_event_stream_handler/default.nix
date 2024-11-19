@@ -2,32 +2,34 @@
   pkgs ? import <nixpkgs> { },
   lib ? pkgs.lib,
   stdenv ? pkgs.stdenv,
-  Foundation ? pkgs.darwin.apple_sdk.frameworks.Foundation,
-  fetchFromGitHub ? pkgs.fetchFromGitHub,
-  xcbuildHook ? pkgs.xcbuildHook,
+  runCommand ? pkgs.runCommand,
+  ...
 }:
+
 let
-  rev = "4bbfc25b485e444afcca8b9d5492ef0018c03823";
+  buildSymlinks = runCommand "macvim-build-symlinks" { } ''
+    mkdir -p $out/bin
+    ln -s /usr/bin/gcc $out/bin
+  '';
+
 in
 stdenv.mkDerivation {
-  name = "xpc_set_event_stream_handler";
-  version = builtins.substring 1 7 rev;
+  name = "XPCEventStreamHandler";
+  src = ./.;
 
-  src = fetchFromGitHub {
-    owner = "snosrap";
-    repo = "xpc_set_event_stream_handler";
-    inherit rev;
-    sha256 = "17vv5nacl56h59h3pmawab4cpk54xxg2cxvnijqid4lmvlz6nidq";
-  };
+  nativeBuildInputs = [ buildSymlinks ];
 
-  nativeBuildInputs = [
-    xcbuildHook
-    Foundation
-  ];
+  sandboxProfile = ''
+    (allow file-read* file-write* process-exec mach-lookup)
+    ; block homebrew dependencies
+    (deny file-read* file-write* process-exec mach-lookup (subpath "/usr/local") (with no-log))
+  '';
+
+  buildPhase = "gcc -framework Foundation -o xpc_set_event_stream_handler xpc_set_event_stream_handler.m";
 
   installPhase = ''
     mkdir -p $out/bin
-    cp Products/Release/xpc_set_event_stream_handler $out/bin
+    cp xpc_set_event_stream_handler $out/bin/
   '';
 
   meta = with lib; {
