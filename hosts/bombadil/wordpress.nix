@@ -39,9 +39,11 @@
       ini_set( 'error_log', '/var/lib/wordpress/${configVars.friendBlogDomain}/debug.log' );
     '';
     package = pkgs.wordpress.overrideAttrs (oldAttrs: rec {
-      installPhase = oldAttrs.installPhase + ''
-        ln -s /var/lib/wordpress/${configVars.friendBlogDomain}/wpdatatables $out/share/wordpress/wp-content/wpdatatables
-      '';
+      installPhase =
+        oldAttrs.installPhase
+        + ''
+          ln -s /var/lib/wordpress/${configVars.friendBlogDomain}/wpdatatables $out/share/wordpress/wp-content/wpdatatables
+        '';
     });
   };
   systemd.tmpfiles.rules = [
