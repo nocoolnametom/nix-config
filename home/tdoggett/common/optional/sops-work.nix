@@ -25,6 +25,10 @@ in
   sops.secrets = lib.mkMerge [
     {
       "wakatime-key" = { };
+      sops.secrets."ssh/personal/aws/fedibox" = {
+        path = "${homeDirectory}/.ssh/id_fedibox";
+        mode = "0600";
+      };
       "ssh/personal/id_ed25519" = {
         mode = "0600";
         path = "${homeDirectory}/.ssh/personal_ed25519";

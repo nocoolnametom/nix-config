@@ -21,6 +21,10 @@ in
   sops.validateSopsFiles = false;
 
   sops.secrets."wakatime-key" = { };
+  sops.secrets."ssh/personal/aws/fedibox" = {
+    path = "${homeDirectory}/.ssh/id_fedibox";
+    mode = "0600";
+  };
   sops.secrets."ssh/personal/id_ed25519" = {
     path = "${homeDirectory}/.ssh/id_ed25519";
     mode = "0600";
