@@ -70,6 +70,10 @@ in
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "${configVars.domain}" = {
+        host = "${configVars.domain}";
+        identifyFile = "${config.home.homeDirectory}/.ssh/id_fedibox";
+      };
       "steamdeck" = {
         host = configVars.networking.subnets.steamdeck.name;
         hostname = configVars.networking.subnets.steamdeck.ip; # Local Network
