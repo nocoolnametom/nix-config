@@ -2,34 +2,36 @@
   pkgs ? import <nixpkgs> { },
   lib ? pkgs.lib,
   stdenv ? pkgs.stdenv,
-  runCommand ? pkgs.runCommand,
-  ...
+  makeWrapper ? pkgs.makeWrapper,
 }:
 
-let
-  buildSymlinks = runCommand "macvim-build-symlinks" { } ''
-    mkdir -p $out/bin
-    ln -s /usr/bin/gcc $out/bin
-  '';
+# This is a simple wrapper around the xpc_set_event_stream_handler executable.
+# I had it building from the source code in the github repo referenced, but as
+# of 24.11 it was refusing to build on darwin (it could not find the Foundation).
+# I'm not sure why, but I'm not going to spend time on it right now. I'll just
+# build it on my mac and copy the binary over to my repo.
 
-in
-stdenv.mkDerivation {
-  name = "XPCEventStreamHandler";
-  src = ./.;
+stdenv.mkDerivation rec {
+  name = "xpc_set_event_stream_handler";
+  version = "1";
 
-  nativeBuildInputs = [ buildSymlinks ];
+  # Rebuild this in darwin by the following command within this directory:
+  # gcc -framework Foundation -o xpc_set_event_stream_handler src/main.m
+  executable = ./xpc_set_event_stream_handler;
 
-  sandboxProfile = ''
-    (allow file-read* file-write* process-exec mach-lookup)
-    ; block homebrew dependencies
-    (deny file-read* file-write* process-exec mach-lookup (subpath "/usr/local") (with no-log))
-  '';
+  dontUnpack = true;
 
-  buildPhase = "gcc -framework Foundation -o xpc_set_event_stream_handler xpc_set_event_stream_handler.m";
+  buildInputs = [
+    makeWrapper
+  ];
 
   installPhase = ''
     mkdir -p $out/bin
-    cp xpc_set_event_stream_handler $out/bin/
+    makeWrapper "${executable}" $out/bin/xpc_set_event_stream_handler --prefix PATH ":" "${
+      lib.makeBinPath [
+        stdenv.cc.cc
+      ]
+    }"
   '';
 
   meta = with lib; {
