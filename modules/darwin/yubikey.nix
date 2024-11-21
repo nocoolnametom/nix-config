@@ -9,9 +9,9 @@ let
   homeDirectory = "/Users/${configVars.username}";
   # Use stable to avoid rebuilding this package every time and try to keep it from failing on rebuilds
   xpc_set_event_stream_handler = pkgs.stable.callPackage ./pkgs/xpc_set_event_stream_handler {
+    inherit lib;
+    inherit (pkgs.stable) stdenv makeWrapper;
     pkgs = pkgs.stable;
-    Foundation = pkgs.stable.darwin.apple_sdk.frameworks.Foundation;
-    xcbuildHook = pkgs.stable.xcbuildHook;
   };
   yubikey-up =
     let
