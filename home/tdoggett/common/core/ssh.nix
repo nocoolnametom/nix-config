@@ -72,7 +72,7 @@ in
       };
       "${configVars.domain}" = {
         host = "${configVars.domain}";
-        identifyFile = "${config.home.homeDirectory}/.ssh/id_fedibox";
+        identityFile = [ "${config.home.homeDirectory}/.ssh/id_fedibox" ];
       };
       "steamdeck" = {
         host = configVars.networking.subnets.steamdeck.name;
