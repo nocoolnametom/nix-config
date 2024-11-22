@@ -260,6 +260,15 @@
                 ./home/tdoggett/vm1
               ];
             };
+        # Steam Deck
+        "deck@${nix-secrets.networking.personal.steamdeck.name}" =
+          home-manager.lib.homeManagerConfiguration
+            {
+              inherit specialArgs;
+              modules = [
+                ./home/tdoggett/steamdeck
+              ];
+            };
       };
     };
 }
