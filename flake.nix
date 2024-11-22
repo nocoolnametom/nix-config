@@ -22,11 +22,13 @@
     #################### Utilities ####################
 
     # Declarative partitioning and formatting
-    disko.url = "github:nix-community/disko";
-    disko.inputs.nixpkgs.follows = "nixpkgs";
+    # disko.url = "github:nix-community/disko";
+    # disko.inputs.nixpkgs.follows = "nixpkgs";
 
     # Styling for Visual Applications
     stylix.url = "github:danth/stylix";
+    stylix.inputs.base16.follows = "base16";
+    base16.url = "github:Noodlez1232/base16.nix/slugify-fix";
 
     # Secrets management
     sops-nix.url = "github:Mic92/sops-nix";
@@ -39,22 +41,22 @@
     };
 
     # Cosmis Desktop Environment
-    nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
-    nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    # nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
+    # nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # Plasma Manager
-    plasma-manager.url = "github:nix-community/plasma-manager";
-    plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
-    plasma-manager.inputs.home-manager.follows = "home-manager";
+    # plasma-manager.url = "github:nix-community/plasma-manager";
+    # plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
+    # plasma-manager.inputs.home-manager.follows = "home-manager";
 
     # Zen Browser
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
     zen-browser.inputs.nixpkgs.follows = "nixpkgs";
 
     # Hyprland
-    hyprland.url = "github:hyprwm/Hyprland";
-    split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
-    split-monitor-workspaces.inputs.hyprland.follows = "hyprland"; # <- make sure this line is present for the plugin to work as intended
+    # hyprland.url = "github:hyprwm/Hyprland";
+    # split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
+    # split-monitor-workspaces.inputs.hyprland.follows = "hyprland"; # <- make sure this line is present for the plugin to work as intended
 
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
@@ -80,13 +82,13 @@
       hardware,
       home-manager,
       nix-darwin,
-      disko,
+      # disko,
       stylix,
       sops-nix,
-      nixos-cosmic,
-      plasma-manager,
+      # nixos-cosmic,
+      # plasma-manager,
       zen-browser,
-      split-monitor-workspaces,
+      # split-monitor-workspaces,
       disposable-email-domains,
       wp-main,
       nix-secrets,
@@ -162,20 +164,20 @@
       nixosConfigurations =
         let
           # Use this with the nixos-cosmic nixos modules to enable the cosmic desktop environment.
-          cosmicCacheModule = {
-            nix.settings = {
-              substituters = [ "https://cosmic.cachix.org/" ];
-              trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-            };
-          };
+          # cosmicCacheModule = {
+          #   nix.settings = {
+          #     substituters = [ "https://cosmic.cachix.org/" ];
+          #     trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
+          #   };
+          # };
         in
         {
           # System76 Pangolin 11 AMD Laptop
           pangolin11 = lib.nixosSystem {
             inherit specialArgs;
             modules = [
-              cosmicCacheModule
-              nixos-cosmic.nixosModules.default
+              # cosmicCacheModule
+              # nixos-cosmic.nixosModules.default
               home-manager.nixosModules.home-manager
               { home-manager.extraSpecialArgs = specialArgs; }
               ./hosts/pangolin11
