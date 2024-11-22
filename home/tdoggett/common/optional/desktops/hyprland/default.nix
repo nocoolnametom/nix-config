@@ -16,7 +16,7 @@
     plugins = [
       pkgs.hyprlandPlugins.hypr-dynamic-cursors
       pkgs.hyprlandPlugins.hy3
-      inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
+      # inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
     ];
     settings = {
       # Monitors - Remember to define system-specific ones explicity in home/<user>/<host>/default.nix!
@@ -51,7 +51,7 @@
       };
 
       "plugin:split-monitor-workspaces" = {
-        enabled = true;
+        enabled = false;
         count = 5;
       };
 
