@@ -14,7 +14,6 @@
   wayland.windowManager.hyprland = {
     systemd.enable = true;
     plugins = [
-      pkgs.hyprlandPlugins.hypr-dynamic-cursors
       pkgs.hyprlandPlugins.hy3
       # inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
     ];
@@ -33,7 +32,7 @@
 
       # Dynamic Cursors
       "plugin:dynamic-cursors" = {
-        enabled = true;
+        enabled = false;
         mode = "tilt"; # tilt, rotate, stretch, none
         threshold = 2;
         tilt = {
