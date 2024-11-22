@@ -31,7 +31,6 @@
       # Packages that don't have custom configs go here
       sops # secrets encryption
       coreutils # basic gnu utils
-      jq # JSON pretty printer and manipulator
       nix-tree # nix package tree viewer
       pciutils
       pre-commit # git hooks
@@ -42,8 +41,12 @@
       unrar # rar extraction
       wget # downloader
       zip # zip compression
+      gnumake # make
       ;
   };
+
+  # JSON pretty printer and manipulator
+  programs.jq.enable = true;
 
   nixpkgs = {
     overlays = builtins.attrValues outputs.overlays;
