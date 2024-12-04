@@ -27,6 +27,7 @@
     "amdgpu" # pang11 has a Raedeon GPU
     "dm-snapshot"
   ];
+  hardware.system76.enableAll = true;
   hardware.graphics.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
