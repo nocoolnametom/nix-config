@@ -20,6 +20,7 @@
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
+      "/etc/secureboot"
       "/var/db/sudo/lectured"
       "/var/lib/bluetooth"
       # "/var/lib/cups" # Handling via NixOS options
