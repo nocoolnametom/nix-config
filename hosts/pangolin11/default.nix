@@ -26,6 +26,9 @@
       ########################### Impermanence ##################################
       ./persistence.nix
 
+      ############################ Lanzaboote ###################################
+      inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
+
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix # Must also use the config below
 
@@ -49,6 +52,7 @@
       # "hosts/common/optional/cosmic.nix" # System76 Cosmis Desktop Environment
       "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
       "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
+      "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
       "hosts/common/optional/light.nix" # Monitor brightness
       # "hosts/common/optional/plasma6.nix"
       # k"hosts/common/optional/sddm.nix"
@@ -107,7 +111,7 @@
   environment.systemPackages = [ pkgs.gparted ];
 
   # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.enable = false; # We're using Lanzaboote for Secure Boot
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
 

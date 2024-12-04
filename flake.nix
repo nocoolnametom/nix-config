@@ -11,6 +11,10 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
+    # Lanzaboote Secure Bootloader for NixOS
+    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.1";
+    lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
+
     hardware.url = "github:nixos/nixos-hardware";
 
     home-manager.url = "github:nix-community/home-manager/release-24.11";
@@ -80,6 +84,7 @@
       self,
       nixpkgs,
       impermanence,
+      lanzaboote,
       hardware,
       home-manager,
       nix-darwin,
