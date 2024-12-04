@@ -26,9 +26,10 @@
     # disko.inputs.nixpkgs.follows = "nixpkgs";
 
     # Styling for Visual Applications
-    stylix.url = "github:danth/stylix";
-    stylix.inputs.base16.follows = "base16";
-    base16.url = "github:Noodlez1232/base16.nix/slugify-fix";
+    # Pinned because it references kubecolor which isn't yet in home-manager 24.11
+    stylix.url = "github:danth/stylix/d13ffb381c83b6139b9d67feff7addf18f8408fe";
+    stylix.inputs.nixpkgs.follows = "nixpkgs";
+    stylix.inputs.home-manager.follows = "home-manager";
 
     # Secrets management
     sops-nix.url = "github:Mic92/sops-nix";
