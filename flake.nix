@@ -30,8 +30,7 @@
     # disko.inputs.nixpkgs.follows = "nixpkgs";
 
     # Styling for Visual Applications
-    # Pinned because it references kubecolor which isn't yet in home-manager 24.11
-    stylix.url = "github:danth/stylix/d13ffb381c83b6139b9d67feff7addf18f8408fe";
+    stylix.url = "github:danth/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
     stylix.inputs.home-manager.follows = "home-manager";
 
