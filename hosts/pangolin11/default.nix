@@ -49,19 +49,14 @@
       "hosts/common/optional/services/flatpak.nix"
       "hosts/common/optional/adb.nix" # Android Debugging
       "hosts/common/optional/blinkstick.nix"
-      # "hosts/common/optional/cosmic.nix" # System76 Cosmis Desktop Environment
       "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
       "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
       "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
       "hosts/common/optional/light.nix" # Monitor brightness
-      # "hosts/common/optional/plasma6.nix"
-      # k"hosts/common/optional/sddm.nix"
       "hosts/common/optional/steam.nix"
       "hosts/common/optional/stylix.nix" # System-wide styling
-      # "hosts/common/optional/sway.nix"
       "hosts/common/optional/thunar.nix" # Thunar File-Browser
       "hosts/common/optional/yubikey.nix"
-      # "hosts/common/optional/xfce.nix"
       "hosts/common/optional/vr.nix"
 
       #################### Users to Create ####################
