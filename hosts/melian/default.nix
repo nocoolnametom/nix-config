@@ -76,8 +76,10 @@
   autoLogin.enable = true;
   autoLogin.username = configVars.username;
 
-  # Use the systemd-boot EFI boot loader.
+  # Use the systemd-boot EFI boot loader. Remove when lanzaboot is set up.
   boot.loader.systemd-boot.enable = true;
+  boot.lanzaboote.enable = false; # Still need to set up keys and such for Secure Boot
+  # boot.loader.systemd-boot.enable = false; # We're using Lanzaboote for Secure Boot
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
 
