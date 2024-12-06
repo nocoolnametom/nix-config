@@ -26,6 +26,9 @@
       ########################### Impermanence ##################################
       ./persistence.nix
 
+      ############################ Lanzaboote ###################################
+      inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
+
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix
 
@@ -44,6 +47,7 @@
       "hosts/common/optional/services/pipewire.nix" # audio
       "hosts/common/optional/services/printing.nix"
       "hosts/common/optional/blinkstick.nix"
+      "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
       "hosts/common/optional/light.nix" # Monitor brightness
       "hosts/common/optional/steam.nix"
       "hosts/common/optional/thunar.nix" # Thunar File-Browser
@@ -77,7 +81,7 @@
   autoLogin.username = configVars.username;
 
   # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
+  boot.loader.systemd-boot.enable = false; # We're using Lanzaboote for Secure Boot
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
 
