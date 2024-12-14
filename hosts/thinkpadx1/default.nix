@@ -31,8 +31,6 @@
 
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix
-
-      #TODO move thinkpadx1 to disko
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################
