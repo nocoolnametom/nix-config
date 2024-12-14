@@ -33,8 +33,6 @@ in
 
       ############################## Stylix #####################################
       # inputs.stylix.nixosModules.stylix # No GUI on Linode
-
-      #TODO move glorfindel to disko
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################

@@ -34,8 +34,6 @@
 
       ############################## Stylix #####################################
       # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
-
-      #TODO move bert to disko
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################
