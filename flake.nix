@@ -25,10 +25,6 @@
 
     #################### Utilities ####################
 
-    # Declarative partitioning and formatting
-    # disko.url = "github:nix-community/disko";
-    # disko.inputs.nixpkgs.follows = "nixpkgs";
-
     # Styling for Visual Applications
     stylix.url = "github:danth/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
@@ -87,7 +83,6 @@
       hardware,
       home-manager,
       nix-darwin,
-      # disko,
       stylix,
       sops-nix,
       # nixos-cosmic,
@@ -147,7 +142,7 @@
         import ./checks { inherit inputs system pkgs; }
       );
 
-      # Nix formatter available through 'nix fmt' https://github.com/NixOS/nixfmt 
+      # Nix formatter available through 'nix fmt' https://github.com/NixOS/nixfmt
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Shell configured with packages that are typically only needed when working on or with nix-config.

@@ -29,8 +29,6 @@
 
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix
-
-      #TODO move melian to disko
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################

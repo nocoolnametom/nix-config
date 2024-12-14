@@ -31,8 +31,6 @@
 
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix # Must also use the config below
-
-      #TODO move pangolin11 to disko
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################
