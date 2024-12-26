@@ -79,10 +79,13 @@ in
           homeMode = "755";
         };
       })
-      (lib.attrsets.setAttrByPath [
-        cfg.user
-        "packages"
-      ] [ cfg.package ])
+      (lib.attrsets.setAttrByPath
+        [
+          cfg.user
+          "packages"
+        ]
+        [ cfg.package ]
+      )
     ];
 
     users.groups = lib.optionalAttrs (cfg.group == "maestral") { maestral = { }; };

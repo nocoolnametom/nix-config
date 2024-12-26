@@ -17,7 +17,7 @@
       name = configVars.networking.blog.friends.name;
     };
     themes = {
-      twentyten = pkgs.wp-theme-twentyten-ken;
+      twentyten = pkgs.myWpPlugins.wp-theme-twentyten-ken;
     };
     plugins = {
       inherit (pkgs.wordpressPackages.plugins)
