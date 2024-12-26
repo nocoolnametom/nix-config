@@ -20,6 +20,7 @@
     # ...
     # });
     zen-browser-flake = inputs.zen-browser.packages.${final.system};
+    myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
