@@ -28,7 +28,8 @@
     nvidiaBusId = "PCI:1:0:0"; # 0000:01:00.0
   };
 
-  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a0aa-44357308117d";
+  boot.initrd.luks.devices."root".device =
+    "/dev/disk/by-partuuid/b8f8075a-c68e-4a42-a0aa-44357308117d";
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"

@@ -81,7 +81,7 @@ in
       # Prevent auto-indexing of files, I can use CLI tools for this
       baloofilerc."Basic Settings"."Indexing-Enabled" = false;
 
-      # Dark Breeze Theme 
+      # Dark Breeze Theme
       kdeglobals."WM"."activeBackground" = "49,54,59";
       kdeglobals."WM"."activeBlend" = "252,252,252";
       kdeglobals."WM"."activeForeground" = "252,252,252";
@@ -97,7 +97,8 @@ in
       kwinrc."NightColor"."Active" = true;
       kwinrc."NightColor"."LatitudeAuto" = 42.44;
       kwinrc."NightColor"."LongitudeAuto" = "-76.49";
-      kwinrc."Tiling/${largeDellMonitorId}"."tiles" = "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
+      kwinrc."Tiling/${largeDellMonitorId}"."tiles" =
+        "{\"layoutDirection\":\"horizontal\",\"tiles\":[{\"width\":0.25},{\"width\":0.5},{\"width\":0.25}]}";
 
       # Scaling
       kdeglobals."KScreen"."ScaleFactor" = 1.0;

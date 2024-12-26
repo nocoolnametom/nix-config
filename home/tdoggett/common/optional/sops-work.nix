@@ -16,7 +16,7 @@ in
   imports = [ inputs.sops-nix.homeManagerModules.sops ];
 
   # This has to be manually placed as there is no system-level sops config to place it
-  # The value can be found in the sops secrets file in the nix-secrets repo 
+  # The value can be found in the sops secrets file in the nix-secrets repo
   sops.age.keyFile = lib.mkDefault "${homeDirectory}/.config/sops/age/keys.txt";
 
   sops.defaultSopsFile = "${secretsFile}";

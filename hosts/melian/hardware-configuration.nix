@@ -13,7 +13,8 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  boot.initrd.luks.devices."root".device = "/dev/disk/by-partuuid/9839604a-3e2e-4833-83ef-ce0dc7206aa6";
+  boot.initrd.luks.devices."root".device =
+    "/dev/disk/by-partuuid/9839604a-3e2e-4833-83ef-ce0dc7206aa6";
 
   boot.initrd.availableKernelModules = [
     "xhci_pci"

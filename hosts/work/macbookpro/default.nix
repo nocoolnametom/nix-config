@@ -65,10 +65,8 @@
   programs.vim.enableSensible = true;
 
   services.dnsmasq.enable = false; # Find out if we want this as a service or if teleport runs it manually
-  services.dnsmasq.addresses =
-    {
-    }
-    // configVars.work.dnsmasq.addresses;
+  services.dnsmasq.addresses = {
+  } // configVars.work.dnsmasq.addresses;
 
   system.defaults.dock.autohide = false;
   system.defaults.dock.orientation = "right";

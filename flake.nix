@@ -62,9 +62,9 @@
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
     disposable-email-domains.flake = false;
 
-    # Wordpress Themes and Plugins
-    wp-main.url = "github:WordPress/WordPress";
-    wp-main.flake = false;
+    # My Wordpress Themes and Plugins
+    my-wordpress-plugins.url = "github:nocoolnametom/my-wordpress-plugins";
+    my-wordpress-plugins.inputs.nixpkgs.follows = "nixpkgs";
 
     #################### Personal Repositories ####################
 
@@ -90,7 +90,7 @@
       zen-browser,
       # split-monitor-workspaces,
       disposable-email-domains,
-      wp-main,
+      my-wordpress-plugins,
       nix-secrets,
       ...
     }@inputs:
@@ -163,14 +163,14 @@
 
       nixosConfigurations =
         let
-          # Use this with the nixos-cosmic nixos modules to enable the cosmic desktop environment.
-          # cosmicCacheModule = {
-          #   nix.settings = {
-          #     substituters = [ "https://cosmic.cachix.org/" ];
-          #     trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-          #   };
-          # };
         in
+        # Use this with the nixos-cosmic nixos modules to enable the cosmic desktop environment.
+        # cosmicCacheModule = {
+        #   nix.settings = {
+        #     substituters = [ "https://cosmic.cachix.org/" ];
+        #     trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
+        #   };
+        # };
         {
           # System76 Pangolin 11 AMD Laptop
           pangolin11 = lib.nixosSystem {
@@ -261,7 +261,7 @@
               ];
             };
         # Steam Deck
-        "deck@${nix-secrets.networking.personal.steamdeck.name}" =
+        "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
           home-manager.lib.homeManagerConfiguration
             {
               inherit specialArgs;
