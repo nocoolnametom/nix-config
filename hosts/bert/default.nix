@@ -64,9 +64,10 @@
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
-  # Imports overrides
-  # services.deluge.enable = false;
-  # services.flood.enable = false;
+  ## Imports overrides
+  # Turn off torrenting services
+  services.deluge.enable = false;
+  services.flood.enable = false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {

@@ -45,7 +45,7 @@ in
         configparser
       ]
     ))
-    ffmpeg-full
+    ffmpeg
   ];
   systemd.services.nzbget.preStart =
     let
