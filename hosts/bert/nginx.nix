@@ -241,7 +241,7 @@
                   ++ [
                     {
                       name = "Kavita Library";
-                      icon = "fas fa-books";
+                      icon = "fas fa-book";
                       url =
                         if internal then
                           "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
