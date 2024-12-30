@@ -240,6 +240,18 @@
                   ])
                   ++ [
                     {
+                      name = "Kavita Library";
+                      icon = "fas fa-books";
+                      url =
+                        if internal then
+                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
+                        else
+                          "https://library.${configVars.domain}/";
+                      target = "_blank";
+                    }
+                  ]
+                  ++ [
+                    {
                       name = "Stable Diffusion";
                       icon = "fas fa-gears";
                       url =
@@ -343,6 +355,7 @@
             proxyPass = "http://${configVars.networking.subnets.sauron.ip}:${builtins.toString configVars.networking.ports.tcp.invokeai}/";
             proxyWebsockets = true;
             extraConfig = ''
+              auth_basic off;
               proxy_buffering off;
               proxy_cache off;
               chunked_transfer_encoding off;
@@ -378,6 +391,7 @@
     "house.${configVars.domain}".email = configVars.email.letsencrypt;
     "stable.${configVars.domain}".email = configVars.email.letsencrypt;
     "requests.${configVars.domain}".email = configVars.email.letsencrypt;
+    "library.${configVars.domain}".email = configVars.email.letsencrypt;
     # "automatic.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }
