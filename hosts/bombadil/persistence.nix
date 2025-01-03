@@ -20,19 +20,20 @@
     enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
+      "/var/backup/mysql"
       "/var/backup/postgresql"
       "/var/db/sudo/lectured"
       "/var/lib/acme"
       "/var/lib/chrony"
-      "/var/lib/nixos"
-      "/var/lib/systemd/coredump"
-      "/var/lib/postgresql"
       "/var/lib/elasticsearch"
       "/var/lib/fail2ban"
       "/var/lib/mastodon"
       "/var/lib/mysql"
+      "/var/lib/nixos"
       "/var/lib/postfix"
+      "/var/lib/postgresql"
       "/var/lib/redis-mastodon"
+      "/var/lib/systemd/coredump"
       "/var/lib/wordpress"
     ];
     files = [

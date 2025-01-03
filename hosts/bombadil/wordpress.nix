@@ -21,6 +21,13 @@
   services.phpfpm.pools."wordpress-${inputs.nix-secrets.networking.blog.friends.domain}".phpOptions = ''
     extension=${pkgs.phpExtensions.imagick}/lib/php/extensions/imagick.so
   '';
+  services.mysqlBackup = {
+    enable = true;
+    databases = [
+      configVars.networking.blog.friends.name
+    ];
+    calendar = "*-*-15 01:15:00"; # 15th of every month at 1:15am
+  };
   services.wordpress.sites."${inputs.nix-secrets.networking.blog.friends.domain}" = {
     database = {
       name = configVars.networking.blog.friends.name;
