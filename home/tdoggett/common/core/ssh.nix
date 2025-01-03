@@ -73,7 +73,7 @@ in
         host = configVars.networking.subnets.steamdeck.name;
         hostname = configVars.networking.subnets.steamdeck.ip; # Local Network
         user = "deck";
-        port = 9001;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
     };
 
