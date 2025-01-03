@@ -13,6 +13,11 @@
     forceSSL = true;
     enableACME = true;
   };
+  services.nginx.virtualHosts."www.${inputs.nix-secrets.networking.blog.friends.domain}" = {
+    forceSSL = true;
+    enableACME = true;
+    globalRedirect = inputs.nix-secrets.networking.blog.friends.domain;
+  };
   services.phpfpm.pools."wordpress-${inputs.nix-secrets.networking.blog.friends.domain}".phpOptions = ''
     extension=${pkgs.phpExtensions.imagick}/lib/php/extensions/imagick.so
   '';

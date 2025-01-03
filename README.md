@@ -6,8 +6,8 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
 
 ### TODO
 
- * [ ] Finish moving Wordpress from elrond to glorfindel
- * [ ] Fix custom Wordpress plugins from breaking `nix flake check` - Maybe move to their own flake repo?
+ * [X] ~~Finish moving Wordpress from elrond to glorfindel~~ Done!
+ * [X] ~~Fix custom Wordpress plugins from breaking `nix flake check` - Maybe move to their own flake repo?~~ Done!
  * [ ] Add fedibox configuration
    * [ ] Pleroma
    * [ ] Personal resume site (it'd also be cool to have this auto-update the date as part of the git hooks)
@@ -22,6 +22,7 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
  * [ ] Figure out how to have active machines pull down new configurations when commits are pushed to GitHub master
      * [ ] It may make sense to re-visit using some centralized system, like GitHub Actions, to use NixOps to build and push out new configs.  I need to figure out where and how to store the keys and state data, though.
      * [ ] Relatedly, figure out how to have active machines update flake inputs of my private repos, like nix-secrets, when I push new commits
+     * [ ] Investigate `deploy-rs` as a potential solution
  * [ ] Figure out how to have systems, like glorfindel, which are set to auto-update send me an email when a rebuild fails
  * [ ] See if there's any way I can rebuild my personal packages (with shasums and verson numbers) when a new stable version is released
  * [X] ~~Look into nix-mineral for security hardening~~
