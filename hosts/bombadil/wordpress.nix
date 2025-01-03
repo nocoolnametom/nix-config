@@ -1,4 +1,5 @@
 {
+  inputs,
   pkgs,
   lib,
   config,
@@ -8,11 +9,11 @@
 {
   # Testing WP Install
   services.wordpress.webserver = "nginx";
-  services.nginx.virtualHosts."${configVars.friendBlogDomain}" = {
-    # forceSSL = true;
+  services.nginx.virtualHosts."${inputs.nix-secrets.networking.blog.friends.domain}" = {
+    forceSSL = true;
     enableACME = true;
   };
-  services.wordpress.sites."${configVars.friendBlogDomain}" = {
+  services.wordpress.sites."${inputs.nix-secrets.networking.blog.friends.domain}" = {
     database = {
       name = configVars.networking.blog.friends.name;
     };
@@ -36,17 +37,17 @@
       WP_DEBUG_LOG = true;
     };
     extraConfig = ''
-      ini_set( 'error_log', '/var/lib/wordpress/${configVars.friendBlogDomain}/debug.log' );
+      ini_set( 'error_log', '/var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/debug.log' );
     '';
     package = pkgs.wordpress.overrideAttrs (oldAttrs: rec {
       installPhase =
         oldAttrs.installPhase
         + ''
-          ln -s /var/lib/wordpress/${configVars.friendBlogDomain}/wpdatatables $out/share/wordpress/wp-content/wpdatatables
+          ln -s /var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/wpdatatables $out/share/wordpress/wp-content/wpdatatables
         '';
     });
   };
   systemd.tmpfiles.rules = [
-    "d '/var/lib/wordpress/${configVars.friendBlogDomain}/wpdatatables' 0750 wordpress nginx - -"
+    "d '/var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/wpdatatables' 0750 wordpress nginx - -"
   ];
 }
