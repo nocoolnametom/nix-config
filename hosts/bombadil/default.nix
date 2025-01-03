@@ -55,7 +55,8 @@ in
   networking.hosts."${configVars.networking.external.bombadil.ip}" = [
     socialUrl
     "www.${socialUrl}"
-    "${configVars.friendBlogDomain}"
+    inputs.nix-secrets.networking.blog.friends.domain
+    "www.${inputs.nix-secrets.networking.blog.friends.domain}"
   ];
   networking.useDHCP = false; # I'm using a static IP through Linode
   networking.enableIPv6 = true;

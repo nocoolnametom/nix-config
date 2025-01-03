@@ -7,7 +7,7 @@
     networking
     work
     ;
-  friendBlogDomain = "beta.${inputs.nix-secrets.networking.blog.friends.domain}";
+  friendBlogDomain = inputs.nix-secrets.networking.blog.friends.domain;
 
   username = "tdoggett";
   handle = "nocoolnametom";
