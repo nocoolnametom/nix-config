@@ -42,14 +42,9 @@ in
         identitiesOnly = true;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
-      "elrond" = {
-        host = configVars.networking.external.elrond.name;
-        hostname = configVars.networking.external.elrond.ip;
-        user = "root";
-        port = configVars.networking.ports.tcp.remoteSsh;
-      };
       "bombadil" = {
-        host = configVars.networking.external.bombadil.mainUrl;
+        host = "${configVars.networking.external.bombadil.name} ${configVars.networking.external.bombadil.mainUrl}";
+        hostname = configVars.networking.external.bombadil.mainUrl;
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
