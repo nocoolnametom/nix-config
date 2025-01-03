@@ -45,7 +45,7 @@
   home.packages = with pkgs; [
     gnumake
     remmina
-    zen-browser-flake.specific
+    zen-browser-flake.default
   ];
 
   home = {
