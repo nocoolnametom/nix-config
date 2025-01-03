@@ -57,5 +57,15 @@
     config.allowUnfree = lib.mkDefault true;
   };
 
+  # Turn on the firewall by default
+  networking.firewall.enable = lib.mkDefault true;
+
+  # Restrict sudo to only the wheel group by default
+  security.sudo.execWheelOnly = lib.mkDefault true;
+
+  # Only allow sudoers to use nix
+  # This is here and not in nix.nix because I don't know if it works with darwin, which autoloads nix.nix
+  nix.settings.allowed-users = [ "@wheel" ];
+
   hardware.enableRedistributableFirmware = lib.mkDefault true;
 }
