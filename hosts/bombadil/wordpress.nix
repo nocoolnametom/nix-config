@@ -27,7 +27,6 @@
         jetpack
         merge-minify-refresh
         simple-login-captcha
-        webp-express
         wordpress-seo
         ;
       inherit (pkgs.myWpPlugins)
@@ -60,14 +59,12 @@
         # Make sure the folders have write access for the wordpress user as made by the systemd rules below
         + ''
           ln -s /var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/mmr          $out/share/wordpress/wp-content/mmr
-          ln -s /var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/webp-express $out/share/wordpress/wp-content/webp-express
           ln -s /var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/wpdatatables $out/share/wordpress/wp-content/wpdatatables
         '';
     });
   };
   systemd.tmpfiles.rules = [
     "d '/var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/mmr' 0750 wordpress nginx - -"
-    "d '/var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/webp-express' 0750 wordpress nginx - -"
     "d '/var/lib/wordpress/${inputs.nix-secrets.networking.blog.friends.domain}/wpdatatables' 0750 wordpress nginx - -"
   ];
 }
