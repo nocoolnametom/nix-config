@@ -24,4 +24,5 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
      * [ ] Relatedly, figure out how to have active machines update flake inputs of my private repos, like nix-secrets, when I push new commits
  * [ ] Figure out how to have systems, like glorfindel, which are set to auto-update send me an email when a rebuild fails
  * [ ] See if there's any way I can rebuild my personal packages (with shasums and verson numbers) when a new stable version is released
- * [ ] Look into nix-mineral for security hardening
+ * [X] ~~Look into nix-mineral for security hardening~~
+     * Looked into it; should probably just use the NixOS hardening guides in the wiki to apply to remotes like bombadil directly
