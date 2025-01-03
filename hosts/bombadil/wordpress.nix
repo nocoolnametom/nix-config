@@ -13,6 +13,9 @@
     forceSSL = true;
     enableACME = true;
   };
+  services.phpfpm.pools."wordpress-${inputs.nix-secrets.networking.blog.friends.domain}".phpOptions = ''
+    extension=${pkgs.phpExtensions.imagick}/lib/php/extensions/imagick.so
+  '';
   services.wordpress.sites."${inputs.nix-secrets.networking.blog.friends.domain}" = {
     database = {
       name = configVars.networking.blog.friends.name;
