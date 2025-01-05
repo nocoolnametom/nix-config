@@ -34,6 +34,9 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Deployment Helper
+    deploy-rs.url = "github:serokell/deploy-rs";
+
     # Pre-commit hooks
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -85,6 +88,7 @@
       nix-darwin,
       stylix,
       sops-nix,
+      deploy-rs,
       # nixos-cosmic,
       # plasma-manager,
       zen-browser,
