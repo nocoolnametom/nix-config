@@ -5,9 +5,9 @@
     #################### Official NixOS and HM Package Sources ####################
 
     #nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
-    nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/release-24.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
-    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixpkgs-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-24.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
+    nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
 
     impermanence.url = "github:nix-community/impermanence";
 
