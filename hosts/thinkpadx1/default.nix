@@ -78,11 +78,6 @@
   autoLogin.enable = true;
   autoLogin.username = configVars.username;
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = false; # We're using Lanzaboote for Secure Boot
-  boot.loader.efi.canTouchEfiVariables = true;
-  boot.initrd.systemd.enable = true;
-
   # Hardware
   hardware.bluetooth.enable = true;
   hardware.bluetooth.powerOnBoot = true;
