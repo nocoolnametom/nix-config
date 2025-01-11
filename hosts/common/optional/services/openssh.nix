@@ -1,4 +1,10 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  configVars,
+  ...
+}:
 {
   services.openssh.enable = lib.mkDefault true;
   services.openssh.allowSFTP = lib.mkDefault false;
@@ -8,6 +14,12 @@
   services.openssh.settings.X11Forwarding = lib.mkDefault false;
   services.openssh.settings.StreamLocalBindUnlink = lib.mkDefault "yes";
   services.openssh.settings.GatewayPorts = lib.mkDefault "clientspecified";
+  services.openssh.settings.AllowUsers =
+    lib.optionals (config.services.openssh.settings.PermitRootLogin != "no")
+      [
+        config.users.users.root.name
+      ];
+  services.openssh.settings.AllowGroups = lib.mkDefault [ "wheel" ];
 
   # yubikey login / sudo
   # NOTE: We use rssh because sshAgentAuth is old and doesn't support yubikey:
