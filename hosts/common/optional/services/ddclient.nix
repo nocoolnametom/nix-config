@@ -1,12 +1,20 @@
 { config, configVars, ... }:
+let
+  apikey = "pk1_1135d3a13249bb1894ce313f983179f0ec5f35c45292c2af0d96fd0d317a98b4";
+in
 {
   sops.secrets."ddclient-password" = { };
   services.ddclient = {
     enable = true;
     ssl = true;
     protocol = "porkbun";
-    username = "pk1_d2c1119ce79c7f8e82ce147518d741671ede87b6c12f88a8b582f14a2746a184";
+    username = apikey;
     passwordFile = "${config.sops.secrets."ddclient-password".path}";
     domains = [ "home.${configVars.domain}" ];
+    # This is because the porkbun protocol requires they keys "apikey" and "secretapikey" instead of "username" and "password"
+    extraConfig = ''
+      apikey=${apikey}
+      secretapikey=@password_placeholder@
+    '';
   };
 }
