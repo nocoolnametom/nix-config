@@ -21,6 +21,11 @@ in
     configLib.relativeToRoot "home/${configVars.username}/${config.networking.hostName}"
   );
 
+  # Allow user to login via SSH
+  services.openssh.settings.AllowUsers = [
+    config.users.users.${configVars.username}.name
+  ];
+
   users.mutableUsers = lib.mkDefault false;
 
   users.users.${configVars.username} = {

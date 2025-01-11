@@ -105,6 +105,7 @@
   # Security
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
+  services.fail2ban.enable = true;
 
   # Fixes VSCode remote
   programs.nix-ld.enable = true;
