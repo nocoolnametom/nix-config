@@ -129,13 +129,11 @@ in
     "--update-input"
     "nixpkgs"
     "--update-input"
+    "nixpkgs-stable"
+    "--update-input"
     "nixpkgs-unstable"
     "--update-input"
-    "home-manager"
-    "--update-input"
     "my-wordpress-plugins"
-    "--update-input"
-    "nix-secrets"
     "--no-write-lock-file"
     "-L" # print build logs
   ];
