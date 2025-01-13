@@ -165,74 +165,64 @@
       # You can dry-run any machine's config on another machine with the flake already in `/etc/nixos`
       # via `nixos-rebuild dry-build --flake .#hostname`
 
-      nixosConfigurations =
-        let
-        in
-        # Use this with the nixos-cosmic nixos modules to enable the cosmic desktop environment.
-        # cosmicCacheModule = {
-        #   nix.settings = {
-        #     substituters = [ "https://cosmic.cachix.org/" ];
-        #     trusted-public-keys = [ "cosmic.cachix.org-1:Dya9IyXD4xdBehWjrkPv6rtxpmMdRel02smYzA85dPE=" ];
-        #   };
-        # };
-        {
-          # System76 Pangolin 11 AMD Laptop
-          pangolin11 = lib.nixosSystem {
-            inherit specialArgs;
-            modules = [
-              # cosmicCacheModule
-              # nixos-cosmic.nixosModules.default
-              home-manager.nixosModules.home-manager
-              { home-manager.extraSpecialArgs = specialArgs; }
-              ./hosts/pangolin11
-            ];
-          };
-          # Thinkpad X1 Carbon Laptop
-          thinkpadx1 = lib.nixosSystem {
-            inherit specialArgs;
-            modules = [
-              home-manager.nixosModules.home-manager
-              { home-manager.extraSpecialArgs = specialArgs; }
-              ./hosts/thinkpadx1
-            ];
-          };
-          # Asus Zenbook 13 Laptop
-          melian = lib.nixosSystem {
-            inherit specialArgs;
-            modules = [
-              home-manager.nixosModules.home-manager
-              { home-manager.extraSpecialArgs = specialArgs; }
-              ./hosts/melian
-            ];
-          };
-          # Raspberry Pi 4
-          bert = lib.nixosSystem {
-            inherit specialArgs;
-            modules = [
-              home-manager.nixosModules.home-manager
-              { home-manager.extraSpecialArgs = specialArgs; }
-              ./hosts/bert
-            ];
-          };
-          # Linode 4GB VPS
-          glorfindel = lib.nixosSystem {
-            inherit specialArgs;
-            modules = [
-              home-manager.nixosModules.home-manager
-              { home-manager.extraSpecialArgs = specialArgs; }
-              ./hosts/glorfindel
-            ];
-          };
-          # Linode 4GB VPS
-          bombadil = lib.nixosSystem {
-            inherit specialArgs;
-            modules = [
-              home-manager.nixosModules.home-manager
-              { home-manager.extraSpecialArgs = specialArgs; }
-              ./hosts/bombadil
-            ];
-          };
+      nixosConfigurations = {
+        # System76 Pangolin 11 AMD Laptop
+        pangolin11 = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            # cosmicCacheModule
+            # nixos-cosmic.nixosModules.default
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/pangolin11
+          ];
         };
+        # Thinkpad X1 Carbon Laptop
+        thinkpadx1 = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/thinkpadx1
+          ];
+        };
+        # Asus Zenbook 13 Laptop
+        melian = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/melian
+          ];
+        };
+        # Raspberry Pi 4
+        bert = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/bert
+          ];
+        };
+        # Linode 4GB VPS
+        glorfindel = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/glorfindel
+          ];
+        };
+        # Linode 4GB VPS
+        bombadil = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/bombadil
+          ];
+        };
+      };
 
       #################### Nix-Darwin Configurations ####################
       #
@@ -254,25 +244,33 @@
       #
       # Building configurations available through `home-manager switch --flake ~/.config/home-manager#user@hostname`
       #
-      homeConfigurations = {
-        # Ubuntu VM 1
-        "${configVars.username}@${nix-secrets.networking.work.vm1.name}" =
-          home-manager.lib.homeManagerConfiguration
-            {
-              inherit specialArgs;
-              modules = [
-                ./home/tdoggett/vm1
-              ];
-            };
-        # Steam Deck
-        "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
-          home-manager.lib.homeManagerConfiguration
-            {
-              inherit specialArgs;
-              modules = [
-                ./home/tdoggett/steamdeck
-              ];
-            };
-      };
+      homeConfigurations = forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+        in
+        {
+          # Ubuntu VM 1
+          "${configVars.username}@${nix-secrets.networking.work.vm1.name}" =
+            home-manager.lib.homeManagerConfiguration
+              {
+                inherit pkgs;
+                extraSpecialArgs = specialArgs;
+                modules = [
+                  ./home/tdoggett/vm1
+                ];
+              };
+          # Steam Deck
+          "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
+            home-manager.lib.homeManagerConfiguration
+              {
+                inherit pkgs;
+                extraSpecialArgs = specialArgs;
+                modules = [
+                  ./home/tdoggett/steamdeck
+                ];
+              };
+        }
+      );
     };
 }
