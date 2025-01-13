@@ -6,6 +6,8 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
 
 ### TODO
 
+ * [ ] Fix homeConfigurations as part of the output packages
+       It's needed so that Home-Manager can build any system (because it can't determine on its own the system type), so we build HM configurations for ALL systems and put them in `packages.${system}.homeConfigurations` for HM to have access to them.  However, this means that `homeConfigurations` is an object of HM configs, NOT a derivation.
  * [X] ~~Finish moving Wordpress from elrond to glorfindel~~ Done!
  * [X] ~~Fix custom Wordpress plugins from breaking `nix flake check` - Maybe move to their own flake repo?~~ Done!
  * [ ] Add fedibox configuration
