@@ -120,7 +120,7 @@
           ;
       };
     in
-    rec {
+    {
       # Custom modules to enable special functionality for nixos or home-manager oriented configs.
       nixosModules = import ./modules/nixos;
       darwinModules = import ./modules/darwin;
@@ -136,9 +136,6 @@
           pkgs = nixpkgs.legacyPackages.${system};
         in
         import ./pkgs { inherit inputs pkgs; }
-        // {
-          homeConfigurations = myHomeConfigurations ((import ./pkgs { inherit inputs pkgs; }) // pkgs);
-        }
       );
 
       checks = forAllSystems (
@@ -247,27 +244,30 @@
       #
       # Building configurations available through `home-manager switch --flake ~/.config/home-manager#user@hostname`
       #
-      myHomeConfigurations = pkgs: {
-        # Ubuntu VM 1
-        "${configVars.username}@${nix-secrets.networking.work.vm1.name}" =
-          home-manager.lib.homeManagerConfiguration
-            {
-              inherit pkgs;
-              extraSpecialArgs = specialArgs;
-              modules = [
-                ./home/tdoggett/vm1
-              ];
-            };
-        # Steam Deck
-        "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
-          home-manager.lib.homeManagerConfiguration
-            {
-              inherit pkgs;
-              extraSpecialArgs = specialArgs;
-              modules = [
-                ./home/tdoggett/steamdeck
-              ];
-            };
-      };
+      legacyPackages = forAllSystems (system: {
+        homeConfigurations = {
+          # Ubuntu VM 1
+          "${configVars.username}@${nix-secrets.networking.work.vm1.name}" =
+            home-manager.lib.homeManagerConfiguration
+              {
+                pkgs = specialArgs.nixpkgs.legacyPackages.${system};
+                extraSpecialArgs = specialArgs;
+                modules = [
+                  ./home/tdoggett/vm1
+                ];
+              };
+          # Steam Deck
+          "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
+            home-manager.lib.homeManagerConfiguration
+              {
+                pkgs = specialArgs.nixpkgs.legacyPackages.${system};
+                extraSpecialArgs = specialArgs;
+                modules = [
+                  ./home/tdoggett/steamdeck
+                ];
+              };
+        };
+      });
+
     };
 }

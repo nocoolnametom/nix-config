@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   config,
   configVars,
@@ -40,6 +41,10 @@
     export SDKMAN_DIR="$HOME/.sdkman"
     [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
   '';
+
+  # Custom packages are already overlaid into the provided `pkgs`
+  home.packages = with pkgs; [
+  ];
 
   home = {
     stateVersion = "24.11";
