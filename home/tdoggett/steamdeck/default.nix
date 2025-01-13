@@ -12,6 +12,7 @@
     ../common/core # required - remember to include a sops config below!
 
     #################### Host-specific Optional Configs ####################
+    ../common/optional/only-hm.nix # Extra configs for systems ONLY using HM
     ../common/optional/sops.nix
     ../common/optional/git.nix
     ../common/optional/devenv.nix

@@ -10,9 +10,10 @@
 {
   imports = [
     ########################## Required Configs ###########################
-    ../common/core # required
+    ../common/core # required - remember to include a sops config below!
 
     #################### Host-specific Optional Configs ####################
+    ../common/optional/only-hm.nix # Extra configs for systems ONLY using HM
     ../common/optional/sops-work.nix # used instead of sops.nix!
     ../common/optional/ssh-work.nix
     ../common/optional/git.nix
