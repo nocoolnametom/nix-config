@@ -44,7 +44,7 @@
   home = {
     stateVersion = "24.11";
     username = configVars.username;
-    homeDirectory = lib.mkForce "/Users/${configVars.username}";
+    homeDirectory = lib.mkForce "/home/${configVars.username}";
     sessionVariables.TERM = lib.mkForce "xterm-256color";
     sessionVariables.TERMINAL = lib.mkForce "";
   };
