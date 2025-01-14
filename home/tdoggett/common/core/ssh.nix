@@ -55,7 +55,7 @@ in
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "sauron" = {
-        host = configVars.networking.subnets.sauron.name;
+        host = "sauron ${configVars.networking.subnets.sauron.name}";
         hostname = configVars.networking.subnets.sauron.ip;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");

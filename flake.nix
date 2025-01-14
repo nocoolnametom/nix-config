@@ -256,6 +256,16 @@
                   ./home/tdoggett/vm1
                 ];
               };
+          # WSL 2
+          "${configVars.username}@${nix-secrets.networking.sauron.name}" =
+            home-manager.lib.homeManagerConfiguration
+              {
+                pkgs = specialArgs.nixpkgs.legacyPackages.${system};
+                extraSpecialArgs = specialArgs;
+                modules = [
+                  ./home/tdoggett/sauron
+                ];
+              };
           # Steam Deck
           "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
             home-manager.lib.homeManagerConfiguration
