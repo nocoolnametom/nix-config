@@ -10,7 +10,7 @@
   wsl.defaultUser = "tdoggett";
   wsl.extraBin = [{
     name = "bash";
-    src = "${pkgs.bash}/bin/bash";
+    src = "${pkgs.bashInteractive}/bin/bash";
   }];
   wsl.startMenuLaunchers = true;
   wsl.wslConf.automount.root = "/mnt";

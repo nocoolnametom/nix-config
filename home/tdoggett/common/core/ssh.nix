@@ -57,6 +57,7 @@ in
       "sauron" = {
         host = "sauron ${configVars.networking.subnets.sauron.name}";
         hostname = configVars.networking.subnets.sauron.ip;
+        user = "dogge";
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
