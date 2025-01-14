@@ -23,6 +23,8 @@
     nix-darwin.url = "github:LnL7/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+
     #################### Utilities ####################
 
     # Styling for Visual Applications
@@ -86,6 +88,7 @@
       hardware,
       home-manager,
       nix-darwin,
+      nixos-wsl,
       stylix,
       sops-nix,
       deploy-rs,
@@ -222,7 +225,15 @@
             ./hosts/bombadil
           ];
         };
-      };
+        # Windows WSL2 NixOS
+        sauron = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/sauron
+          ];
+       };
 
       #################### Nix-Darwin Configurations ####################
       #
@@ -256,16 +267,6 @@
                   ./home/tdoggett/vm1
                 ];
               };
-          # WSL 2
-          "${configVars.username}@${nix-secrets.networking.sauron.name}" =
-            home-manager.lib.homeManagerConfiguration
-              {
-                pkgs = specialArgs.nixpkgs.legacyPackages.${system};
-                extraSpecialArgs = specialArgs;
-                modules = [
-                  ./home/tdoggett/sauron
-                ];
-              };
           # Steam Deck
           "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
             home-manager.lib.homeManagerConfiguration
@@ -278,6 +279,6 @@
               };
         };
       });
-
     };
+  };
 }

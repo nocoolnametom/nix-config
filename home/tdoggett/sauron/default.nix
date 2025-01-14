@@ -13,20 +13,12 @@
     ../common/core # required - remember to include a sops config below!
 
     #################### Host-specific Optional Configs ####################
-    ../common/optional/only-hm.nix # Extra configs for systems ONLY using HM
+    ../common/optional/services/ssh-agent.nix
     ../common/optional/sops.nix
-    ../common/optional/ssh.nix
     ../common/optional/git.nix
-    ../common/optional/devenv.nix
   ];
-
-  programs.bash.initExtra = ''
-    # enable ssh if it's not already running - should help start at boot
-    # Run ssh on logging, only if not running yet
-    if [ ! "$(ps -elf | grep -v grep | grep sshd)" ];
-      then sudo service ssh start
-    fi
-  '';
+  
+  programs.git.userEmail = configVars.gitHubEmail;
 
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
@@ -40,3 +32,4 @@
     sessionVariables.TERMINAL = lib.mkForce "";
   };
 }
+
