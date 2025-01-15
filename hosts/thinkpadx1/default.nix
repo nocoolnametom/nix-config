@@ -55,8 +55,8 @@
       "hosts/common/optional/stylix.nix" # System-wide styling
 
       #################### Users to Create ####################
+      "home/${configVars.username}/persistence/thinkpad11.nix"
       "hosts/common/users/${configVars.username}"
-      "home/${configVars.username}/thinkpadx1/persistence.nix"
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!

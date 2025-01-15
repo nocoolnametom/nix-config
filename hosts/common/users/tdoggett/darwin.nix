@@ -12,15 +12,14 @@ let
   ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
   # Loads all public key files into a list without having to reference them directly
   pubKeys = lib.filesystem.listFilesRecursive (./keys);
+  aliasedName = configVars.networking,work.aliases."${config.networking.hostName}";
 in
 {
-  # User-level persistence is loaded in the `hosts/common/<host-alias>/default.nix!
+  # User-level persistence is loaded in the `home/<username>/persistence/<aliasedName>.nix` file!
 
   # Here is where the Home Manager magic happens!
   home-manager.users.${configVars.username} = import (
-    configLib.relativeToRoot "home/${configVars.username}/${
-      configVars.networking.work.aliases."${config.networking.hostName}"
-    }"
+    configLib.relativeToRoot "home/${configVars.username}/${aliasedName}.nix"
   );
 
   users.users.${configVars.username} = {

@@ -58,8 +58,8 @@
       "hosts/common/optional/vr.nix"
 
       #################### Users to Create ####################
+      "home/${configVars.username}/persistence/pangolin11.nix"
       "hosts/common/users/${configVars.username}"
-      "home/${configVars.username}/pangolin11/persistence.nix"
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!

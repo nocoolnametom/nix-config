@@ -9,17 +9,17 @@
 {
   imports = [
     ########################## Required Configs ###########################
-    ../common/core # required - remember to include a sops config below!
+    common/core # required - remember to include a sops config below!
 
     #################### Host-specific Optional Configs ####################
-    ../common/optional/only-hm.nix # Extra configs for systems ONLY using HM
-    ../common/optional/sops.nix
-    ../common/optional/git.nix
-    ../common/optional/devenv.nix
-    ../common/optional/desktops/brave.nix
-    ../common/optional/desktops/kitty.nix
-    ../common/optional/desktops/vscode.nix
-    ../common/optional/wakatime.nix
+    common/optional/only-hm.nix # Extra configs for systems ONLY using HM
+    common/optional/sops.nix
+    common/optional/git.nix
+    common/optional/devenv.nix
+    common/optional/desktops/brave.nix
+    common/optional/desktops/kitty.nix
+    common/optional/desktops/vscode.nix
+    common/optional/wakatime.nix
   ];
 
   programs.git.userEmail = configVars.gitHubEmail;

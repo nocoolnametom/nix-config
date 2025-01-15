@@ -14,11 +14,11 @@ let
   pubKeys = lib.filesystem.listFilesRecursive (./keys);
 in
 {
-  # User-level persistence is loaded in the `hosts/common/<hosts>/default.nix!
+  # User-level persistence is loaded in the `home/<username>/persistence/<hostName>.nix` file!
 
   # Here is where the Home Manager magic happens!
   home-manager.users.${configVars.username} = import (
-    configLib.relativeToRoot "home/${configVars.username}/${config.networking.hostName}"
+    configLib.relativeToRoot "home/${configVars.username}/${config.networking.hostName}.nix"
   );
 
   # Allow user to login via SSH

@@ -9,6 +9,7 @@
     src = ./.;
     default_stages = [ "pre-commit" ];
     hooks = {
+      # ========== General ==========
       check-added-large-files.enable = true;
       check-case-conflicts.enable = true;
       check-executables-have-shebangs.enable = true;
@@ -37,10 +38,10 @@
         types = [ "symlink" ];
       };
 
-      nixfmt-rfc-style = {
-        enable = true;
-        #        package = pkgs.nixfmt-rfc-style;
-      };
+      # ========== nix ==========
+      nixfmt-rfc-style.enable = true;
+
+      # ========== shellscripts ==========
       shfmt.enable = true;
 
       end-of-file-fixer.enable = true;
