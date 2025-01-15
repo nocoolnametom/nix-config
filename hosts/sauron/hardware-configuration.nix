@@ -1,4 +1,10 @@
-{ inputs, config, lib, pkgs, ... }:
+{
+  inputs,
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 {
   imports = [
@@ -8,13 +14,14 @@
 
   wsl.enable = true;
   wsl.defaultUser = "tdoggett";
-  wsl.extraBin = [{
-    name = "bash";
-    src = "${pkgs.bashInteractive}/bin/bash";
-  }];
+  wsl.extraBin = [
+    {
+      name = "bash";
+      src = "${pkgs.bashInteractive}/bin/bash";
+    }
+  ];
   wsl.startMenuLaunchers = true;
   wsl.wslConf.automount.root = "/mnt";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }
-

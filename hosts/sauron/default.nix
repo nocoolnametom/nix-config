@@ -22,10 +22,10 @@
 
       ########################## Hardware Modules ###############################
       # No hardware to define!
-      
+
       ########################### Impermanence ##################################
       ./persistence.nix
-      
+
       ############################## Stylix #####################################
       # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
     ]
@@ -43,7 +43,7 @@
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
-  
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "sauron";

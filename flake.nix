@@ -233,7 +233,8 @@
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/sauron
           ];
-       };
+        };
+      };
 
       #################### Nix-Darwin Configurations ####################
       #
@@ -280,5 +281,4 @@
         };
       });
     };
-  };
 }
