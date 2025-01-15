@@ -75,7 +75,7 @@
     nameservers = [ "8.8.8.8" ];
     networkmanager.enable = true;
     enableIPv6 = true;
-    firewall.enable = false;
+    firewall.enable = true;
   };
 
   environment.systemPackages = with pkgs; [
