@@ -37,8 +37,8 @@
       "hosts/common/optional/services/openssh.nix"
 
       #################### Users to Create ####################
+      "home/${configVars.username}/persistence/sauron.nix"
       "hosts/common/users/${configVars.username}"
-      "home/${configVars.username}/sauron/persistence.nix"
     ]);
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.

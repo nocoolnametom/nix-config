@@ -16,6 +16,7 @@
 }:
 let
   socialUrl = configVars.networking.external.bombadil.mainUrl;
+  hostName = configVars.networking.external.bombadil.name;
 in
 {
   imports =
@@ -46,12 +47,12 @@ in
       "hosts/common/optional/linode.nix"
 
       #################### Users to Create ####################
+      "home/${configVars.username}/persistence/${hostName}.nix"
       "hosts/common/users/${configVars.username}"
-      "home/${configVars.username}/bombadil/persistence.nix"
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
-  networking.hostName = configVars.networking.external.bombadil.name;
+  networking.hostName = hostName;
   networking.hosts."${configVars.networking.external.bombadil.ip}" = [
     socialUrl
     "www.${socialUrl}"

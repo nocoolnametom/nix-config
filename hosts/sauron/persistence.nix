@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# System-Level Persistence (User-level is handled in home/<user>/sauron/persistence.nix
+# System-Level Persistence (User-level is handled in home/<user>/persistence/sauron.nix
 #
 ###############################################################################
 

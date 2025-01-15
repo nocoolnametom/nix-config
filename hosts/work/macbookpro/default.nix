@@ -31,6 +31,7 @@
       "hosts/common/optional/yubikey.nix"
 
       #################### Users to Manage ####################
+      "home/${configVars.username}/persistence/macbookpro.nix"
       "hosts/common/users/${configVars.username}/darwin.nix"
     ]);
 

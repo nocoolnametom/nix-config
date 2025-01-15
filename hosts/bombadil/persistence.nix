@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# System-Level Persistence (User-level is handled in home/<user>/bombadil/persistence.nix
+# System-Level Persistence (User-level is handled in home/<user>/persistence/bombadil.nix
 #
 ###############################################################################
 

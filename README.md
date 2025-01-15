@@ -16,7 +16,7 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
    * [ ] Matrix? (Probably not, I don't need it)
    * [ ] Anything else
    * [ ] Figure out how to build a VM from the fedibox config for local testing of stuff
- * [ ] Fix and add steamdeck HM configuration
+ * [X] ~~Fix and add steamdeck HM configuration~~ Added!
  * [x] ~~Remove references to diskio - I'm not planning on adjusting partitions using a tool, and it's not useful for existing systems~~
  * [ ] Investigate the impact of migrating back to Sway from Hyprland - I don't need the visual special sauce and Sway might be a bit easier on resources
  * [ ] Clean up configuration of pangolin, thinkpad, and melian to move the majority of the custom configuration into imported files
