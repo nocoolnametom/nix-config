@@ -25,7 +25,7 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
      * [ ] It may make sense to re-visit using some centralized system, like GitHub Actions, to use NixOps to build and push out new configs.  I need to figure out where and how to store the keys and state data, though.
      * [ ] Relatedly, figure out how to have active machines update flake inputs of my private repos, like nix-secrets, when I push new commits
      * [ ] Investigate `deploy-rs` as a potential solution
- * [ ] Figure out how to have systems, like glorfindel, which are set to auto-update send me an email when a rebuild fails
+ * [X] ~~Figure out how to have systems, like glorfindel, which are set to auto-update send me an email when a rebuild fails~~ Done!
  * [ ] See if there's any way I can rebuild my personal packages (with shasums and verson numbers) when a new stable version is released
  * [X] ~~Look into nix-mineral for security hardening~~
      * Looked into it; should probably just use the NixOS hardening guides in the wiki to apply to remotes like bombadil directly

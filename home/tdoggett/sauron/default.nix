@@ -17,7 +17,7 @@
     ../common/optional/sops.nix
     ../common/optional/git.nix
   ];
-  
+
   programs.git.userEmail = configVars.gitHubEmail;
 
   # Custom packages are already overlaid into the provided `pkgs`
@@ -32,4 +32,3 @@
     sessionVariables.TERMINAL = lib.mkForce "";
   };
 }
-
