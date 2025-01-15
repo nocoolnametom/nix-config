@@ -12,7 +12,7 @@ let
   ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
   # Loads all public key files into a list without having to reference them directly
   pubKeys = lib.filesystem.listFilesRecursive (./keys);
-  aliasedName = configVars.networking,work.aliases."${config.networking.hostName}";
+  aliasedName = configVars.networking.work.aliases."${config.networking.hostName}";
 in
 {
   # User-level persistence is loaded in the `home/<username>/persistence/<aliasedName>.nix` file!
