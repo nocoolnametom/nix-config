@@ -265,7 +265,7 @@
                 pkgs = specialArgs.nixpkgs.legacyPackages.${system};
                 extraSpecialArgs = specialArgs;
                 modules = [
-                  ./home/tdoggett/vm1
+                  ./home/tdoggett/vm1.nix
                 ];
               };
           # Steam Deck
@@ -275,7 +275,7 @@
                 pkgs = specialArgs.nixpkgs.legacyPackages.${system};
                 extraSpecialArgs = specialArgs;
                 modules = [
-                  ./home/tdoggett/steamdeck
+                  ./home/tdoggett/steamdeck.nix
                 ];
               };
         };
