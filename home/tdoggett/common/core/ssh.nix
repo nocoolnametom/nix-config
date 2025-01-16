@@ -62,7 +62,7 @@ in
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "sauron-actual" = {
-        host = configVars.networking.subnets.sauron.name;
+        host = "${configVars.networking.subnets.sauron.name}-actual";
         hostname = configVars.networking.subnets.sauron.actual;
         user = configVars.networking.subnets.sauron.username;
         port = configVars.networking.ports.tcp.localSsh;
