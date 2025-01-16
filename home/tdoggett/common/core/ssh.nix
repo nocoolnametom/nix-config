@@ -55,9 +55,16 @@ in
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "sauron" = {
-        host = "sauron ${configVars.networking.subnets.sauron.name}";
+        host = configVars.networking.subnets.sauron.name;
         hostname = configVars.networking.subnets.sauron.ip;
-        user = "dogge";
+        user = configVars.networking.subnets.sauron.username;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "sauron-actual" = {
+        host = configVars.networking.subnets.sauron.name;
+        hostname = configVars.networking.subnets.sauron.actual;
+        user = configVars.networking.subnets.sauron.username;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
@@ -73,7 +80,8 @@ in
       "steamdeck" = {
         host = configVars.networking.subnets.steamdeck.name;
         hostname = configVars.networking.subnets.steamdeck.ip; # Local Network
-        user = "deck";
+        user = configVars.networking.subnets.steamdeck.username;
+        port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
     };
