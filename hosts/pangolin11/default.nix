@@ -57,10 +57,21 @@
       "hosts/common/optional/yubikey.nix"
       "hosts/common/optional/vr.nix"
 
+      # Testing GTS
+      "hosts/common/optional/services/gotosocial.nix" # GoToSocial
+
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/pangolin11.nix"
       "hosts/common/users/${configVars.username}"
     ]);
+
+  services.gotosocial.settings.host = "localhost";
+  services.gotosocial.settings.protocol = "http";
+  services.gotosocial.settings.application-name = "Pangolin11";
+  environment.persistence."${configVars.persistFolder}".directories = [
+    "/var/lib/gotosocial"
+  ];
+  # services.gotosocial.settings.landing-page-user = "tom";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
