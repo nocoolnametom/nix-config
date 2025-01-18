@@ -69,6 +69,7 @@
   services.gotosocial.settings.host = "migrate.${configVars.domain}";
   services.gotosocial.settings.account-domain = "migrate.${configVars.domain}";
   services.gotosocial.settings.application-name = "migrate-gotosocial";
+  services.gotosocial.settings.port = 8087;
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
