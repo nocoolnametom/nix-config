@@ -56,10 +56,19 @@
       "hosts/common/optional/services/sickrage.nix"
       "hosts/common/optional/services/stashapp.nix"
 
+      ########## Fediverse Migration ##########
+      "hosts/common/optional/services/gotosocial.nix" # Remove after migration
+
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/bert.nix"
       "hosts/common/users/${configVars.username}"
     ]);
+
+  # Remove this block after fediverse migration is done
+  security.acme.certs."migrate.${configVars.domain}".email = configVars.email.letsencrypt;
+  services.gotosocial.settings.host = "migrate.${configVars.domain}";
+  services.gotosocial.settings.account-domain = "migrate.${configVars.domain}";
+  services.gotosocial.settings.application-name = "migrate-gotosocial";
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
