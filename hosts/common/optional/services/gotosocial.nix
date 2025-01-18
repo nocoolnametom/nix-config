@@ -96,92 +96,95 @@ in
       #   keysZoneSize = "10m";
       #   inactive = "1w";
       # };
-      virtualHosts."${cfg.host}" = {
-        enableACME = true;
-        forceSSL = true;
-        locations = {
-          # "~ /.well-known/(webfinger|host-meta)$" = {
-          #   extraConfig = ''
-          #     proxy_set_header Host $host;
-          #     proxy_set_header X-Forwarded-For $remote_addr;
-          #     proxy_set_header X-Forwarded-Proto $scheme;
+      virtualHosts = {
+        "${cfg.host}" = {
+          enableACME = true;
+          forceSSL = true;
+          locations = {
+            # "~ /.well-known/(webfinger|host-meta)$" = {
+            #   extraConfig = ''
+            #     proxy_set_header Host $host;
+            #     proxy_set_header X-Forwarded-For $remote_addr;
+            #     proxy_set_header X-Forwarded-Proto $scheme;
 
-          #     proxy_cache gotosocial_ap_public_responses;
-          #     proxy_cache_background_update on;
-          #     proxy_cache_key $scheme://$host$uri$is_args$query_string;
-          #     proxy_cache_valid 200 10m;
-          #     proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504 http_429;
-          #     proxy_cache_lock on;
-          #     add_header X-Cache-Status $upstream_cache_status;
-          #   '';
-          #   proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString cfg.port}";
-          # };
-          # "~ ^\/users\/(?:[a-z0-9_\.]+)\/main-key$" = {
-          #   extraConfig = ''
-          #     proxy_set_header Host $host;
-          #     proxy_set_header X-Forwarded-For $remote_addr;
-          #     proxy_set_header X-Forwarded-Proto $scheme;
+            #     proxy_cache gotosocial_ap_public_responses;
+            #     proxy_cache_background_update on;
+            #     proxy_cache_key $scheme://$host$uri$is_args$query_string;
+            #     proxy_cache_valid 200 10m;
+            #     proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504 http_429;
+            #     proxy_cache_lock on;
+            #     add_header X-Cache-Status $upstream_cache_status;
+            #   '';
+            #   proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString cfg.port}";
+            # };
+            # "~ ^\/users\/(?:[a-z0-9_\.]+)\/main-key$" = {
+            #   extraConfig = ''
+            #     proxy_set_header Host $host;
+            #     proxy_set_header X-Forwarded-For $remote_addr;
+            #     proxy_set_header X-Forwarded-Proto $scheme;
 
-          #     proxy_cache gotosocial_ap_public_responses;
-          #     proxy_cache_background_update on;
-          #     proxy_cache_key $scheme://$host$uri;
-          #     proxy_cache_valid 200 604800s;
-          #     proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504 http_429;
-          #     proxy_cache_lock on;
-          #     add_header X-Cache-Status $upstream_cache_status;
-          #   '';
-          #   proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString cfg.port}";
-          # };
-          "/" = {
-            recommendedProxySettings = true;
-            proxyWebsockets = true;
-            proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString cfg.port}";
-            extraConfig = ''
-              auth_basic off;
-            '';
+            #     proxy_cache gotosocial_ap_public_responses;
+            #     proxy_cache_background_update on;
+            #     proxy_cache_key $scheme://$host$uri;
+            #     proxy_cache_valid 200 604800s;
+            #     proxy_cache_use_stale error timeout updating http_500 http_502 http_503 http_504 http_429;
+            #     proxy_cache_lock on;
+            #     add_header X-Cache-Status $upstream_cache_status;
+            #   '';
+            #   proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString cfg.port}";
+            # };
+            "/" = {
+              recommendedProxySettings = true;
+              proxyWebsockets = true;
+              proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString cfg.port}";
+              extraConfig = ''
+                auth_basic off;
+              '';
+            };
+            # "/assets/" =  {
+            #   alias = "${config.services.gotosocial.settings.web-asset-base-dir}/";
+            #   extraConfig = ''
+            #     autoindex off;
+            #     expires 5m;
+            #     add_header Cache-Control "public";
+            #   '';
+            # };
+            # "@fileserver" = {
+            #   proxyPass = "http://localhost:${cfg.port}";
+            #   extraConfig = ''
+            #     proxy_set_header Host $host;
+            #     proxy_set_header Upgrade $http_upgrade;
+            #     proxy_set_header Connection "upgrade";
+            #     proxy_set_header X-Forwarded-For $remote_addr;
+            #     proxy_set_header X-Forwarded-Proto $scheme;
+            #   '';
+            # };
+            # "/fileserver/" = {
+            #   alias = "${cfg.storage-local-base-path}/";
+            #   tryFiles = "$uri @fileserver";
+            #   extraConfig = ''
+            #     autoindex off;
+            #     expires 1w;
+            #     add_header Cache-Control "private, immutable";
+            #   '';
+            # };
           };
-          # "/assets/" =  {
-          #   alias = "${config.services.gotosocial.settings.web-asset-base-dir}/";
-          #   extraConfig = ''
-          #     autoindex off;
-          #     expires 5m;
-          #     add_header Cache-Control "public";
-          #   '';
-          # };
-          # "@fileserver" = {
-          #   proxyPass = "http://localhost:${cfg.port}";
-          #   extraConfig = ''
-          #     proxy_set_header Host $host;
-          #     proxy_set_header Upgrade $http_upgrade;
-          #     proxy_set_header Connection "upgrade";
-          #     proxy_set_header X-Forwarded-For $remote_addr;
-          #     proxy_set_header X-Forwarded-Proto $scheme;
-          #   '';
-          # };
-          # "/fileserver/" = {
-          #   alias = "${cfg.storage-local-base-path}/";
-          #   tryFiles = "$uri @fileserver";
-          #   extraConfig = ''
-          #     autoindex off;
-          #     expires 1w;
-          #     add_header Cache-Control "private, immutable";
-          #   '';
-          # };
         };
-      };
-      virtualHosts."${cfg.account-domain}" = mkIf (cfg.account-domain != cfg.host) {
-        enableACME = true;
-        forceSSL = true;
-        locations."/.well-known/webfinger".extraConfig = ''
-          rewrite ^.*$ https://${cfg.host}/.well-known/webfinger permanent;
-        '';
-        locations."/.well-known/host-meta".extraConfig = ''
-          rewrite ^.*$ https://${cfg.host}/.well-known/host-meta permanent;
-        '';
-        locations."/.well-known/nodeinfo".extraConfig = ''
-          rewrite ^.*$ https://${cfg.host}/.well-known/nodeinfo permanent;
-        '';
-      };
+      } // (mkIf (cfg.account-domain != cfg.host) {
+        "${cfg.account-domain}" = {
+          enableACME = true;
+          forceSSL = true;
+          locations."/.well-known/webfinger".extraConfig = ''
+            rewrite ^.*$ https://${cfg.host}/.well-known/webfinger permanent;
+          '';
+          locations."/.well-known/host-meta".extraConfig = ''
+            rewrite ^.*$ https://${cfg.host}/.well-known/host-meta permanent;
+          '';
+          locations."/.well-known/nodeinfo".extraConfig = ''
+            rewrite ^.*$ https://${cfg.host}/.well-known/nodeinfo permanent;
+          '';
+        };
+      });
     };
   };
 }
