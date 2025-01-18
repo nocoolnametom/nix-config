@@ -377,7 +377,12 @@
       "posts.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
-        locations."/".root = pkgs.phanpy;
+        locations."/" = {
+          root = pkgs.phanpy;
+          extraConfig = ''
+            auth_basic off;
+          '';
+        };
       };
     };
   security.acme.acceptTerms = true;

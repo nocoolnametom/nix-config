@@ -27,6 +27,7 @@
       "/var/lib/chrony"
       "/var/lib/elasticsearch"
       "/var/lib/fail2ban"
+      "/var/lib/gotosocial"
       "/var/lib/mastodon"
       "/var/lib/mysql"
       "/var/lib/nixos"
