@@ -29,6 +29,9 @@
       recommendedProxySettings = true;
       proxyWebsockets = true;
       proxyPass = "http://${config.services.gotosocial.settings.bind-address}:${toString config.services.gotosocial.settings.port}";
+      extraConfig = ''
+        auth_basic off;
+      '';
     };
   };
 }
