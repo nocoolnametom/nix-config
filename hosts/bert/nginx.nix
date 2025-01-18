@@ -385,6 +385,7 @@
     "stable.${configVars.domain}".email = configVars.email.letsencrypt;
     "requests.${configVars.domain}".email = configVars.email.letsencrypt;
     "library.${configVars.domain}".email = configVars.email.letsencrypt;
+    "migrate.${configVars.domain}".email = configVars.email.letsencrypt;
     # "automatic.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }
