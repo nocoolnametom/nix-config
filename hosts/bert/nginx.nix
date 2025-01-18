@@ -210,7 +210,7 @@
                         if internal then
                           "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
                         else
-                          "https://request.${configVars.domain}";
+                          "https://requests.${configVars.domain}";
                       target = "_blank";
                     }
                   ])
@@ -262,6 +262,14 @@
                       target = "_blank";
                     }
                   ]
+                  ++ [
+                    {
+                      name = "Phanpy";
+                      icon = "fas fa-gears";
+                      url = "https://posts.${configVars.domain}/";
+                      target = "_blank";
+                    }
+                  ]
                   ++ (lib.lists.optionals config.services.stashapp.enable [
                     {
                       name = "Stash Data";
@@ -301,8 +309,28 @@
         ];
         locations = proxyPaths true;
       };
+      # Redirects
       "house.${configVars.domain}" = {
-        serverAliases = [ "home.${configVars.domain}" ]; # This is the dynamic DNS subdomain
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            return = "301 https://home.${configVars.domain}$request_uri";
+          };
+        };
+      };
+      "request.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            return = "301 https://requests.${configVars.domain}$request_uri";
+          };
+        };
+      };
+
+      # Canonicals
+      "home.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
@@ -311,38 +339,12 @@
         };
       };
       "requests.${configVars.domain}" = {
-        serverAliases = [ "request.${configVars.domain}" ];
         enableACME = true;
         forceSSL = true;
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
       };
-      # "automatic.${configVars.domain}" = {
-      #   enableACME = false;
-      #   forceSSL = false;
-      #   basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
-      #   extraConfig = ''
-      #     error_page 404 /automatic.${configVars.domain}.404.html;
-      #   '';
-      #   locations = {
-      #     "/" = {
-      #       proxyPass = "http://${configVars.networking.subnets.sauron.ip}:7860/";
-      #       proxyWebsockets = true;
-      #       extraConfig = ''
-      #         proxy_buffering off;
-      #         proxy_cache off;
-      #         chunked_transfer_encoding off;
-      #       '';
-      #     };
-      #     "/automatic.${configVars.domain}.404.html".extraConfig = ''
-      #       root html
-      #       allow all
-      #       index easy.${configVars.domain}.404.html
-      #       rewrite ^ $scheme://stable.${configVars.domain}$request_uri redirect;
-      #     '';
-      #   };
-      # };
       "stable.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
@@ -360,12 +362,6 @@
               chunked_transfer_encoding off;
             '';
           };
-          # "/stable.${configVars.domain}.404.html".extraConfig = ''
-          #   root html
-          #   allow all
-          #   index stable.${configVars.domain}.404.html
-          #   rewrite ^ $scheme://easy.${configVars.domain}$request_uri redirect;
-          # '';
         };
       };
       "library.${configVars.domain}" = {
@@ -378,14 +374,21 @@
           };
         };
       };
+      "posts.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/".root = pkgs.phanpy;
+      };
     };
   security.acme.acceptTerms = true;
   security.acme.certs = {
+    "home.${configVars.domain}".email = configVars.email.letsencrypt;
     "house.${configVars.domain}".email = configVars.email.letsencrypt;
     "stable.${configVars.domain}".email = configVars.email.letsencrypt;
+    "request.${configVars.domain}".email = configVars.email.letsencrypt;
     "requests.${configVars.domain}".email = configVars.email.letsencrypt;
     "library.${configVars.domain}".email = configVars.email.letsencrypt;
+    "posts.${configVars.domain}".email = configVars.email.letsencrypt;
     "migrate.${configVars.domain}".email = configVars.email.letsencrypt;
-    # "automatic.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }
