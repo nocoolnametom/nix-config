@@ -44,6 +44,8 @@ in
       "hosts/common/optional/services/postgresql.nix"
       "hosts/common/optional/services/elasticsearch.nix"
       "hosts/common/optional/services/mailserver.nix"
+      # TODO: Uncomment once ready to migrate from migrate.${configVars.domain}
+      # "hosts/common/optional/services/gotosocial.nix"
       "hosts/common/optional/linode.nix"
 
       #################### Users to Create ####################
@@ -59,6 +61,13 @@ in
     inputs.nix-secrets.networking.blog.friends.domain
     "www.${inputs.nix-secrets.networking.blog.friends.domain}"
   ];
+
+  # TODO: My own GoToSocial instance will go here
+  # Note that I'd like to use a split domain setup to potentially free my homepage
+  # I have not yet set up either the Nginx OR the gotosocial configuration for this, however!
+  # Once it's up and running with webfinger redirects intact, I'mm migrate myself over from
+  # my migrate.${configVars.domain} instance to this one.
+
   networking.useDHCP = false; # I'm using a static IP through Linode
   networking.enableIPv6 = true;
   networking.usePredictableInterfaceNames = false; # Linode changes the interface name often
