@@ -41,11 +41,10 @@ in
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/mastodon.nix"
+      "hosts/common/optional/services/pleroma.nix"
       "hosts/common/optional/services/postgresql.nix"
       "hosts/common/optional/services/elasticsearch.nix"
       "hosts/common/optional/services/mailserver.nix"
-      # TODO: Uncomment once ready to migrate from migrate.${configVars.domain}
-      "hosts/common/optional/services/gotosocial.nix"
       "hosts/common/optional/linode.nix"
 
       #################### Users to Create ####################
@@ -61,12 +60,6 @@ in
     inputs.nix-secrets.networking.blog.friends.domain
     "www.${inputs.nix-secrets.networking.blog.friends.domain}"
   ];
-
-  # GoToSocial
-  services.gotosocial.enable = true;
-  services.gotosocial.settings.host = "gts.${configVars.domain}";
-  services.gotosocial.settings.account-domain = "${configVars.domain}";
-  services.gotosocial.settings.landing-page-user = "tom";
 
   networking.useDHCP = false; # I'm using a static IP through Linode
   networking.enableIPv6 = true;
