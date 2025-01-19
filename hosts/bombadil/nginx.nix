@@ -33,6 +33,7 @@
     "127.0.0.1"
     "[::1]"
   ];
+  services.nginx.virtualHosts.localhost.locations."/".rewrite = "https://gts.${configVars.domain}$request_uri";
 
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "webmaster@${configVars.domain}";
