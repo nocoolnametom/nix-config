@@ -1,4 +1,10 @@
-{ config, lib, configVars, ... }: {
+{
+  config,
+  lib,
+  configVars,
+  ...
+}:
+{
   services.pleroma.enable = lib.mkDefault true;
   services.pleroma.configs = [
     ''
@@ -71,12 +77,12 @@
     locations."/".return = "302 https://${configVars.domain}\$request_uri";
   };
 
-  sops.secrets."pleroma/secret_key_base" = {};
-  sops.secrets."pleroma/signing_salt" = {};
-  sops.secrets."pleroma/password" = {};
-  sops.secrets."pleroma/public_key" = {};
-  sops.secrets."pleroma/private_key" = {};
-  sops.secrets."pleroma/default_signer" = {};
+  sops.secrets."pleroma/secret_key_base" = { };
+  sops.secrets."pleroma/signing_salt" = { };
+  sops.secrets."pleroma/password" = { };
+  sops.secrets."pleroma/public_key" = { };
+  sops.secrets."pleroma/private_key" = { };
+  sops.secrets."pleroma/default_signer" = { };
   sops.templates."pleroma-secrets" = {
     content = ''
       config :pleroma, Pleroma.Web.Endpoint,
