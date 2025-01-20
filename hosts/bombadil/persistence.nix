@@ -22,8 +22,10 @@
     directories = [
       "/var/backup/mysql"
       "/var/backup/postgresql"
+      "/var/cache/nginx/cache/akkoma-media-cache"
       "/var/db/sudo/lectured"
       "/var/lib/acme"
+      "/var/lib/akkoma"
       "/var/lib/chrony"
       "/var/lib/elasticsearch"
       "/var/lib/fail2ban"
