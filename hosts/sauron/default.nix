@@ -41,6 +41,10 @@
       "hosts/common/users/${configVars.username}"
     ]);
 
+  services.ollama.enable = true;
+  services.ollama.loadModels = [ "mistral-large" ];
+  services.ollama.acceleration = "cuda";
+
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
