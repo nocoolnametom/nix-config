@@ -225,6 +225,15 @@
             ./hosts/bombadil
           ];
         };
+        # AWS EC2 Instance
+        fedibox = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/fedibox
+          ];
+        };
         # Windows WSL2 NixOS
         sauron = lib.nixosSystem {
           inherit specialArgs;
