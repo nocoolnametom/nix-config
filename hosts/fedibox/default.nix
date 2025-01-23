@@ -32,7 +32,7 @@ in
       ./persistence.nix
 
       ############################## Stylix #####################################
-      # inputs.stylix.nixosModules.stylix # No GUI on Linode
+      # inputs.stylix.nixosModules.stylix # No GUI on AWS
     ]
     ++ (map configLib.relativeToRoot [
       #################### Required Configs ####################
@@ -41,7 +41,6 @@ in
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/services/akkoma.nix"
       "hosts/common/optional/services/openssh.nix"
-      "hosts/common/optional/services/mastodon.nix"
       "hosts/common/optional/services/postgresql.nix"
       "hosts/common/optional/services/elasticsearch.nix"
       "hosts/common/optional/services/mailserver.nix"
@@ -54,16 +53,48 @@ in
     ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
-  networking.hostName = hostName;
+  # networking.hostName = hostName; # Technically, the hostname should be set within AWS
   networking.hosts."${configVars.networking.external.fedibox.ip}" = [
     socialUrl
     "www.${socialUrl}"
   ];
 
-  networking.useDHCP = false; # I'm using a static IP through Linode
+  environment.systemPackages = [
+    (pkgs.vim_configurable.customize {
+      name = "vim";
+      vimrcConfig.packages.myplugins = {
+        start = [
+          pkgs.vimPlugins.vim-nix
+          pkgs.vimPlugins.vim-trailing-whitespace
+          pkgs.vimPlugins.vim-elixir
+        ];
+        opt = [ ];
+      };
+      vimrcConfig.customRC = ''
+        set nocompatible
+        set softtabstop=0 smarttab
+        set backspace=indent,eol,start
+        set smartcase
+        set mouse=a
+        set number relativenumber
+        :imap jj <Esc>
+        autocmd InsertEnter * :set norelativenumber
+        autocmd InsertLeave * :set relativenumber
+        :nmap <C-s> :w<CR>
+        :imap <C-s> <Esc>:w<CR>a
+      '';
+    })
+    pkgs.awscli
+    pkgs.imagemagick # For Pleroma uploads
+    pkgs.exiftool # For Pleroma uploads
+    pkgs.ffmpeg # For Pleroma uploads
+    pkgs.element-web
+    pkgs.s3fs
+    pkgs.fuse
+  ];
+
+  networking.useDHCP = false; # I'm using a static IP
   networking.enableIPv6 = true;
-  networking.usePredictableInterfaceNames = false; # Linode changes the interface name often
-  networking.interfaces.eth0.useDHCP = true; # Linode uses DHCP for the private IP
   networking.firewall.enable = true;
   networking.firewall.allowedTCPPorts = [
     80 # HTTP
@@ -74,20 +105,25 @@ in
   networking.firewall.allowedUDPPorts = [
     443 # HTTPS
   ];
-  networking.firewall.allowPing = true; # Linode's LISH console requires ping
+  networking.firewall.allowPing = true;
 
-  # Mastodon setup
-  services.mastodon.localDomain = socialUrl;
-  services.mastodon.webProcesses = 0; # This is the WEB_CONCURRENCY env variable for Puma, 0 is a single process
-  services.mastodon.sidekiqThreads = 10; # This seems about right
+  # Akkoma Setup
+  services.akkoma.enable = false;
+  services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host = socialUrl;
+  services.akkoma.config.":pleroma".":instance".name =
+    configVars.networking.external.fedibox.niceName;
+  services.akkoma.config.":pleroma".":instance".description =
+    "A single-user instance for ${configVars.handles.mastodon}";
 
-  # Limit Elasticsearch Memory Usage - Minimum and Maximum
-  services.elasticsearch.extraJavaOptions = [
-    "-Xms128m"
-    "-Xmx256m"
-  ];
+  # Postgres Backup
+  services.postgresqlBackup.enable = true;
+  services.postgresqlBackup.backupAll = true;
+  services.postgresqlBackup.location = "/mnt/s3mount/backups/postgresql";
+  services.postgresqlBackup.startAt = "weekly";
 
-  time.timeZone = "America/Los_Angeles";
+  # Nostr Setup
+  programs.nostr.enable = true;
+  programs.nostr.domain = configVars.domain;
 
   # Prevent systemd from logging too much
   services.journald.extraConfig = ''
@@ -96,7 +132,7 @@ in
   '';
 
   # Disable the xserver
-  services.xserver.enable = false;
+  services.xserver.enable = lib.mkForce false;
 
   # Use sudo without a password
   security.sudo.wheelNeedsPassword = false;
@@ -104,20 +140,15 @@ in
   # Enable AppArmor
   security.apparmor.enable = true;
 
-  # Fix VSCode remote
-  programs.nix-ld.enable = true;
-
-  # Enable the Time Protocol
-  # Use Chrony instead of NTP for a virtualized environment
-  services.chrony.enable = true;
-  services.chrony.enableNTS = true;
-  services.chrony.servers = [ "time.cloudflare.com" ];
-
   # OpenSSH
   services.openssh.ports = [
     configVars.networking.ports.tcp.remoteSsh # Only accessible via remote SSH port
   ];
   services.openssh.openFirewall = true;
+  users.users.root.openssh.authorizedKeys.keys = [
+    # Make sure to update this with whatever the deployed EC2 instance provides as a public key!!
+    "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCXkF/YOCamtWqau5kLr2OpHC6ogpqLPNAnG9qijCpf/OmcW2ejA4f3zbZMDiS/VpOsxCS+6qFZN7n27/P8NeJle5rHJfEuXOeqVosIDwj6Xe6ikFr0DPdV7p/3noVWOAVn+MwtM4zIA2ec8jS02frCkAEHH+DfcYv/zUuCE8+U9d4CldUAtWnvJcmuQ/02fydteXGD0dNJWego27qaDzS1Iy+gfDkoVQKXR12BCCW54KImyHn0lPWcEMNbgg7Zd1hNTMVDnxpOCz77q1j3bviH7FpwA8Qmphd2VYXPRp6GW6I28hO7mXc1aL4W9YIHNNasyaxtAIq4uENAs7m7ngn9 nocoolnametom-com-pleroma"
+  ];
 
   # Fail2Ban
   services.fail2ban.enable = true;
@@ -137,6 +168,8 @@ in
     "--no-write-lock-file"
     "-L" # print build logs
   ];
+
+  time.timeZone = "America/Los_Angeles";
 
   system.stateVersion = "24.11";
 

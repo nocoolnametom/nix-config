@@ -83,6 +83,17 @@ in
   services.mastodon.webProcesses = 0; # This is the WEB_CONCURRENCY env variable for Puma, 0 is a single process
   services.mastodon.sidekiqThreads = 10; # This seems about right
 
+  # Akkoma Setup
+  services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host = configVars.domain;
+  services.akkoma.config.":pleroma".":instance".name =
+    configVars.networking.external.fedibox.niceName;
+  services.akkoma.config.":pleroma".":instance".description =
+    "A single-user instance for ${configVars.handles.mastodon}";
+
+  # Nostr Setup
+  programs.nostr.enable = true;
+  programs.nostr.domain = configVars.domain;
+
   # Limit Elasticsearch Memory Usage - Minimum and Maximum
   services.elasticsearch.extraJavaOptions = [
     "-Xms128m"

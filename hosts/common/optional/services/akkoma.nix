@@ -6,7 +6,7 @@
   ...
 }:
 let
-  proxyLocs = {
+  proxyLocs = akkomaDomain: {
     "~ ^/(media|proxy)" = {
       extraConfig = ''
         proxy_cache akkoma_media_cache;
@@ -34,7 +34,7 @@ let
       proxyPass = "http://unix:/run/akkoma/socket";
     };
     "/" = {
-      return = "301 https://${configVars.domain}\$request_uri";
+      return = "301 https://${akkomaDomain}\$request_uri";
     };
   };
   configScriptPost =
@@ -59,18 +59,20 @@ in
     in
     {
       ":pleroma".":instance" = {
-        name = "NoCoolNameTom";
-        description = "More detailed description";
-        email = configVars.email.user;
-        notify_email = configVars.email.alerts;
-        limit = 5000;
-        registration_open = false;
+        name = lib.mkDefault configVars.handles.oldHandle;
+        description = lib.mkDefault "More detailed description";
+        email = lib.mkDefault configVars.email.user;
+        notify_email = lib.mkDefault configVars.email.alerts;
+        limit = lib.mkDefault 5000;
+        registration_open = lib.mkDefault false;
       };
 
       ":pleroma".":media_proxy" = {
-        enabled = true;
-        proxy_opts.redirect_on_failure = true;
-        base_url = "https://cache.${configVars.domain}/";
+        enabled = lib.mkDefault true;
+        proxy_opts.redirect_on_failure = lib.mkDefault true;
+        base_url = lib.mkDefault "https://cache.${
+          config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host
+        }/";
       };
 
       ":pleroma".":mrf".policies = map (pkgs.formats.elixirConf { }).lib.mkRaw [
@@ -78,36 +80,38 @@ in
       ];
 
       ":pleroma".":media_preview_proxy" = {
-        enabled = true;
-        thumbnail_max_width = 1920;
-        thumbnail_max_height = 1080;
+        enabled = lib.mkDefault true;
+        thumbnail_max_width = lib.mkDefault 1920;
+        thumbnail_max_height = lib.mkDefault 1080;
       };
 
       ":pleroma"."Pleroma.Upload" = {
-        base_url = "https://media.${configVars.domain}/media/";
+        base_url = lib.mkDefault "https://media.${
+          config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host
+        }/media/";
       };
 
       ":pleroma"."Pleroma.Uploaders.Local" = {
-        uploads = "/var/lib/akkoma/uploads";
+        uploads = lib.mkDefault "/var/lib/akkoma/uploads";
       };
       ":pleroma"."Pleroma.Web.Endpoint" = {
-        url.host = configVars.domain;
-        secret_key_base = {
+        url.host = lib.mkDefault configVars.domain;
+        secret_key_base = lib.mkDefault {
           _secret = secrets."pleroma/secret_key_base".path;
         };
-        signing_salt = {
+        signing_salt = lib.mkDefault {
           _secret = secrets."pleroma/signing_salt".path;
         };
       };
-      ":joken".":default_signer" = {
+      ":joken".":default_signer" = lib.mkDefault {
         _secret = secrets."pleroma/default_signer".path;
       };
       ":web_push_encryption".":vapid_details" = {
-        subject = "mailto:${configVars.email.user}";
-        private_key = {
+        subject = lib.mkDefault "mailto:${configVars.email.user}";
+        private_key = lib.mkDefault {
           _secret = secrets."pleroma/private_key".path;
         };
-        public_key = {
+        public_key = lib.mkDefault {
           _secret = secrets."pleroma/public_key".path;
         };
       };
@@ -125,55 +129,55 @@ in
     };
   };
 
-  services.nginx = {
-    enable = true;
+  services.nginx =
+    let
+      vhosts = akkomaDomain: {
+        "www.${akkomaDomain}" = {
+          forceSSL = true;
+          enableACME = true;
+          globalRedirect = akkomaDomain;
+        };
+        "${configVars.handles.mastodon}.${akkomaDomain}" = {
+          forceSSL = true;
+          enableACME = true;
+          globalRedirect = "${akkomaDomain}/users/${configVars.handles.mastodon}";
+        };
+        "private.${akkomaDomain}" = {
+          forceSSL = true;
+          enableACME = true;
+          globalRedirect = "${akkomaDomain}/users/${configVars.handles.oldHandle}_Private";
+        };
+        "cache.${akkomaDomain}" = {
+          forceSSL = true;
+          enableACME = true;
+          locations = proxyLocs akkomaDomain;
+        };
+        "media.${akkomaDomain}" = {
+          forceSSL = true;
+          enableACME = true;
+          locations = proxyLocs akkomaDomain;
+        };
+      };
+    in
+    {
+      enable = true;
 
-    clientMaxBodySize = "16m";
-    recommendedTlsSettings = true;
-    recommendedOptimisation = true;
-    recommendedGzipSettings = true;
+      clientMaxBodySize = "16m";
+      recommendedTlsSettings = true;
+      recommendedOptimisation = true;
+      recommendedGzipSettings = true;
 
-    # Adjust the persistent cache size as needed:
-    #  Assuming an average object size of 128 KiB, around 1 MiB
-    #  of memory is required for the key zone per GiB of cache.
-    # Ensure that the cache directory exists and is writable by nginx.
-    commonHttpConfig = ''
-      proxy_cache_path /var/cache/nginx/cache/akkoma-media-cache
-        levels= keys_zone=akkoma_media_cache:16m max_size=16g
-        inactive=1y use_temp_path=off;
-    '';
-  };
-
-  services.nginx.virtualHosts."www.${configVars.domain}" = {
-    forceSSL = true;
-    enableACME = true;
-    locations."/".return = "301 https://${configVars.domain}\$request_uri";
-  };
-
-  services.nginx.virtualHosts."tom.${configVars.domain}" = {
-    forceSSL = true;
-    enableACME = true;
-    locations."/".return = "301 https://${configVars.domain}/users/tom\$request_uri";
-  };
-
-  services.nginx.virtualHosts."private.${configVars.domain}" = {
-    forceSSL = true;
-    enableACME = true;
-    locations."/".return =
-      "301 https://${configVars.domain}/users/NoCoolName_Tom_Private/\$request_uri";
-  };
-
-  services.nginx.virtualHosts."cache.${configVars.domain}" = {
-    forceSSL = true;
-    enableACME = true;
-    locations = proxyLocs;
-  };
-
-  services.nginx.virtualHosts."media.${configVars.domain}" = {
-    forceSSL = true;
-    enableACME = true;
-    locations = proxyLocs;
-  };
+      # Adjust the persistent cache size as needed:
+      #  Assuming an average object size of 128 KiB, around 1 MiB
+      #  of memory is required for the key zone per GiB of cache.
+      # Ensure that the cache directory exists and is writable by nginx.
+      commonHttpConfig = ''
+        proxy_cache_path /var/cache/nginx/cache/akkoma-media-cache
+          levels= keys_zone=akkoma_media_cache:16m max_size=16g
+          inactive=1y use_temp_path=off;
+      '';
+      virtualHosts = vhosts config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;
+    };
 
   sops.secrets."pleroma/secret_key_base" = {
     owner = config.services.akkoma.user;

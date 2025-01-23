@@ -2,6 +2,7 @@
 {
   inherit (inputs.nix-secrets)
     userFullName
+    handles
     domain
     email
     networking
