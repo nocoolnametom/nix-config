@@ -48,6 +48,18 @@ in
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "fedibox" = {
+        # Havne't yet moved fedibox back over to handle the domain it usually handles
+        # host = "${configVars.networking.external.fedibox.name} ${configVars.networking.external.bombadil.mainUrl}";
+        # hostname = configVars.networking.external.fedibox.mainUrl;
+        # port = configVars.networking.ports.tcp.remoteSsh;
+        # identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+        host = "${configVars.networking.external.fedibox.name}";
+        hostname = configVars.networking.external.fedibox.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = [ "${config.home.homeDirectory}/.ssh/id_fedibox" ];
+        user = "root";
+      };
       "bert" = {
         host = configVars.networking.subnets.bert.name;
         hostname = configVars.networking.subnets.bert.ip;
