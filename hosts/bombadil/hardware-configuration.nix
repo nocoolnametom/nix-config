@@ -104,9 +104,10 @@
 
   # Swap
   swapDevices = [
+    { device = "/dev/disk/by-label/swap"; }
     {
       device = "/var/lib/swapfile";
-      size = 1 * 1024;
+      size = 3 * 1024;
     }
   ];
 
