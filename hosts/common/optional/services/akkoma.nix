@@ -118,8 +118,8 @@ in
     };
 
   # Adds the configurable via database option to the config.exs
-  # systemd.services.akkoma-config.serviceConfig.ExecStart = lib.mkMerge [ [ configScriptPost ] ];
-  # systemd.services.akkoma-config.serviceConfig.ExecReload = lib.mkMerge [ [ configScriptPost ] ];
+  systemd.services.akkoma-config.serviceConfig.ExecStart = lib.mkMerge [ [ configScriptPost ] ];
+  systemd.services.akkoma-config.serviceConfig.ExecReload = lib.mkMerge [ [ configScriptPost ] ];
 
   services.akkoma.nginx = {
     enableACME = true;
