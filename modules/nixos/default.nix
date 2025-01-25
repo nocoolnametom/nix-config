@@ -5,8 +5,9 @@
   # my-module = import ./my-module.nix;
   maestral = import ./maestral.nix;
   per-user-vpn = import ./per-user-vpn.nix;
-  stashapp = import ./stashapp.nix;
   sauronsync = import ./sauronsync.nix;
+  systemd-failure-alert = import ./systemd-failure-alert.nix;
+  stashapp = import ./stashapp.nix;
   yubikey = import ./yubikey.nix;
   zsa-udev-rules = import ./zsa-udev-rules.nix;
 }
