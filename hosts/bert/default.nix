@@ -75,7 +75,8 @@
     nameservers = [ "8.8.8.8" ];
     networkmanager.enable = true;
     enableIPv6 = true;
-    firewall.enable = true;
+    # Bert is behind a NAT, so access to ports is already restricted
+    firewall.enable = false;
     firewall.allowedTCPPorts = [
       80 # HTTP
       443 # HTTPS
