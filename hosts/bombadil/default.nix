@@ -53,6 +53,18 @@ in
       "hosts/common/users/${configVars.username}"
     ]);
 
+  # Send alerts on systemd service failures
+  services.systemd-failure-alert.additional-services = [
+    "akkoma"
+    "elasticsearch"
+    "mastodon-web"
+    "mysql"
+    "nginx"
+    "postgresql"
+    "reddit-feed-webhook"
+    "redis-mastodon"
+  ];
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking.hostName = hostName;
   networking.hosts."${configVars.networking.external.bombadil.ip}" = [
