@@ -76,6 +76,16 @@
     networkmanager.enable = true;
     enableIPv6 = true;
     firewall.enable = true;
+    firewall.allowedTCPPorts = [
+      80 # HTTP
+      443 # HTTPS
+      configVars.networking.ports.tcp.remoteSsh
+      configVars.networking.ports.tcp.localSsh
+    ];
+    firewall.allowedUDPPorts = [
+      443 # HTTPS
+    ];
+    firewall.allowPing = true; # Linode's LISH console requires ping
   };
 
   environment.systemPackages = with pkgs; [
