@@ -1,4 +1,4 @@
-{ config, ... }:
+{ config, lib, ... }:
 {
   # Per-User VPN Setup
   sops.secrets."proton-vpn/${config.networking.hostName}/cert" = { };
@@ -26,10 +26,10 @@
     ];
 
     routeTableId = 42;
-    users = [
-      config.services.transmission.user
-      config.services.deluge.user
-    ];
+    users =
+      [ ]
+      ++ (lib.lists.optionals config.services.transmission.enable [ config.services.transmission.user ])
+      ++ (lib.lists.optionals config.services.deluge.enable [ config.services.deluge.user ]);
   };
   networking.firewall.allowedUDPPorts = [
     1194
