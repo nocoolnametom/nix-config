@@ -394,6 +394,5 @@
     "requests.${configVars.domain}".email = configVars.email.letsencrypt;
     "library.${configVars.domain}".email = configVars.email.letsencrypt;
     "posts.${configVars.domain}".email = configVars.email.letsencrypt;
-    "migrate.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }
