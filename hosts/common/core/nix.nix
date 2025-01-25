@@ -21,6 +21,11 @@
       min-free = 128000000; # 128MB
       max-free = 1000000000; # 1GB
 
+      # You can override the default download buffer size in a host default config.
+      # example of 64MB, the original default:
+      # nix.settings.download-buffer-size = 67108864;
+      download-buffer-size = lib.mkDefault 536870912; # 512MB
+
       experimental-features = [
         "nix-command"
         "flakes"
