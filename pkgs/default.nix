@@ -13,6 +13,7 @@ rec {
 
   homer = pkgs.callPackage ./homer { };
   phanpy = pkgs.callPackage ./phanpy { };
+  split-my-cbz = pkgs.callPackage ./split-my-cbz { };
   stashapp = pkgs.callPackage ./stashapp { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
