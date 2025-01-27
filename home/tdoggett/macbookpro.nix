@@ -18,7 +18,7 @@
     common/optional/devenv.nix
   ];
 
-  programs.git.userEmail = configVars.email.work;
+  programs.git.userEmail = lib.mkForce configVars.email.work;
 
   programs.bash.initExtra = ''
     # >>> conda initialize >>>
