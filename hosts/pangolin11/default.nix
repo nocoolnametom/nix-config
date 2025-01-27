@@ -103,7 +103,7 @@
   #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
 
-  environment.systemPackages = [ pkgs.gparted ];
+  environment.systemPackages = [ pkgs.gparted pkgs.split-my-cbz ];
 
   # Hardware
   hardware.bluetooth.enable = true;
