@@ -38,14 +38,15 @@
     };
     plugins = {
       inherit (pkgs.wordpressPackages.plugins)
-        akismet
-        disable-xml-rpc
-        jetpack
-        merge-minify-refresh
-        simple-login-captcha
-        wordpress-seo
+        # akismet
+        # disable-xml-rpc
+        # jetpack
+        # merge-minify-refresh
+        # simple-login-captcha
+        # wordpress-seo
         ;
       inherit (pkgs.myWpPlugins)
+        akismet
         classic-editor
         column-shortcodes
         # simple-csv-tables # Breaks for some reason - can't find a file that should be part of the plugin
