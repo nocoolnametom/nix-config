@@ -20,17 +20,34 @@
 
   programs.git.userEmail = lib.mkForce configVars.email.work;
 
+  home.sessionVariables = {
+    TERM = lib.mkForce "xterm-256color";
+    TERMINAL = lib.mkForce "";
+    GPG_TTY = "${"$"}(tty)";
+    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.ssh/agent";
+    NVM_DIR = "${config.home.homeDirectory}/.nvm";
+    # Secrets defined in secrets flake file
+    GITLAB_WORKFLOW_INSTANCE_URL = "https://$(cat ${config.sops.secrets."work/git-server".path})";
+    GITLAB_WORKFLOW_TOKEN = "$(cat ${config.sops.secrets."work/git-server-key".path})";
+    TELEPORT_LOGIN = "$(cat ${config.sops.secrets."work/brand2-username".path})";
+    TELEPORT_PROXY = "teleport.$(cat ${config.sops.secrets."work/brand2-url".path}):443";
+    TELEPORT_USER = "$(cat ${config.sops.secrets."work/brand2-username".path})";
+  };
+
   programs.bash.initExtra = ''
-    #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-    export SDKMAN_DIR="$HOME/.sdkman"
-    [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" 
   '';
 
-  home = {
-    stateVersion = "24.11";
-    username = configVars.username;
-    homeDirectory = lib.mkForce "/Users/${configVars.username}";
-    sessionVariables.TERM = lib.mkForce "xterm-256color";
-    sessionVariables.TERMINAL = lib.mkForce "";
-  };
+  programs.zsh.initExtra = ''
+    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+
+    # Setting this alias here because the HM way doesn't work with the secret lookup
+    alias fub="$(cat ${config.sops.secrets."work/shell-tools-aliases/alias1".path})"
+  '';
+
+  home.stateVersion = "24.11";
+  home.username = configVars.username;
+  home.homeDirectory = lib.mkForce "/Users/${configVars.username}";
 }

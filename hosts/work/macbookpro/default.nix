@@ -50,6 +50,7 @@
     { name = "amar1729/formulae"; }
     { name = "homebrew/services"; }
   ];
+
   environment.systemPackages = [
     pkgs.awscli2
     pkgs.kubectl # same as kubernetes-cli

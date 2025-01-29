@@ -22,12 +22,6 @@
 
   programs.git.userEmail = configVars.email.work;
 
-  programs.bash.initExtra = ''
-    #THIS MUST BE AT THE END OF THE FILE FOR SDKMAN TO WORK!!!
-    export SDKMAN_DIR="$HOME/.sdkman"
-    [[ -s "$HOME/.sdkman/bin/sdkman-init.sh" ]] && source "$HOME/.sdkman/bin/sdkman-init.sh"
-  '';
-
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
   ];
