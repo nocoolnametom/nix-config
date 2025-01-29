@@ -56,7 +56,12 @@
     "dolphin-phi:2.7b"
   ];
   services.ollama.acceleration = "cuda";
-  services.ollama.environmentVariables.LD_LIBRARY_PATH = "${"$"}{LD_LIBRARY_PATH:+${"$"}{LD_LIBRARY_PATH}:}/usr/lib/wsl/lib";
+  # The existing system is SO tightened down that it can't read the WSL drivers AT ALL
+  systemd.services.ollama.serviceConfig = lib.mkForce {
+    Type = "exec";
+    ExecStart = "/run/current-system/sw/bin/ollama serve";
+    WorkingDirectory = "/var/lib/ollama";
+  };
 
   # I'm not currently running persistence on Sauron: the WSL aspect makes disk management hard
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
