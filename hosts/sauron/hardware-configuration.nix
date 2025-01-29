@@ -23,8 +23,6 @@
   wsl.startMenuLaunchers = true;
   wsl.wslConf.automount.root = "/mnt";
   wsl.useWindowsDriver = true;
-  # @TODO : Find a more-proper "nixos" way to do this!
-  environment.sessionVariables.LD_LIBRARY_PATH = "/usr/lib/wsl/lib";
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
 }

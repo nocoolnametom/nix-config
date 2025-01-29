@@ -56,6 +56,7 @@
     "dolphin-phi:2.7b"
   ];
   services.ollama.acceleration = "cuda";
+  services.ollama.environmentVariables.LD_LIBRARY_PATH = "${"$"}{LD_LIBRARY_PATH:+${"$"}{LD_LIBRARY_PATH}:}/usr/lib/wsl/lib";
 
   # I'm not currently running persistence on Sauron: the WSL aspect makes disk management hard
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
