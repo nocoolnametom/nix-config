@@ -42,10 +42,22 @@
     ]);
 
   services.ollama.enable = true;
-  services.ollama.loadModels = [ "mistral-large" ];
+  services.ollama.loadModels = [
+    # I have around 31GB of vram, so only use models less than 28-29GB
+    "deepseek-r1-abliterated:14b"
+    "deepseek-r1-abliterated:32b"
+    "deepseek-r1:32b"
+    "phi4:14b"
+    "llama3.2:3b"
+    "mistral-nemo:12b"
+    "dolphin3:8b"
+    "dolphin-mixtral:8x7b"
+    "dolphin-llama3:8b"
+    "dolphin-phi:2.7b"
+  ];
   services.ollama.acceleration = "cuda";
 
-  # I'm not currently running persistence on the RasPi! RAM is too limited.
+  # I'm not currently running persistence on Sauron: the WSL aspect makes disk management hard
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
