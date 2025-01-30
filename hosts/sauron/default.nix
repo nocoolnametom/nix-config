@@ -44,19 +44,42 @@
   services.ollama.enable = true;
   services.ollama.loadModels = [
     # I have around 31GB of vram, so only use models less than 28-29GB
-    "deepseek-r1-abliterated:14b"
-    "deepseek-r1-abliterated:32b"
+    # I have around 10B of on-card vram, though, let's focus on that.
+    #  4.7 GB  2025-01-28
+    "huihui_ai/qwen2.5-1m-abliterated:7b"
+    #  9.0 GB  2025-01-28
+    "huihui_ai/qwen2.5-1m-abliterated:14b"
+    #  4.9 GB  2025-01-25
+    "huihui_ai/deepseek-r1-abliterated:8b"
+    #  9.0 GB  2025-01-24
+    "huihui_ai/deepseek-r1-abliterated:14b"
+    # 20.0 GB  2025-01-26
+    "huihui_ai/deepseek-r1-abliterated:32b"
+    #  4.9 GB  2025-01-08
+    "huihui_ai/dolphin3-abliterated:8b"
+    #  9.1 GB  2025-01-09
+    "huihui_ai/phi4-abliterated:14b"
+    #  4.9 GB  2025-01-21
+    "deepseek-r1:8b"
+    #  9.0 GB  2025-01-21
+    "deepseek-r1:14b"
+    # 20.0 GB  2025-01-21
     "deepseek-r1:32b"
+    #  9.1 GB  2025-01-01
     "phi4:14b"
+    #  2.0 GB  2024-09-01
     "llama3.2:3b"
+    #  7.1 GB  2024-07-18
     "mistral-nemo:12b"
+    #  4.9 GB  2024-12-29
     "dolphin3:8b"
-    "dolphin-mixtral:8x7b"
+    #  4.7 GB  2024-05-20
     "dolphin-llama3:8b"
+    #  1.6 GB  2023-12-24
     "dolphin-phi:2.7b"
   ];
   services.ollama.acceleration = "cuda";
-  # The existing system is SO tightened down that it can't read the WSL drivers AT ALL
+  # The existing systemd job is SO tightened down that it can't read the WSL drivers AT ALL
   systemd.services.ollama.serviceConfig = lib.mkForce {
     Type = "exec";
     ExecStart = "/run/current-system/sw/bin/ollama serve";
