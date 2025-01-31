@@ -45,6 +45,7 @@
   home.packages = with pkgs; [
     gnumake
     remmina
+    bottles
     zen-browser-flake.default
   ];
 
