@@ -50,6 +50,7 @@
           ".config/Yubico"
           ".config/zed"
           ".Immersed"
+          ".local/share/bottles"
           ".local/share/direnv"
           ".local/share/Steam"
           ".local/state/syncthing"
