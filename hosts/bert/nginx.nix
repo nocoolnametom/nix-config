@@ -45,29 +45,9 @@
   services.nginx.virtualHosts =
     let
       proxyPaths = internal: {
-        "/opds" = lib.attrsets.optionalAttrs config.services.calibre-server.enable {
-          proxyPass = "http://127.0.0.1:8080/opds";
-          extraConfig = ''
-            auth_basic off;
-          '';
-        };
-        "/get" = lib.attrsets.optionalAttrs config.services.calibre-server.enable {
-          proxyPass = "http://127.0.0.1:8080/get/";
-          extraConfig = ''
-            auth_basic off;
-          '';
-        };
         "/music/" = lib.attrsets.optionalAttrs config.services.calibre-server.enable {
           proxyPass = "http://127.0.0.1:4533/music/";
           extraConfig = ''
-            auth_basic off;
-          '';
-        };
-        "/calibre/" = lib.attrsets.optionalAttrs config.services.calibre-web.enable {
-          proxyPass = "http://127.0.0.1:${builtins.toString config.services.calibre-web.listen.port}/";
-          extraConfig = ''
-            proxy_set_header X-Scheme $scheme;
-            proxy_set_header X-Script-Name /calibre;
             auth_basic off;
           '';
         };
@@ -146,7 +126,7 @@
         };
 
         # Redirect all but OPDS routes to final slashes
-        "~ ^/(calibre|deluge|flood|jellyfin|nzbget|stash|tv)$".return = "302 $scheme://$host$request_uri/";
+        "~ ^/(deluge|flood|jellyfin|nzbget|stash|tv)$".return = "302 $scheme://$host$request_uri/";
         "/".root = pkgs.homer;
         "= /assets/config.yml".alias = pkgs.writeText "homerConfig.yml" (
           builtins.toJSON {
@@ -167,14 +147,6 @@
                       target = "_blank";
                     }
                   ]
-                  ++ (lib.lists.optionals config.services.calibre-web.enable [
-                    {
-                      name = "Calibre Books";
-                      icon = "fas fa-book";
-                      url = "/calibre/";
-                      target = "_blank";
-                    }
-                  ])
                   ++ (lib.lists.optionals config.services.deluge.web.enable [
                     {
                       name = "Deluge Torrents";
@@ -227,14 +199,6 @@
                       name = "NZBGet";
                       icon = "fas fa-cloud-download";
                       url = "/nzbget/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.calibre-server.enable [
-                    {
-                      name = "OPDS Feed";
-                      icon = "fas fa-rss-square";
-                      url = "/opds";
                       target = "_blank";
                     }
                   ])
@@ -374,6 +338,16 @@
           };
         };
       };
+      "jellyfin.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
+            proxyWebsockets = true;
+          };
+        };
+      };
       "posts.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
@@ -384,15 +358,31 @@
           '';
         };
       };
+      "stash.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.stashapp.port}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_buffering off;
+              auth_basic off;
+            '';
+          };
+        };
+      };
     };
   security.acme.acceptTerms = true;
   security.acme.certs = {
     "home.${configVars.domain}".email = configVars.email.letsencrypt;
     "house.${configVars.domain}".email = configVars.email.letsencrypt;
-    "stable.${configVars.domain}".email = configVars.email.letsencrypt;
-    "request.${configVars.domain}".email = configVars.email.letsencrypt;
-    "requests.${configVars.domain}".email = configVars.email.letsencrypt;
+    "jellyfin.${configVars.domain}".email = configVars.email.letsencrypt;
     "library.${configVars.domain}".email = configVars.email.letsencrypt;
     "posts.${configVars.domain}".email = configVars.email.letsencrypt;
+    "request.${configVars.domain}".email = configVars.email.letsencrypt;
+    "requests.${configVars.domain}".email = configVars.email.letsencrypt;
+    "stable.${configVars.domain}".email = configVars.email.letsencrypt;
+    "stash.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }
