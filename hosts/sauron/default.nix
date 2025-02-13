@@ -35,6 +35,7 @@
 
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/services/openssh.nix"
+      "hosts/common/optional/cross-compiling.nix"
 
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/sauron.nix"
