@@ -4,6 +4,12 @@ To update only a specific inputs (eg, nix-secrets and nixpkgs-unstable):
 nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
 ```
 
+To run a full check on any system:
+
+```bash
+nix flake check --no-build --all-systems
+```
+
 ### TODO
 
  * [ ] Fix homeConfigurations as part of the output packages

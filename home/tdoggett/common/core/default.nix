@@ -8,7 +8,7 @@
   ...
 }:
 {
-  imports = (configLib.scanPaths ./.) ++ (builtins.attrValues outputs.homeManagerModules);
+  imports = (configLib.scanPaths ./.) ++ (builtins.attrValues outputs.homeModules);
 
   home = {
     username = lib.mkDefault configVars.username;
