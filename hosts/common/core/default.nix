@@ -40,6 +40,7 @@
     pkgs.screen
     pkgs.unrar
     pkgs.unzip
+    pkgs.nix-schema # Made in the overlays from the nix-schema input flake's nix binary
   ];
 
   # Ensure HM has access to all outputs of the root flake (like configVars)
