@@ -21,6 +21,13 @@
     # });
     zen-browser-flake = inputs.zen-browser.packages.${final.system};
     myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
+    nix-schema = inputs.nix-schema.packages.${final.system}.nix.overrideAttrs (old: {
+      doCheck = false;
+      postInstall = old.postInstall + ''
+        mv $out/bin/nix $out/bin/nix-schema
+      '';
+      doInstallCheck = false;
+    });
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will

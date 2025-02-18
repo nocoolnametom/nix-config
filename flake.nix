@@ -25,6 +25,8 @@
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
+    nix-schema.url = "github:DeterminateSystems/nix-src/flake-schemas";
+
     #################### Utilities ####################
 
     # Styling for Visual Applications
@@ -89,6 +91,7 @@
       home-manager,
       nix-darwin,
       nixos-wsl,
+      nix-schema,
       stylix,
       sops-nix,
       deploy-rs,
