@@ -21,7 +21,6 @@ let
   identityFiles = [
     "id_yubikey" # This is an auto symlink to whatever yubikey is plugged in. See modules/common/yubikey
     "id_ed25519" # fallback to id_ed25519 if yubikeys are not present
-    "id_removeme" # remove once keys are all updated on hosts
   ];
 in
 {

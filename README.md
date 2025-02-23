@@ -12,15 +12,13 @@ nix flake check --no-build --all-systems
 
 ### TODO
 
- * [ ] Fix homeConfigurations as part of the output packages
-       It's needed so that Home-Manager can build any system (because it can't determine on its own the system type), so we build HM configurations for ALL systems and put them in `packages.${system}.homeConfigurations` for HM to have access to them.  However, this means that `homeConfigurations` is an object of HM configs, NOT a derivation.
+ * [X] ~~Fix homeConfigurations as part of the output packages~~
+       ~~It's needed so that Home-Manager can build any system (because it can't determine on its own the system type), so we build HM configurations for ALL systems and put them in `packages.${system}.homeConfigurations` for HM to have access to them.  However, this means that `homeConfigurations` is an object of HM configs, NOT a derivation.~~
+       Resolved this by moving my version of the nix binary to the one from DeterminateSystems with the proposed `schema` syntax which understands home config outputs
  * [X] ~~Finish moving Wordpress from elrond to glorfindel~~ Done!
  * [X] ~~Fix custom Wordpress plugins from breaking `nix flake check` - Maybe move to their own flake repo?~~ Done!
  * [X] ~~Add fedibox configuration~~ Merged into bombadil for now
-   * [ ] Pleroma
    * [ ] Personal resume site (it'd also be cool to have this auto-update the date as part of the git hooks)
-   * [ ] Matrix? (Probably not, I don't need it)
-   * [ ] Anything else
    * [ ] Figure out how to build a VM from the fedibox config for local testing of stuff
  * [X] ~~Fix and add steamdeck HM configuration~~ Added!
  * [x] ~~Remove references to diskio - I'm not planning on adjusting partitions using a tool, and it's not useful for existing systems~~
