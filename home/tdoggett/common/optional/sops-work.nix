@@ -29,10 +29,6 @@ in
         path = "${homeDirectory}/.ssh/id_fedibox";
         mode = "0600";
       };
-      "ssh/personal/id_ed25519" = {
-        mode = "0600";
-        path = "${homeDirectory}/.ssh/id_removeme";
-      };
       "ssh/personal/passphrased" = {
         mode = "0600";
         path = "${homeDirectory}/.ssh/personal_ed25519";
