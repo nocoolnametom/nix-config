@@ -26,6 +26,10 @@ in
     mode = "0600";
   };
   sops.secrets."ssh/personal/id_ed25519" = {
+    path = "${homeDirectory}/.ssh/id_removeme";
+    mode = "0600";
+  };
+  sops.secrets."ssh/personal/passphrased" = {
     path = "${homeDirectory}/.ssh/id_ed25519";
     mode = "0600";
   };
