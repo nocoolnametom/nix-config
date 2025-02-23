@@ -44,7 +44,7 @@ in
       # Root-level SSH key so that the root user can retrieve my private nix-secrets repo
       # There's a systemd service to ensure the /root/.ssh directory is properly 0700
       "root-github-key" = {
-        key = "ssh/personal/id_ed25519";
+        key = "ssh/personal/root_only/github";
         mode = "0600";
         owner = config.users.users.root.name;
         group = config.users.users.root.group;
