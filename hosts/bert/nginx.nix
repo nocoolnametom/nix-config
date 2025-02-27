@@ -216,6 +216,18 @@
                   ]
                   ++ [
                     {
+                      name = "Audio Bookshelf";
+                      icon = "fas fa-book";
+                      url =
+                        if internal then
+                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}"
+                        else
+                          "https://audiolibrary.${configVars.domain}/";
+                      target = "_blank";
+                    }
+                  ]
+                  ++ [
+                    {
                       name = "Stable Diffusion";
                       icon = "fas fa-gears";
                       url =
@@ -338,6 +350,16 @@
           };
         };
       };
+      "audiolibrary.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}";
+            proxyWebsockets = true;
+          };
+        };
+      };
       "jellyfin.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
@@ -379,6 +401,7 @@
     "house.${configVars.domain}".email = configVars.email.letsencrypt;
     "jellyfin.${configVars.domain}".email = configVars.email.letsencrypt;
     "library.${configVars.domain}".email = configVars.email.letsencrypt;
+    "audiolibrary.${configVars.domain}".email = configVars.email.letsencrypt;
     "posts.${configVars.domain}".email = configVars.email.letsencrypt;
     "request.${configVars.domain}".email = configVars.email.letsencrypt;
     "requests.${configVars.domain}".email = configVars.email.letsencrypt;
