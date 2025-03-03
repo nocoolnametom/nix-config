@@ -16,7 +16,7 @@
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
-    enable = lib.mkDefault false; # I'm not currently running persistence on smeagol!
+    enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
