@@ -246,6 +246,17 @@
             ./hosts/sauron
           ];
         };
+        # AMD Desktop Dual Boot
+        smeagol = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            # cosmicCacheModule
+            # nixos-cosmic.nixosModules.default
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/smeagol
+          ];
+        };
       };
 
       #################### Nix-Darwin Configurations ####################
