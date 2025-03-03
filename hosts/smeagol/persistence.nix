@@ -1,6 +1,6 @@
 ###############################################################################
 #
-# System-Level Persistence (User-level is handled in home/<user>/persistence/sauron.nix
+# System-Level Persistence (User-level is handled in home/<user>/persistence/smeagol.nix
 #
 ###############################################################################
 
@@ -27,7 +27,6 @@
       "/var/lib/docker"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
-      "/var/log"
     ];
     files = [
       "/etc/machine-id"

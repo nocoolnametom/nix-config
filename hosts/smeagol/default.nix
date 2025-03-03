@@ -38,7 +38,7 @@
       "hosts/common/optional/cross-compiling.nix"
 
       #################### Users to Create ####################
-      "home/${configVars.username}/persistence/sauron.nix"
+      "home/${configVars.username}/persistence/smeagol.nix"
       "hosts/common/users/${configVars.username}"
     ]);
 
@@ -97,9 +97,6 @@
     ExecStart = "/run/current-system/sw/bin/ollama serve";
     WorkingDirectory = "/var/lib/ollama";
   };
-
-  # I'm not currently running persistence on Sauron: the WSL aspect makes disk management hard
-  environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
