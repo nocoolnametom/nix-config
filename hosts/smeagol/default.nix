@@ -42,6 +42,14 @@
       "hosts/common/users/${configVars.username}"
     ]);
 
+  nix.settings.trusted-substituters = ["https://ai.cachix.org"];
+  nix.settings.trusted-public-keys = ["ai.cachix.org-1:N9dzRK+alWwoKXQlnn0H6aUx0lU/mspIoz8hMvGvbbc="];
+  nix.settings.experimental-features = [ "nix-command" "flakes" ];
+
+  # Bootloader.
+  boot.loader.systemd-boot.enable = true;
+  boot.loader.efi.canTouchEfiVariables = true;
+
   services.ollama.enable = true;
   services.ollama.package = pkgs.unstable.ollama;
   services.ollama.loadModels = [
@@ -95,7 +103,7 @@
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
-    hostName = "meagol";
+    hostName = "smeagol";
     networkmanager.enable = true;
     enableIPv6 = true;
     firewall.enable = false;
