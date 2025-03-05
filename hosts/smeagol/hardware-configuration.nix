@@ -13,11 +13,11 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" = {
-    device = "none";
-    fsType = "tmpfs";
-    options = [ "defaults" "size=25%" "mode=755" ];
-  };
+  fileSystems."/" =
+    { device = "/dev/disk/by-label/smeagol";
+      fsType = "btrfs";
+      options = [ "subvol=root" "compress=zstd" "noatime" ];
+    };
 
   fileSystems."/home" =
     { device = "/dev/disk/by-label/smeagol";
