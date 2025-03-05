@@ -24,7 +24,7 @@
       # No hardware to define!
 
       ########################### Impermanence ##################################
-      ./persistence.nix
+      # ./persistence.nix
 
       ############################## Stylix #####################################
       inputs.stylix.nixosModules.stylix # No GUI on the RasPi
@@ -38,7 +38,7 @@
       "hosts/common/optional/cross-compiling.nix"
 
       #################### Users to Create ####################
-      "home/${configVars.username}/persistence/smeagol.nix"
+      # "home/${configVars.username}/persistence/smeagol.nix"
       "hosts/common/users/${configVars.username}"
     ]);
 
