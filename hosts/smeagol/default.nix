@@ -176,11 +176,26 @@
     gnome-software
   ];
 
+  hardware.nvidia.package = config.boot.kernelPackages.nvidiaPackages.stable;
+  hardware.graphics.enable = true;
+  services.xserver.videoDrivers = ["nvidia"];
+  hardware.nvidia.modesetting.enable = true;
+  hardware.nvidia.powerManagement.enable = false;
+  hardware.nvidia.powerManagement.finegrained = false;
+  hardware.nvidia.open = true;
+  hardware.nvidia.nvidiaSettings = true;
   programs.steam = {
     enable = true;
     remotePlay.openFirewall = true; # Open ports in the firewall for Steam Remote Play
     dedicatedServer.openFirewall = true; # Open ports in the firewall for Source Dedicated Server
   };
+  programs.alvr.enable = true;
+  programs.alvr.openFirewall = true;
+  xdg.portal = {
+    enable = true;
+    xdgOpenUsePortal = true;
+  };
+
 
   # Security
   security.sudo.wheelNeedsPassword = false;

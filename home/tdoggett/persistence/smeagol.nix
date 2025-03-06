@@ -32,7 +32,6 @@
           "Projects"
           "Sync"
           "Videos"
-          "VirtualBox VMs"
           "bin"
           ".Immersed"
           ".local/share/bottles"
