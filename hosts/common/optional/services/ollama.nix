@@ -47,7 +47,10 @@
   # The existing systemd job is SO tightened down that it can't read the WSL drivers AT ALL
   systemd.services.ollama.serviceConfig = lib.mkForce {
     Type = "exec";
-    ExecStart = "/run/current-system/sw/bin/ollama serve";
+    ExecStart = "${pkgs.unstable.ollama}/bin/ollama serve";
     WorkingDirectory = "/var/lib/ollama";
   };
+  systemd.tmpfiles.rules = [
+    "d '/var/lib/ollama' 0777 root root - -"
+  ];
 }
