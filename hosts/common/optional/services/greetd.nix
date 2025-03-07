@@ -29,18 +29,18 @@ in
   config = {
     #    environment.systemPackages = with pkgs; [ greetd.tuigreet ];
     services.greetd = {
-      enable = true;
+      enable = lib.mkDefault true;
 
-      restart = true;
+      restart = lib.mkDefault true;
       settings = {
         default_session = {
-          command = "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time --time-format '%I:%M %p | %a • %h | %F' --cmd Hyprland";
-          user = "${cfg.username}";
+          command = lib.mkDefault "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time --time-format '%I:%M %p | %a • %h | %F' --cmd Hyprland";
+          user = lib.mkForce "${cfg.username}";
         };
 
         initial_session = lib.mkIf cfg.enable {
-          command = "${pkgs.hyprland}/bin/Hyprland";
-          user = "${cfg.username}";
+          command = lib.mkDefault "${pkgs.hyprland}/bin/Hyprland";
+          user = lib.mkDefault "${cfg.username}";
         };
       };
     };

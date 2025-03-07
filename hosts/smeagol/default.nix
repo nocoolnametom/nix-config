@@ -55,6 +55,9 @@
       "hosts/common/users/${configVars.username}"
     ]);
 
+  # Prevent GreetD from using Hyprland as it's not being used right now
+  services.greetd.settings.default_session.command = "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time";
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "smeagol";
@@ -62,8 +65,6 @@
     enableIPv6 = true;
     firewall.enable = false;
   };
-
-  config.autoLogin.command = "";
 
   environment.systemPackages = with pkgs; [
     glibcLocales
