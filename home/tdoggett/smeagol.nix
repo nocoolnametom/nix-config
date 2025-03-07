@@ -17,6 +17,8 @@
     common/optional/sops.nix
     common/optional/git.nix
     common/optional/immersed.nix
+    common/optional/desktops/brave.nix
+    common/optional/desktops/kitty.nix
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/ssh-agent.nix
@@ -31,6 +33,7 @@
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
     bottles
+    appimage-run
   ];
 
   home = {
