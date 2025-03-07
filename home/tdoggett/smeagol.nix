@@ -16,12 +16,21 @@
     common/optional/services/ssh-agent.nix
     common/optional/sops.nix
     common/optional/git.nix
+    common/optional/immersed.nix
+
+    ############### Service Configurations (Enable below) #################
+    common/optional/services/ssh-agent.nix
+    common/optional/services/gpg-agent.nix
+    common/optional/services/syncthing.nix
   ];
 
   programs.git.userEmail = configVars.gitHubEmail;
+  services.gpg-agent.enable = true;
+  services.blueman-applet.enable = true;
 
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
+    bottles
   ];
 
   home = {
