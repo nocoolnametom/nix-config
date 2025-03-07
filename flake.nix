@@ -47,6 +47,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Nixified.AI
+    nixified-ai.url = "github:nixified-ai/flake";
+    nixified-ai.inputs.nixpkgs.follows = "nixpkgs";
+
     # Cosmis Desktop Environment
     # nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
     # nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -95,6 +99,7 @@
       stylix,
       sops-nix,
       deploy-rs,
+      nixified-ai,
       # nixos-cosmic,
       # plasma-manager,
       zen-browser,
