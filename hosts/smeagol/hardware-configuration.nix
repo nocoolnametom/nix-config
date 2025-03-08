@@ -33,6 +33,7 @@
       "subvol=root"
       "compress=zstd"
       "noatime"
+      "defaults"
     ];
   };
 
@@ -43,6 +44,7 @@
       "subvol=home"
       "compress=zstd"
       "noatime"
+      "defaults"
     ];
   };
 
@@ -53,6 +55,7 @@
       "subvol=nix"
       "compress=zstd"
       "noatime"
+      "defaults"
     ];
     neededForBoot = true;
   };
@@ -64,6 +67,7 @@
       "subvol=persist"
       "compress=zstd"
       "noatime"
+      "defaults"
     ];
     neededForBoot = true;
   };
@@ -75,6 +79,7 @@
       "subvol=nixos-config"
       "compress=zstd"
       "noatime"
+      "defaults"
     ];
   };
 
@@ -85,6 +90,7 @@
       "subvol=log"
       "compress=zstd"
       "noatime"
+      "defaults"
     ];
     neededForBoot = true;
   };
@@ -97,6 +103,40 @@
       "dmask=0022"
     ];
     neededForBoot = true;
+  };
+
+  # TODO: Do NOT merge before actually formatting the drive and building these subvolumes!!
+  fileSystems."/var/lib/ollama/models" = {
+    device = "/dev/disk/by-label/secondary";
+    fsType = "btrfs";
+    options = [
+      "subvol=models-ollama"
+      "compress=zstd"
+      "noatime"
+      "defaults"
+    ];
+  };
+
+  fileSystems."/var/lib/stable-diffusion/models" = {
+    device = "/dev/disk/by-label/secondary";
+    fsType = "btrfs";
+    options = [
+      "subvol=models-sd"
+      "compress=zstd"
+      "noatime"
+      "defaults"
+    ];
+  };
+
+  fileSystems."/mnt/e" = {
+    device = "/dev/disk/by-label/secondary";
+    fsType = "btrfs";
+    options = [
+      "subvol=shared"
+      "compress=zstd"
+      "noatime"
+      "defaults"
+    ];
   };
 
   swapDevices = [ { device = "/dev/disk/by-label/swap"; } ];

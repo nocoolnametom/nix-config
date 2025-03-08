@@ -67,7 +67,9 @@
   };
 
   environment.systemPackages = with pkgs; [
+    brave
     glibcLocales
+    gparted
     gnumake
     nodejs
     p7zip
@@ -79,6 +81,9 @@
     vim
     wget
   ];
+
+  # Run AppImages directly
+  programs.appimage.binfmt = true;
 
   # Security
   security.sudo.wheelNeedsPassword = false;
