@@ -33,7 +33,6 @@
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
     bottles
-    appimage-run
   ];
 
   home = {
