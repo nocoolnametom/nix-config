@@ -107,6 +107,7 @@
   environment.systemPackages = [
     pkgs.gparted
     pkgs.split-my-cbz
+    pkgs.update-cbz-tags
   ];
 
   # Hardware
