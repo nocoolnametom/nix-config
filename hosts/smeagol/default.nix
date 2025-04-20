@@ -55,6 +55,14 @@
       "hosts/common/users/${configVars.username}"
     ]);
 
+  # Bluetooth
+  hardware.bluetooth.enable = true; # enables support for Bluetooth
+  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+
+  # Open-WebUI is a web-frontend for chatting with ollama
+  services.open-webui.enable = true;
+  services.open-webui.host = "0.0.0.0";
+
   # Prevent GreetD from using Hyprland as it's not being used right now
   services.greetd.settings.default_session.command = "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time";
 
@@ -67,6 +75,7 @@
   };
 
   environment.systemPackages = with pkgs; [
+    appimage-run
     brave
     glibcLocales
     gparted
