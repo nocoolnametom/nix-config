@@ -82,21 +82,52 @@ if [ -z "$WEB_URL" ]; then
     exit 0
 fi
 
-if ! echo "$WEB_URL" | grep -qE '^https?://(www\.)?fakku\.net/'; then
-    log "Web URL is not on fakku.net — skipping."
-    rm -rf "$TMP_DIR"
-    exit 0
-fi
-
-
 log "Web URL: $WEB_URL"
 
 # ----------------------
-# Fetch and Extract Tags
+# Fetch and Extract Tags (per domain)
 # ----------------------
+
+get_tags_fakku() {
+    echo "$1" | pup 'a[href^="/tags/"] text{}' | sort -u
+}
+
+get_tags_anilist() {
+    if ! echo "$1" | grep -q '<div[^>]*class="[^"]*\btags\b'; then
+        log "No <div class=\"tags\"> block found on Anilist page."
+        return 1
+    fi
+    echo "$1" | pup 'div.tag a.name text{}' | sort -u
+}
+
+TAGS_FROM_WEB=""
+DOMAIN=$(echo "$WEB_URL" | awk -F/ '{print $3}')
 HTML_CONTENT=$(curl -s "$WEB_URL")
 
-TAGS_FROM_WEB=$(echo "$HTML_CONTENT" | pup 'a[href^="/tags/"] text{}' | sort -u)
+log "Detected domain: $DOMAIN"
+
+case "$DOMAIN" in
+    *fakku.net)
+        TAGS_FROM_WEB=$(get_tags_fakku "$HTML_CONTENT")
+        ;;
+    *anilist.co)
+        TAGS_FROM_WEB=$(get_tags_anilist "$HTML_CONTENT") || {
+            rm -rf "$TMP_DIR"
+            exit 0
+        }
+        ;;
+    *)
+        log "Unsupported domain: $DOMAIN — skipping."
+        rm -rf "$TMP_DIR"
+        exit 0
+        ;;
+esac
+
+if [ -z "$TAGS_FROM_WEB" ]; then
+    log "No tags found on page — skipping."
+    rm -rf "$TMP_DIR"
+    exit 0
+fi
 
 log "Tags extracted from HTML:"
 log "$TAGS_FROM_WEB"
@@ -158,7 +189,6 @@ else
     log "No new tags to add."
 fi
 
-
 # ----------------------
 # Repack Archive
 # ----------------------
@@ -170,9 +200,7 @@ else
     log "Overwriting original CBZ file."
 fi
 
-# 🛠️ THIS SHOULD ALWAYS RUN
 zip -r -X -qq "$OUTPUT_FILE" -j "$TMP_DIR"/*
-
 
 # ----------------------
 # Clean up
@@ -180,4 +208,3 @@ zip -r -X -qq "$OUTPUT_FILE" -j "$TMP_DIR"/*
 rm -rf "$TMP_DIR"
 
 log "Done."
-
