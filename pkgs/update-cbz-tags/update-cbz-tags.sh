@@ -2,6 +2,17 @@
 
 set -e
 
+usage() {
+    echo "Usage: $0 <file.cbz> [options]"
+    echo ""
+    echo "Options:"
+    echo "  --backup         Write to <original>_updated.cbz instead of overwriting"
+    echo "  --dry-run        Simulate changes, don't write to archive"
+    echo "  -v, --verbose    Print debug/logging output"
+    echo "  -h, --help       Show this help message"
+    exit 0
+}
+
 # ----------------------
 # Parse Args
 # ----------------------
@@ -58,17 +69,6 @@ log() {
     if [ "$VERBOSE" = true ] && [ -n "$1" ]; then
         echo "$1"
     fi
-}
-
-usage() {
-    echo "Usage: $0 <file.cbz> [options]"
-    echo ""
-    echo "Options:"
-    echo "  --backup         Write to <original>_updated.cbz instead of overwriting"
-    echo "  --dry-run        Simulate changes, don't write to archive"
-    echo "  -v, --verbose    Print debug/logging output"
-    echo "  -h, --help       Show this help message"
-    exit 0
 }
 
 # ----------------------
