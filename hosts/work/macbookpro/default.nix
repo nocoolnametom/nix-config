@@ -59,6 +59,7 @@
     pkgs.libassuan
     pkgs.oath-toolkit
     pkgs.openjdk11 # Why do I need version 11? What is this for?
+    pkgs.uv # Python Env/Pkg Manager
   ];
 
   # There is no system-level vim management for NixOS, only darwin
