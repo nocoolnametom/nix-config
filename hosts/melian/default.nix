@@ -46,6 +46,7 @@
       "hosts/common/optional/services/printing.nix"
       "hosts/common/optional/blinkstick.nix"
       "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
+      "hosts/common/optional/laptop-as-server.nix" # Always-on and other settings
       "hosts/common/optional/light.nix" # Monitor brightness
       "hosts/common/optional/steam.nix"
       "hosts/common/optional/thunar.nix" # Thunar File-Browser
