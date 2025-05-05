@@ -4,6 +4,8 @@
     pkgs.unstable.ollama
   ];
   services.ollama.enable = true;
+  services.ollama.host = "0.0.0.0";
+  services.ollama.port = 11434;
   services.ollama.package = pkgs.unstable.ollama;
   services.ollama.loadModels = [
     # Models higher than 9GB will use CPU with GPU, less will be entirely on GPU
