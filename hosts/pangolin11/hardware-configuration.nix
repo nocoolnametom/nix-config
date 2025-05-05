@@ -13,20 +13,32 @@
 {
   imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
+  boot.initrd.systemd.enable = true;
+  boot.initrd.systemd.tpm2.enable = true;
+  boot.initrd.luks.fido2Support = false; # We're using systemd
   boot.initrd.luks.devices."root".device =
     "/dev/disk/by-partuuid/50870cda-00f6-4e1d-8791-9c5efc872e43";
+  boot.initrd.luks.devices."root".crypttabExtraOpts = [
+    "fido2-device=auto"
+    "tpm2-device=auto"
+  ]; # cryptenroll
 
   boot.initrd.availableKernelModules = [
     "ahci"
     "nvme"
     "rtsx_pci_sdmmc"
     "sd_mod"
+    "tpm_tis"
     "usb_storage"
     "xhci_pci"
   ];
   boot.initrd.kernelModules = [
     "amdgpu" # pang11 has a Raedeon GPU
     "dm-snapshot"
+    "vfat"
+    "nls_cp437"
+    "nls_iso8859-1"
+    "usbhid"
   ];
   hardware.system76.enableAll = true;
   hardware.graphics.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
