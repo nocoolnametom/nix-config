@@ -34,7 +34,9 @@
     TELEPORT_USER = "$(cat ${config.sops.secrets."work/brand2-username".path})";
     DATABRICKS_HOST = "$(cat ${config.sops.secrets."work/databricks-host".path})";
     DATABRICKS_TOKEN = "$(cat ${config.sops.secrets."work/databricks-token".path})";
-    DATABRICKS_SQL_WAREHOUSE_ID = "$(cat ${config.sops.secrets."work/databricks-sql-warehouse-id".path})";
+    DATABRICKS_SQL_WAREHOUSE_ID = "$(cat ${
+      config.sops.secrets."work/databricks-sql-warehouse-id".path
+    })";
   };
 
   programs.bash.initExtra = ''

@@ -21,7 +21,7 @@
   boot.initrd.luks.devices."root".crypttabExtraOpts = [
     "fido2-device=auto"
     "tpm2-device=auto"
-  ]; # cryptenroll
+  ]; # I added the hardware and TPM keys manually to the encrypted drive using cryptenroll
 
   boot.initrd.availableKernelModules = [
     "ahci"

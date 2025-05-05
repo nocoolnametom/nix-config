@@ -64,7 +64,8 @@
   services.open-webui.host = "0.0.0.0";
 
   # Prevent GreetD from using Hyprland as it's not being used right now
-  services.greetd.settings.default_session.command = "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time";
+  services.greetd.settings.default_session.command =
+    "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
