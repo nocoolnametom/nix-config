@@ -1,10 +1,11 @@
-{ config, configVars, ... }:
+{ config, configVars, pkgs, ... }:
 let
   apikey = "pk1_1135d3a13249bb1894ce313f983179f0ec5f35c45292c2af0d96fd0d317a98b4";
 in
 {
   sops.secrets."ddclient-password" = { };
   services.ddclient = {
+    package = pkgs.unstable.ddclient;
     enable = true;
     ssl = true;
     protocol = "porkbun";
