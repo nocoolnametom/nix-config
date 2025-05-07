@@ -207,6 +207,8 @@
           ];
         };
         # Raspberry Pi 4
+        # To build remotely, run as regular user:
+        # nixos-rebuild switch --use-remote-sudo --flake .#bert -v --target-host bert --build-host localhost --use-substitutes
         bert = lib.nixosSystem {
           inherit specialArgs;
           modules = [
