@@ -15,6 +15,7 @@
     #################### Host-specific Optional Configs ####################
     common/optional/services/ssh-agent.nix
     common/optional/sops.nix
+    common/optional/flatpak.nix
     common/optional/git.nix
     common/optional/immersed.nix
     common/optional/desktops/brave.nix
@@ -33,6 +34,16 @@
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
     bottles
+    handbrake
+  ];
+
+  # Flatpaks
+  services.flatpak.packages = [
+    # Until I figure out how to do this headlessly, this is like Flowframes
+    {
+      appId = "io.github.tntwise.REAL-Video-Enhancer";
+      origin = "flathub";
+    }
   ];
 
   home = {

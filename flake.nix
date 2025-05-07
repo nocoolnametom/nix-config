@@ -51,6 +51,11 @@
     nixified-ai.url = "github:nixified-ai/flake";
     nixified-ai.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Declarative Flatpak management (like homebrew on nix-darwin)
+    # "latest" should be the most recent released version
+    nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
+    nix-flatpak.inputs.nixpkgs.follows = "nixpkgs";
+
     # Cosmis Desktop Environment
     # nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
     # nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -100,6 +105,7 @@
       sops-nix,
       deploy-rs,
       nixified-ai,
+      nix-flatpak,
       # nixos-cosmic,
       # plasma-manager,
       zen-browser,
