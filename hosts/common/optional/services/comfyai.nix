@@ -12,6 +12,7 @@
   imports = [ inputs.nixified-ai.nixosModules.comfyui ];
 
   services.comfyui.enable = lib.mkDefault true;
+  services.comfyui.host = lib.mkDefault "0.0.0.0";
 
   nixpkgs.config.cudaSupport = lib.mkDefault true;
   nixpkgs.config.cudnnSupport = lib.mkDefault true;

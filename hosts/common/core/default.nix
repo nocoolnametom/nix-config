@@ -20,6 +20,14 @@
       # Custom nixosModules as defined in the root flake
       (builtins.attrValues outputs.nixosModules);
 
+  # Use the Community Cache
+  nix.settings.trusted-substituters = [
+    "https://nix-community.cachix.org"
+  ];
+  nix.settings.trusted-public-keys = [
+    "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
+  ];
+
   # Set up the root user (uses secrets from nix-secrets and ./sops.nix)
   users.users.root = {
     # Use the same hashedPassword or defined password as the main username has

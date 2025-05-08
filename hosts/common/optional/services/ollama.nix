@@ -3,7 +3,7 @@
   environment.systemPackages = [
     pkgs.unstable.ollama
   ];
-  services.ollama.enable = true;
+  services.ollama.enable = lib.mkDefault true;
   services.ollama.host = "0.0.0.0";
   services.ollama.port = 11434;
   services.ollama.package = pkgs.unstable.ollama;
