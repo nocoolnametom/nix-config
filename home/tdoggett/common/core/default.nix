@@ -33,7 +33,6 @@
       coreutils # basic gnu utils
       nix-tree # nix package tree viewer
       pciutils
-      pre-commit # git hooks
       p7zip # compression & encryption
       silver-searcher # better grep
       tree # cli dir tree viewer
