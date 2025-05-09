@@ -28,6 +28,11 @@
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
   ];
 
+  # Set the nix builder to always use the daemon so that any environment
+  # variables on nix-daemon are present for builders
+  # If this seems to be causing issues, change it to empty string
+  environment.sessionVariables.NIX_REMOTE = lib.mkDefault "daemon";
+
   # Set up the root user (uses secrets from nix-secrets and ./sops.nix)
   users.users.root = {
     # Use the same hashedPassword or defined password as the main username has

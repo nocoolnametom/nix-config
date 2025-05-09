@@ -19,8 +19,7 @@
     '';
     mode = "0755";
   };
-  # This allows us to use these environment variables when running
-  # `nixos-rebuild switch --use-remote-sudo` as non-root
+  # This allows us to use these environment variables when trying to download models
   systemd.services.nix-daemon.serviceConfig.EnvironmentFile = [
     config.sops.templates."ai_site_env_keys".path
   ];
