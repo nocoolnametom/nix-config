@@ -58,8 +58,7 @@
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
   # so that the tokens are injected into the nix-daemon systemd job
-  # You must then run nixos-rebuild switch --use-remote-sudo as non-root to load models!
-  # services.comfyui.models = builtins.attrValues pkgs.nixified-ai.models;
+  services.comfyui.models = builtins.attrValues pkgs.nixified-ai.models;
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
