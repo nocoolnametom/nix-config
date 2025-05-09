@@ -36,7 +36,7 @@
       #################### Host-specific Optional Configs ####################
       # "hosts/common/optional/boot/plymouth.nix"
       "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
-      "hosts/common/optional/services/comfyai.nix"
+      "hosts/common/optional/services/comfyui/default.nix"
       "hosts/common/optional/services/flatpak.nix"
       "hosts/common/optional/services/greetd.nix"
       "hosts/common/optional/services/ollama.nix"
@@ -54,6 +54,12 @@
       # "home/${configVars.username}/persistence/smeagol.nix"
       "hosts/common/users/${configVars.username}"
     ]);
+
+  # Comfy Models
+  # You must on the initial usage of the comfyui optional module NOT load any remote models
+  # so that the tokens are injected into the nix-daemon systemd job
+  # You must then run nixos-rebuild switch --use-remote-sudo as non-root to load models!
+  # services.comfyui.models = builtins.attrValues pkgs.nixified-ai.models;
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
