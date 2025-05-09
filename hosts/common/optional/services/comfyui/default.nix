@@ -1,5 +1,9 @@
 { pkgs, config, inputs, lib, ... }:
 {
+  nixpkgs.overlays = [ (final: prev: {
+    fetchResource = import ./fetchresource { inherit (prev) fetchurl; };
+  }) ];
+
   nix.settings.trusted-substituters = [
     "https://ai.cachix.org"
     "https://cuda-maintainers.cachix.org"
