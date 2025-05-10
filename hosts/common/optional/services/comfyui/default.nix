@@ -1,8 +1,7 @@
 { pkgs, config, inputs, lib, ... }:
 {
-  nixpkgs.overlays = [ (final: prev: {
-    fetchResource = import ./fetchresource { inherit (prev) fetchurl; };
-  }) ];
+  nixpkgs.config.cudaSupport = lib.mkDefault true;
+  nixpkgs.config.cudnnSupport = lib.mkDefault true;
 
   nix.settings.trusted-substituters = [
     "https://ai.cachix.org"
@@ -32,7 +31,4 @@
 
   services.comfyui.enable = lib.mkDefault true;
   services.comfyui.host = lib.mkDefault "0.0.0.0";
-
-  nixpkgs.config.cudaSupport = lib.mkDefault true;
-  nixpkgs.config.cudnnSupport = lib.mkDefault true;
 }

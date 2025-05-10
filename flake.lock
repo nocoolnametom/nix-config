@@ -652,6 +652,31 @@
         "type": "github"
       }
     },
+    "my-sd-models": {
+      "inputs": {
+        "nixified-ai": [
+          "nixified-ai"
+        ],
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1746908430,
+        "narHash": "sha256-zZVUOBMMezVUbhj7IvBqiCtiKCoyETUbFy2dEEH3BgI=",
+        "ref": "main",
+        "rev": "d3fcc8b08a70f93f9b6da71978d2b228e561ff86",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/nocoolnametom/my-sd-models.git"
+      },
+      "original": {
+        "ref": "main",
+        "shallow": true,
+        "type": "git",
+        "url": "ssh://git@github.com/nocoolnametom/my-sd-models.git"
+      }
+    },
     "my-wordpress-plugins": {
       "inputs": {
         "nixpkgs": [
@@ -1035,6 +1060,7 @@
         "home-manager": "home-manager",
         "impermanence": "impermanence",
         "lanzaboote": "lanzaboote",
+        "my-sd-models": "my-sd-models",
         "my-wordpress-plugins": "my-wordpress-plugins",
         "nix-darwin": "nix-darwin",
         "nix-flatpak": "nix-flatpak",

@@ -82,6 +82,11 @@
     my-wordpress-plugins.inputs.nixpkgs.follows = "nixpkgs";
 
     #################### Personal Repositories ####################
+    # My SD models for various machines
+    # Authenticate via ssh and use shallow clone (in case I ever put a model in here)
+    my-sd-models.url = "git+ssh://git@github.com/nocoolnametom/my-sd-models.git?ref=main&shallow=1";
+    my-sd-models.inputs.nixpkgs.follows = "nixpkgs";
+    my-sd-models.inputs.nixified-ai.follows = "nixified-ai";
 
     # Private secrets repo
     # Authenticate via ssh and use shallow clone
@@ -111,6 +116,7 @@
       # split-monitor-workspaces,
       disposable-email-domains,
       my-wordpress-plugins,
+      my-sd-models,
       nix-secrets,
       ...
     }@inputs:
