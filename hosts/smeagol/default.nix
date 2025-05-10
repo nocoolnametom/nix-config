@@ -58,7 +58,21 @@
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
   # so that the tokens are injected into the nix-daemon systemd job
-  services.comfyui.models = builtins.attrValues pkgs.nixified-ai.models;
+  services.comfyui.models = let
+    localModel = { name, path, installPaths, ... }: (
+      (pkgs.runCommandLocal "${builtins.baseNameOf path}" { } ''ln -s ${path} $out'')
+      //
+      (rec { comfyui = { inherit installPaths; }; passthru = { inherit comfyui; }; })
+    );
+  in [
+    pkgs.nixified-ai.models.stable-diffusion-v1-5
+    pkgs.nixified-ai.models.ultrarealistic-lora
+    (localModel {
+      name = "tamePonyThe_v25.safetensors";
+      path = "/var/lib/stable-diffusion/models/sdxl/main/tamePonyThe_v25.safetensors";
+      installPaths = [ "checkpoints" ];
+    })
+  ];
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
