@@ -47,4 +47,6 @@
       config.allowUnfree = true;
     };
   };
+
+  my-sd-models = inputs.my-sd-models.overlay;
 }
