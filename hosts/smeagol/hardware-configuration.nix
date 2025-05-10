@@ -49,7 +49,7 @@
   };
 
   fileSystems."/nix" = {
-    device = "/dev/disk/by-label/smeagol";
+    device = "/dev/disk/by-label/secondary";
     fsType = "btrfs";
     options = [
       "subvol=nix"
