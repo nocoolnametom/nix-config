@@ -84,6 +84,7 @@
     #################### Personal Repositories ####################
     # My SD models for various machines
     # Authenticate via ssh and use shallow clone (in case I ever put a model in here)
+    # my-sd-models.url = "path:/home/tdoggett/Projects/nocoolnametom/my-sd-models"; # For testing
     my-sd-models.url = "git+ssh://git@github.com/nocoolnametom/my-sd-models.git?ref=main&shallow=1";
     my-sd-models.inputs.nixpkgs.follows = "nixpkgs";
     my-sd-models.inputs.nixified-ai.follows = "nixified-ai";

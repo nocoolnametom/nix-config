@@ -58,7 +58,7 @@
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
   # so that the tokens are injected into the nix-daemon systemd job
-  services.comfyui.models = pkgs.my-sd-models.machineModels.smeagol;
+  # services.comfyui.models = lib.mkForce []; # Use this before the sops-nix secrets are loaded
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
