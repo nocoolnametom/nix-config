@@ -1,4 +1,10 @@
-{ pkgs, config, inputs, lib, ... }:
+{
+  pkgs,
+  config,
+  inputs,
+  lib,
+  ...
+}:
 {
   nixpkgs.config.cudaSupport = lib.mkDefault true;
   nixpkgs.config.cudnnSupport = lib.mkDefault true;
@@ -13,8 +19,8 @@
   ];
 
   # Ensure Huggingface and Civitai keys are present for nix daemon
-  sops.secrets."huggingface_key" = {};
-  sops.secrets."civitai_key" = {};
+  sops.secrets."huggingface_key" = { };
+  sops.secrets."civitai_key" = { };
   sops.templates."ai_site_env_keys" = {
     content = ''
       CIVITAI_API_TOKEN=${config.sops.placeholder."civitai_key"}
@@ -31,4 +37,7 @@
 
   services.comfyui.enable = lib.mkDefault true;
   services.comfyui.host = lib.mkDefault "0.0.0.0";
+  services.comfyui.models = lib.mkDefault (
+    pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineModels
+  );
 }
