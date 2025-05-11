@@ -6,6 +6,24 @@
   ...
 }:
 {
+  # This is intended for updating the version, but it has some odd requirements issues, so we might
+  # need to overlay more than just this one package...
+  # nixpkgs.overlays = [
+  #   (final: prev: {
+  #     comfyuiPackages = prev.comfyuiPackages // {
+  #       comfyui-unwrapped = prev.comfyuiPackages.comfyui-unwrapped.overridePythonAttrs (old: rec {
+  #         version = "0.3.33";
+  #         src = prev.fetchFromGitHub {
+  #           owner = "comfyanonymous";
+  #           repo = "ComfyUI";
+  #           rev = "v${version}";
+  #           hash = "sha256-nqYVrkkog4We6DmnV2Qb+xncHqpSnFGQnSQjZUBb33Y=";
+  #         };
+  #       });
+  #     };
+  #   })
+  # ];
+
   nixpkgs.config.cudaSupport = lib.mkDefault true;
   nixpkgs.config.cudnnSupport = lib.mkDefault true;
 
