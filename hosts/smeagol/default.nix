@@ -59,6 +59,22 @@
   # You must on the initial usage of the comfyui optional module NOT load any remote models
   # so that the tokens are injected into the nix-daemon systemd job
   # services.comfyui.models = lib.mkForce []; # Use this before the sops-nix secrets are loaded
+  services.comfyui.customNodes = [
+    (pkgs.comfyuiPackages.comfyui.mkComfyUICustomNode {
+      pname = "rgthree-comfy";
+      version = "unstable-2025-05-11";
+      pyproject = false;
+      propagatedBuildInputs = with pkgs.python3Packages; [
+        # gguf
+      ];
+      src = pkgs.fetchFromGitHub {
+        owner = "rgthree";
+        repo = "rgthree-comfy";
+        rev = "57cbded4622336165b7bac88f9e962339e16c552";
+        hash = "sha256-1/BqDWX8wrv3sNCVJT5nvJ9s5mjnLgk85crVdtlcCSo=";
+      };
+    })
+  ];
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
