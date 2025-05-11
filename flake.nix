@@ -48,7 +48,10 @@
     };
 
     # Nixified.AI
-    nixified-ai.url = "github:nixified-ai/flake";
+    # nixified-ai.url = "github:nixified-ai/flake";
+    # Using this upstream MR branch until it get merged to get a newer version of Comfy
+    # BatteredBunny's branch is for ComfyUI v0.3.30
+    nixified-ai.url = "github:BatteredBunny/nixifed-ai/bump-comfyui";
     nixified-ai.inputs.nixpkgs.follows = "nixpkgs";
 
     # Declarative Flatpak management (like homebrew on nix-darwin)
