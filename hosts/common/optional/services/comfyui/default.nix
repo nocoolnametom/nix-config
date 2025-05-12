@@ -51,11 +51,17 @@
     config.sops.templates."ai_site_env_keys".path
   ];
 
-  imports = [ inputs.nixified-ai.nixosModules.comfyui ];
+  imports = [
+    inputs.nixified-ai.nixosModules.comfyui
+    ./symlinker.nix
+  ];
 
   services.comfyui.enable = lib.mkDefault true;
   services.comfyui.host = lib.mkDefault "0.0.0.0";
   services.comfyui.models = lib.mkDefault (
     pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineModels
+  );
+  services.comfyui.customNodes = lib.mkDefault (
+    pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineNodes
   );
 }
