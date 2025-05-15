@@ -124,7 +124,7 @@
   # Build documentation
   documentation.nixos.enable = false;
 
-  system.stateVersion = "23.05";
+  system.stateVersion = "24.11";
 
   users.users.root.initialHashedPassword = "$y$j9T$kJlllzou9ACSf/q6LFgPi.$A49llCkktVbbfOHVvdjSRnPD27.jg4xSYaLlG5p9t5A";
 }

@@ -53,6 +53,7 @@
 
   imports = [
     inputs.nixified-ai.nixosModules.comfyui
+    ./comfyuimini.nix
     ./symlinker.nix
   ];
 

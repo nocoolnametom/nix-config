@@ -63,6 +63,7 @@
     checkpoints = "/var/lib/stable-diffusion/models/linked/checkpoints";
     loras = "/var/lib/stable-diffusion/models/linked/loras";
   };
+  services.comfyui.comfyuimini.enable = true;
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth
