@@ -19,7 +19,8 @@
     # example = prev.example.overrideAttrs (oldAttrs: let ... in {
     # ...
     # });
-    zen-browser-flake = inputs.zen-browser.packages.${final.system};
+    # I'm not using zen and dislike having to keep rebuild it
+    # zen-browser-flake = inputs.zen-browser.packages.${final.system};
     myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
     nix-schema = inputs.nix-schema.packages.${final.system}.nix.overrideAttrs (old: {
       doCheck = false;

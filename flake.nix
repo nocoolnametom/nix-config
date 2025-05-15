@@ -38,9 +38,6 @@
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
-    # Deployment Helper
-    deploy-rs.url = "github:serokell/deploy-rs";
-
     # Pre-commit hooks
     pre-commit-hooks = {
       url = "github:cachix/git-hooks.nix";
@@ -66,10 +63,6 @@
     # plasma-manager.url = "github:nix-community/plasma-manager";
     # plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     # plasma-manager.inputs.home-manager.follows = "home-manager";
-
-    # Zen Browser
-    zen-browser.url = "github:0xc000022070/zen-browser-flake";
-    zen-browser.inputs.nixpkgs.follows = "nixpkgs";
 
     # Hyprland
     # hyprland.url = "github:hyprwm/Hyprland";
@@ -111,12 +104,10 @@
       nix-schema,
       stylix,
       sops-nix,
-      deploy-rs,
       nixified-ai,
       nix-flatpak,
       # nixos-cosmic,
       # plasma-manager,
-      zen-browser,
       # split-monitor-workspaces,
       disposable-email-domains,
       my-wordpress-plugins,

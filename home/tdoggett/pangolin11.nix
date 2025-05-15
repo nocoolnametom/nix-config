@@ -46,7 +46,6 @@
     gnumake
     remmina
     bottles
-    zen-browser-flake.default
   ];
 
   home = {
