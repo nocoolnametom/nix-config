@@ -1,6 +1,7 @@
 {
   inputs,
   config,
+  configVars,
   lib,
   ...
 }:
