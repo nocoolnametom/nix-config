@@ -31,6 +31,8 @@
 
     # Styling for Visual Applications
     stylix.url = "github:danth/stylix/release-24.11";
+    # This might not be needed anymore: see flake.nix file of stylix project
+    stylix.inputs.base16-vim.url = "github:tinted-theming/base16-vim/577fe8125d74ff456cf942c733a85d769afe58b7";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
     stylix.inputs.home-manager.follows = "home-manager";
 

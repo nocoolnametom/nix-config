@@ -28,6 +28,13 @@
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
   ];
 
+  # Deduplicate and optimize nix store
+  nix.optimise.automatic = true;
+
+  # Garbage Collection
+  nix.gc.automatic = true;
+  nix.gc.options = "--delete-older-than 10d";
+
   # Set the nix builder to always use the daemon so that any environment
   # variables on nix-daemon are present for builders
   # If this seems to be causing issues, change it to empty string
