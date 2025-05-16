@@ -80,6 +80,24 @@ in
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "smeagol" = {
+        host = configVars.networking.subnets.smeagol.name;
+        hostname = configVars.networking.subnets.smeagol.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "smeagol-actual" = {
+        host = "${configVars.networking.subnets.smeagol.name}-actual";
+        hostname = configVars.networking.subnets.smeagol.actual;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "framework" = {
+        host = configVars.networking.subnets.framework.name;
+        hostname = configVars.networking.subnets.framework.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "home.${configVars.domain}" = {
         host = "home.${configVars.domain}";
         port = configVars.networking.ports.tcp.remoteSsh;
