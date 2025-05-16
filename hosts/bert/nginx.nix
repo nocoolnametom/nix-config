@@ -232,9 +232,21 @@
                       icon = "fas fa-gears";
                       url =
                         if internal then
-                          "http://${configVars.networking.subnets.sauron.ip}:${builtins.toString configVars.networking.ports.tcp.invokeai}"
+                          "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}"
                         else
                           "https://stable.${configVars.domain}/";
+                      target = "_blank";
+                    }
+                  ]
+                  ++ [
+                    {
+                      name = "Stable Diffusion Mobile";
+                      icon = "fas fa-gears";
+                      url =
+                        if internal then
+                          "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}"
+                        else
+                          "https://stablemini.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]
@@ -330,7 +342,26 @@
         '';
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.sauron.ip}:${builtins.toString configVars.networking.ports.tcp.invokeai}/";
+            proxyPass = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_buffering off;
+              proxy_cache off;
+              chunked_transfer_encoding off;
+            '';
+          };
+        };
+      };
+      "stablemini.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
+        extraConfig = ''
+          error_page 404 /stablemini.${configVars.domain}.404.html;
+        '';
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}/";
             proxyWebsockets = true;
             extraConfig = ''
               proxy_buffering off;
