@@ -9,6 +9,8 @@
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-24.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
 
+    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
+
     impermanence.url = "github:nix-community/impermanence";
 
     # Lanzaboote Secure Bootloader for NixOS
@@ -24,8 +26,6 @@
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
-
-    nix-schema.url = "github:DeterminateSystems/nix-src/flake-schemas";
 
     #################### Utilities ####################
 
@@ -95,13 +95,13 @@
     {
       self,
       nixpkgs,
+      determinate,
       impermanence,
       lanzaboote,
       hardware,
       home-manager,
       nix-darwin,
       nixos-wsl,
-      nix-schema,
       stylix,
       sops-nix,
       nixified-ai,

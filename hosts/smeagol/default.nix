@@ -100,7 +100,6 @@
     unzip
     vim
     wget
-    nix-schema # Made in the overlays from the nix-schema input flake's nix binary
   ];
 
   # Run AppImages directly
