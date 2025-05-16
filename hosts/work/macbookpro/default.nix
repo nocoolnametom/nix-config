@@ -37,6 +37,9 @@
 
   networking.hostName = configVars.networking.work.macbookpro.name;
 
+  # Move to import once this is working
+  services.tailscale.enable = true;
+
   homebrew.enable = true;
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "uninstall";

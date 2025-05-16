@@ -30,8 +30,9 @@
 
   # Note that we do not do user management on our darwin systems!
 
-  # Auto upgrade nix package and the daemon service.
-  services.nix-daemon.enable = true;
+  # We're now using Determinate for security purposes
+  nix.enable = false;
+  services.nix-daemon.enable = false;
 
   # Ensure these tools are available for all users, even if it's just root on the system
   environment.systemPackages = [
@@ -72,7 +73,6 @@
 
     config.allowUnfree = lib.mkDefault true;
   };
-  nix.optimise.automatic = true;
 
   # System settings
   system.defaults.dock.show-recents = lib.mkDefault false;
