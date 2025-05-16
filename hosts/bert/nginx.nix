@@ -437,6 +437,7 @@
     "request.${configVars.domain}".email = configVars.email.letsencrypt;
     "requests.${configVars.domain}".email = configVars.email.letsencrypt;
     "stable.${configVars.domain}".email = configVars.email.letsencrypt;
+    "stablemini.${configVars.domain}".email = configVars.email.letsencrypt;
     "stash.${configVars.domain}".email = configVars.email.letsencrypt;
   };
 }
