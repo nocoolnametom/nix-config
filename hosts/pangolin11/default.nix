@@ -108,7 +108,6 @@
     pkgs.gparted
     pkgs.split-my-cbz
     pkgs.update-cbz-tags
-    pkgs.nix-schema # Made in the overlays from the nix-schema input flake's nix binary
   ];
 
   # Hardware

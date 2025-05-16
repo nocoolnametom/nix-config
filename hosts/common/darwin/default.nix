@@ -41,7 +41,6 @@
     pkgs.dnsmasq
     pkgs.docutils
     pkgs.mkcert
-    pkgs.nix-schema # Made in the overlays from the nix-schema input flake's nix binary
     # pkgs.openssh # Need to make sure launchctl is switched first!
   ];
 
