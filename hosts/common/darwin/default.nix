@@ -34,6 +34,14 @@
   nix.enable = false;
   services.nix-daemon.enable = false;
 
+  # Needed since Determinate Nix manages the main config file for system.
+  environment.etc."nix/nix.custom.conf".text = pkgs.lib.mkForce ''
+    # Written by https://github.com/DeterminateSystems/nix-installer.
+    # The contents below are based on options specified at installation time.
+    trusted-users = ${configVars.username}
+    lazy-trees = true
+  '';
+
   # Ensure these tools are available for all users, even if it's just root on the system
   environment.systemPackages = [
     pkgs.wget
