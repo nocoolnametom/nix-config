@@ -14,6 +14,10 @@
   imports =
     # Load all sibling .nix files from hosts/common/core
     (configLib.scanPaths ./.)
+    ++ [
+      # Use the determiate module
+      inputs.determinate.darwinModules.default
+    ]
     ++
       # Load specific common core modules (sops must be handled in home-manager!)
       (map configLib.relativeToRoot [

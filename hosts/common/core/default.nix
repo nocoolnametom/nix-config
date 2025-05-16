@@ -13,9 +13,13 @@
   imports =
     # Load all sibling .nix files from hosts/common/core
     (configLib.scanPaths ./.)
-    ++
+    ++ [
       # Ensure we've loaded the Home Manager module
-      [ inputs.home-manager.nixosModules.home-manager ]
+      inputs.home-manager.nixosModules.home-manager
+
+      # Use the determinate module
+      inputs.determinate.nixosModules.default
+    ]
     ++
       # Custom nixosModules as defined in the root flake
       (builtins.attrValues outputs.nixosModules);
