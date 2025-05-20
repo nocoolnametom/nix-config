@@ -122,7 +122,7 @@
             icon = "fas fa-cloud-download";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.nzbget.port}/"
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.nzbget}/"
               else
                 "https://${configVars.networking.subdomains.nzbget}.${configVars.domain}";
             target = "_blank";
@@ -558,7 +558,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.nzbget.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbget}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
