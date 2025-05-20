@@ -238,7 +238,7 @@
             icon = "fas fa-download";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.radarr.port}/"
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.radarr}/"
               else
                 "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
             target = "_blank";
@@ -453,7 +453,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.radarr.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.radarr}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -581,7 +581,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.radarr.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.radarr}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
