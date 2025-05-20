@@ -326,6 +326,9 @@
       # Mains
       "${configVars.homeDomain}" = {
         default = true;
+        serverAliases = [
+          "www.${configVars.homeDomain}"
+        ];
         locations = (homeProxyPaths false) // {
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
@@ -694,7 +697,8 @@
     (
       {
         # These subdomains are not present in the configVars.networking.subdomains list
-        "${configVars.homeDomain}".email = email;
+        "${homeDomain}".email = email;
+        "www.${homeDomain}".email = email;
         "home.${domain}".email = email;
         # These are just redirects
         "house.${domain}".email = email;
