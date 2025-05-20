@@ -88,7 +88,6 @@
                 "https://${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}";
             target = "_blank";
             type = "Emby";
-            apikey = "073c7a3eacfd4305835431b34a7ef5a6";
             libraryType = "series";
           }
         ];
@@ -226,7 +225,7 @@
             icon = "fas fa-download";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickbeard.port}/"
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickbeard.port}/tv/"
               else
                 "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}";
             target = "_blank";
@@ -422,7 +421,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -664,7 +663,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
