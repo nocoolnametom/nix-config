@@ -44,89 +44,208 @@
   '';
   services.nginx.virtualHosts =
     let
+      homerBlocks = internal: {
+        vscode = [
+          {
+            name = "VSCode";
+            icon = "fas fa-globe";
+            url = "https://vscode.dev/+ms-vscode.remote-server/zg15993vmu";
+            target = "_blank";
+          }
+        ];
+        deluge = lib.lists.optionals config.services.deluge.web.enable [
+          {
+            name = "Deluge Torrents";
+            icon = "fas fa-tasks";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.deluge.port}/"
+              else
+                "https://${configVars.networking.subdomains.deluge}.${configVars.domain}";
+            target = "_blank";
+          }
+        ];
+        flood = lib.lists.optionals config.services.flood.enable [
+          {
+            name = "Flood Torrents";
+            icon = "fas fa-tasks";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.flood.port}/"
+              else
+                "https://${configVars.networking.subdomains.flood}.${configVars.domain}";
+            target = "_blank";
+          }
+        ];
+        jellyfin = [
+          {
+            name = "Jellyfin Media Server";
+            icon = "fas fa-television";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}/"
+              else
+                "https://${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}";
+            target = "_blank";
+            type = "Emby";
+            apikey = "073c7a3eacfd4305835431b34a7ef5a6";
+            libraryType = "series";
+          }
+        ];
+        ombi = lib.lists.optionals config.services.ombi.enable [
+          {
+            name = "Ombi Requests";
+            icon = "fas fa-television";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
+              else
+                "https://${configVars.networking.subdomains.ombi}.${configVars.homeDomain}";
+            target = "_blank";
+          }
+        ];
+        navidrome = lib.lists.optionals config.services.navidrome.enable [
+          {
+            name = "Music Streaming";
+            icon = "fas fa-music";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.navidrome.settings.Port}/"
+              else
+                "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
+            target = "_blank";
+          }
+        ];
+        nzbget = lib.lists.optionals config.services.nzbget.enable [
+          {
+            name = "NZBGet";
+            icon = "fas fa-cloud-download";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.nzbget.port}/"
+              else
+                "https://${configVars.networking.subdomains.nzbget}.${configVars.domain}";
+            target = "_blank";
+          }
+        ];
+        calibreweb = [
+          {
+            name = "Books";
+            icon = "fas fa-book";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}"
+              else
+                "https://${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        kavita = [
+          {
+            name = "Comics";
+            icon = "fas fa-book";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
+              else
+                "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        kavitan = [
+          {
+            name = "Manga";
+            icon = "fas fa-book";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}"
+              else
+                "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}/";
+            target = "_blank";
+          }
+        ];
+        audiobookshelf = [
+          {
+            name = "Audiobooks";
+            icon = "fas fa-book";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}"
+              else
+                "https://${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        comfyui = [
+          {
+            name = "Stable Diffusion";
+            icon = "fas fa-gears";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}"
+              else
+                "https://${configVars.networking.subdomains.comfyui}.${configVars.domain}/";
+            target = "_blank";
+          }
+        ];
+        comfyuimini = [
+          {
+            name = "Stable Diffusion Mobile";
+            icon = "fas fa-gears";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}"
+              else
+                "https://${configVars.networking.subdomains.comfyuimini}.${configVars.domain}/";
+            target = "_blank";
+          }
+        ];
+        stashapp = lib.lists.optionals config.services.stashapp.enable [
+          {
+            name = "Stash Data";
+            icon = "fas fa-lock";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}/"
+              else
+                "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
+            target = "_blank";
+          }
+        ];
+        phanpy = [
+          {
+            name = "Phanpy";
+            icon = "fas fa-gears";
+            url = "https://${configVars.networking.subdomains.phanpy}.${configVars.domain}/";
+            target = "_blank";
+          }
+        ];
+        sickgear = lib.lists.optionals config.services.sickgear.enable [
+          {
+            name = "Sickgear TV";
+            icon = "fas fa-download";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickgear.port}/"
+              else
+                "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}";
+            target = "_blank";
+          }
+        ];
+        radarr = lib.lists.optionals config.services.radarr.enable [
+          {
+            name = "Radarr Movies";
+            icon = "fas fa-download";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.radarr.port}/"
+              else
+                "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
+            target = "_blank";
+          }
+        ];
+      };
       proxyPaths = internal: {
-        "/music/" = lib.attrsets.optionalAttrs config.services.calibre-server.enable {
-          proxyPass = "http://127.0.0.1:4533/music/";
-          extraConfig = ''
-            auth_basic off;
-          '';
-        };
-        "/deluge/" = lib.attrsets.optionalAttrs config.services.deluge.web.enable {
-          proxyPass = "http://127.0.0.1:${builtins.toString config.services.deluge.web.port}/";
-          proxyWebsockets = true;
-          extraConfig = ''
-            proxy_set_header X-Deluge-Base /deluge;
-          '';
-        };
-        "/flood/" = lib.attrsets.optionalAttrs config.services.flood.enable {
-          proxyPass = "http://127.0.0.1:${builtins.toString config.services.flood.port}/";
-          proxyWebsockets = true;
-          extraConfig = ''
-            auth_basic off;
-            proxy_set_header X-Forwarded-Prefix /flood;
-            proxy_buffering off;
-            proxy_cache off;
-            chunked_transfer_encoding off;
-            rewrite ^/flood/(.*) /$1 break;
-          '';
-        };
-        "/jellyfin/" = {
-          proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
-          proxyWebsockets = true;
-          extraConfig = ''
-            proxy_buffering off;
-            auth_basic off;
-          '';
-        };
-        "~ ^/nzbget($|./*)" = lib.attrsets.optionalAttrs config.services.nzbget.enable {
-          proxyPass = "http://127.0.0.1:6789";
-          proxyWebsockets = true;
-          extraConfig = ''
-            proxy_set_header X-Forwarded-Prefix /nzbget;
-            proxy_buffering off;
-            rewrite ^/nzbget/(.*) /$1 break;
-            auth_basic off;
-          '';
-        };
-        "/stash/" = lib.attrsets.optionalAttrs config.services.stashapp.enable {
-          proxyPass = "http://127.0.0.1:${builtins.toString config.services.stashapp.port}/";
-          proxyWebsockets = true;
-          extraConfig = ''
-            proxy_set_header X-Forwarded-Prefix /stash;
-            proxy_set_header X-Forwared-Port 80;
-            proxy_buffering off;
-            auth_basic off;
-          '';
-        };
-        "/tv/" = lib.attrsets.optionalAttrs config.services.sickbeard.enable {
-          proxyPass = "http://127.0.0.1:8081/tv/";
-          extraConfig = ''
-            auth_basic off;
-          '';
-        };
-        "^~ /radarr" = lib.attrsets.optionalAttrs config.services.radarr.enable {
-          proxyPass = "http://127.0.0.1:7878";
-          extraConfig = ''
-            auth_basic off;
-            proxy_set_header Host $host;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Host $host;
-            proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_redirect off;
-            proxy_http_version 1.1;
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection $http_connection;
-          '';
-        };
-        "^~ /radarr/api" = lib.attrsets.optionalAttrs config.services.radarr.enable {
-          proxyPass = "http://127.0.0.1:7878";
-          extraConfig = ''
-            auth_basic off;
-          '';
-        };
-
-        # Redirect all but OPDS routes to final slashes
-        "~ ^/(deluge|flood|jellyfin|nzbget|stash|tv)$".return = "302 $scheme://$host$request_uri/";
         "/".root = pkgs.homer;
         "= /assets/config.yml".alias = pkgs.writeText "homerConfig.yml" (
           builtins.toJSON {
@@ -139,173 +258,64 @@
               {
                 name = "Services";
                 items =
-                  [
-                    {
-                      name = "VSCode";
-                      icon = "fas fa-globe";
-                      url = "https://vscode.dev/+ms-vscode.remote-server/zg15993vmu";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ (lib.lists.optionals config.services.deluge.web.enable [
-                    {
-                      name = "Deluge Torrents";
-                      icon = "fas fa-tasks";
-                      url = "/deluge/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.flood.enable [
-                    {
-                      name = "Flood Torrents";
-                      icon = "fas fa-tasks";
-                      url = "/flood/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ ([
-                    {
-                      name = "Jellyfin Media Server";
-                      icon = "fas fa-television";
-                      url = "/jellyfin/";
-                      target = "_blank";
-                      type = "Emby";
-                      apikey = "073c7a3eacfd4305835431b34a7ef5a6";
-                      libraryType = "series";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.ombi.enable [
-                    {
-                      name = "Ombi Requests";
-                      icon = "fas fa-television";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
-                        else
-                          "https://${configVars.networking.subdomains.ombi}.${configVars.domain}";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.navidrome.enable [
-                    {
-                      name = "Music Streaming";
-                      icon = "fas fa-music";
-                      url = "/music/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.nzbget.enable [
-                    {
-                      name = "NZBGet";
-                      icon = "fas fa-cloud-download";
-                      url = "/nzbget/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ [
-                    {
-                      name = "Books";
-                      icon = "fas fa-book";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}"
-                        else
-                          "https://${configVars.networking.subdomains.calibreweb}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ [
-                    {
-                      name = "Comics";
-                      icon = "fas fa-book";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
-                        else
-                          "https://${configVars.networking.subdomains.kavita}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ [
-                    {
-                      name = "Kavita";
-                      icon = "fas fa-book";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}"
-                        else
-                          "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ [
-                    {
-                      name = "Audiobooks";
-                      icon = "fas fa-book";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}"
-                        else
-                          "https://${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ [
-                    {
-                      name = "Stable Diffusion";
-                      icon = "fas fa-gears";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}"
-                        else
-                          "https://${configVars.networking.subdomains.comfyui}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ [
-                    {
-                      name = "Stable Diffusion Mobile";
-                      icon = "fas fa-gears";
-                      url =
-                        if internal then
-                          "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}"
-                        else
-                          "https://${configVars.networking.subdomains.comfyuimini}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ [
-                    {
-                      name = "Phanpy";
-                      icon = "fas fa-gears";
-                      url = "https://${configVars.networking.subdomains.phanpy}.${configVars.domain}/";
-                      target = "_blank";
-                    }
-                  ]
-                  ++ (lib.lists.optionals config.services.stashapp.enable [
-                    {
-                      name = "Stash Data";
-                      icon = "fas fa-lock";
-                      url = "/stash/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.sickbeard.enable [
-                    {
-                      name = "Sickgear TV";
-                      icon = "fas fa-download";
-                      url = "/tv/";
-                      target = "_blank";
-                    }
-                  ])
-                  ++ (lib.lists.optionals config.services.radarr.enable [
-                    {
-                      name = "Radarr Movies";
-                      icon = "fas fa-download";
-                      url = "/radarr";
-                      target = "_blank";
-                    }
-                  ]);
+                  with homerBlocks internal;
+                  vscode
+                  ++ deluge
+                  ++ flood
+                  ++ jellyfin
+                  ++ ombi
+                  ++ navidrome
+                  ++ nzbget
+                  ++ calibreweb
+                  ++ kavita
+                  ++ kavitan
+                  ++ audiobookshelf
+                  ++ comfyui
+                  ++ comfyuimini
+                  ++ stashapp
+                  ++ phanpy
+                  ++ sickgear
+                  ++ radarr;
+              }
+            ];
+          }
+        );
+      };
+      homeProxyPaths = internal: {
+        "/".root = pkgs.homer;
+        "= /assets/config.yml".alias = pkgs.writeText "homerConfig.yml" (
+          builtins.toJSON {
+            title = "Dashboard";
+            header = false;
+            footer = false;
+            connectivityCheck = false;
+            columns = "auto";
+            services = [
+              {
+                name = "Services";
+                items =
+                  with homerBlocks internal;
+                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ kavita ++ audiobookshelf ++ sickgear ++ radarr;
+              }
+            ];
+          }
+        );
+      };
+      privateProxyPaths = internal: {
+        "/".root = pkgs.homer;
+        "= /assets/config.yml".alias = pkgs.writeText "homerConfig.yml" (
+          builtins.toJSON {
+            title = "Dashboard";
+            header = false;
+            footer = false;
+            connectivityCheck = false;
+            columns = "auto";
+            services = [
+              {
+                name = "Services";
+                items =
+                  with homerBlocks internal;
+                  vscode ++ deluge ++ flood ++ nzbget ++ kavitan ++ comfyui ++ comfyuimini ++ stashapp ++ phanpy;
               }
             ];
           }
@@ -313,8 +323,22 @@
       };
     in
     {
-      "localhost" = {
+      # Mains
+      "${configVars.homeDomain}" = {
         default = true;
+        locations = (homeProxyPaths false) // {
+          "/.well-known".root = "/var/lib/acme/acme-challenge";
+        };
+      };
+      "home.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
+        locations = (privateProxyPaths false) // {
+          "/.well-known".root = "/var/lib/acme/acme-challenge";
+        };
+      };
+      "localhost" = {
         serverAliases = [
           config.networking.hostName
           configVars.networking.subnets.bert.ip
@@ -331,6 +355,16 @@
           };
         };
       };
+      "request.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            return = "301 https://${configVars.networking.subdomains.ombi}.${configVars.homeDomain}$request_uri";
+          };
+        };
+      };
+      # Deprecated Redirect
       "request.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
@@ -341,22 +375,107 @@
         };
       };
 
-      # Canonicals
-      "home.${configVars.domain}" = {
+      # homeDomain Services
+      "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
         enableACME = true;
         forceSSL = true;
-        basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
-        locations = (proxyPaths false) // {
-          "/.well-known".root = "/var/lib/acme/acme-challenge";
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
         };
       };
-      "${configVars.networking.subdomains.ombi}.${configVars.domain}" = {
+      "${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString config.services.navidrome.settings.Port}";
+          proxyWebsockets = true;
+          extraConfig = ''
+            proxy_buffering off;
+            proxy_cache off;
+            chunked_transfer_encoding off;
+          '';
+        };
+      };
+      "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
         enableACME = true;
         forceSSL = true;
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
       };
+      "${configVars.networking.subdomains.radarr}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.radarr.port}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.sickgear.port}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+
+      # domain Services
       "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
@@ -395,12 +514,12 @@
           };
         };
       };
-      "${configVars.networking.subdomains.calibreweb}.${configVars.domain}" = {
+      "${configVars.networking.subdomains.deluge}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}";
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.deluge.port}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -408,12 +527,12 @@
           };
         };
       };
-      "${configVars.networking.subdomains.kavita}.${configVars.domain}" = {
+      "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}";
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.flood.port}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -434,12 +553,90 @@
           };
         };
       };
+      "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.nzbget.port}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.phanpy}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/" = {
+          root = pkgs.phanpy;
+          extraConfig = ''
+            auth_basic off;
+          '';
+        };
+      };
+      "${configVars.networking.subdomains.radarr}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.radarr.port}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.sickgear.port}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.stashapp.port}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_buffering off;
+              auth_basic off;
+            '';
+          };
+        };
+      };
+
+      # deprecated domain services (should be on homeDomain already, just need to move over)
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.calibreweb}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -460,49 +657,49 @@
           };
         };
       };
-      "${configVars.networking.subdomains.phanpy}.${configVars.domain}" = {
-        enableACME = true;
-        forceSSL = true;
-        locations."/" = {
-          root = pkgs.phanpy;
-          extraConfig = ''
-            auth_basic off;
-          '';
-        };
-      };
-      "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
+      "${configVars.networking.subdomains.kavita}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.stashapp.port}/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}";
             proxyWebsockets = true;
             extraConfig = ''
-              proxy_buffering off;
               auth_basic off;
             '';
           };
         };
+      };
+      "${configVars.networking.subdomains.ombi}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
+        locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
+        locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
       };
     };
   security.acme.acceptTerms = true;
   security.acme.certs =
     let
       domain = configVars.domain;
+      homeDomain = configVars.homeDomain;
       email = configVars.email.letsencrypt;
       subdomains = configVars.networking.subdomains;
       vhosts = config.services.nginx.virtualHosts;
       fqdnList = builtins.filter (fqdn: builtins.hasAttr fqdn vhosts) (
-        builtins.map (name: "${name}.${domain}") (builtins.attrValues subdomains)
+        (builtins.map (name: "${name}.${domain}") (builtins.attrValues subdomains))
+        ++ (builtins.map (name: "${name}.${homeDomain}") (builtins.attrValues subdomains))
       );
     in
     (
       {
         # These subdomains are not present in the configVars.networking.subdomains list
+        "${configVars.homeDomain}".email = email;
         "home.${domain}".email = email;
         # These are just redirects
         "house.${domain}".email = email;
-        "request.${domain}".email = email;
+        "request.${homeDomain}".email = email;
+        "request.${domain}".email = email; # deprecated
       }
       // builtins.listToAttrs (
         # This filters the subdomains list to those currently present in the nginx config
