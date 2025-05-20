@@ -220,13 +220,13 @@
             target = "_blank";
           }
         ];
-        sickgear = lib.lists.optionals config.services.sickgear.enable [
+        sickgear = lib.lists.optionals config.services.sickbeard.enable [
           {
             name = "Sickgear TV";
             icon = "fas fa-download";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickgear.port}/"
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickbeard.port}/"
               else
                 "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}";
             target = "_blank";
@@ -466,7 +466,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.sickgear.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.sickbeard.port}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -594,7 +594,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.sickgear.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.sickbeard.port}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
