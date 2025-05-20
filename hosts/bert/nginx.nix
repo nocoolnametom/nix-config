@@ -498,11 +498,14 @@
     in
     (
       {
+        # These subdomains are not present in the configVars.networking.subdomains list
         "home.${domain}".email = email;
+        # These are just redirects
         "house.${domain}".email = email;
         "request.${domain}".email = email;
       }
       // builtins.listToAttrs (
+        # This filters the subdomains list to those currently present in the nginx config
         builtins.map (fqdn: {
           name = fqdn;
           value = {
