@@ -326,9 +326,12 @@
       # Mains
       "${configVars.homeDomain}" = {
         default = true;
+        enableACME = true;
+        forceSSL = true;
         serverAliases = [
           "www.${configVars.homeDomain}"
         ];
+
         locations = (homeProxyPaths false) // {
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
@@ -349,6 +352,15 @@
         locations = proxyPaths true;
       };
       # Redirects
+      "www.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            return = "301 https://${configVars.homeDomain}$request_uri";
+          };
+        };
+      };
       "house.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
@@ -698,9 +710,9 @@
       {
         # These subdomains are not present in the configVars.networking.subdomains list
         "${homeDomain}".email = email;
-        "www.${homeDomain}".email = email;
         "home.${domain}".email = email;
         # These are just redirects
+        "www.${homeDomain}".email = email;
         "house.${domain}".email = email;
         "request.${homeDomain}".email = email;
         "request.${domain}".email = email; # deprecated
