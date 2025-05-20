@@ -486,19 +486,29 @@
       };
     };
   security.acme.acceptTerms = true;
-  security.acme.certs = {
-    "home.${configVars.domain}".email = configVars.email.letsencrypt;
-    # Redirects:
-    "house.${configVars.domain}".email = configVars.email.letsencrypt;
-    "request.${configVars.domain}".email = configVars.email.letsencrypt;
-  } // (builtins.listToAttrs (
-    builtins.map
-      (name: {
-        name = "${configVars.networking.subdomains.${name}}.${configVars.domain}";
-        value = {
-          email = configVars.email.letsencrypt;
-        };
-      })
-      (builtins.attrNames configVars.networking.subdomains)
-  ));
+  security.acme.certs =
+    let
+      domain = configVars.domain;
+      email = configVars.email.letsencrypt;
+      subdomains = configVars.networking.subdomains;
+      vhosts = config.services.nginx.virtualHosts;
+      fqdnList = builtins.filter (fqdn: builtins.hasAttr fqdn vhosts) (
+        builtins.map (name: "${name}.${domain}") (builtins.attrValues subdomains)
+      );
+    in
+    (
+      {
+        "home.${domain}".email = email;
+        "house.${domain}".email = email;
+        "request.${domain}".email = email;
+      }
+      // builtins.listToAttrs (
+        builtins.map (fqdn: {
+          name = fqdn;
+          value = {
+            email = email;
+          };
+        }) fqdnList
+      )
+    );
 }
