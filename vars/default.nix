@@ -4,6 +4,7 @@
     userFullName
     handles
     domain
+    homeDomain
     email
     networking
     work
