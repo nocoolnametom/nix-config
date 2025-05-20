@@ -182,7 +182,7 @@
                         if internal then
                           "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
                         else
-                          "https://requests.${configVars.domain}";
+                          "https://${configVars.networking.subdomains.ombi}.${configVars.domain}";
                       target = "_blank";
                     }
                   ])
@@ -204,25 +204,49 @@
                   ])
                   ++ [
                     {
-                      name = "Kavita Library";
+                      name = "Books";
                       icon = "fas fa-book";
                       url =
                         if internal then
-                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
+                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}"
                         else
-                          "https://library.${configVars.domain}/";
+                          "https://${configVars.networking.subdomains.calibreweb}.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]
                   ++ [
                     {
-                      name = "Audio Bookshelf";
+                      name = "Comics";
+                      icon = "fas fa-book";
+                      url =
+                        if internal then
+                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
+                        else
+                          "https://${configVars.networking.subdomains.kavita}.${configVars.domain}/";
+                      target = "_blank";
+                    }
+                  ]
+                  ++ [
+                    {
+                      name = "Kavita";
+                      icon = "fas fa-book";
+                      url =
+                        if internal then
+                          "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}"
+                        else
+                          "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}/";
+                      target = "_blank";
+                    }
+                  ]
+                  ++ [
+                    {
+                      name = "Audiobooks";
                       icon = "fas fa-book";
                       url =
                         if internal then
                           "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}"
                         else
-                          "https://audiolibrary.${configVars.domain}/";
+                          "https://${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]
@@ -234,7 +258,7 @@
                         if internal then
                           "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}"
                         else
-                          "https://stable.${configVars.domain}/";
+                          "https://${configVars.networking.subdomains.comfyui}.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]
@@ -246,7 +270,7 @@
                         if internal then
                           "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}"
                         else
-                          "https://stablemini.${configVars.domain}/";
+                          "https://${configVars.networking.subdomains.comfyuimini}.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]
@@ -254,7 +278,7 @@
                     {
                       name = "Phanpy";
                       icon = "fas fa-gears";
-                      url = "https://posts.${configVars.domain}/";
+                      url = "https://${configVars.networking.subdomains.phanpy}.${configVars.domain}/";
                       target = "_blank";
                     }
                   ]
@@ -312,7 +336,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            return = "301 https://requests.${configVars.domain}$request_uri";
+            return = "301 https://${configVars.networking.subdomains.ombi}.${configVars.domain}$request_uri";
           };
         };
       };
@@ -326,19 +350,19 @@
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
       };
-      "requests.${configVars.domain}" = {
+      "${configVars.networking.subdomains.ombi}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
       };
-      "stable.${configVars.domain}" = {
+      "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
-          error_page 404 /stable.${configVars.domain}.404.html;
+          error_page 404 /${configVars.networking.subdomains.comfyui}.${configVars.domain}.404.html;
         '';
         locations = {
           "/" = {
@@ -352,12 +376,12 @@
           };
         };
       };
-      "stablemini.${configVars.domain}" = {
+      "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
-          error_page 404 /stablemini.${configVars.domain}.404.html;
+          error_page 404 /${configVars.networking.subdomains.comfyuimini}.${configVars.domain}.404.html;
         '';
         locations = {
           "/" = {
@@ -371,37 +395,72 @@
           };
         };
       };
-      "library.${configVars.domain}" = {
+      "${configVars.networking.subdomains.calibreweb}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}";
             proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
           };
         };
       };
-      "audiolibrary.${configVars.domain}" = {
+      "${configVars.networking.subdomains.kavita}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVarepub downloaders.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVarepub downloaders.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}";
             proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
           };
         };
       };
-      "jellyfin.${configVars.domain}" = {
+      "${configVars.networking.subdomains.jellyfin}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:8096/jellyfin/";
             proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
           };
         };
       };
-      "posts.${configVars.domain}" = {
+      "${configVars.networking.subdomains.phanpy}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations."/" = {
@@ -411,7 +470,7 @@
           '';
         };
       };
-      "stash.${configVars.domain}" = {
+      "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
@@ -429,15 +488,17 @@
   security.acme.acceptTerms = true;
   security.acme.certs = {
     "home.${configVars.domain}".email = configVars.email.letsencrypt;
+    # Redirects:
     "house.${configVars.domain}".email = configVars.email.letsencrypt;
-    "jellyfin.${configVars.domain}".email = configVars.email.letsencrypt;
-    "library.${configVars.domain}".email = configVars.email.letsencrypt;
-    "audiolibrary.${configVars.domain}".email = configVars.email.letsencrypt;
-    "posts.${configVars.domain}".email = configVars.email.letsencrypt;
     "request.${configVars.domain}".email = configVars.email.letsencrypt;
-    "requests.${configVars.domain}".email = configVars.email.letsencrypt;
-    "stable.${configVars.domain}".email = configVars.email.letsencrypt;
-    "stablemini.${configVars.domain}".email = configVars.email.letsencrypt;
-    "stash.${configVars.domain}".email = configVars.email.letsencrypt;
-  };
+  } // (builtins.listToAttrs (
+    builtins.map
+      (name: {
+        name = "${configVars.networking.subdomains.${name}}.${configVars.domain}";
+        value = {
+          email = configVars.email.letsencrypt;
+        };
+      })
+      (builtins.attrNames configVars.networking.subdomains)
+  ));
 }
