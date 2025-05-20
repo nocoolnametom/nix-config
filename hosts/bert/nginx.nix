@@ -59,7 +59,7 @@
             icon = "fas fa-tasks";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.deluge.port}/"
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.delugeweb}/"
               else
                 "https://${configVars.networking.subdomains.deluge}.${configVars.domain}";
             target = "_blank";
@@ -206,7 +206,7 @@
             icon = "fas fa-lock";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}/"
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.stashapp.port}/"
               else
                 "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
             target = "_blank";
@@ -514,7 +514,7 @@
           };
         };
       };
-      "${configVars.networking.subdomains.deluge}.${configVars.domain}" = {
+      "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
