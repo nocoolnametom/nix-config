@@ -519,7 +519,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.deluge.port}";
+            proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.delugeweb}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
