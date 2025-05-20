@@ -400,7 +400,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVarepub downloaders.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
