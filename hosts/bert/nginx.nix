@@ -227,7 +227,7 @@
               if internal then
                 "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickbeard.port}/tv/"
               else
-                "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}";
+                "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}/tv/";
             target = "_blank";
           }
         ];
