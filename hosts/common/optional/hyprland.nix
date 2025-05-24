@@ -4,6 +4,9 @@
   configVars,
   ...
 }:
+let
+  useInputs = builtins.hasAttr "hyprland" inputs;
+in
 {
   services.hypridle.enable = true;
 
@@ -13,8 +16,12 @@
     enable = true;
     withUWSM = true;
     xwayland.enable = true;
-    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
-    portalPackage = inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland;
+    package = if (useInputs) then inputs.hyprland.packages.${pkgs.system}.hyprland else pkgs.hyprland;
+    portalPackage =
+      if (useInputs) then
+        inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland
+      else
+        pkgs.xdg-desktop-portal-hyprland;
   };
 
   # Auto-login through Greetd and TuiGreet to Hyprland
@@ -23,7 +30,12 @@
 
   environment.systemPackages = with pkgs; [
     lxqt.lxqt-policykit # Pop-up for GUI authentication in desktop
-    inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
+    (
+      if (useInputs) then
+        inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland
+      else
+        xdg-desktop-portal-hyprland
+    )
   ];
 }

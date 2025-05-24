@@ -39,7 +39,7 @@ in
         };
 
         initial_session = lib.mkIf cfg.enable {
-          command = lib.mkDefault "${pkgs.hyprland}/bin/Hyprland";
+          command = lib.mkDefault "${config.programs.hyprland.package}/bin/Hyprland";
           user = lib.mkDefault "${cfg.username}";
         };
       };

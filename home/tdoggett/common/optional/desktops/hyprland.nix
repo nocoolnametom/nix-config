@@ -5,22 +5,24 @@
   ...
 }:
 {
-  imports = [
-    # Home-Manager modules from the Flake input
-    inputs.hyprland.homeManagerModules.default
+  imports =
+    [
+      # Window Manager
+      ./hyprland
 
-    # Window Manager
-    ./hyprland
+      # Program configurations (if needing enabling that is below)
+      ./wofi.nix
+      ./hyprlock.nix
+      ./waybar.nix
 
-    # Program configurations (if needing enabling that is below)
-    ./wofi.nix
-    ./hyprlock.nix
-    ./waybar.nix
-
-    # Desktop-related Services (enable below)
-    ./services/swaync.nix
-    ./services/hypridle.nix
-  ];
+      # Desktop-related Services (enable below)
+      ./services/swaync.nix
+      ./services/hypridle.nix
+    ]
+    ++ (lib.optionals (builtins.hasAttr "hyprland" inputs) [
+      # Home-Manager modules from the Flake input
+      inputs.hyprland.homeManagerModules.default
+    ]);
 
   wayland.windowManager.hyprland.enable = lib.mkDefault true;
 
