@@ -1,4 +1,9 @@
-{ pkgs, configVars, ... }:
+{
+  inputs,
+  pkgs,
+  configVars,
+  ...
+}:
 {
   services.hypridle.enable = true;
 
@@ -6,8 +11,10 @@
 
   programs.hyprland = {
     enable = true;
+    withUWSM = true;
     xwayland.enable = true;
-    portalPackage = pkgs.xdg-desktop-portal-hyprland; # default
+    package = inputs.hyprland.packages.${pkgs.system}.hyprland;
+    portalPackage = inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland;
   };
 
   # Auto-login through Greetd and TuiGreet to Hyprland
@@ -16,7 +23,7 @@
 
   environment.systemPackages = with pkgs; [
     lxqt.lxqt-policykit # Pop-up for GUI authentication in desktop
-    xdg-desktop-portal-hyprland
+    inputs.hyprland.packages.${pkgs.system}.xdg-desktop-portal-hyprland
     xdg-desktop-portal-gtk
   ];
 }

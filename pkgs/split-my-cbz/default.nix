@@ -8,10 +8,13 @@
   xmlstarlet ? pkgs.xmlstarlet,
   makeWrapper ? pkgs.makeWrapper,
 }:
-stdenv.mkDerivation {
+stdenv.mkDerivation rec {
   pname = "split-my-cbz";
   version = "0.0.1"; # Bump this manually when we change the script
-  src = ./.;
+  src = builtins.path {
+    path = ./.;
+    name = "${pname}-source";
+  };
   buildInputs = [
     bash
     zip
