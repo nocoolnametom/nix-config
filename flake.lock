@@ -676,14 +676,14 @@
           "nixified-ai"
         ],
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-old"
         ]
       },
       "locked": {
-        "lastModified": 1747093622,
-        "narHash": "sha256-mn0jKytRPX5LV5AFo+cAOoza4nVybE5PvL+I6/lDVdg=",
+        "lastModified": 1748117126,
+        "narHash": "sha256-v84OTP1p8PPa+Pc5CEwmyB5v2Z5SH7z8r/e1YsXYDJg=",
         "ref": "main",
-        "rev": "8dacf277fb969bb69c410c14f5c6245dd504431a",
+        "rev": "747f701ec58aa15019c196b71f08c4b532c00e70",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/my-sd-models.git"
@@ -795,7 +795,7 @@
         "flake-parts": "flake-parts_3",
         "hercules-ci-effects": "hercules-ci-effects",
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-old"
         ]
       },
       "locked": {
@@ -862,6 +862,22 @@
         "owner": "NixOS",
         "repo": "nixpkgs",
         "rev": "a62e6edd6d5e1fa0329b8653c801147986f8d446",
+        "type": "github"
+      }
+    },
+    "nixpkgs-old": {
+      "locked": {
+        "lastModified": 1747862697,
+        "narHash": "sha256-U4HaNZ1W26cbOVm0Eb5OdGSnfQVWQKbLSPrSSa78KC0=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "2baa12ff69913392faf0ace833bc54bba297ea95",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixos-24.11",
+        "repo": "nixpkgs",
         "type": "github"
       }
     },
@@ -1118,6 +1134,7 @@
         "nixified-ai": "nixified-ai",
         "nixos-wsl": "nixos-wsl",
         "nixpkgs": "nixpkgs_5",
+        "nixpkgs-old": "nixpkgs-old",
         "nixpkgs-stable": "nixpkgs-stable_3",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "pre-commit-hooks": "pre-commit-hooks_2",

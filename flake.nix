@@ -4,10 +4,10 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    #nixpkgs.url = "github:NixOS/nixpkgs/release-25.05";
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
+    nixpkgs-old.url = "github:NixOS/nixpkgs/nixos-24.11";
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
 
@@ -49,7 +49,7 @@
     # Using this upstream MR branch until it get merged to get a newer version of Comfy
     # BatteredBunny's branch is for ComfyUI v0.3.30
     nixified-ai.url = "github:BatteredBunny/nixifed-ai/bump-comfyui";
-    nixified-ai.inputs.nixpkgs.follows = "nixpkgs";
+    nixified-ai.inputs.nixpkgs.follows = "nixpkgs-old";
 
     # Declarative Flatpak management (like homebrew on nix-darwin)
     # "latest" should be the most recent released version
@@ -84,7 +84,7 @@
     # Authenticate via ssh and use shallow clone (in case I ever put a model in here)
     # my-sd-models.url = "path:/home/tdoggett/Projects/nocoolnametom/my-sd-models"; # For testing
     my-sd-models.url = "git+ssh://git@github.com/nocoolnametom/my-sd-models.git?ref=main&shallow=1";
-    my-sd-models.inputs.nixpkgs.follows = "nixpkgs";
+    my-sd-models.inputs.nixpkgs.follows = "nixpkgs-old";
     my-sd-models.inputs.nixified-ai.follows = "nixified-ai";
 
     # Private secrets repo
