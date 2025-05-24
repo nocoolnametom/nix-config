@@ -161,7 +161,7 @@
   services.yubikey-touch-detector.enable = true;
 
   home = {
-    stateVersion = "24.11";
+    stateVersion = "25.05";
     username = lib.mkForce "deck";
     homeDirectory = lib.mkForce "/home/deck";
     sessionVariables.TERM = lib.mkForce "xterm-256color";
