@@ -44,7 +44,7 @@
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" 
   '';
 
-  programs.zsh.initExtra = ''
+  programs.zsh.initContent = ''
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
     [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
 
@@ -52,7 +52,7 @@
     alias fub="$(cat ${config.sops.secrets."work/shell-tools-aliases/alias1".path})"
   '';
 
-  home.stateVersion = "24.11";
+  home.stateVersion = "25.05";
   home.username = configVars.username;
   home.homeDirectory = lib.mkForce "/Users/${configVars.username}";
 }

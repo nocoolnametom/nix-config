@@ -424,7 +424,7 @@
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}/";
             proxyWebsockets = true;
             extraConfig = ''
-              auth_basic off;
+              proxy_buffering off;
             '';
           };
         };

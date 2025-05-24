@@ -37,6 +37,8 @@
 
   networking.hostName = configVars.networking.work.macbookpro.name;
 
+  system.primaryUser = configVars.username;
+
   # Move to import once this is working
   services.tailscale.enable = true;
 
