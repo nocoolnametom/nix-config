@@ -14,10 +14,23 @@
   # Hyprland
   wayland.windowManager.hyprland = {
     systemd.enable = true;
-    plugins = [
-      inputs.hy3.packages.${pkgs.system}.hy3
-      inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
-    ];
+    plugins =
+      [
+      ]
+      ++ (pkgs.lib.optionals
+        (builtins.hasAttr "hyprland" inputs && builtins.hasAttr "split-monitor-workspaces" inputs)
+        [
+          inputs.split-monitor-workspaces.packages.${pkgs.system}.split-monitor-workspaces
+        ]
+      )
+      ++ (pkgs.lib.optionals (configVars.use-hy3) [
+        (
+          if (builtins.hasAttr "hyprland" inputs) then
+            inputs.hy3.packages.${pkgs.system}.hy3
+          else
+            pkgs.hyprlandPlugins.hy3
+        )
+      ]);
     settings =
       let
         hlPlugEnabled =

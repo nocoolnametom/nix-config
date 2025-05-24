@@ -31,8 +31,6 @@
 
     # Styling for Visual Applications
     stylix.url = "github:danth/stylix/release-25.05";
-    # This might not be needed anymore: see flake.nix file of stylix project
-    stylix.inputs.base16-vim.url = "github:tinted-theming/base16-vim/577fe8125d74ff456cf942c733a85d769afe58b7";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
     stylix.inputs.home-manager.follows = "home-manager";
 
@@ -67,11 +65,11 @@
     # plasma-manager.inputs.home-manager.follows = "home-manager";
 
     # Hyprland
-    hyprland.url = "github:hyprwm/Hyprland?submodules=1";
-    hy3.url = "github:outfoxxed/hy3";
-    hy3.inputs.hyprland.follows = "hyprland";
-    split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
-    split-monitor-workspaces.inputs.hyprland.follows = "hyprland";
+    # hyprland.url = "github:hyprwm/Hyprland?submodules=1";
+    # hy3.url = "github:outfoxxed/hy3";
+    # hy3.inputs.hyprland.follows = "hyprland";
+    # split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
+    # split-monitor-workspaces.inputs.hyprland.follows = "hyprland";
 
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
@@ -112,9 +110,9 @@
       nix-flatpak,
       # nixos-cosmic,
       # plasma-manager,
-      hyprland,
-      hy3,
-      split-monitor-workspaces,
+      # hyprland,
+      # hy3,
+      # split-monitor-workspaces,
       disposable-email-domains,
       my-wordpress-plugins,
       my-sd-models,
