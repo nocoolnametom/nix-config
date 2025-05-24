@@ -1,6 +1,14 @@
-{ pkgs, lib, ... }:
+{
+  inputs,
+  pkgs,
+  lib,
+  ...
+}:
 {
   imports = [
+    # Home-Manager modules from the Flake input
+    inputs.hyprland.homeManagerModules.default
+
     # Window Manager
     ./hyprland
 

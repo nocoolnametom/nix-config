@@ -6,7 +6,10 @@
 }:
 {
   pre-commit-check = inputs.pre-commit-hooks.lib.${system}.run {
-    src = ./.;
+    src = builtins.path {
+      path = ./.;
+      name = "pre-commit-check-source";
+    };
     default_stages = [ "pre-commit" ];
     hooks = {
       # ========== General ==========

@@ -36,12 +36,8 @@
     liberation_ttf
     powerline-fonts
     powerline-symbols
-    (nerdfonts.override {
-      fonts = [
-        "NerdFontsSymbolsOnly"
-        "DroidSansMono"
-      ];
-    })
+    nerd-fonts.symbols-only
+    nerd-fonts.droid-sans-mono
   ];
 
   # home.pointerCursor.gtk.enable = true;

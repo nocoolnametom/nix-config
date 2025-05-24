@@ -4,9 +4,9 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    #nixpkgs.url = "github:NixOS/nixpkgs/release-24.11";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-24.11";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-24.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
+    #nixpkgs.url = "github:NixOS/nixpkgs/release-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
 
     determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
@@ -14,15 +14,15 @@
     impermanence.url = "github:nix-community/impermanence";
 
     # Lanzaboote Secure Bootloader for NixOS
-    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.1";
+    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.2";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    home-manager.url = "github:nix-community/home-manager/release-24.11";
+    home-manager.url = "github:nix-community/home-manager/release-25.05";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-24.11";
+    nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-25.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
@@ -30,7 +30,7 @@
     #################### Utilities ####################
 
     # Styling for Visual Applications
-    stylix.url = "github:danth/stylix/release-24.11";
+    stylix.url = "github:danth/stylix/release-25.05";
     # This might not be needed anymore: see flake.nix file of stylix project
     stylix.inputs.base16-vim.url = "github:tinted-theming/base16-vim/577fe8125d74ff456cf942c733a85d769afe58b7";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
@@ -67,9 +67,11 @@
     # plasma-manager.inputs.home-manager.follows = "home-manager";
 
     # Hyprland
-    # hyprland.url = "github:hyprwm/Hyprland";
-    # split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
-    # split-monitor-workspaces.inputs.hyprland.follows = "hyprland"; # <- make sure this line is present for the plugin to work as intended
+    hyprland.url = "github:hyprwm/Hyprland?submodules=1";
+    hy3.url = "github:outfoxxed/hy3";
+    hy3.inputs.hyprland.follows = "hyprland";
+    split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
+    split-monitor-workspaces.inputs.hyprland.follows = "hyprland";
 
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
@@ -110,7 +112,9 @@
       nix-flatpak,
       # nixos-cosmic,
       # plasma-manager,
-      # split-monitor-workspaces,
+      hyprland,
+      hy3,
+      split-monitor-workspaces,
       disposable-email-domains,
       my-wordpress-plugins,
       my-sd-models,
