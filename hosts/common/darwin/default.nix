@@ -32,7 +32,6 @@
 
   # We're now using Determinate for security purposes
   nix.enable = false;
-  services.nix-daemon.enable = false;
 
   # Ensure these tools are available for all users, even if it's just root on the system
   environment.systemPackages = [
