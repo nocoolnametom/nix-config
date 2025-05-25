@@ -645,6 +645,28 @@
         "type": "github"
       }
     },
+    "jovian": {
+      "inputs": {
+        "nix-github-actions": "nix-github-actions",
+        "nixpkgs": [
+          "nixpkgs-unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1747990026,
+        "narHash": "sha256-sG5VbID+x5+xUC+jjgHibnzg8IllVcH+K2TLmYHLPME=",
+        "owner": "Jovian-Experiments",
+        "repo": "Jovian-NixOS",
+        "rev": "e2f4ced874406541a7957f7e2b8f05a0d59a0f00",
+        "type": "github"
+      },
+      "original": {
+        "owner": "Jovian-Experiments",
+        "ref": "development",
+        "repo": "Jovian-NixOS",
+        "type": "github"
+      }
+    },
     "lanzaboote": {
       "inputs": {
         "crane": "crane",
@@ -771,6 +793,28 @@
         "owner": "gmodena",
         "ref": "latest",
         "repo": "nix-flatpak",
+        "type": "github"
+      }
+    },
+    "nix-github-actions": {
+      "inputs": {
+        "nixpkgs": [
+          "jovian",
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1729697500,
+        "narHash": "sha256-VFTWrbzDlZyFHHb1AlKRiD/qqCJIripXKiCSFS8fAOY=",
+        "owner": "zhaofengli",
+        "repo": "nix-github-actions",
+        "rev": "e418aeb728b6aa5ca8c5c71974e7159c2df1d8cf",
+        "type": "github"
+      },
+      "original": {
+        "owner": "zhaofengli",
+        "ref": "matrix-name",
+        "repo": "nix-github-actions",
         "type": "github"
       }
     },
@@ -1125,6 +1169,7 @@
         "hardware": "hardware",
         "home-manager": "home-manager",
         "impermanence": "impermanence",
+        "jovian": "jovian",
         "lanzaboote": "lanzaboote",
         "my-sd-models": "my-sd-models",
         "my-wordpress-plugins": "my-wordpress-plugins",

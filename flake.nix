@@ -71,15 +71,19 @@
     # split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
     # split-monitor-workspaces.inputs.hyprland.follows = "hyprland";
 
+    # Jovian SteamOS-like helpers
+    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
+    jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
+
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
     disposable-email-domains.flake = false;
 
+    #################### Personal Repositories ####################
     # My Wordpress Themes and Plugins
     my-wordpress-plugins.url = "github:nocoolnametom/my-wordpress-plugins";
     my-wordpress-plugins.inputs.nixpkgs.follows = "nixpkgs";
 
-    #################### Personal Repositories ####################
     # My SD models for various machines
     # Authenticate via ssh and use shallow clone (in case I ever put a model in here)
     # my-sd-models.url = "path:/home/tdoggett/Projects/nocoolnametom/my-sd-models"; # For testing
@@ -113,6 +117,7 @@
       # hyprland,
       # hy3,
       # split-monitor-workspaces,
+      jovian,
       disposable-email-domains,
       my-wordpress-plugins,
       my-sd-models,

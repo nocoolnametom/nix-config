@@ -43,12 +43,14 @@
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/pipewire.nix" # audio
       "hosts/common/optional/services/printing.nix"
-      "hosts/common/optional/alvr.nix"
+      "hosts/common/optional/services/wivrn.nix"
+      # "hosts/common/optional/alvr.nix"
       "hosts/common/optional/cross-compiling.nix"
       "hosts/common/optional/gnome.nix"
+      # "hosts/common/optional/jovian.nix"
       "hosts/common/optional/nvidia.nix"
       "hosts/common/optional/steam.nix"
-      "hosts/common/optional/vr.nix"
+      # "hosts/common/optional/vr.nix" # Not sure if this is needed after 25.05...
 
       #################### Users to Create ####################
       # "home/${configVars.username}/persistence/smeagol.nix"

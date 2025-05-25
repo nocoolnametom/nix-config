@@ -6,7 +6,7 @@ let
 in
 {
   wayland.windowManager.hyprland.settings.exec-once = [
-    "${networkmanagerapplet} &"
-    "${policykitAgentCmd} &"
+    "${pkgs.uwsm}/bin/uwsm app -- ${networkmanagerapplet}"
+    "${pkgs.uwsm}/bin/uwsm app -- ${policykitAgentCmd}"
   ];
 }
