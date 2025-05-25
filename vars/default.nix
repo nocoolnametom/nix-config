@@ -16,5 +16,5 @@
   gitHubEmail = "810877+nocoolnametom@users.noreply.github.com";
   gitLabEmail = "2724098-nocoolnametom@users.noreply.gitlab.com";
   persistFolder = "/persist";
-  use-hy3 = false;
+  use-hy3 = true;
 }

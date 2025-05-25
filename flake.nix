@@ -64,13 +64,6 @@
     # plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
     # plasma-manager.inputs.home-manager.follows = "home-manager";
 
-    # Hyprland
-    # hyprland.url = "github:hyprwm/Hyprland?submodules=1";
-    # hy3.url = "github:outfoxxed/hy3";
-    # hy3.inputs.hyprland.follows = "hyprland";
-    # split-monitor-workspaces.url = "github:Duckonaut/split-monitor-workspaces";
-    # split-monitor-workspaces.inputs.hyprland.follows = "hyprland";
-
     # Jovian SteamOS-like helpers
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS/development";
     jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
@@ -115,8 +108,6 @@
       # nixos-cosmic,
       # plasma-manager,
       # hyprland,
-      # hy3,
-      # split-monitor-workspaces,
       jovian,
       disposable-email-domains,
       my-wordpress-plugins,
