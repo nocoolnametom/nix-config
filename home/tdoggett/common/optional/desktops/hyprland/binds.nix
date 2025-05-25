@@ -7,32 +7,24 @@
 }:
 
 let
+  usingSplit = config.wayland.windowManager.hyprland.settings.plugin.hyprsplit.enabled;
+  usingHy3 = config.wayland.windowManager.hyprland.settings.plugin.hy3.enabled;
   menuCmd = "${pkgs.uwsm}/bin/uwsm app -- ${pkgs.wofi}/bin/wofi --show drun";
   termCmd = "${pkgs.uwsm}/bin/uwsm app -- ${pkgs.kitty}/bin/kitty";
   fileBrowseCmd = "${pkgs.uwsm}/bin/uwsm app -- ${pkgs.xfce.thunar}/bin/thunar";
 
-  hlPlugEnabled =
-    pluginName:
-    builtins.hasAttr "plugin:${pluginName}" config.wayland.windowManager.hyprland.settings
-    && config.wayland.windowManager.hyprland.settings."plugin:${pluginName}".enabled ? false;
-  hlPlugEnableCmd =
-    pluginName: pluginCmd: nonpluginCmd:
-    if (hlPlugEnabled pluginName) then pluginCmd else nonpluginCmd;
-  moveFocus = hlPlugEnableCmd "hy3" "hy3:movefocus" "movefocus";
-  moveWindow = hlPlugEnableCmd "hy3" "hy3:movewindow" "movewindow";
+  movePrefix = if usingHy3 then "hy3:" else "";
+  moveFocus = "${movePrefix}movefocus";
+  moveWindow = "${movePrefix}movewindow";
   splitChangeMonitorLeftCmd =
-    hlPlugEnableCmd "split-monitor-workspaces" "split-changemonitor, l"
-      "exec, :";
+    if usingSplit then "split:swapactiveworkspaces, current -1" else "exec, :";
   splitChangeMonitorRightCmd =
-    hlPlugEnableCmd "split-monitor-workspaces" "split-changemonitor, r"
-      "exec, :";
-  workspaceCmd = hlPlugEnableCmd "split-monitor-workspaces" "split-workspace" "workspace";
-  moveToWorkspaceCmd =
-    hlPlugEnableCmd "split-monitor-workspaces" "split-movetoworkspace"
-      "movetoworkspace";
+    if usingSplit then "split:swapactiveworkspaces, current +1" else "exec, :";
+  workspaceCmd = if usingSplit then "split:workspace" else "workspace";
+  moveToWorkspaceCmdPrefix = if usingHy3 then "hy3:" else (if usingSplit then "split:" else "");
+  moveToWorkspaceCmd = "${moveToWorkspaceCmdPrefix}movetoworkspace";
   moveToWorkspaceSilentCmd =
-    hlPlugEnableCmd "split-monitor-workspaces" "split-movetoworkspacesilent"
-      "movetoworkspacesilent";
+    if usingSplit then "split:movetoworkspacesilent" else "movetoworkspacesilent";
   spotlightApp = keypress: exec: ''
     bind = , ${keypress}, exec, ${pkgs.uwsm}/bin/uwsm app -- ${exec}
     bind = , ${keypress}, submap, reset
@@ -60,6 +52,9 @@ in
       "$mainMod, D, exec, ${menuCmd}"
       "$mainMod, P, pseudo," # dwindle
       "$mainMod, A, fullscreen, 1" # fullscreen toggle (covers All of screen)
+
+      # Cleanup orphaned windows on missing monitors if using hyprsplit
+      "$mainMod, G, ${if usingSplit then "split:grabroguewindows" else "exec, :"}"
 
       # Move focus with mainMod + hjkl and arrow keys
       "$mainMod, H, ${moveFocus}, l"
