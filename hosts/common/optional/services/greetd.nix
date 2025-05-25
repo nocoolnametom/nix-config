@@ -34,12 +34,12 @@ in
       restart = lib.mkDefault true;
       settings = {
         default_session = {
-          command = lib.mkDefault "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time --time-format '%I:%M %p | %a • %h | %F' --cmd Hyprland";
+          command = lib.mkDefault "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time --time-format '%I:%M %p | %a • %h | %F' --cmd ${pkgs.uwsm}/bin/uwsm start hyprland.desktop";
           user = lib.mkForce "${cfg.username}";
         };
 
         initial_session = lib.mkIf cfg.enable {
-          command = lib.mkDefault "${config.programs.hyprland.package}/bin/Hyprland";
+          command = lib.mkDefault "${pkgs.uwsm}/bin/uwsm start ${config.programs.hyprland.package}/bin/Hyprland";
           user = lib.mkDefault "${cfg.username}";
         };
       };

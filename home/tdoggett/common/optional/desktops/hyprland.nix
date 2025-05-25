@@ -25,6 +25,7 @@
     ]);
 
   wayland.windowManager.hyprland.enable = lib.mkDefault true;
+  wayland.windowManager.hyprland.systemd.enable = lib.mkDefault false;
 
   programs.wofi.enable = lib.mkDefault true;
   programs.hyprlock.enable = lib.mkDefault true;

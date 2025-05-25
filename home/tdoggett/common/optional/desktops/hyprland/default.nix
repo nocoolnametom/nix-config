@@ -53,7 +53,7 @@
 
         # Dynamic Cursors
         "plugin:dynamic-cursors" = {
-          enabled = false;
+          enabled = true;
           mode = "tilt"; # tilt, rotate, stretch, none
           threshold = 2;
           tilt = {

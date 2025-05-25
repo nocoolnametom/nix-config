@@ -1,6 +1,7 @@
 {
   inputs,
   pkgs,
+  lib,
   configVars,
   ...
 }:
@@ -25,7 +26,7 @@ in
   };
 
   # Auto-login through Greetd and TuiGreet to Hyprland
-  autoLogin.enable = true;
+  autoLogin.enable = lib.mkDefault false;
   autoLogin.username = configVars.username;
 
   environment.systemPackages = with pkgs; [

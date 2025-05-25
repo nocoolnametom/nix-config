@@ -7,9 +7,9 @@
 }:
 
 let
-  menuCmd = "${pkgs.wofi}/bin/wofi --show drun";
-  termCmd = "${pkgs.kitty}/bin/kitty";
-  fileBrowseCmd = "${pkgs.xfce.thunar}/bin/thunar";
+  menuCmd = "${pkgs.uwsm}/bin/uwsm app -- ${pkgs.wofi}/bin/wofi --show drun";
+  termCmd = "${pkgs.uwsm}/bin/uwsm app -- ${pkgs.kitty}/bin/kitty";
+  fileBrowseCmd = "${pkgs.uwsm}/bin/uwsm app -- ${pkgs.xfce.thunar}/bin/thunar";
 
   hlPlugEnabled =
     pluginName:
@@ -34,7 +34,7 @@ let
     hlPlugEnableCmd "split-monitor-workspaces" "split-movetoworkspacesilent"
       "movetoworkspacesilent";
   spotlightApp = keypress: exec: ''
-    bind = , ${keypress}, exec, ${exec}
+    bind = , ${keypress}, exec, ${pkgs.uwsm}/bin/uwsm app -- ${exec}
     bind = , ${keypress}, submap, reset
   '';
   submap = name: startBind: binds: ''
