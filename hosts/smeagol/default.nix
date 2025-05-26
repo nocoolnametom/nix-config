@@ -55,7 +55,7 @@
     ]);
 
   # Plymouth
-  boot.plymouth.logo = lib.mkDefault "${pkgs.steam}/share/icons/hicolor/48x48/apps/steam.png";
+  boot.plymouth.logo = "${pkgs.steam}/share/icons/hicolor/48x48/apps/steam.png";
 
   # NzbGet Server - Current module is very bert-centric
   services.nzbget.enable = true;
