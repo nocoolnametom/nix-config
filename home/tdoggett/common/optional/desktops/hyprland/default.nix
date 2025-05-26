@@ -85,6 +85,12 @@
         layout = if (configVars.use-hy3) then "hy3" else "dwindle"; # dwindle, hy3
       };
 
+      cursor = {
+        warp_on_change_workspace = true;
+        persistent_warps = true;
+        inactive_timeout = 10;
+      };
+
       # Some decoration is handled by the stylix module
       decoration = {
         rounding = "5";
