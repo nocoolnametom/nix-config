@@ -34,29 +34,28 @@
       "hosts/common/core"
 
       #################### Host-specific Optional Configs ####################
-      # "hosts/common/optional/boot/plymouth.nix"
+      "hosts/common/optional/boot/plymouth.nix"
       "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
       "hosts/common/optional/services/comfyui/default.nix"
       "hosts/common/optional/services/flatpak.nix"
-      # "hosts/common/optional/services/greetd.nix"
       "hosts/common/optional/services/ollama.nix"
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/pipewire.nix" # audio
       "hosts/common/optional/services/printing.nix"
       "hosts/common/optional/services/stashapp.nix"
       "hosts/common/optional/services/wivrn.nix"
-      # "hosts/common/optional/alvr.nix"
       "hosts/common/optional/cross-compiling.nix"
-      # "hosts/common/optional/gnome.nix"
       "hosts/common/optional/jovian.nix"
       "hosts/common/optional/nvidia.nix"
       "hosts/common/optional/steam.nix"
-      # "hosts/common/optional/vr.nix" # Not sure if this is needed after 25.05...
 
       #################### Users to Create ####################
       # "home/${configVars.username}/persistence/smeagol.nix"
       "hosts/common/users/${configVars.username}"
     ]);
+
+  # Plymouth
+  boot.plymouth.logo = lib.mkDefault "${pkgs.steam}/share/icons/hicolor/48x48/apps/steam.png";
 
   # NzbGet Server - Current module is very bert-centric
   services.nzbget.enable = true;

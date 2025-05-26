@@ -121,6 +121,7 @@
 
   # Security
   security.apparmor.enable = true;
+  security.sudo.wheelNeedsPassword = false;
 
   # Optional, hint electron apps to use wayland:
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
