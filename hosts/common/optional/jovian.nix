@@ -21,7 +21,7 @@
   services.desktopManager.plasma6.enable = true;
   jovian.steam.desktopSession = "plasma";
 
-  services.greetd.settings.default_session.command = lib.mkForce config.services.greetd.setting.initial_session.command;
+  services.greetd.settings.default_session.command = lib.mkForce config.services.greetd.settings.initial_session.command;
   services.greetd.settings.initial_session.command =
     lib.mkForce "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --remember --remember-session - --time";
 }
