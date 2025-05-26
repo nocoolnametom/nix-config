@@ -105,25 +105,54 @@
     neededForBoot = true;
   };
 
-  # TODO: Do NOT merge before actually formatting the drive and building these subvolumes!!
   fileSystems."/var/lib/ollama/models" = {
-    device = "/dev/disk/by-label/secondary";
+    device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";
     options = [
       "subvol=models-ollama"
+      "users"
+      "auto"
       "compress=zstd"
-      "noatime"
+      "nofail"
       "defaults"
     ];
   };
 
   fileSystems."/var/lib/stable-diffusion/models" = {
-    device = "/dev/disk/by-label/secondary";
+    device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";
     options = [
       "subvol=models-sd"
+      "users"
+      "auto"
       "compress=zstd"
-      "noatime"
+      "nofail"
+      "defaults"
+    ];
+  };
+
+  fileSystems."/var/lib/stashapp/data" = {
+    device = "/dev/disk/by-label/Insignia";
+    fsType = "btrfs";
+    options = [
+      "subvol=stashapp"
+      "users"
+      "auto"
+      "compress=zstd"
+      "nofail"
+      "defaults"
+    ];
+  };
+
+  fileSystems."/mnt/d" = {
+    device = "/dev/disk/by-label/Insignia";
+    fsType = "btrfs";
+    options = [
+      "subvol=shared"
+      "users"
+      "auto"
+      "compress=zstd"
+      "nofail"
       "defaults"
     ];
   };
