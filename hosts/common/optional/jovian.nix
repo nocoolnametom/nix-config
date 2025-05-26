@@ -15,13 +15,13 @@
   jovian.steam.autoStart = lib.mkDefault true;
   jovian.steam.user = lib.mkDefault configVars.username;
 
-  autoLogin.enable = lib.mkDefault true;
-  autoLogin.username = lib.mkDefault configVars.username;
+  environment.sessionVariables.NIXOS_OZONE_WL = lib.mkDefault "1";
+
+  jovian.steam.environment = {} // (lib.optional ((lib.attrsets.hasAttrByPath ["services" "wivrn" "enable"] config) && (config.services.wivrn.enable)) {
+    PRESSURE_VESSEL_FILESYSTEMS_RW = "$XDG_RUNTIME_DIR/wivrn/comp_ipc";
+  });
 
   services.desktopManager.plasma6.enable = true;
+  services.xserver.enable = false;
   jovian.steam.desktopSession = "plasma";
-
-  services.greetd.settings.default_session.command = lib.mkForce config.services.greetd.settings.initial_session.command;
-  services.greetd.settings.initial_session.command =
-    lib.mkForce "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --remember --remember-session - --time";
 }
