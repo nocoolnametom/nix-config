@@ -15,13 +15,29 @@
   # This one contains whatever you want to overlay
   # You can change versions, add patches, set compilation flags, anything really.
   # https://wiki.nixos.org/wiki/Overlays
-  modifications = final: _prev: {
+  modifications = final: prev: {
     # example = prev.example.overrideAttrs (oldAttrs: let ... in {
     # ...
     # });
     # I'm not using zen and dislike having to keep rebuild it
     # zen-browser-flake = inputs.zen-browser.packages.${final.system};
     myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
+    python312 = prev.python312.override {
+      packageOverrides = self: super: {
+        rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
+          disabledTests =
+            [
+              # Needs Internet access
+              "test_long_img"
+            ]
+            ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
+              # segfault when built with cuda support but GPU is not availaible in build environment
+              "test_ort_cuda_warning"
+              "test_ort_dml_warning"
+            ];
+        });
+      };
+    };
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
