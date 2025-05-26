@@ -22,6 +22,8 @@
     # I'm not using zen and dislike having to keep rebuild it
     # zen-browser-flake = inputs.zen-browser.packages.${final.system};
     myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
+    # Fixes installation of open-webui
+    # See if https://github.com/NixOS/nixpkgs/pull/382920 has been merged, if so you can remove this!
     python312 = prev.python312.override {
       packageOverrides = self: super: {
         rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
