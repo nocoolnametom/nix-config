@@ -43,6 +43,7 @@
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/pipewire.nix" # audio
       "hosts/common/optional/services/printing.nix"
+      "hosts/common/optional/services/stashapp.nix"
       "hosts/common/optional/services/wivrn.nix"
       # "hosts/common/optional/alvr.nix"
       "hosts/common/optional/cross-compiling.nix"
@@ -56,6 +57,25 @@
       # "home/${configVars.username}/persistence/smeagol.nix"
       "hosts/common/users/${configVars.username}"
     ]);
+
+  # NzbGet Server - Current module is very bert-centric
+  services.nzbget.enable = true;
+  systemd.services.nzbget.path = with pkgs; [
+    unrar
+    unzip
+    xz
+    bzip2
+    gnutar
+    p7zip
+    (pkgs.python3.withPackages (
+      p: with p; [
+        requests
+        pandas
+        configparser
+      ]
+    ))
+    ffmpeg
+  ];
 
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
