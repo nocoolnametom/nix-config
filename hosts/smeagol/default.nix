@@ -76,7 +76,7 @@
   services.open-webui.host = "0.0.0.0";
 
   # Some Jovian stuff just for smeagol
-  jovian.devices.steamdeck = lib.mkForce false;
+  jovian.devices.steamdeck.enable = lib.mkForce false;
   jovian.hardware.has.amd.gpu = lib.mkForce false;
   security.pam.services.geetd.text = lib.mkForce "";
 
