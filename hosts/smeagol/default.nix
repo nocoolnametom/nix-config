@@ -46,8 +46,8 @@
       "hosts/common/optional/services/wivrn.nix"
       # "hosts/common/optional/alvr.nix"
       "hosts/common/optional/cross-compiling.nix"
-      "hosts/common/optional/gnome.nix"
-      # "hosts/common/optional/jovian.nix"
+      # "hosts/common/optional/gnome.nix"
+      "hosts/common/optional/jovian.nix"
       "hosts/common/optional/nvidia.nix"
       "hosts/common/optional/steam.nix"
       # "hosts/common/optional/vr.nix" # Not sure if this is needed after 25.05...
@@ -74,10 +74,6 @@
   # Open-WebUI is a web-frontend for chatting with ollama
   services.open-webui.enable = true;
   services.open-webui.host = "0.0.0.0";
-
-  # Prevent GreetD from using Hyprland as it's not being used right now
-  services.greetd.settings.default_session.command =
-    "${pkgs.greetd.tuigreet}/bin/tuigreet --asterisks --time";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
