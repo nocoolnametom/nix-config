@@ -34,7 +34,6 @@
       "hosts/common/core"
 
       #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/boot/plymouth.nix"
       "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
       "hosts/common/optional/services/comfyui/default.nix"
       "hosts/common/optional/services/flatpak.nix"
@@ -53,9 +52,6 @@
       # "home/${configVars.username}/persistence/smeagol.nix"
       "hosts/common/users/${configVars.username}"
     ]);
-
-  # Plymouth
-  boot.plymouth.logo = "${pkgs.steam}/share/icons/hicolor/48x48/apps/steam.png";
 
   # NzbGet Server - Current module is very bert-centric
   services.nzbget.enable = true;
