@@ -14,6 +14,7 @@
       ./wofi.nix
       ./hyprlock.nix
       ./waybar.nix
+      ./waycorner.nix
 
       # Desktop-related Services (enable below)
       ./services/swaync.nix

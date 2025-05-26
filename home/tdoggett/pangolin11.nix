@@ -36,6 +36,9 @@
   wayland.windowManager.hyprland.settings."$laptopScreen" = "eDP-1";
   wayland.windowManager.hyprland.settings."$bigExternalScreen" = "DP-1";
 
+  services.waycorner.settings.main-monitor.output.description = "0x1502";
+  services.waycorner.settings.side-monitor.output.description = "S3221QS 2H1S6N3";
+
   services.gpg-agent.enable = true;
   services.playerctld.enable = true;
   services.blueman-applet.enable = true;
