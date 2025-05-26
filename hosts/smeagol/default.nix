@@ -38,7 +38,7 @@
       "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
       "hosts/common/optional/services/comfyui/default.nix"
       "hosts/common/optional/services/flatpak.nix"
-      "hosts/common/optional/services/greetd.nix"
+      # "hosts/common/optional/services/greetd.nix"
       "hosts/common/optional/services/ollama.nix"
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/pipewire.nix" # audio
@@ -74,6 +74,11 @@
   # Open-WebUI is a web-frontend for chatting with ollama
   services.open-webui.enable = true;
   services.open-webui.host = "0.0.0.0";
+
+  # Some Jovian stuff just for smeagol
+  jovian.devices.steamdeck = lib.mkForce false;
+  jovian.hardware.has.amd.gpu = lib.mkForce false;
+  security.pam.services.geetd.text = lib.mkForce "";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
