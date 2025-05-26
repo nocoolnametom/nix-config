@@ -98,6 +98,7 @@
   # Some Jovian stuff just for smeagol
   jovian.devices.steamdeck.enable = lib.mkForce false;
   jovian.hardware.has.amd.gpu = lib.mkForce false;
+  systemd.targets.suspend.enable = lib.mkForce false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
