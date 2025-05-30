@@ -71,11 +71,17 @@
     ))
     ffmpeg
   ];
+  users.users."${configVars.username}".extraGroups = [
+    config.services.stashapp.group
+  ];
   users.users.nzbget.extraGroups = [
     config.services.stashapp.group
   ];
   users.users.stashapp.extraGroups = [
     config.services.nzbget.group
+  ];
+  systemd.tmpfiles.rules = [
+    "d ${config.users.users.stashapp.home} 770 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
   ];
 
   # Comfy Models
