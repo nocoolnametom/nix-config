@@ -16,6 +16,7 @@ rec {
   split-my-cbz = pkgs.callPackage ./split-my-cbz { };
   update-cbz-tags = pkgs.callPackage ./update-cbz-tags { };
   stashapp = pkgs.callPackage ./stashapp { };
+  stash-vr = pkgs.callPackage ./stash-vr { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
 }

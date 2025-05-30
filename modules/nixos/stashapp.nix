@@ -69,6 +69,29 @@ in
       defaultText = lib.literalExpression "pkgs.stashapp-tools";
       description = "Stashapp python tools package to use.";
     };
+
+    vr-helper = {
+      enable = lib.mkEnableOption "Enable Stashapp service";
+
+      port = lib.mkOption {
+        type = lib.types.int;
+        default = 9666;
+        description = "The port that stash-vr serves to.";
+      };
+
+      apiEnvironmentVariableFile = lib.mkOption {
+        type = lib.types.str;
+        default = "";
+        description = "Optional file containing stash API key behind a key of STASH_API_KEY.";
+      };
+
+      package = lib.mkOption {
+        type = lib.types.package;
+        default = pkgs.stashvr; # From local packages!
+        defaultText = lib.literalExpression "pkgs.stash-vr";
+        description = "Stash-vr package to use.";
+      };
+    };
   };
 
   config = lib.mkIf cfg.enable (
@@ -107,6 +130,33 @@ in
 
         script = "${cfg.package}/bin/stashapp";
         scriptArgs = "--nobrowser";
+
+        serviceConfig = {
+          Type = "simple";
+          Restart = "on-failure";
+          # User and group
+          User = cfg.user;
+          Group = cfg.group;
+        };
+      };
+
+      systemd.services.stash-vr = {
+        enable = cfg.vr-helper.enable;
+        description = "Stash-vr daemon";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
+        restartIfChanged = true; # Whether to restart on a nixos-rebuild
+        environmentFile = [
+          cfg.vr-helper.apiEnvironmentVariableFile
+        ];
+        environment = {
+          STASH_GRAPHQL_URL = "http://127.0.0.1:${toString cfg.port}/graphql";
+        };
+
+        script = "${cfg.vr-helper.package}/bin/stash-vr";
+        scriptArgs = [
+          "--LISTEN_ADDRESS:${cfg.vr-helper.port}"
+        ];
 
         serviceConfig = {
           Type = "simple";
