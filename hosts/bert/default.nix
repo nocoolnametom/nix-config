@@ -64,6 +64,16 @@
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
+  # Enable stash-vr
+  services.stashapp.vr-helper.enable = true;
+  sops.secrets = {
+    "bert-stashapp-api-key" = { };
+  };
+  sops.templates."stash-vr.conf".content = ''
+    STASH_API_KEY=${config.sops.placeholder."bert-stashapp-api-key"}
+  '';
+  services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
+
   ## Imports overrides
   # Turn off torrenting services
   services.deluge.enable = false;

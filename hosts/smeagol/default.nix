@@ -84,13 +84,14 @@
     "d ${config.users.users.stashapp.home} 775 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
     "d ${config.users.users.stashapp.home}/data/data.dat/av1 777 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
   ];
+  services.stashapp.vr-helper.enable = true;
   sops.secrets = {
     "smeagol-stashapp-api-key" = { };
   };
   sops.templates."stash-vr.conf".content = ''
     STASH_API_KEY=${config.sops.placeholder."smeagol-stashapp-api-key"}
   '';
-  services.stash.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
+  services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
 
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
