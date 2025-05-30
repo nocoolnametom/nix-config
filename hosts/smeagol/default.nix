@@ -71,6 +71,12 @@
     ))
     ffmpeg
   ];
+  users.users.nzbget.extraGroups = [
+    config.services.stashapp.group
+  ];
+  users.users.stashapp.extraGroups = [
+    config.services.nzbget.group
+  ];
 
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
