@@ -73,6 +73,12 @@ in
     vr-helper = {
       enable = lib.mkEnableOption "Enable Stashapp service";
 
+      stash-host = lib.mkOption {
+        type = lib.types.str;
+        default = "http://127.0.0.1";
+        description = "Accessible host running stash - used by clients, not by the vr helper.";
+      };
+
       port = lib.mkOption {
         type = lib.types.int;
         default = 9666;
@@ -147,7 +153,7 @@ in
         wantedBy = [ "multi-user.target" ];
         restartIfChanged = true; # Whether to restart on a nixos-rebuild
         environment = {
-          STASH_GRAPHQL_URL = "http://127.0.0.1:${toString cfg.port}/graphql";
+          STASH_GRAPHQL_URL = "${cfg.vr-helper.stash-host}/graphql";
         };
 
         script = "${cfg.vr-helper.package}/bin/stash-vr";
