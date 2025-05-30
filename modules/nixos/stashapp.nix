@@ -87,7 +87,7 @@ in
 
       package = lib.mkOption {
         type = lib.types.package;
-        default = pkgs.stashvr; # From local packages!
+        default = pkgs.stash-vr; # From local packages!
         defaultText = lib.literalExpression "pkgs.stash-vr";
         description = "Stash-vr package to use.";
       };
@@ -146,17 +146,12 @@ in
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
         restartIfChanged = true; # Whether to restart on a nixos-rebuild
-        environmentFile = [
-          cfg.vr-helper.apiEnvironmentVariableFile
-        ];
         environment = {
           STASH_GRAPHQL_URL = "http://127.0.0.1:${toString cfg.port}/graphql";
         };
 
         script = "${cfg.vr-helper.package}/bin/stash-vr";
-        scriptArgs = [
-          "--LISTEN_ADDRESS:${cfg.vr-helper.port}"
-        ];
+        scriptArgs = "--LISTEN_ADDRESS:${toString cfg.vr-helper.port}";
 
         serviceConfig = {
           Type = "simple";
@@ -164,6 +159,9 @@ in
           # User and group
           User = cfg.user;
           Group = cfg.group;
+          EnvironmentFile = [
+            cfg.vr-helper.apiEnvironmentVariableFile
+          ];
         };
       };
 
