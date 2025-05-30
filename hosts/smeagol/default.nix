@@ -81,7 +81,8 @@
     config.services.nzbget.group
   ];
   systemd.tmpfiles.rules = [
-    "d ${config.users.users.stashapp.home} 770 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
+    "d ${config.users.users.stashapp.home} 775 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
+    "d ${config.users.users.stashapp.home}/data/data.dat/av1 777 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
   ];
 
   # Comfy Models
