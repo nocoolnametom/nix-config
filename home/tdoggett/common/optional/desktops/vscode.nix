@@ -48,6 +48,9 @@
         "workbench.activityBar.location" = "top";
         "workbench.editor.pinnedTabsOnSeparateRow" = true;
         "workbench.editor.wrapTabs" = true;
+        "mcp.servers.my-mcp-server.type" = "playwright";
+        "mcp.servers.my-mcp-server.command" = "${pkgs.nodejs}/bin/npx";
+        "mcp.servers.my-mcp-server.args" = [ "@playwright/mcp@latest ];
       };
     };
   };
