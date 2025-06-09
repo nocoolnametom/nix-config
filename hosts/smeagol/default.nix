@@ -140,6 +140,8 @@
     unzip
     vim
     wget
+    libation
+    google-chrome
   ];
 
   # Run AppImages directly
