@@ -94,7 +94,7 @@
         podfetch = [
           {
             name = "PodFetch gPodder";
-            icon = "fas fa-audio";
+            icon = "fas fa-podcast";
             url =
               if internal then
                 "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}/"
