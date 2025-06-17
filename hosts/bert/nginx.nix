@@ -91,6 +91,18 @@
             libraryType = "series";
           }
         ];
+        podfetch = [
+          {
+            name = "PodFetch gPodder";
+            icon = "fas fa-audio";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}/"
+              else
+                "https://${configVars.networking.subdomains.potfetch}.${configVars.homeDomain}";
+            target = "_blank";
+          }
+        ];
         ombi = lib.lists.optionals config.services.ombi.enable [
           {
             name = "Ombi Requests";
@@ -262,6 +274,7 @@
                   ++ deluge
                   ++ flood
                   ++ jellyfin
+                  ++ podfetch
                   ++ ombi
                   ++ navidrome
                   ++ nzbget
@@ -294,7 +307,7 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ kavita ++ audiobookshelf ++ sickgear ++ radarr;
+                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
               }
             ];
           }
@@ -422,6 +435,19 @@
         locations = {
           "/" = {
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_buffering off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}/";
             proxyWebsockets = true;
             extraConfig = ''
               proxy_buffering off;
@@ -664,6 +690,19 @@
         locations = {
           "/" = {
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.podfetch}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
