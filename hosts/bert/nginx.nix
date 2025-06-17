@@ -99,7 +99,7 @@
               if internal then
                 "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}/"
               else
-                "https://${configVars.networking.subdomains.potfetch}.${configVars.homeDomain}";
+                "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}";
             target = "_blank";
           }
         ];

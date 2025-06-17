@@ -66,7 +66,7 @@
 
   # Enable stash-vr
   services.stashapp.vr-helper.enable = false;
-  services.stashapp.vr-helper.stash-host = "https://${configVars.networking.subdomains.stash}.${domain}";
+  services.stashapp.vr-helper.stash-host = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
   sops.secrets = {
     "bert-stashapp-api-key" = { };
   };
