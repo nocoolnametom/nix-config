@@ -820,9 +820,9 @@
     },
     "nix-secrets": {
       "locked": {
-        "lastModified": 1750163116,
+        "lastModified": 1750861766,
         "ref": "main",
-        "rev": "004ef4b8136f387f3b5692d168467a988c214610",
+        "rev": "dc3764ea4619988d891fa8bcf6d5bb8ebd70576f",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"
