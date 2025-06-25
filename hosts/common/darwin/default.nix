@@ -22,8 +22,13 @@
         "hosts/common/core/zsh.nix"
       ])
     ++
-      # Ensure we've loaded the Home Manager module
-      [ inputs.home-manager.darwinModules.home-manager ]
+      [
+        # Ensure we've loaded the Home Manager module
+        inputs.home-manager.darwinModules.home-manager
+
+        # Load the sops module
+        inputs.sops-nix.darwinModules.sops
+      ]
     ++
       # Custom darwinModules as defined in the root flake
       (builtins.attrValues outputs.darwinModules);

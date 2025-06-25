@@ -43,6 +43,7 @@
   services.tailscale.enable = true;
 
   homebrew.enable = true;
+  homebrew.user = configVars.username;
   homebrew.onActivation.autoUpdate = true;
   homebrew.onActivation.cleanup = "uninstall";
   homebrew.onActivation.upgrade = true;
