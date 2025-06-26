@@ -702,10 +702,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1748117126,
-        "narHash": "sha256-v84OTP1p8PPa+Pc5CEwmyB5v2Z5SH7z8r/e1YsXYDJg=",
+        "lastModified": 1750950932,
+        "narHash": "sha256-Kn421iihiC9Vf7vu0mgYuyedBghcaDJN3/Ccai7l1S4=",
         "ref": "main",
-        "rev": "747f701ec58aa15019c196b71f08c4b532c00e70",
+        "rev": "85c9940372083af312670a200a662c334afe2988",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/my-sd-models.git"
