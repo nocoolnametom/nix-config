@@ -11,20 +11,20 @@
 }:
 
 let
-  pkgVersion = "0.8.4";
+  pkgVersion = "0.8.8";
 
   platforms = {
     aarch64-darwin = {
       name = "darwin_arm64";
-      sha256 = "037qcixq2lkvdc9cacmy9064ns3cz563k79pry922zik71pan1xz";
+      sha256 = "0i58wb5l8hn0qscqnhpxm7mqv5grclz0bc2srb7gja0x9dwn4s28";
     };
     aarch64-linux = {
       name = "linux_arm64";
-      sha256 = "08hk9r6v0mjcafw5nkf5cgp4ls17dml694z68zd12dbmw8n61wkz";
+      sha256 = "10z5psn6l7k3jqf68b68d1r3hys3srrblnsh2s3b2p3scqhih8xh";
     };
     x86_64-linux = {
       name = "linux_amd64";
-      sha256 = "0s4l4pvfm41b6b99yysvdnsj4nbpzwc8k1fzppja73sha5062mb7";
+      sha256 = "0gqxdba9zryqn5ii1xr2kb33s05h3jcb5nk5ynad61b9cvhjiqps";
     };
   };
 
