@@ -465,6 +465,20 @@
           };
         };
       };
+      "${configVars.networking.subdomains.standardnotes-server}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes-server}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+      };
       "${configVars.networking.subdomains.standardnotes-files}.${configVars.homeDomain}" = {
         enableACME = true;
         forceSSL = true;
@@ -731,6 +745,20 @@
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.standardnotes-server}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes-server}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
             '';
           };
         };
