@@ -48,7 +48,7 @@
         vscode = [
           {
             name = "VSCode";
-            icon = "fas fa-globe";
+            icon = "fas fa-code";
             url = "https://vscode.dev/+ms-vscode.remote-server/zg15993vmu";
             target = "_blank";
           }
@@ -56,7 +56,7 @@
         deluge = lib.lists.optionals config.services.deluge.web.enable [
           {
             name = "Deluge Torrents";
-            icon = "fas fa-tasks";
+            icon = "fas fa-broadcast-tower";
             url =
               if internal then
                 "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.delugeweb}/"
@@ -106,7 +106,7 @@
         ombi = lib.lists.optionals config.services.ombi.enable [
           {
             name = "Ombi Requests";
-            icon = "fas fa-television";
+            icon = "fas fa-people-carry";
             url =
               if internal then
                 "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.ombi.port}/"
@@ -154,7 +154,7 @@
         standardnotes = [
           {
             name = "Notes";
-            icon = "fas fa-notes";
+            icon = "fas fa-file-alt";
             url =
               if internal then
                 "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes}"
@@ -166,7 +166,7 @@
         kavita = [
           {
             name = "Comics";
-            icon = "fas fa-book";
+            icon = "fas fa-book-reader";
             url =
               if internal then
                 "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}"
@@ -178,7 +178,7 @@
         kavitan = [
           {
             name = "Manga";
-            icon = "fas fa-book";
+            icon = "fas fa-book-dead";
             url =
               if internal then
                 "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}"
@@ -190,7 +190,7 @@
         audiobookshelf = [
           {
             name = "Audiobooks";
-            icon = "fas fa-book";
+            icon = "fas fa-headphones";
             url =
               if internal then
                 "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}"
@@ -202,7 +202,7 @@
         comfyui = [
           {
             name = "Stable Diffusion";
-            icon = "fas fa-gears";
+            icon = "fas fa-fighter-jet";
             url =
               if internal then
                 "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}"
@@ -214,7 +214,7 @@
         comfyuimini = [
           {
             name = "Stable Diffusion Mobile";
-            icon = "fas fa-gears";
+            icon = "fas fa-paper-plane";
             url =
               if internal then
                 "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}"
@@ -226,7 +226,7 @@
         stashapp = lib.lists.optionals config.services.stashapp.enable [
           {
             name = "Stash Data";
-            icon = "fas fa-lock";
+            icon = "fas fa-user-lock";
             url =
               if internal then
                 "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.stashapp.port}/"
@@ -246,7 +246,7 @@
         sickgear = lib.lists.optionals config.services.sickbeard.enable [
           {
             name = "Sickgear TV";
-            icon = "fas fa-download";
+            icon = "fas fa-file-video";
             url =
               if internal then
                 "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.sickbeard.port}/tv/"
@@ -258,7 +258,7 @@
         radarr = lib.lists.optionals config.services.radarr.enable [
           {
             name = "Radarr Movies";
-            icon = "fas fa-download";
+            icon = "fas fa-film";
             url =
               if internal then
                 "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.radarr}/"
