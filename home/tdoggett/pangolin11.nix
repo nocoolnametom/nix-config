@@ -49,6 +49,7 @@
     gnumake
     remmina
     bottles
+    standardnotes
   ];
 
   home = {
