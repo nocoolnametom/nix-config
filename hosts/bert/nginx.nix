@@ -151,6 +151,18 @@
             target = "_blank";
           }
         ];
+        standardnotes = [
+          {
+            name = "Notes";
+            icon = "fas fa-notes";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes}"
+              else
+                "https://${configVars.networking.subdomains.standardnotes}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
         kavita = [
           {
             name = "Comics";
@@ -279,6 +291,7 @@
                   ++ navidrome
                   ++ nzbget
                   ++ calibreweb
+                  ++ standardnotes
                   ++ kavita
                   ++ kavitan
                   ++ audiobookshelf
@@ -307,7 +320,7 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
+                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ standardnotes ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
               }
             ];
           }
@@ -451,6 +464,20 @@
             proxyWebsockets = true;
             extraConfig = ''
               proxy_buffering off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.standardnotes}.${configVars.homeDomain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
             '';
           };
         };
@@ -693,6 +720,20 @@
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.standardnotes}.${configVars.domain}" = {
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
             '';
           };
         };
