@@ -353,9 +353,6 @@
         default = true;
         enableACME = true;
         forceSSL = true;
-        serverAliases = [
-          "www.${configVars.homeDomain}"
-        ];
 
         locations = (homeProxyPaths false) // {
           "/.well-known".root = "/var/lib/acme/acme-challenge";
