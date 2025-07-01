@@ -378,6 +378,7 @@
       "${configVars.homeDomain}" = {
         default = true;
         enableACME = true;
+        http2 = true;
         forceSSL = true;
 
         locations = (homeProxyPaths false) // {
@@ -386,6 +387,7 @@
       };
       "home.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         locations = (privateProxyPaths false) // {
@@ -402,6 +404,7 @@
       # Redirects
       "www.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -411,6 +414,7 @@
       };
       "house.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -420,6 +424,7 @@
       };
       "request.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -430,6 +435,7 @@
       # Deprecated Redirect
       "request.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -441,6 +447,7 @@
       # homeDomain Services
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -454,6 +461,7 @@
       };
       "${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -467,6 +475,7 @@
       };
       "${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -480,6 +489,7 @@
       };
       "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -493,6 +503,7 @@
       };
       "${configVars.networking.subdomains.standardnotes-server}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -507,6 +518,7 @@
       };
       "${configVars.networking.subdomains.standardnotes-files}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -521,6 +533,7 @@
       };
       "${configVars.networking.subdomains.standardnotes}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -535,6 +548,7 @@
       };
       "${configVars.networking.subdomains.tubesync}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -548,6 +562,7 @@
       };
       "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -561,6 +576,7 @@
       };
       "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -574,6 +590,7 @@
       };
       "${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations."/" = {
           proxyPass = "http://127.0.0.1:${builtins.toString config.services.navidrome.settings.Port}";
@@ -587,6 +604,7 @@
       };
       "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
@@ -594,6 +612,7 @@
       };
       "${configVars.networking.subdomains.radarr}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -607,6 +626,7 @@
       };
       "${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -622,6 +642,7 @@
       # domain Services
       "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
@@ -641,6 +662,7 @@
       };
       "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
@@ -660,6 +682,7 @@
       };
       "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -673,6 +696,7 @@
       };
       "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -686,6 +710,7 @@
       };
       "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -699,6 +724,7 @@
       };
       "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -712,6 +738,7 @@
       };
       "${configVars.networking.subdomains.phanpy}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations."/" = {
           root = pkgs.phanpy;
@@ -722,6 +749,7 @@
       };
       "${configVars.networking.subdomains.radarr}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -735,6 +763,7 @@
       };
       "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -748,6 +777,7 @@
       };
       "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -764,6 +794,7 @@
       # deprecated domain services (should be on homeDomain already, just need to move over)
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -777,6 +808,7 @@
       };
       "${configVars.networking.subdomains.calibreweb}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -790,6 +822,7 @@
       };
       "${configVars.networking.subdomains.jellyfin}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -803,6 +836,7 @@
       };
       "${configVars.networking.subdomains.standardnotes-server}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -817,6 +851,7 @@
       };
       "${configVars.networking.subdomains.standardnotes-files}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -831,6 +866,7 @@
       };
       "${configVars.networking.subdomains.standardnotes}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -845,6 +881,7 @@
       };
       "${configVars.networking.subdomains.tubesync}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -858,6 +895,7 @@
       };
       "${configVars.networking.subdomains.immich}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -871,6 +909,7 @@
       };
       "${configVars.networking.subdomains.kavita}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
@@ -884,6 +923,7 @@
       };
       "${configVars.networking.subdomains.ombi}.${configVars.domain}" = {
         enableACME = true;
+        http2 = true;
         forceSSL = true;
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
