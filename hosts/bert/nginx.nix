@@ -175,15 +175,15 @@
             target = "_blank";
           }
         ];
-        tube-archivist = [
+        tubesync = [
           {
-            name = "Tube Archivist";
+            name = "TubeSync";
             icon = "fas fa-photo-video";
             url =
               if internal then
-                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tube-archivist}"
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubesync}"
               else
-                "https://${configVars.networking.subdomains.tube-archivist}.${configVars.homeDomain}/";
+                "https://${configVars.networking.subdomains.tubesync}.${configVars.homeDomain}/";
             target = "_blank";
           }
         ];
@@ -317,7 +317,7 @@
                   ++ calibreweb
                   ++ standardnotes
                   ++ immich
-                  ++ tube-archivist
+                  ++ tubesync
                   ++ kavita
                   ++ kavitan
                   ++ audiobookshelf
@@ -346,7 +346,7 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ standardnotes ++ immich ++ tube-archivist ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
+                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ standardnotes ++ immich ++ tubesync ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
               }
             ];
           }
@@ -533,12 +533,12 @@
           };
         };
       };
-      "${configVars.networking.subdomains.tube-archivist}.${configVars.homeDomain}" = {
+      "${configVars.networking.subdomains.tubesync}.${configVars.homeDomain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tube-archivist}";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubesync}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -843,12 +843,12 @@
           };
         };
       };
-      "${configVars.networking.subdomains.tube-archivist}.${configVars.domain}" = {
+      "${configVars.networking.subdomains.tubesync}.${configVars.domain}" = {
         enableACME = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tube-archivist}";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubesync}";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
