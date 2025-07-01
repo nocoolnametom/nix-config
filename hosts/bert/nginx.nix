@@ -163,6 +163,30 @@
             target = "_blank";
           }
         ];
+        immich = [
+          {
+            name = "Photos";
+            icon = "fas fa-camera-retro";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}"
+              else
+                "https://${configVars.networking.subdomains.immich}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        tube-archivist = [
+          {
+            name = "Tube Archivist";
+            icon = "fas fa-photo-video";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tube-archivist}"
+              else
+                "https://${configVars.networking.subdomains.tube-archivist}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
         kavita = [
           {
             name = "Comics";
@@ -292,6 +316,8 @@
                   ++ nzbget
                   ++ calibreweb
                   ++ standardnotes
+                  ++ immich
+                  ++ tube-archivist
                   ++ kavita
                   ++ kavitan
                   ++ audiobookshelf
@@ -320,7 +346,7 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ standardnotes ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
+                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ standardnotes ++ immich ++ tube-archivist ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
               }
             ];
           }
@@ -516,6 +542,34 @@
             extraConfig = ''
               auth_basic off;
               proxy_cache off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.tube-archivist}.${configVars.homeDomain}" = {
+        http2 = true;
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tube-archivist}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
+        http2 = true;
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
             '';
           };
         };
@@ -821,6 +875,34 @@
             extraConfig = ''
               auth_basic off;
               proxy_cache off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.tube-archivist}.${configVars.domain}" = {
+        http2 = true;
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tube-archivist}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.immich}.${configVars.domain}" = {
+        http2 = true;
+        enableACME = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
             '';
           };
         };
