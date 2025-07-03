@@ -38,11 +38,13 @@ in
     bzip2
     gnutar
     p7zip
+    py7zr
     (pkgs.python3.withPackages (
       p: with p; [
         requests
         pandas
         configparser
+        py7zr
       ]
     ))
     ffmpeg
