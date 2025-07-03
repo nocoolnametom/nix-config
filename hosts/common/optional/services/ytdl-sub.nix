@@ -1,10 +1,6 @@
 { lib, ... }: 
 let
   jellyfinTubeDirectory = "/mnt/cirdan/smb/Jellyfin/TV_Shows/Tube";
-  newsDirectory = "${jellyfinTubeDirectory}/News";
-  generalDirectory = "${jellyfinTubeDirectory}/General";
-  documentatryDirectory = "${jellyfinTubeDirectory}/Documentaries";
-  politicsDirectory = "${jellyfinTubeDirectory}/Politics";
   my = {
     base = "mybase";
     short_term = "My Short Terms";
@@ -14,7 +10,7 @@ let
 in {
   services.ytdl-sub.instances.bert.enable = lib.mkDefault true;
   services.ytdl-sub.instances.bert.schedule = lib.mkDefault "daily";
-  services.ytdl-sub.instances.bert.config.configuration.umask: "002";
+  services.ytdl-sub.instances.bert.config.configuration.umask = "002";
   services.ytdl-sub.instances.bert.config.presets.no_shorts.match_filters.filters = [ "original_url!*=/shorts/" ];
   services.ytdl-sub.instances.bert.config.presets.sponsorblock.chapters.sponsorblock_categories = [
     "outro"
@@ -36,12 +32,13 @@ in {
     subtitles.enable = "True";
     subtitles.embed_subtitles = "True";
     subtitles.allow_auto_generated_subtitles = "True";
-    ytdl_options.format = "";
-    overrides.tv_show_directory = generalDirectory;
+    ytdl_options.format = "bestvideo[vcodec=vp9][height<=2160]+bestaudio/bestvideo[vcodec=avc1][height<=2160]+bestaudio/best[height<=2160]";
+    overrides.tv_show_directory = jellyfinTubeDirectory;
+    overrides.output_options.output_directory = "{tv_show_directory}/{tv_show_genre}/{tv_show_name_sanitized}";
   };
   services.ytdl-sub.instances.bert.config.presets."${my.short_term}" = {
     overrides.only_recent_date_range = "2weeks";
-    presets = [
+    preset = [
       "Jellyfin TV Show by Date"
       "sponsorblock"
       my.base
@@ -62,14 +59,6 @@ in {
       "sponsorblock_wait"
       my.base
     ];
-  };
-  services.ytdl-sub.instances.bert.config.presets."YouTube Playlist" = {
-    download = "{subscription_value}";
-    output_options = {
-      output_directory = "YouTube";
-      file_name = "{channel}/{playlist_title}/{playlist_index_padded}_{title}.{ext}";
-      maintain_download_archive = true;
-    };
   };
   services.ytdl-sub.instances.bert.subscriptions = {
     # Only past two weeks if recent
@@ -118,8 +107,8 @@ in {
           s01_name = "Best Videos";
           s01_url = "https://www.youtube.com/playlist?list=PLqs5ohhass_STBfubAdle9dsyWrqu6G6r";
           s02_name = "Most Popular";
-          s02_name = "https://www.youtube.com/playlist?list=PLqs5ohhass_RugObMuXClrZh7dP0g4e5l";
-          s03_url = "Productivity";
+          s02_url = "https://www.youtube.com/playlist?list=PLqs5ohhass_RugObMuXClrZh7dP0g4e5l";
+          s03_name = "Productivity";
           s03_url = "https://www.youtube.com/playlist?list=PLqs5ohhass_Qa4fHeDxUtJCsJiBwK5j5x";
         };
       };
