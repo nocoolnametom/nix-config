@@ -22,16 +22,16 @@ in {
     "intro"
   ];
   services.ytdl-sub.instances.bert.config.presets.sponsorblock.chapters.remove_sponsorblock_categories = "all";
-  services.ytdl-sub.instances.bert.config.presets.sponsorblock.chapters.force_key_frames = "False";
+  services.ytdl-sub.instances.bert.config.presets.sponsorblock.chapters.force_key_frames = false;
   services.ytdl-sub.instances.bert.config.presets.sponsorblock_wait.presets = [ "sponsorblock" ];
   services.ytdl-sub.instances.bert.config.presets.sponsorblock_wait.date_range.before = "today-2days";
   services.ytdl-sub.instances.bert.config.presets."${my.base}" = {
     preset = [ "no_shorts" ];
-    embed_thumbnail = "True";
-    chapters.embed_chapters = "True";
-    subtitles.enable = "True";
-    subtitles.embed_subtitles = "True";
-    subtitles.allow_auto_generated_subtitles = "True";
+    embed_thumbnail = true;
+    chapters.embed_chapters = true;
+    subtitles.enable = true;
+    subtitles.embed_subtitles = true;
+    subtitles.allow_auto_generated_subtitles = true;
     ytdl_options.format = "bestvideo[vcodec=vp9][height<=2160]+bestaudio/bestvideo[vcodec=avc1][height<=2160]+bestaudio/best[height<=2160]";
     overrides.tv_show_directory = jellyfinTubeDirectory;
     overrides.output_options.output_directory = "{tv_show_directory}/{tv_show_genre}/{tv_show_name_sanitized}";
@@ -53,7 +53,7 @@ in {
     ];
   };
   services.ytdl-sub.instances.bert.config.presets."${my.collection}" = {
-    only_recent_date_range = "1year";
+    overrides.only_recent_date_range = "1year";
     preset = [
       "Jellyfin TV Show Collection"
       "sponsorblock_wait"
