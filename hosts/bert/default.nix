@@ -52,8 +52,6 @@
       "hosts/common/optional/services/ombi.nix"
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/radarr.nix"
-      "hosts/common/optional/services/sonarr.nix"
-      "hosts/common/optional/services/prowlarr.nix"
       "hosts/common/optional/services/sauronsync.nix"
       "hosts/common/optional/services/sickrage.nix"
       "hosts/common/optional/services/stashapp.nix"
