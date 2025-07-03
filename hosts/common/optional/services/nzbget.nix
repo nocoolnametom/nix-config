@@ -34,6 +34,7 @@ in
   systemd.services.nzbget.path = with pkgs; [
     unrar
     unzip
+    gzip
     xz
     bzip2
     gnutar
