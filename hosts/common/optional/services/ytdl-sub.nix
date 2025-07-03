@@ -3,6 +3,7 @@ let
   jellyfinTubeDirectory = "/mnt/cirdan/smb/Jellyfin/TV_Shows/Tube";
   my = {
     base = "mybase";
+    short_show = "My Short Term Show";
     short_term = "My Short Terms";
     tv_show = "My TV Show";
     collection = "My TV Show Collection";
@@ -23,7 +24,7 @@ in {
   ];
   services.ytdl-sub.instances.bert.config.presets.sponsorblock.chapters.remove_sponsorblock_categories = "all";
   services.ytdl-sub.instances.bert.config.presets.sponsorblock.chapters.force_key_frames = false;
-  services.ytdl-sub.instances.bert.config.presets.sponsorblock_wait.presets = [ "sponsorblock" ];
+  services.ytdl-sub.instances.bert.config.presets.sponsorblock_wait.preset = [ "sponsorblock" ];
   services.ytdl-sub.instances.bert.config.presets.sponsorblock_wait.date_range.before = "today-2days";
   services.ytdl-sub.instances.bert.config.presets."${my.base}" = {
     preset = [ "no_shorts" ];
@@ -36,10 +37,18 @@ in {
     overrides.tv_show_directory = jellyfinTubeDirectory;
     overrides.output_options.output_directory = "{tv_show_directory}/{tv_show_genre}/{tv_show_name_sanitized}";
   };
-  services.ytdl-sub.instances.bert.config.presets."${my.short_term}" = {
+  services.ytdl-sub.instances.bert.config.presets."${my.short_show}" = {
     overrides.only_recent_date_range = "2weeks";
     preset = [
       "Jellyfin TV Show by Date"
+      "sponsorblock"
+      my.base
+    ];
+  };
+  services.ytdl-sub.instances.bert.config.presets."${my.short_term}" = {
+    overrides.only_recent_date_range = "2weeks";
+    preset = [
+      "Jellyfin TV Show Collection"
       "sponsorblock"
       my.base
     ];
@@ -62,6 +71,19 @@ in {
   };
   services.ytdl-sub.instances.bert.subscriptions = {
     # Only past two weeks if recent
+    "${my.short_show}" = {
+      "= News | = TV-MA | Only Recent" = {
+        "Some More News" = "https://www.youtube.com/playlist?list=PLkJemc4T5NYZpiVwtRDxXfZvcLzovtITo";
+      };
+      "= News | = TV-14 | Only Recent" = {
+        "Skepchick" = "https://www.youtube.com/channel/UCFJxE0l3cVYU4kHzi4qVEkw";
+      };
+      "= News | = TV-PG | Only Recent" = {
+        "GenericArtDad" = "https://www.youtube.com/@genericartdad";
+        "LegalEagle" = "https://www.youtube.com/@legaleagle";
+        "Maklelan" = "https://www.youtube.com/@maklelan";
+      };
+    };
     "${my.short_term}" = {
       "= News | = TV-MA | Only Recent" = {
         "~HasanAbi" = {
@@ -69,10 +91,6 @@ in {
           s01_url = "https://www.youtube.com/playlist?list=PLxqasMrbxJeY_wS01sdAknM-b6tjDtvvd";
           date_range = "2weeks";
         };
-        "Some More News" = "https://www.youtube.com/playlist?list=PLkJemc4T5NYZpiVwtRDxXfZvcLzovtITo";
-      };
-      "= News | = TV-14 | Only Recent" = {
-        "Skepchick" = "https://www.youtube.com/channel/UCFJxE0l3cVYU4kHzi4qVEkw";
       };
       "= News | = TV-PG | Only Recent" = {
         "~TLDR News" = {
@@ -81,9 +99,6 @@ in {
           s02_name = "Global";
           s02_url = "https://www.youtube.com/@TLDRnewsGLOBAL";
         };
-        "GenericArtDad" = "https://www.youtube.com/@genericartdad";
-        "LegalEagle" = "https://www.youtube.com/@legaleagle";
-        "Maklelan" = "https://www.youtube.com/@maklelan";
       };
     };
     # Only past six months if recent
