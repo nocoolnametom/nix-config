@@ -55,6 +55,7 @@
       "hosts/common/optional/services/sauronsync.nix"
       "hosts/common/optional/services/sickrage.nix"
       "hosts/common/optional/services/stashapp.nix"
+      "hosts/common/optional/services/ytdl-sub.nix"
 
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/bert.nix"
