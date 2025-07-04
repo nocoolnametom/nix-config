@@ -346,7 +346,18 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  jellyfin ++ ombi ++ navidrome ++ calibreweb ++ standardnotes ++ immich ++ tubesync ++ kavita ++ audiobookshelf ++ podfetch ++ sickgear ++ radarr;
+                  jellyfin
+                  ++ ombi
+                  ++ navidrome
+                  ++ calibreweb
+                  ++ standardnotes
+                  ++ immich
+                  ++ tubesync
+                  ++ kavita
+                  ++ audiobookshelf
+                  ++ podfetch
+                  ++ sickgear
+                  ++ radarr;
               }
             ];
           }

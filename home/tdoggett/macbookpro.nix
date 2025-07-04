@@ -30,7 +30,7 @@
     GITLAB_WORKFLOW_INSTANCE_URL = "https://$(cat ${config.sops.secrets."work/git-server".path})";
     GITLAB_WORKFLOW_TOKEN = "$(cat ${config.sops.secrets."work/git-server-key".path})";
     GITLAB_API_URL = "https://$(cat ${config.sops.secrets."work/git-server".path})/api/v4";
-    GITLAB_PERSONAL_ACCESS_TOKEN= "$(cat ${config.sops.secrets."work/git-server-key".path})";
+    GITLAB_PERSONAL_ACCESS_TOKEN = "$(cat ${config.sops.secrets."work/git-server-key".path})";
     TELEPORT_LOGIN = "$(cat ${config.sops.secrets."work/brand2-username".path})";
     TELEPORT_PROXY = "teleport.$(cat ${config.sops.secrets."work/brand2-url".path}):443";
     TELEPORT_USER = "$(cat ${config.sops.secrets."work/brand2-username".path})";
