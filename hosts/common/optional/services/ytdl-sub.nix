@@ -32,9 +32,11 @@ let
       subtitles.enable = true;
       subtitles.embed_subtitles = true;
       subtitles.allow_auto_generated_subtitles = true;
+      date_range.breaks = false;
       ytdl_options.format = "bestvideo[vcodec=vp9][height<=2160]+bestaudio/bestvideo[vcodec=avc1][height<=2160]+bestaudio/best[height<=2160]";
       output_options.output_directory = "{tv_show_directory}/{tv_show_genre}/{tv_show_name_sanitized}";
       overrides.tv_show_directory = jellyfinTubeDirectory;
+      # @TODO I _think_ the following line isn't correct but isn't doing anything; see if we can delete it!
       overrides.output_options.output_directory = "{tv_show_directory}/{tv_show_genre}/{tv_show_name_sanitized}";
     };
     presets."${my.short_show}" = {
@@ -93,6 +95,7 @@ in
         { }
       ];
       subscriptions = {
+        # Past 2 weeks
         "${my.short_show}" = {
           "= News | = TV-MA" = {
             "Some More News" = "https://www.youtube.com/playlist?list=PLkJemc4T5NYZpiVwtRDxXfZvcLzovtITo";
@@ -107,6 +110,7 @@ in
             "Maklelan" = "https://www.youtube.com/@maklelan";
           };
         };
+        # Past 2 weeks
         "${my.short_collection}" = {
           "= News | = TV-PG" = {
             "~TLDR News" = {
@@ -148,6 +152,7 @@ in
             };
           };
         };
+        # Past 12 months
         "${my.collection_recent}" = {
           "= Science | = TV-PG" = {
             "Climate Town" = "https://www.youtube.com/@ClimateTown";
@@ -169,6 +174,7 @@ in
         { }
       ];
       subscriptions = {
+        # Past 6 months
         "${my.tv_show_recent}" = {
           "= Cartoons | = TV-14" = {
             "CarbotAnimations" = "https://www.youtube.com/playlist?list=PL0QrZvg7QIgp2aJi4IIn8vfsTUFbLAgm-";
