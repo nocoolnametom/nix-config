@@ -194,6 +194,32 @@ in
         };
       };
     };
+    faux = {
+      enable = lib.mkDefault true;
+      schedule = lib.mkDefault "03:00"; # 3am
+      config = lib.mkMerge [
+        base_config
+        { }
+      ];
+      subscriptions = {
+        "${my.collection}" = {
+          "= Faux | = TV-14" = {
+            "~Mr. Beast" = {
+              s01_name = "Most Popular";
+              s01_url = "https://www.youtube.com/playlist?list=PLoSWVnSA9vG9hJNdgr-81MG59EYT9eEYn";
+              s02_name = "$1 vs $$$";
+              s02_url = "https://www.youtube.com/playlist?list=PLoSWVnSA9vG_PuIrGMfUtJ2wwKSUb2CFd";
+              s03_name = "Stay to Win";
+              s03_url = "https://www.youtube.com/playlist?list=PLoSWVnSA9vG8hI-SUpAimvYJrPh-PRRvp";
+              s04_name = "7 Days";
+              s04_url = "https://www.youtube.com/playlist?list=PLoSWVnSA9vG8SK6-_45PAu6RVTaP1zXHf";
+              s05_name = "Philanthropy";
+              s05_url = "https://www.youtube.com/playlist?list=PLoSWVnSA9vG_s-XT40oPKF0iWFGw8pOp2";
+            };
+          };
+        };
+      };
+    };
     comedy = {
       enable = lib.mkDefault true;
       schedule = lib.mkDefault "03:00"; # 3am
