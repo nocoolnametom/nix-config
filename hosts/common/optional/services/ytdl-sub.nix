@@ -33,7 +33,10 @@ let
       subtitles.embed_subtitles = true;
       subtitles.allow_auto_generated_subtitles = true;
       date_range.breaks = false;
-      ytdl_options.format = "bestvideo[vcodec=vp9][height<=2160]+bestaudio/bestvideo[vcodec=avc1][height<=2160]+bestaudio/best[height<=2160]";
+      ytdl_options = {
+        break_on_existing = false;
+        format = "bestvideo[vcodec=vp9][height<=2160]+bestaudio/bestvideo[vcodec=avc1][height<=2160]+bestaudio/best[height<=2160]";
+      };
       output_options.output_directory = "{tv_show_directory}/{tv_show_genre}/{tv_show_name_sanitized}";
       overrides.tv_show_directory = jellyfinTubeDirectory;
       # @TODO I _think_ the following line isn't correct but isn't doing anything; see if we can delete it!
