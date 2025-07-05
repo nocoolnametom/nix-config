@@ -259,13 +259,14 @@
             target = "_blank";
           }
         ];
-        stashvr = lib.lists.optionals config.services.stashapp.vr-helper.enable [
+        # stashvr is on cirdan, but points to bert, so we use bert's enabling for if it's active
+        stashvr = lib.lists.optionals config.services.stashapp.enable [
           {
             name = "Stash Data Headset";
             icon = "fas fa-vr-cardboard";
             url =
               if internal then
-                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.stashapp.vr-helper.port}/"
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString config.services.stashapp.vr-helper.port}/"
               else
                 "https://${configVars.networking.subdomains.stashvr}.${configVars.domain}";
             target = "_blank";
@@ -820,7 +821,7 @@
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString config.services.stashapp.vr-helper.port}/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}";
             proxyWebsockets = true;
             extraConfig = ''
               proxy_buffering off;
