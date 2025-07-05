@@ -175,18 +175,6 @@
             target = "_blank";
           }
         ];
-        tubesync = [
-          {
-            name = "TubeSync";
-            icon = "fas fa-photo-video";
-            url =
-              if internal then
-                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubesync}"
-              else
-                "https://${configVars.networking.subdomains.tubesync}.${configVars.homeDomain}/";
-            target = "_blank";
-          }
-        ];
         kavita = [
           {
             name = "Comics";
@@ -330,7 +318,6 @@
                   ++ calibreweb
                   ++ standardnotes
                   ++ immich
-                  ++ tubesync
                   ++ kavita
                   ++ kavitan
                   ++ audiobookshelf
@@ -366,7 +353,6 @@
                   ++ calibreweb
                   ++ standardnotes
                   ++ immich
-                  ++ tubesync
                   ++ kavita
                   ++ audiobookshelf
                   ++ podfetch
@@ -567,20 +553,6 @@
             extraConfig = ''
               auth_basic off;
               proxy_cache off;
-            '';
-          };
-        };
-      };
-      "${configVars.networking.subdomains.tubesync}.${configVars.homeDomain}" = {
-        enableACME = true;
-        http2 = true;
-        forceSSL = true;
-        locations = {
-          "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubesync}";
-            proxyWebsockets = true;
-            extraConfig = ''
-              auth_basic off;
             '';
           };
         };
@@ -925,20 +897,6 @@
             extraConfig = ''
               auth_basic off;
               proxy_cache off;
-            '';
-          };
-        };
-      };
-      "${configVars.networking.subdomains.tubesync}.${configVars.domain}" = {
-        enableACME = true;
-        http2 = true;
-        forceSSL = true;
-        locations = {
-          "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubesync}";
-            proxyWebsockets = true;
-            extraConfig = ''
-              auth_basic off;
             '';
           };
         };
