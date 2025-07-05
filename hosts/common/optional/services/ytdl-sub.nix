@@ -78,7 +78,7 @@ let
       ];
     };
     presets."${my.collection_recent}" = {
-      overrides.only_recent_date_range = "1year";
+      overrides.only_recent_date_range = "12months";
       preset = [
         "Jellyfin TV Show Collection"
         "sponsorblock_wait"
@@ -157,8 +157,10 @@ in
         };
         # Past 12 months
         "${my.collection_recent}" = {
-          "= Science | = TV-PG" = {
+          "= Science | = TV-14" = {
             "Climate Town" = "https://www.youtube.com/@ClimateTown";
+          };
+          "= Science | = TV-PG" = {
             "PBS Terra: Weathered" = "https://www.youtube.com/playlist?list=PLnNZYWyBGJ1GLPmb55WQAln2Q7rZn5AFX";
             "Veritasium" = "https://www.youtube.com/@Veritasium";
             "PBS Space Time" = "https://www.youtube.com/@pbsspacetime";
