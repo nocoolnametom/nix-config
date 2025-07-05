@@ -254,9 +254,9 @@
             icon = "fas fa-vr-cardboard";
             url =
               if internal then
-                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString config.services.stashapp.vr-helper.port}/"
+                "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}/"
               else
-                "https://${configVars.networking.subdomains.stashvr}.${configVars.domain}";
+                "https://${configVars.networking.subdomains.stashvr}.${configVars.domain}:${builtins.toString configVars.networking.ports.tcp.stashvr}";
             target = "_blank";
           }
         ];
@@ -789,26 +789,46 @@
       };
       "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
         enableACME = true;
+        onlySSL = true;
         http2 = true;
-        forceSSL = true;
+        listen = [
+          {
+            addr = "0.0.0.0";
+            port = configVars.networking.ports.tcp.stashvr;
+            ssl = true;
+          }
+          {
+            addr = "[::]";
+            port = configVars.networking.ports.tcp.stashvr;
+            ssl = true;
+          }
+        ];
         locations = {
           "/" = {
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}";
             proxyWebsockets = true;
-            extraConfig = ''
-              proxy_buffering off;
-              auth_basic off;
-            '';
           };
         };
       };
       "${configVars.networking.subdomains.stashvr-alias}.${configVars.domain}" = {
         enableACME = true;
+        onlySSL = true;
         http2 = true;
-        forceSSL = true;
+        listen = [
+          {
+            addr = "0.0.0.0";
+            port = configVars.networking.ports.tcp.stashvr;
+            ssl = true;
+          }
+          {
+            addr = "[::]";
+            port = configVars.networking.ports.tcp.stashvr;
+            ssl = true;
+          }
+        ];
         locations = {
           "/" = {
-            return = "301 https://${configVars.networking.subdomains.stashvr}.${configVars.domain}$request_uri";
+            return = "301 https://${configVars.networking.subdomains.stashvr}.${configVars.domain}:${builtins.toString configVars.networking.ports.tcp.stashvr}$request_uri";
           };
         };
       };
