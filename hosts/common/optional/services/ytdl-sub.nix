@@ -7,8 +7,8 @@ let
     short_collection = "My Short Collection";
     tv_show = "My TV Show";
     tv_show_recent = "${tv_show} Only Recent";
+    tv_show_long_recent = "${tv_show} Long Recent";
     collection = "My TV Show Collection";
-    collection_recent = "${collection} Only Recent";
   };
   base_config = {
     presets.no_shorts.match_filters.filters = [ "original_url!*=/shorts/" ];
@@ -77,7 +77,7 @@ let
         "Only Recent"
       ];
     };
-    presets."${my.collection_recent}" = {
+    presets."${my.tv_show_long_recent}" = {
       overrides.only_recent_date_range = "12months";
       preset = [
         "Jellyfin TV Show Collection"
@@ -156,7 +156,7 @@ in
           };
         };
         # Past 12 months
-        "${my.collection_recent}" = {
+        "${my.tv_show_long_recent}" = {
           "= Science | = TV-14" = {
             "Climate Town" = "https://www.youtube.com/@ClimateTown";
           };
