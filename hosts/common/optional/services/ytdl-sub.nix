@@ -80,7 +80,7 @@ let
     presets."${my.tv_show_long_recent}" = {
       overrides.only_recent_date_range = "12months";
       preset = [
-        "Jellyfin TV Show Collection"
+        "Jellyfin TV Show by Date"
         "sponsorblock_wait"
         my.base
         "Only Recent"
@@ -102,7 +102,7 @@ in
         "${my.short_show}" = {
           "= News | = TV-MA" = {
             "Some More News" = "https://www.youtube.com/playlist?list=PLkJemc4T5NYZpiVwtRDxXfZvcLzovtITo";
-            "~HasanAbi" = "https://www.youtube.com/playlist?list=PLxqasMrbxJeY_wS01sdAknM-b6tjDtvvd";
+            "HasanAbi" = "https://www.youtube.com/playlist?list=PLxqasMrbxJeY_wS01sdAknM-b6tjDtvvd";
           };
           "= News | = TV-14" = {
             "Skepchick" = "https://www.youtube.com/channel/UCFJxE0l3cVYU4kHzi4qVEkw";
