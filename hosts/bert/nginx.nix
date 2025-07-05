@@ -385,9 +385,18 @@
       };
     in
     {
+      # Default page is a failure - prevent IP-only access unless specified below by IP address
+      default = {
+        default = true;
+        serverName = "_";
+        locations."/".return = "444";
+        extraConfig = ''
+          access_log off;
+          log_not_found off;
+        '';
+      };
       # Mains
       "${configVars.homeDomain}" = {
-        default = true;
         enableACME = true;
         http2 = true;
         forceSSL = true;
