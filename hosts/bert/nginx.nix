@@ -259,6 +259,18 @@
             target = "_blank";
           }
         ];
+        stashvr = lib.lists.optionals config.services.stashapp.vr-helper.enable [
+          {
+            name = "Stash Data Headset";
+            icon = "fas fa-vr-cardboard";
+            url =
+              if internal then
+                "http://${configVars.networking.subnets.bert.ip}:${builtins.toString config.services.stashapp.vr-helper.port}/"
+              else
+                "https://${configVars.networking.subdomains.stashvr}.${configVars.domain}";
+            target = "_blank";
+          }
+        ];
         phanpy = [
           {
             name = "Phanpy";
@@ -324,6 +336,7 @@
                   ++ comfyui
                   ++ comfyuimini
                   ++ stashapp
+                  ++ stashvr
                   ++ phanpy
                   ++ sickgear
                   ++ radarr;
@@ -377,7 +390,7 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  vscode ++ deluge ++ flood ++ nzbget ++ kavitan ++ comfyui ++ comfyuimini ++ stashapp ++ phanpy;
+                  vscode ++ deluge ++ flood ++ nzbget ++ kavitan ++ comfyui ++ comfyuimini ++ stashapp ++ stashvr ++ phanpy;
               }
             ];
           }
@@ -801,6 +814,31 @@
           };
         };
       };
+      "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://127.0.0.1:${builtins.toString config.services.stashapp.vr-helper.port}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              proxy_buffering off;
+              auth_basic off;
+            '';
+          };
+        };
+      };
+      "${configVars.networking.subdomains.stashvr-alias}.${configVars.domain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            return = "301 https://${configVars.networking.subdomains.stashvr}.${configVars.domain}$request_uri";
+          };
+        };
+      };
 
       # deprecated domain services (should be on homeDomain already, just need to move over)
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}" = {
@@ -960,6 +998,7 @@
         "${homeDomain}".email = email;
         "home.${domain}".email = email;
         # These are just redirects
+        "${configVars.networking.subdomains.stashvr-alias}.${configVars.domain}".email = email;
         "www.${homeDomain}".email = email;
         "house.${domain}".email = email;
         "request.${homeDomain}".email = email;
