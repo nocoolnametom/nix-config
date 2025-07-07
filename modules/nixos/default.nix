@@ -4,6 +4,7 @@
   # List your module files here
   # my-module = import ./my-module.nix;
   maestral = import ./maestral.nix;
+  nzbget-to-management = import ./nzbget-to-management.nix;
   per-user-vpn = import ./per-user-vpn.nix;
   sauronsync = import ./sauronsync.nix;
   systemd-failure-alert = import ./systemd-failure-alert.nix;
