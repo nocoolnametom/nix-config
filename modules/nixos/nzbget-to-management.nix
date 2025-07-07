@@ -56,7 +56,7 @@ in
       handbrake
     ];
 
-    systemd.services.sauron-video-sync =
+    systemd.services.nzbget-to-management =
       let
         transcodeScript = pkgs.writeShellScriptBin "transcodeVideoFiles.sh" ''
           set -euo pipefail
