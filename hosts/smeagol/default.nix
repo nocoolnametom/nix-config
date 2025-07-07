@@ -94,6 +94,15 @@
   '';
   services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
 
+  # Automatically transcode VR files
+  services.nzbget-to-management.enable = true;
+  services.nzbget-to-management.downloadedDestDir = "/var/lib/stashapp/data/data.dat/vr";
+  services.nzbget-to-management.unpackingDirName = "_unpack";
+  services.nzbget-to-management.transcodingTempDir = "/var/lib/stashapp/data/data.dat/transcoding";
+  services.nzbget-to-management.finishedVideoDir = "/var/lib/stashapp/data/data.dat/av1";
+  services.nzbget-to-management.handbrakePresetJsonFilePath = "/var/lib/stashapp/data/data.dat/MyVRAV1s.json";
+  services.nzbget-to-management.handbrakePreset = "MyVRAV1s";
+
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
   # so that the tokens are injected into the nix-daemon systemd job
