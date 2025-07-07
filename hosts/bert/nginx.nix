@@ -374,7 +374,16 @@
                 name = "Services";
                 items =
                   with homerBlocks internal;
-                  vscode ++ deluge ++ flood ++ nzbget ++ kavitan ++ comfyui ++ comfyuimini ++ stashapp ++ stashvr ++ phanpy;
+                  vscode
+                  ++ deluge
+                  ++ flood
+                  ++ nzbget
+                  ++ kavitan
+                  ++ comfyui
+                  ++ comfyuimini
+                  ++ stashapp
+                  ++ stashvr
+                  ++ phanpy;
               }
             ];
           }
