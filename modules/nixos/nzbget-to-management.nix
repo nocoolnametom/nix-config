@@ -51,11 +51,6 @@ in
   };
 
   config = mkIf cfg.enable {
-    environment.systemPackages = with pkgs; [
-      inotify-tools
-      handbrake
-    ];
-
     systemd.services.nzbget-to-management =
       let
         transcodeScript = pkgs.writeShellScriptBin "transcodeVideoFiles.sh" ''
@@ -66,8 +61,12 @@ in
           FINAL_DIR="${cfg.finishedVideoDir}"
           PRESET_FILE="${cfg.handbrakePresetJsonFilePath}"
           PRESET_NAME="${cfg.handbrakePreset}"
+          REGISTRY_FILE="/var/lib/nzbget-to-management/transcoded.log"
 
           LOCKFILE="/tmp/transcode_daemon.lock"
+
+          mkdir -p "$(dirname "$REGISTRY_FILE")"
+          touch "$REGISTRY_FILE"
 
           # Only allow one instance at a time
           exec 200>"$LOCKFILE"
@@ -78,17 +77,40 @@ in
           transcode_video() {
               local input_file="$1"
               local filename="$(basename "$input_file")"
-              local output_file="$TRANSCODE_DIR/${"$"}{filename%.*}.webm"
-              local final_file="$FINAL_DIR/${"$"}{filename%.*}.webm"
+              local base_name="${"$"}{filename%.*}"
+              local output_file="$TRANSCODE_DIR/$base_name.webm"
+              local final_file="$FINAL_DIR/$base_name.webm"
+              local lock_file="$TRANSCODE_DIR/$base_name.inprogress"
+
+              if [[ -e "$lock_file" ]]; then
+                  echo "[WARN] Skipping in-progress: $input_file"
+                  return
+              fi
+
+              touch "$lock_file"
 
               echo "[INFO] Transcoding: $input_file → $output_file"
-              ${pkgs.handbrake}/bin/HandBrakeCLI --preset-import-file "$PRESET_FILE" \
+              if ${pkgs.handbrake}/bin/HandBrakeCLI --preset-import-file "$PRESET_FILE" \
                   --preset "$PRESET_NAME" \
                   -i "$input_file" \
-                  -o "$output_file"
+                  -o "$output_file"; then
 
-              echo "[INFO] Moving: $output_file → $final_file"
-              mv "$output_file" "$final_file"
+                  echo "[INFO] Moving: $output_file → $final_file"
+                  mv "$output_file" "$final_file"
+                  mark_transcoded "$input_file"
+                  rm -f "$lock_file"
+              else
+                  echo "[ERROR] Transcoding failed: $input_file"
+                  rm -f "$output_file" "$lock_file"
+              fi
+          }
+
+          is_already_transcoded() {
+              grep -Fxq "$1" "$REGISTRY_FILE"
+          }
+
+          mark_transcoded() {
+              echo "$1" >> "$REGISTRY_FILE"
           }
 
           wait_for_stability() {
@@ -107,8 +129,8 @@ in
               while true; do
                   # Find finished video files, excluding _unpack directories
                   mapfile -t files < <(find "$INPUT_ROOT" -type f \( -iname '*.mp4' -o -iname '*.mkv' \) \
-                      -not -path '*/${cfg.unpackingDirName}/*' \
-                      -not -path '*/.*' \
+                      -not -path "*/${cfg.unpackingDirName}/*" \
+                      -not -path "*/.*" \
                       -print | sort)
 
                   if [[ "${"$"}{#files[@]}" -eq 0 ]]; then
@@ -119,11 +141,8 @@ in
                   fi
 
                   for file in "${"$"}{files[@]}"; do
-                      # Skip if already transcoded
-                      filename="$(basename "$file")"
-                      outfile="$FINAL_DIR/${"$"}{filename%.*}.webm"
-                      if [[ -f "$outfile" ]]; then
-                          echo "[INFO] Already transcoded: $file"
+                      if is_already_transcoded "$file"; then
+                          echo "[INFO] Already transcoded (registry): $file"
                           continue
                       fi
 
@@ -143,7 +162,13 @@ in
         after = [ "default.target" ];
         wantedBy = [ "default.target" ];
         serviceConfig = {
+          StateDirectory = "nzbget-to-management";
           Restart = "on-failure";
+
+          # Fix stashapp dir permissions before we run
+          ExecStartPre = [
+            "${pkgs.coreutils}/bin/chmod 755 /var/lib/stashapp"
+          ];
         };
         script = "${transcodeScript}/bin/transcodeVideoFiles.sh";
       };
