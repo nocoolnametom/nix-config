@@ -71,7 +71,7 @@ in
 
           # Only allow one instance at a time
           exec 200>"$LOCKFILE"
-          flock -n 200 || exit 0
+          ${pkgs.util-linux}/bin/flock -n 200 || exit 0
 
           echo "Starting transcoding daemon..."
 
