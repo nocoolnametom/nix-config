@@ -6,6 +6,10 @@
 }:
 
 with lib;
+with lib.attrsets;
+with lib.lists;
+with lib.options;
+with lib.types;
 
 let
   cfg = config.services.nzbget-to-management;
