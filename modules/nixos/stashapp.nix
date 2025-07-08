@@ -132,6 +132,7 @@ in
           mkdir -p ~/.stash && chmod 777 ~/.stash;
           rm -f ~/.stash/ffmpeg && ln -s ${cfg.ffmpeg-package}/bin/ffmpeg ~/.stash/ffmpeg;
           rm -f ~/.stash/ffprobe && ln -s ${cfg.ffmpeg-package}/bin/ffprobe ~/.stash/ffprobe;
+          chmod 755 ~
         '';
 
         script = "${cfg.package}/bin/stashapp";
