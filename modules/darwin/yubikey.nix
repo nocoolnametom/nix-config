@@ -7,6 +7,7 @@
 }:
 let
   homeDirectory = "/Users/${configVars.username}";
+  agentSocket = "${homeDirectory}/.ssh/sockets/ssh-agent.sock";
   # Use stable to avoid rebuilding this package every time and try to keep it from failing on rebuilds
   xpc_set_event_stream_handler = pkgs.stable.callPackage ./pkgs/xpc_set_event_stream_handler {
     inherit lib;
@@ -67,6 +68,12 @@ in
   options = {
     yubikey = {
       enable = lib.mkEnableOption "Enable yubikey support";
+      agent-package = lib.mkOption {
+        default = pkgs.yubikey-agent;
+        defaultText = "pkgs.yubikey-agent";
+        description = "Which yubikey-agent derivation to use";
+        type = lib.types.package;
+      };
       identifiers = lib.mkOption {
         default = { };
         type = lib.types.attrsOf lib.types.int;
@@ -84,9 +91,10 @@ in
     environment.systemPackages = lib.flatten [
       (builtins.attrValues {
         inherit (pkgs)
-          yubikey-manager # cli-based authenticator tool. accessed via `ykman`
-          ;
+        yubikey-manager # cli-based authenticator tool. accessed via `ykman`
+        ;
       })
+      config.yubikey.agent-package
       yubikey-up
       yubikey-down
     ];
@@ -126,7 +134,37 @@ in
       };
     };
 
-    # FIXME(yubikey): Check if this exists on darwin
-    # services.yubikey-agent.enable = true;
+    # Disable the built-in ssh-agent service
+    services.openssh.enable = false;
+    system.activationScripts.disableSystemSshAgent.text = ''
+      sudo -u ${configVars.username} sh -c 'launchctl disable user/$UID/com.openssh.ssh-agent'
+    '';
+
+    # Install openssh via brew
+    homebrew.taps = [ { name = "theseal/ssh-askpass"; } ];
+    homebrew.brews = [ "openssh" "pinentry-mac" "theseal/ssh-askpass/ssh-askpass" ];
+
+    # Use brew's openssh for ssh-agent
+    launchd.user.agents.ssh-agent = {
+      serviceConfig = {
+        Label = "com.homebrew.ssh-agent";
+        ProgramArguments = [
+          "/bin/sh"
+          "-c"
+          # We reuse SSH_AUTH_SOCK from com.openssh.ssh-agent
+          "rm -f $SSH_AUTH_SOCK; exec ${config.homebrew.brewPrefix}/ssh-agent -D -a $SSH_AUTH_SOCK"
+        ];
+        RunAtLoad = true;
+      };
+    };
+
+    # Point to yubikey-agent with environment vars
+    # environment.extraInit = ''
+    #  if [ -z "$SSH_AUTH_SOCK" ]; then
+    #    export SSH_AUTH_SOCK="${agentSocket}"
+    #  fi
+    #'';
+    environment.variables.SSH_ASKPASS = "${config.homebrew.brewPrefix}/ssh-askpass";
+    environment.variables.DISPLAY = ":0";
   };
 }

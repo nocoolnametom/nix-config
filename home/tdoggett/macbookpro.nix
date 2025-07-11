@@ -24,7 +24,6 @@
     TERM = lib.mkForce "xterm-256color";
     TERMINAL = lib.mkForce "";
     GPG_TTY = "${"$"}(tty)";
-    SSH_AUTH_SOCK = "${config.home.homeDirectory}/.ssh/agent";
     NVM_DIR = "${config.home.homeDirectory}/.nvm";
     # Secrets defined in secrets flake file
     GITLAB_WORKFLOW_INSTANCE_URL = "https://$(cat ${config.sops.secrets."work/git-server".path})";

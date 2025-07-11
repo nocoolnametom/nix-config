@@ -41,6 +41,7 @@
 
   # Move to import once this is working
   services.tailscale.enable = true;
+  services.tailscale.package = pkgs.unstable.tailscale;
 
   homebrew.enable = true;
   homebrew.user = configVars.username;
@@ -48,8 +49,10 @@
   homebrew.onActivation.cleanup = "uninstall";
   homebrew.onActivation.upgrade = true;
   homebrew.brews = [
-    { name = "openssh"; } # Need to make sure launchctl is switched first!
-    { name = "tfenv"; } # No current nixpkgs
+    # No current nixpkgs
+    { name = "tfenv"; }
+    # FUB uses dnsmasq and wants to control the config file, so we use brew instead of nix
+    { name = "dnsmasq"; }
   ];
   homebrew.casks = [ ];
   homebrew.taps = [

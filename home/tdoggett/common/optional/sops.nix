@@ -26,7 +26,7 @@ in
     mode = "0600";
   };
   sops.secrets."ssh/personal/passphrased" = {
-    path = "${homeDirectory}/.ssh/id_ed25519";
+    path = "${homeDirectory}/.ssh/id_personal";
     mode = "0600";
   };
   sops.secrets."ssh/yubikey/ykbackup" = {
