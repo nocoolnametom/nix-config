@@ -5,7 +5,7 @@
   ...
 }:
 {
-  programs.ssh.addKeysToAgent = lib.mkForce "no";
+  programs.ssh.addKeysToAgent = lib.mkForce "yes";
   programs.ssh.forwardAgent = true;
   programs.ssh.hashKnownHosts = false;
   programs.ssh.serverAliveInterval = 0;
