@@ -39,8 +39,8 @@
     # May be unnecessary when CSP is configured properly (see above)
     add_header X-XSS-Protection "1; mode=block";
 
-    # This might create errors
-    proxy_cookie_path / "/; secure; HttpOnly; SameSite=strict";
+    # Only use if cookies don't already have security flags
+    proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
   '';
   services.nginx.virtualHosts =
     let
