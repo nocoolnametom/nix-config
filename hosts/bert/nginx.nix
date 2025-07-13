@@ -38,9 +38,6 @@
     # Enable XSS protection of the browser.
     # May be unnecessary when CSP is configured properly (see above)
     add_header X-XSS-Protection "1; mode=block";
-
-    # Only use if cookies don't already have security flags
-    proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
   '';
   services.nginx.virtualHosts =
     let
@@ -410,6 +407,11 @@
         locations = (homeProxyPaths false) // {
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
+
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "home.${configVars.domain}" = {
         enableACME = true;
@@ -419,6 +421,10 @@
         locations = (privateProxyPaths false) // {
           "/.well-known".root = "/var/lib/acme/acme-challenge";
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "localhost" = {
         serverAliases = [
@@ -437,6 +443,10 @@
             return = "301 https://${configVars.homeDomain}$request_uri";
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "house.${configVars.domain}" = {
         enableACME = true;
@@ -447,6 +457,10 @@
             return = "301 https://home.${configVars.domain}$request_uri";
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "request.${configVars.homeDomain}" = {
         enableACME = true;
@@ -484,6 +498,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -498,6 +516,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -512,6 +534,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -526,6 +552,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.standardnotes-server}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -604,6 +634,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -618,6 +652,10 @@
             chunked_transfer_encoding off;
           '';
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -626,6 +664,10 @@
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.radarr}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -640,6 +682,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -654,6 +700,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
 
       # domain Services
@@ -664,6 +714,8 @@
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
           error_page 404 /${configVars.networking.subdomains.comfyui}.${configVars.domain}.404.html;
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
         locations = {
           "/" = {
@@ -684,6 +736,8 @@
         basicAuthFile = config.sops.secrets."bert-nginx-web-authfile".path;
         extraConfig = ''
           error_page 404 /${configVars.networking.subdomains.comfyuimini}.${configVars.domain}.404.html;
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
         locations = {
           "/" = {
@@ -710,6 +764,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
         enableACME = true;
@@ -724,6 +782,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
         enableACME = true;
@@ -738,6 +800,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
         enableACME = true;
@@ -752,6 +818,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.phanpy}.${configVars.domain}" = {
         enableACME = true;
@@ -763,6 +833,10 @@
             auth_basic off;
           '';
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.radarr}.${configVars.domain}" = {
         enableACME = true;
@@ -777,6 +851,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
         enableACME = true;
@@ -791,6 +869,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
         enableACME = true;
@@ -806,6 +888,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
         enableACME = true;
@@ -821,6 +907,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.stashvr-alias}.${configVars.domain}" = {
         enableACME = true;
@@ -847,6 +937,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.calibreweb}.${configVars.domain}" = {
         enableACME = true;
@@ -861,6 +955,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.jellyfin}.${configVars.domain}" = {
         enableACME = true;
@@ -952,6 +1050,10 @@
             '';
           };
         };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
       "${configVars.networking.subdomains.ombi}.${configVars.domain}" = {
         enableACME = true;
@@ -960,6 +1062,10 @@
         locations."/".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/api".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
         locations."/swagger".proxyPass = "http://127.0.0.1:${builtins.toString config.services.ombi.port}";
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
       };
     };
   security.acme.acceptTerms = true;
