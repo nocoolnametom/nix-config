@@ -262,6 +262,38 @@
             target = "_blank";
           }
         ];
+        budget-me = [
+          {
+            name = "Budget Dad";
+            icon = "fas fa-piggy-bank";
+            url = "https://${configVars.networking.subdomains.budget.me}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        budget-partner = [
+          {
+            name = "Budget Mom";
+            icon = "fas fa-piggy-bank";
+            url = "https://${configVars.networking.subdomains.budget.partner}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        budget-kid1 = [
+          {
+            name = "Budget Kid #1";
+            icon = "fas fa-piggy-bank";
+            url = "https://${configVars.networking.subdomains.budget.kid1}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
+        budget-kid2 = [
+          {
+            name = "Budget Kid #2";
+            icon = "fas fa-piggy-bank";
+            url = "https://${configVars.networking.subdomains.budget.kid2}.${configVars.homeDomain}/";
+            target = "_blank";
+          }
+        ];
         sickgear = lib.lists.optionals config.services.sickbeard.enable [
           {
             name = "Sickgear TV";
@@ -320,6 +352,7 @@
                   ++ stashapp
                   ++ stashvr
                   ++ phanpy
+                  ++ budget-me
                   ++ sickgear
                   ++ radarr;
               }
@@ -350,6 +383,10 @@
                   ++ kavita
                   ++ audiobookshelf
                   ++ podfetch
+                  ++ budget-me
+                  ++ budget-partner
+                  ++ budget-kid1
+                  ++ budget-kid2
                   ++ sickgear
                   ++ radarr;
               }
@@ -376,6 +413,7 @@
                   ++ flood
                   ++ nzbget
                   ++ kavitan
+                  ++ budget-me
                   ++ comfyui
                   ++ comfyuimini
                   ++ stashapp
@@ -539,6 +577,82 @@
           proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
+      "${configVars.networking.subdomains.budget.me}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.me}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
+      };
+      "${configVars.networking.subdomains.budget.partner}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.partner}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
+      };
+      "${configVars.networking.subdomains.budget.kid1}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.kid1}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
+      };
+      "${configVars.networking.subdomains.budget.kid2}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.kid2}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
+      };
       "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
@@ -619,6 +733,25 @@
           proxy_read_timeout 600s;
           proxy_send_timeout 600s;
           send_timeout       600s;
+        '';
+      };
+      "${configVars.networking.subdomains.immich-share}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich-share}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
       "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
