@@ -578,13 +578,18 @@
         forceSSL = true;
         locations = {
           "/" = {
+            recommendedProxySettings = true;
             proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}";
             proxyWebsockets = true;
-            extraConfig = ''
-              auth_basic off;
-            '';
           };
         };
+        extraConfig = ''
+          auth_basic off;
+          client_max_body_size 50000M;
+          proxy_read_timeout 600s;
+          proxy_send_timeout 600s;
+          send_timeout       600s;
+        '';
       };
       "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
         enableACME = true;
@@ -926,6 +931,10 @@
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
+              client_max_body_size 50000M;
+              proxy_read_timeout 600s;
+              proxy_send_timeout 600s;
+              send_timeout       600s;
             '';
           };
         };
