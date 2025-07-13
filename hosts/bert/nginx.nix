@@ -266,7 +266,7 @@
           {
             name = "Budget Dad";
             icon = "fas fa-piggy-bank";
-            url = "https://${configVars.networking.subdomains.budget.me}.${configVars.homeDomain}/";
+            url = "https://${configVars.networking.subdomains.budget-me}.${configVars.homeDomain}/";
             target = "_blank";
           }
         ];
@@ -274,7 +274,7 @@
           {
             name = "Budget Mom";
             icon = "fas fa-piggy-bank";
-            url = "https://${configVars.networking.subdomains.budget.partner}.${configVars.homeDomain}/";
+            url = "https://${configVars.networking.subdomains.budget-partner}.${configVars.homeDomain}/";
             target = "_blank";
           }
         ];
@@ -282,7 +282,7 @@
           {
             name = "Budget Kid #1";
             icon = "fas fa-piggy-bank";
-            url = "https://${configVars.networking.subdomains.budget.kid1}.${configVars.homeDomain}/";
+            url = "https://${configVars.networking.subdomains.budget-kid1}.${configVars.homeDomain}/";
             target = "_blank";
           }
         ];
@@ -290,7 +290,7 @@
           {
             name = "Budget Kid #2";
             icon = "fas fa-piggy-bank";
-            url = "https://${configVars.networking.subdomains.budget.kid2}.${configVars.homeDomain}/";
+            url = "https://${configVars.networking.subdomains.budget-kid2}.${configVars.homeDomain}/";
             target = "_blank";
           }
         ];
@@ -577,13 +577,13 @@
           proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
-      "${configVars.networking.subdomains.budget.me}.${configVars.homeDomain}" = {
+      "${configVars.networking.subdomains.budget-me}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.me}/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget-me}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -596,13 +596,13 @@
           proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
-      "${configVars.networking.subdomains.budget.partner}.${configVars.homeDomain}" = {
+      "${configVars.networking.subdomains.budget-partner}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.partner}/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget-partner}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -615,13 +615,13 @@
           proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
-      "${configVars.networking.subdomains.budget.kid1}.${configVars.homeDomain}" = {
+      "${configVars.networking.subdomains.budget-kid1}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.kid1}/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget-kid1}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
@@ -634,13 +634,13 @@
           proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
-      "${configVars.networking.subdomains.budget.kid2}.${configVars.homeDomain}" = {
+      "${configVars.networking.subdomains.budget-kid2}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget.kid2}/";
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget-kid2}/";
             proxyWebsockets = true;
             extraConfig = ''
               auth_basic off;
