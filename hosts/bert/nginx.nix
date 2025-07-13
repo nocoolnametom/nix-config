@@ -74,6 +74,14 @@
             target = "_blank";
           }
         ];
+        authentik = [
+          {
+            name = "Single sign-on";
+            icon = "fas fa-sign-in";
+            url = "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}";
+            target = "_blank";
+          }
+        ];
         jellyfin = [
           {
             name = "Jellyfin Media Server";
@@ -334,6 +342,7 @@
                 items =
                   with homerBlocks internal;
                   vscode
+                  ++ authentik
                   ++ deluge
                   ++ flood
                   ++ jellyfin
@@ -375,6 +384,7 @@
                 items =
                   with homerBlocks internal;
                   jellyfin
+                  ++ authentik
                   ++ ombi
                   ++ navidrome
                   ++ calibreweb
@@ -409,6 +419,7 @@
                 items =
                   with homerBlocks internal;
                   vscode
+                  ++ authentik
                   ++ deluge
                   ++ flood
                   ++ nzbget
@@ -523,6 +534,24 @@
       };
 
       # homeDomain Services
+      "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
+      };
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
@@ -577,6 +606,26 @@
           proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
         '';
       };
+      "${configVars.networking.subdomains.budget}.${configVars.homeDomain}" = {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations = {
+          "/" = {
+            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget}/";
+            proxyWebsockets = true;
+            extraConfig = ''
+              auth_basic off;
+              proxy_cache off;
+            '';
+          };
+        };
+        extraConfig = ''
+          # Only use if cookies don't already have security flags
+          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+        '';
+      };
+
       "${configVars.networking.subdomains.budget-me}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
