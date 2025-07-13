@@ -41,6 +41,7 @@
 
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/per-user-vpn-setup.nix"
+      # "hosts/common/optional/determinate.nix" # Tends to force compilation of kernels
       # Calibre is broken on raspi architecture! 2024-10-18
       "hosts/common/optional/services/calibre/default.nix"
       "hosts/common/optional/services/ddclient.nix"
