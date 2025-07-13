@@ -44,6 +44,7 @@
       "hosts/common/optional/services/stashapp.nix"
       "hosts/common/optional/services/wivrn.nix"
       "hosts/common/optional/cross-compiling.nix"
+      # "hosts/common/optional/determinate.nix" # Removed to help with cross-compiling
       "hosts/common/optional/jovian.nix"
       "hosts/common/optional/nvidia.nix"
       "hosts/common/optional/steam.nix"
