@@ -1,7 +1,8 @@
-{ inputs, ... }: {
+{ inputs, ... }:
+{
   imports = [
-      # Use the determinate module
-      inputs.determinate.darwinModules.default
+    # Use the determinate module
+    inputs.determinate.darwinModules.default
   ];
 
   # We're now using Determinate for security purposes

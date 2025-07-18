@@ -1,7 +1,13 @@
-{ inputs, lib, configVars, ... }: {
+{
+  inputs,
+  lib,
+  configVars,
+  ...
+}:
+{
   imports = [
-      # Use the determinate module
-      inputs.determinate.nixosModules.default
+    # Use the determinate module
+    inputs.determinate.nixosModules.default
   ];
 
   # Needed since Determinate Nix manages the main config file for system.

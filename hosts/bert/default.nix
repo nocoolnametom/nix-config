@@ -43,20 +43,21 @@
       "hosts/common/optional/per-user-vpn-setup.nix"
       # "hosts/common/optional/determinate.nix" # Tends to force compilation of kernels
       # Calibre is broken on raspi architecture! 2024-10-18
-      "hosts/common/optional/services/calibre/default.nix"
+      # "hosts/common/optional/services/calibre/default.nix"
       "hosts/common/optional/services/ddclient.nix"
-      "hosts/common/optional/services/deluge.nix"
-      "hosts/common/optional/services/flood.nix"
-      "hosts/common/optional/services/maestral.nix"
+      # "hosts/common/optional/services/deluge.nix"
+      # "hosts/common/optional/services/flood.nix"
+      # "hosts/common/optional/services/maestral.nix"
       "hosts/common/optional/services/navidrome.nix"
       "hosts/common/optional/services/nzbget.nix"
       "hosts/common/optional/services/ombi.nix"
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/radarr.nix"
-      "hosts/common/optional/services/sauronsync.nix"
+      # "hosts/common/optional/services/sauronsync.nix"
       "hosts/common/optional/services/sickrage.nix"
       "hosts/common/optional/services/stashapp.nix"
-      "hosts/common/optional/services/ytdl-sub.nix"
+      # "hosts/common/optional/services/ytdl-sub.nix"
+      "hosts/common/optional/services/kanidm.nix"
 
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/bert.nix"
@@ -78,9 +79,6 @@
   services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
 
   ## Imports overrides
-  # Turn off torrenting services
-  services.deluge.enable = false;
-  services.flood.enable = false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
