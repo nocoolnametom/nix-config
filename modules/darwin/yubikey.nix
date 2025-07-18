@@ -91,8 +91,8 @@ in
     environment.systemPackages = lib.flatten [
       (builtins.attrValues {
         inherit (pkgs)
-        yubikey-manager # cli-based authenticator tool. accessed via `ykman`
-        ;
+          yubikey-manager # cli-based authenticator tool. accessed via `ykman`
+          ;
       })
       config.yubikey.agent-package
       yubikey-up
@@ -142,12 +142,18 @@ in
 
     # Install openssh via brew
     homebrew.taps = [ { name = "theseal/ssh-askpass"; } ];
-    homebrew.brews = [ "openssh" "pinentry-mac" "theseal/ssh-askpass/ssh-askpass" ];
+    homebrew.brews = [
+      "openssh"
+      "pinentry-mac"
+      "theseal/ssh-askpass/ssh-askpass"
+    ];
 
     # Use brew's openssh for ssh-agent
     launchd.user.agents.ssh-agent = {
       serviceConfig = {
         Label = "com.homebrew.ssh-agent";
+        EnvironmentVariables.SSH_ASKPASS = "${config.homebrew.brewPrefix}/ssh-askpass";
+        EnvironmentVariables.DISPLAY = ":0";
         ProgramArguments = [
           "/bin/sh"
           "-c"
@@ -158,12 +164,6 @@ in
       };
     };
 
-    # Point to yubikey-agent with environment vars
-    # environment.extraInit = ''
-    #  if [ -z "$SSH_AUTH_SOCK" ]; then
-    #    export SSH_AUTH_SOCK="${agentSocket}"
-    #  fi
-    #'';
     environment.variables.SSH_ASKPASS = "${config.homebrew.brewPrefix}/ssh-askpass";
     environment.variables.DISPLAY = ":0";
   };
