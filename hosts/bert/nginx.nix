@@ -152,23 +152,34 @@
       };
 
       # homeDomain Services
-      "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
+      # "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
+      #   enableACME = true;
+      #   http2 = true;
+      #   forceSSL = true;
+      #   locations = {
+      #     "/" = {
+      #       proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}";
+      #       proxyWebsockets = true;
+      #       extraConfig = ''
+      #         auth_basic off;
+      #       '';
+      #     };
+      #   };
+      #   extraConfig = ''
+      #     # Only use if cookies don't already have security flags
+      #     proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
+      #   '';
+      # };
+      "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}";
+            proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.kanidm}";
             proxyWebsockets = true;
-            extraConfig = ''
-              auth_basic off;
-            '';
           };
         };
-        extraConfig = ''
-          # Only use if cookies don't already have security flags
-          proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
-        '';
       };
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
         enableACME = true;
