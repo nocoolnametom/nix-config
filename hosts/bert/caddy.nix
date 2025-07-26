@@ -94,7 +94,7 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
       '';
     };
-    "${configVards.networking.subdomains.nas}.${configVars.homeDomain}" = {
+    "${configVars.networking.subdomains.nas}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.nas}
       '';
