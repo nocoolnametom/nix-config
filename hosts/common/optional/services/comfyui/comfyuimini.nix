@@ -62,7 +62,7 @@ in
         fi
 
         git stash || true
-        git pull --rebase
+        git pull --rebase || true
         git stash pop || true
 
         if [ ! -d node_modules/.bin ]; then
