@@ -116,6 +116,11 @@
         reverse_proxy 127.0.0.1:${builtins.toString config.services.ombi.port}
       '';
     };
+    "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
+      '';
+    };
     "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}
