@@ -61,7 +61,7 @@
     };
     "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString config.services.flood.port}";
+        reverse_proxy 127.0.0.1:${builtins.toString config.services.flood.port}
       '';
     };
     "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
