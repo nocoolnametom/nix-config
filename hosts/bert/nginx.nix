@@ -11,34 +11,34 @@
 
   services.nginx.enable = true;
   services.nginx.recommendedProxySettings = true;
-  services.nginx.recommendedTlsSettings = true;
+  # services.nginx.recommendedTlsSettings = true;
   services.nginx.recommendedOptimisation = true;
   services.nginx.recommendedGzipSettings = true;
   services.nginx.sslCiphers = "AES256+EECDH:AES256+EDH:!aNULL";
-  services.nginx.commonHttpConfig = ''
-    # Add HSTS header with preloading to HTTPS requests.
-    # Adding this header to HTTP requests is discouraged
-    map $scheme $hsts_header {
-        https   "max-age=31536000; includeSubdomains; preload";
-    }
-    add_header Strict-Transport-Security $hsts_header;
-
-    # Enable CSP for your services.
-    #add_header Content-Security-Policy "script-src 'self'; object-src 'none'; base-uri 'none';" always;
-
-    # Minimize information leaked to other domains
-    add_header 'Referrer-Policy' 'origin-when-cross-origin';
-
-    # Disable embedding as a frame
-    add_header X-Frame-Options DENY;
-
-    # Prevent injection of code in other mime types (XSS Attacks)
-    add_header X-Content-Type-Options nosniff;
-
-    # Enable XSS protection of the browser.
-    # May be unnecessary when CSP is configured properly (see above)
-    add_header X-XSS-Protection "1; mode=block";
-  '';
+  #   services.nginx.commonHttpConfig = ''
+  #     # Add HSTS header with preloading to HTTPS requests.
+  #     # Adding this header to HTTP requests is discouraged
+  #     map $scheme $hsts_header {
+  #         https   "max-age=31536000; includeSubdomains; preload";
+  #     }
+  #     add_header Strict-Transport-Security $hsts_header;
+  # 
+  #     # Enable CSP for your services.
+  #     #add_header Content-Security-Policy "script-src 'self'; object-src 'none'; base-uri 'none';" always;
+  # 
+  #     # Minimize information leaked to other domains
+  #     add_header 'Referrer-Policy' 'origin-when-cross-origin';
+  # 
+  #     # Disable embedding as a frame
+  #     add_header X-Frame-Options DENY;
+  # 
+  #     # Prevent injection of code in other mime types (XSS Attacks)
+  #     add_header X-Content-Type-Options nosniff;
+  # 
+  #     # Enable XSS protection of the browser.
+  #     # May be unnecessary when CSP is configured properly (see above)
+  #     add_header X-XSS-Protection "1; mode=block";
+  #   '';
   services.nginx.virtualHosts =
     let
       homerConfig = import ./homer-blocks.nix {
@@ -152,35 +152,28 @@
       };
 
       # homeDomain Services
-      # "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
-      #   enableACME = true;
-      #   http2 = true;
-      #   forceSSL = true;
-      #   locations = {
-      #     "/" = {
-      #       proxyPass = "http://${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}";
-      #       proxyWebsockets = true;
-      #       extraConfig = ''
-      #         auth_basic off;
-      #       '';
-      #     };
-      #   };
-      #   extraConfig = ''
-      #     # Only use if cookies don't already have security flags
-      #     proxy_cookie_path ~^/(.*)$ "/$1; secure; HTTPOnly; SameSite=strict";
-      #   '';
-      # };
-      "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
+      "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;
         forceSSL = true;
         locations = {
           "/" = {
-            proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.kanidm}";
+            proxyPass = "https://${configVars.networking.subnets.cirdan.ip}:9443";
             proxyWebsockets = true;
           };
         };
       };
+      # "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
+      #   enableACME = true;
+      #   http2 = true;
+      #   forceSSL = true;
+      #   locations = {
+      #     "/" = {
+      #       proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.kanidm}";
+      #       proxyWebsockets = true;
+      #     };
+      #   };
+      # };
       "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
         enableACME = true;
         http2 = true;

@@ -60,10 +60,22 @@ in
         identityFile = [ "${config.home.homeDirectory}/.ssh/id_fedibox" ];
         user = "root";
       };
+      "archer" = {
+        host = configVars.networking.subnets.archer.name;
+        hostname = configVars.networking.subnets.archer.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "bert" = {
         host = configVars.networking.subnets.bert.name;
         hostname = configVars.networking.subnets.bert.ip;
         port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "router" = {
+        host = configVars.networking.subnets.router.name;
+        hostname = configVars.networking.subnets.router.ip;
+        port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "sauron" = {
