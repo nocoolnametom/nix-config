@@ -27,7 +27,8 @@
       ./smb-shares.nix
 
       ############################## Nginx ######################################
-      ./nginx.nix
+      # ./nginx.nix
+      ./caddy.nix
 
       ########################### Impermanence ##################################
       ./persistence.nix
@@ -57,7 +58,7 @@
       "hosts/common/optional/services/sickrage.nix"
       "hosts/common/optional/services/stashapp.nix"
       # "hosts/common/optional/services/ytdl-sub.nix"
-      "hosts/common/optional/services/kanidm.nix"
+      # "hosts/common/optional/services/kanidm.nix"
 
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/bert.nix"
