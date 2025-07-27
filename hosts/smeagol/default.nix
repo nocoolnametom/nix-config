@@ -89,6 +89,9 @@
   services.stashapp.vr-helper.stash-host = "http://${configVars.networking.subnets.smeagol.actual}:${builtins.toString configVars.networking.ports.tcp.stash}";
   sops.secrets = {
     "smeagol-stashapp-api-key" = { };
+    "open-webui-slug" = { };
+    "open-webui-clientid" = { };
+    "open-webui-clientsecret" = { };
   };
   sops.templates."stash-vr.conf".content = ''
     STASH_API_KEY=${config.sops.placeholder."smeagol-stashapp-api-key"}
@@ -121,6 +124,17 @@
   # Open-WebUI is a web-frontend for chatting with ollama
   services.open-webui.enable = true;
   services.open-webui.host = "0.0.0.0";
+  sops.templates."open-webui.conf".content = ''
+    ENABLE_OAUTH_SIGNUP=true
+    OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
+    OAUTH_PROVIDER_NAME=Authentik
+    OPENID_PROVIDER_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/${config.sops.placeholder."open-webui-slug"}/.well-known/openid-configuration
+    OAUTH_CLIENT_ID=${config.sops.placeholder."open-webui-clientid"}
+    OAUTH_CLIENT_SECRET=${config.sops.placeholder."open-webui-clientsecret"}
+    OAUTH_SCOPES=openid email profile
+    OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.domain}/oauth/oidc/callback
+  '';
+  services.open-webui.environmentFile = config.sops.templates."open-webui.conf".path;
 
   # Some Jovian stuff just for smeagol
   jovian.devices.steamdeck.enable = lib.mkForce false;
