@@ -29,11 +29,6 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
       '';
     };
-    "${configVars.networking.subdomains.audiobookshelf}.${configVars.domain}" = {
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
-      '';
-    };
     "${configVars.networking.subdomains.budget}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget}
@@ -46,12 +41,14 @@
     };
     "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}
+        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}
+        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = {
@@ -106,14 +103,14 @@
     };
     "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbget}
+        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbget}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy /api/* 127.0.0.1:${builtins.toString config.services.ombi.port}
-        reverse_proxy /swagger/* 127.0.0.1:${builtins.toString config.services.ombi.port}
-        reverse_proxy 127.0.0.1:${builtins.toString config.services.ombi.port}
+        # reverse_proxy 127.0.0.1:${builtins.toString config.services.ombi.port}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
