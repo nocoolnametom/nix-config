@@ -98,7 +98,8 @@
     };
     "${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString config.services.navidrome.settings.Port}
+        # reverse_proxy 127.0.0.1:${builtins.toString config.services.navidrome.settings.Port}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {

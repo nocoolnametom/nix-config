@@ -124,6 +124,13 @@
 
   # Navidrome Music Server
   services.navidrome.settings.MusicFolder = "/mnt/Backup/Takeout/${configVars.handle}/Google_Play_Music";
+  services.navidrome.settings.BaseUrl = "";
+  services.navidrome.settings.ReverseProxyWhitelist = "${configVars.networking.subnets.cirdan.ip}/32";
+  services.navidrome.settings.ReverseProxyUserHeader = "X-Authentik-Username";
+  services.navidrome.environmentFile = pkgs.writeText "stack.env" ''
+    ND_AUTH_PROXY_AUTO_CREATE_USERS=true
+    ND_AUTH_PROXY_DEFAULT_ROLE=USER
+  '';
 
   # Security
   security.sudo.wheelNeedsPassword = false;
