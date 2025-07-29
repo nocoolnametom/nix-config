@@ -84,7 +84,7 @@
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "bert";
-    nameservers = [ "8.8.8.8" ];
+    nameservers = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" "8.8.8.8#eight.eight.eight.eight" ];
     networkmanager.enable = true;
     enableIPv6 = true;
     # Bert is behind a NAT, so access to ports is already restricted
@@ -99,6 +99,14 @@
       443 # HTTPS
     ];
     firewall.allowPing = true; # Linode's LISH console requires ping
+  };
+
+  services.resolved = {
+    enable = true;
+    dnssec = "true";
+    domains = [ "~." ];
+    fallbackDns = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" "8.8.8.8#eight.eight.eight.eight" ];
+    dnsovertls = "true";
   };
 
   environment.systemPackages = with pkgs; [
@@ -135,7 +143,8 @@
   # Security
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
-  services.fail2ban.enable = true;
+  # fail2ban wants the firewall enabled first
+  services.fail2ban.enable = false;
 
   # Fixes VSCode remote
   programs.nix-ld.enable = true;
