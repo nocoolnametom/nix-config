@@ -57,6 +57,7 @@
       "hosts/common/optional/services/radarr.nix"
       # "hosts/common/optional/services/sauronsync.nix"
       "hosts/common/optional/services/sickrage.nix"
+      "hosts/common/optional/services/sonarr.nix"
       "hosts/common/optional/services/stashapp.nix"
       # "hosts/common/optional/services/ytdl-sub.nix"
       # "hosts/common/optional/services/kanidm.nix"
