@@ -13,8 +13,8 @@
     "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
       extraConfig = ''
         @websockets {
-	  header Connection *Upgrade*
-	  header Upgrade websocket
+          header Connection *Upgrade*
+          header Upgrade websocket
         }
         reverse_proxy @websockets ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik} {

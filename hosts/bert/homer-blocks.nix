@@ -295,11 +295,7 @@ let
       {
         name = "Kanidm SSO";
         icon = "fas fa-shield-alt";
-        url =
-          if internal then
-            "http://127.0.0.1:8443/"
-          else
-            "https://kanidm.${configVars.homeDomain}/";
+        url = if internal then "http://127.0.0.1:8443/" else "https://kanidm.${configVars.homeDomain}/";
         target = "_blank";
       }
     ];
