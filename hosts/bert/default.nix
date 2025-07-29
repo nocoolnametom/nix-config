@@ -84,7 +84,11 @@
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "bert";
-    nameservers = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" "8.8.8.8#eight.eight.eight.eight" ];
+    nameservers = [
+      "1.1.1.1#one.one.one.one"
+      "1.0.0.1#one.one.one.one"
+      "8.8.8.8#eight.eight.eight.eight"
+    ];
     networkmanager.enable = true;
     enableIPv6 = true;
     # Bert is behind a NAT, so access to ports is already restricted
@@ -105,7 +109,11 @@
     enable = true;
     dnssec = "true";
     domains = [ "~." ];
-    fallbackDns = [ "1.1.1.1#one.one.one.one" "1.0.0.1#one.one.one.one" "8.8.8.8#eight.eight.eight.eight" ];
+    fallbackDns = [
+      "1.1.1.1#one.one.one.one"
+      "1.0.0.1#one.one.one.one"
+      "8.8.8.8#eight.eight.eight.eight"
+    ];
     dnsovertls = "true";
   };
 
@@ -129,6 +137,9 @@
   boot.tmp.cleanOnBoot = true;
   boot.tmp.useTmpfs = true;
   boot.initrd.systemd.enable = true;
+
+  # NZBHydra Data Storage
+  services.nzbhydra2.dataDir = "/media/g_drive/nzbhydra2";
 
   # Navidrome Music Server
   services.navidrome.settings.MusicFolder = "/mnt/Backup/Takeout/${configVars.handle}/Google_Play_Music";

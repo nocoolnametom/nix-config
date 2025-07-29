@@ -128,7 +128,9 @@
     ENABLE_OAUTH_SIGNUP=true
     OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
     OAUTH_PROVIDER_NAME=Authentik
-    OPENID_PROVIDER_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/${config.sops.placeholder."open-webui-slug"}/.well-known/openid-configuration
+    OPENID_PROVIDER_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/${
+      config.sops.placeholder."open-webui-slug"
+    }/.well-known/openid-configuration
     OAUTH_CLIENT_ID=${config.sops.placeholder."open-webui-clientid"}
     OAUTH_CLIENT_SECRET=${config.sops.placeholder."open-webui-clientsecret"}
     OAUTH_SCOPES=openid email profile

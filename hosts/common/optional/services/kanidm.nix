@@ -1,4 +1,9 @@
-{ pkgs, lib, configVars, ... }:
+{
+  pkgs,
+  lib,
+  configVars,
+  ...
+}:
 {
   # Kanidm SSO Provider
   services.kanidm.enableServer = true;
@@ -11,4 +16,4 @@
     tls_chain = "/var/lib/acme/${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/fullchain.pem";
     tls_key = "/var/lib/acme/${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/key.pem";
   };
-} 
+}
