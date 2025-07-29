@@ -32,7 +32,6 @@
     # Styling for Visual Applications
     stylix.url = "github:danth/stylix/release-25.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
-    stylix.inputs.home-manager.follows = "home-manager";
 
     # Secrets management
     sops-nix.url = "github:Mic92/sops-nix";

@@ -44,7 +44,7 @@
 
   gtk.enable = lib.mkDefault true;
 
-  fonts.fontconfig.enable = lib.mkDefault true;
+  #fonts.fontconfig.enable = lib.mkDefault true;
   programs.brave.enable = lib.mkDefault true;
   programs.vscode.enable = lib.mkDefault true;
   programs.google-chrome.enable = lib.mkDefault true;
