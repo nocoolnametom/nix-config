@@ -141,14 +141,10 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}" = {
-      extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString config.services.sickbeard.port}
-      '';
-    };
     "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString config.services.sickbeard.port}
+        # reverse_proxy 127.0.0.1:${builtins.toString config.services.sickbeard.port}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.sonarr}.${configVars.domain}" = {
@@ -174,7 +170,8 @@
     };
     "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString config.services.stashapp.port}
+        # reverse_proxy 127.0.0.1:${builtins.toString config.services.stashapp.port}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
