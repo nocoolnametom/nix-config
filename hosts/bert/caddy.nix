@@ -135,14 +135,10 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.portainer}
       '';
     };
-    "${configVars.networking.subdomains.radarr}.${configVars.homeDomain}" = {
-      extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.radarr}
-      '';
-    };
     "${configVars.networking.subdomains.radarr}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.radarr}
+        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.radarr}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}" = {
@@ -153,6 +149,12 @@
     "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
       extraConfig = ''
         reverse_proxy 127.0.0.1:${builtins.toString config.services.sickbeard.port}
+      '';
+    };
+    "${configVars.networking.subdomains.sonarr}.${configVars.domain}" = {
+      extraConfig = ''
+        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.sonarr}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.standardnotes}.${configVars.homeDomain}" = {
