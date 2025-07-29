@@ -61,6 +61,12 @@
         reverse_proxy 127.0.0.1:${builtins.toString config.services.flood.port}
       '';
     };
+    "${configVars.networking.subdomains.nzbhydra}.${configVars.domain}" = {
+      extraConfig = ''
+        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbhydra}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+      '';
+    };
     "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
