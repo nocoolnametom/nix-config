@@ -1,9 +1,11 @@
 { config, lib, pkgs, ... }:
 {
-  sops.secrets."deluge-auth" = { };
+  sops.secrets."deluge-auth" = {
+    owner = config.services.deluge.user;
+  };
   # Deluge Server
   services.deluge.enable = lib.mkDefault true;
-  services.deluge.declarative = false;
+  services.deluge.declarative = lib.mkDefault true;
   services.deluge.config = {
     add_paused = false;
     allow_remote = false;
@@ -82,6 +84,8 @@
   };
   # Make the finished files group-writeable
   systemd.services.deluge.serviceConfig.UMask = "0002";
+
+  # Use the above settings at the config
   services.deluge.authFile = config.sops.secrets."deluge-auth".path;
 
   # Ensure the deluge user is in the shared media group

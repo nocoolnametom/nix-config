@@ -139,10 +139,19 @@
   # Turn off the Web UI Frontend if Flood is working
   services.deluge.web.enable = !config.services.flood.enable;
 
-  # Flood UI
+  # Flood UIA
+  sops.secrets.flood-user = { };
+  sops.secrets.flood-pass = { };
+  sops.templates."flood.env".content = ''
+    FLOOD_OPTION_DEUSER="${config.sops.placeholder.flood-user}"
+    FLOOD_OPTION_DEPASS="${config.sops.placeholder.flood-pass}"
+  '';
   services.flood.host = "0.0.0.0";
+  systemd.services.flood.serviceConfig.EnvironmentFile = config.sops.templates."flood.env".path;
   services.flood.extraArgs = [
-    "--authMethod=none"
+    "--noauth"
+    "--dehost=localhost"
+    "--deport=${builtins.toString config.services.deluge.config.daemon_port}"
   ];
 
   # NZBHydra Data Storage
