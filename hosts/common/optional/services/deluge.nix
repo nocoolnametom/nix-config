@@ -8,7 +8,7 @@
   services.deluge.declarative = lib.mkDefault true;
   services.deluge.config = {
     add_paused = false;
-    allow_remote = false;
+    allow_remote = true;
     auto_managed = true;
     cache_expiry = 60;
     cache_size = 128;
@@ -19,7 +19,7 @@
     dont_count_slow_torrents = false;
     download_location = "/media/g_drive/Deluge/Downloads";
     download_location_paths_list = [ ];
-    enabled_plugins = [ "AutoAdd" ];
+    enabled_plugins = [ "AutoAdd" "Label" "Stats" ];
     enc_in_policy = 1;
     enc_level = 2;
     enc_out_policy = 1;
@@ -91,8 +91,8 @@
 
   # Ensure the deluge user is in the shared media group
   users.groups.media = { };
-  users.users.deluge.extraGroups = [ "media" ];
+  services.deluge.group = "media";
 
-  # Deluge Web Server
+  # Deluge Web Server - Used by other services to send torrents!
   services.deluge.web.enable = lib.mkDefault config.services.deluge.enable;
 }

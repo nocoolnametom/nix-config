@@ -135,11 +135,9 @@
   boot.tmp.useTmpfs = true;
   boot.initrd.systemd.enable = true;
 
-  # Deluge
-  # Turn off the Web UI Frontend if Flood is working
-  services.deluge.web.enable = !config.services.flood.enable;
+  # Deluge WebUI must be active to send torrents from SickGear!
 
-  # Flood UIA
+  # Flood UI
   sops.secrets.flood-user = { };
   sops.secrets.flood-pass = { };
   sops.templates."flood.env".content = ''
