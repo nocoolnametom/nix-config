@@ -57,12 +57,12 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = lib.mkIf config.services.deluge.web.enable {
       extraConfig = ''
         reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.delugeweb}
       '';
     };
-    "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.flood}.${configVars.domain}" = lib.mkIf config.services.flood.enable {
       extraConfig = ''
         reverse_proxy 127.0.0.1:${builtins.toString config.services.flood.port}
       '';

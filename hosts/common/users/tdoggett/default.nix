@@ -12,13 +12,14 @@ let
   ifTheyExist = groups: builtins.filter (group: builtins.hasAttr group config.users.groups) groups;
   # Loads all public key files into a list without having to reference them directly
   pubKeys = lib.filesystem.listFilesRecursive (./keys);
+  machineName = if config.networking.hostName != "" then config.networking.hostName else "nixos";
 in
 {
   # User-level persistence is loaded in the `home/<username>/persistence/<hostName>.nix` file!
 
   # Here is where the Home Manager magic happens!
   home-manager.users.${configVars.username} = import (
-    configLib.relativeToRoot "home/${configVars.username}/${config.networking.hostName}.nix"
+    configLib.relativeToRoot "home/${configVars.username}/${machineName}.nix"
   );
 
   # Allow user to login via SSH
@@ -27,6 +28,9 @@ in
   ];
 
   users.mutableUsers = lib.mkDefault false;
+
+  # Ensure shared media group exists
+  users.groups.media = { };
 
   users.users.${configVars.username} = {
     isNormalUser = true;
@@ -45,6 +49,7 @@ in
         "lxd"
         "kvm" # virtualization
         "adbusers" # android debugging
+        "media" # media downloading
         "video" # monitor
         "dialout" # serial ports for arduino
       ];

@@ -28,4 +28,8 @@
     ))
     ffmpeg
   ];
+
+  # Ensure the sickbeard user is in the shared media group
+  users.groups.media = { };
+  users.users.sickbeard.extraGroups = [ "media" ];
 }

@@ -140,4 +140,8 @@ in
       Type = "oneshot";
     };
   };
+
+  # Ensure the nzbget user is in the shared media group
+  users.groups.media = { };
+  users.users.nzbget.extraGroups = [ "media" ];
 }

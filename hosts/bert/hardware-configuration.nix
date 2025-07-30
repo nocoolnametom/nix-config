@@ -82,7 +82,6 @@ in
   fileSystems."/mnt/cirdan/smb/Movies" = cirdanSmbConfig "Movies";
   fileSystems."/mnt/cirdan/smb/TV_Shows" = cirdanSmbConfig "TV_Shows";
   fileSystems."/mnt/cirdan/smb/Jellyfin" = cirdanSmbConfig "Jellyfin";
-  fileSystems."/mnt/cirdan/smb/data.dat" = cirdanSmbConfig "data.dat";
   fileSystems."/mnt/cirdan/smb/NetBackup" = cirdanSmbConfig "NetBackup";
   fileSystems."/mnt/cirdan/smb/Family_Data" = cirdanSmbConfig "Family_Data";
 

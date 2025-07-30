@@ -43,24 +43,19 @@
       #################### Host-specific Optional Configs ####################
       "hosts/common/optional/per-user-vpn-setup.nix"
       # "hosts/common/optional/determinate.nix" # Tends to force compilation of kernels
-      # Calibre is broken on raspi architecture! 2024-10-18
-      # "hosts/common/optional/services/calibre/default.nix"
       "hosts/common/optional/services/ddclient.nix"
-      # "hosts/common/optional/services/deluge.nix"
-      # "hosts/common/optional/services/flood.nix"
-      # "hosts/common/optional/services/maestral.nix"
+      "hosts/common/optional/services/deluge.nix"
+      "hosts/common/optional/services/flood.nix"
       "hosts/common/optional/services/navidrome.nix"
       "hosts/common/optional/services/nzbget.nix"
       "hosts/common/optional/services/nzbhydra.nix"
       "hosts/common/optional/services/ombi.nix"
       "hosts/common/optional/services/openssh.nix"
       "hosts/common/optional/services/radarr.nix"
-      # "hosts/common/optional/services/sauronsync.nix"
       "hosts/common/optional/services/sickrage.nix"
       "hosts/common/optional/services/sonarr.nix"
       "hosts/common/optional/services/stashapp.nix"
       # "hosts/common/optional/services/ytdl-sub.nix"
-      # "hosts/common/optional/services/kanidm.nix"
 
       #################### Users to Create ####################
       "home/${configVars.username}/persistence/bert.nix"
@@ -139,6 +134,16 @@
   boot.tmp.cleanOnBoot = true;
   boot.tmp.useTmpfs = true;
   boot.initrd.systemd.enable = true;
+
+  # Deluge
+  # Turn off the Web UI Frontend if Flood is working
+  services.deluge.web.enable = !config.services.flood.enable;
+
+  # Flood UI
+  services.flood.host = "0.0.0.0";
+  services.flood.extraArgs = [
+    "--authMethod=none"
+  ];
 
   # NZBHydra Data Storage
   services.nzbhydra2.dataDir = "/media/g_drive/nzbhydra2";
