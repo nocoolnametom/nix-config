@@ -1,5 +1,7 @@
 { configVars, osConfig, ... }:
 {
+  # This file is used for machines without a set hostName, like in AWS for the fedibox where the hostName is dynamic 
+
   imports = [
     ########################## Required Configs ###########################
     common/core # required
