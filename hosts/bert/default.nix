@@ -135,14 +135,21 @@
   boot.tmp.useTmpfs = true;
   boot.initrd.systemd.enable = true;
 
-  # Deluge
-  # Turn off the Web UI Frontend if Flood is working
-  services.deluge.web.enable = !config.services.flood.enable;
+  # Deluge WebUI must be active to send torrents from SickGear!
 
   # Flood UI
+  sops.secrets.flood-user = { };
+  sops.secrets.flood-pass = { };
+  sops.templates."flood.env".content = ''
+    FLOOD_OPTION_DEUSER="${config.sops.placeholder.flood-user}"
+    FLOOD_OPTION_DEPASS="${config.sops.placeholder.flood-pass}"
+  '';
   services.flood.host = "0.0.0.0";
+  systemd.services.flood.serviceConfig.EnvironmentFile = config.sops.templates."flood.env".path;
   services.flood.extraArgs = [
-    "--authMethod=none"
+    "--noauth"
+    "--dehost=localhost"
+    "--deport=${builtins.toString config.services.deluge.config.daemon_port}"
   ];
 
   # NZBHydra Data Storage

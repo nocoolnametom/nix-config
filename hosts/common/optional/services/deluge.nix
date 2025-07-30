@@ -1,12 +1,14 @@
 { config, lib, pkgs, ... }:
 {
-  sops.secrets."deluge-auth" = { };
+  sops.secrets."deluge-auth" = {
+    owner = config.services.deluge.user;
+  };
   # Deluge Server
   services.deluge.enable = lib.mkDefault true;
-  services.deluge.declarative = false;
+  services.deluge.declarative = lib.mkDefault true;
   services.deluge.config = {
     add_paused = false;
-    allow_remote = false;
+    allow_remote = true;
     auto_managed = true;
     cache_expiry = 60;
     cache_size = 128;
@@ -17,7 +19,7 @@
     dont_count_slow_torrents = false;
     download_location = "/media/g_drive/Deluge/Downloads";
     download_location_paths_list = [ ];
-    enabled_plugins = [ ];
+    enabled_plugins = [ "AutoAdd" "Label" "Stats" ];
     enc_in_policy = 1;
     enc_level = 2;
     enc_out_policy = 1;
@@ -25,8 +27,8 @@
     ignore_limits_on_local_network = true;
     info_sent = 0.0;
     listen_interface = "";
-    listen_ports = [ 53484 53484 ];
-    listen_random_port = false;
+    listen_ports = [ 6881 6891 ];
+    listen_random_port = 61906;
     listen_reuse_port = true;
     listen_use_sys_port = false;
     lsd = false;
@@ -76,18 +78,21 @@
     stop_seed_at_ratio = false;
     stop_seed_ratio = 2.0;
     super_seeding = false;
-    torrentfiles_location = "/media/g_drive/Deluge/BlackHole";
+    torrentfiles_location = "/media/g_drive/Deluge/torrents";
     upnp = false;
     utpex = true;
   };
+
   # Make the finished files group-writeable
   systemd.services.deluge.serviceConfig.UMask = "0002";
+
+  # Use the above settings at the config
   services.deluge.authFile = config.sops.secrets."deluge-auth".path;
 
   # Ensure the deluge user is in the shared media group
   users.groups.media = { };
-  users.users.deluge.extraGroups = [ "media" ];
+  services.deluge.group = "media";
 
-  # Deluge Web Server
+  # Deluge Web Server - Used by other services to send torrents!
   services.deluge.web.enable = lib.mkDefault config.services.deluge.enable;
 }
