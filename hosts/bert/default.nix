@@ -47,7 +47,6 @@
       "hosts/common/optional/services/deluge.nix"
       "hosts/common/optional/services/flood.nix"
       "hosts/common/optional/services/navidrome.nix"
-      "hosts/common/optional/services/netbox.nix"
       "hosts/common/optional/services/nzbget.nix"
       "hosts/common/optional/services/nzbhydra.nix"
       "hosts/common/optional/services/ombi.nix"

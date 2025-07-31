@@ -34,6 +34,19 @@
     "[::1]"
   ];
 
+  # UptimeKuma
+  services.nginx.virtualHosts."${configVars.networking.subdomains.status}.${configVars.homeDomain}" = lib.mkIf config.services.uptime-kuma.enable {
+    enableACME = true;
+    http2 = true;
+    forceSSL = true;
+    locations = {
+      "/" = {
+        proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.uptime-kuma}";
+        proxyWebsockets = true;
+      };
+    };
+  };
+
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "webmaster@${configVars.domain}";
 }

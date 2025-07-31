@@ -38,6 +38,7 @@
       "/var/lib/postgresql"
       "/var/lib/redis-mastodon"
       "/var/lib/systemd/coredump"
+      "/var/lib/uptime-kuma"
       "/var/lib/wordpress"
     ];
     files = [
