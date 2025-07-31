@@ -16,7 +16,7 @@
         redir https://${configVars.networking.subdomains.authentik}.{host}{uri}
       '';
     };
-    "${configVars.statusDomain}" = {
+    "${configVars.healthDomain}" = {
       extraConfig = ''
         respond / "Service is UP" 200
       '';

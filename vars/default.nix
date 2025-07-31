@@ -5,7 +5,7 @@
     handles
     domain
     homeDomain
-    statusDomain
+    healthDomain
     email
     networking
     work
