@@ -16,7 +16,7 @@ in
     protocol = "porkbun";
     username = apikey;
     passwordFile = "${config.sops.secrets."ddclient-password".path}";
-    domains = [ "home.${configVars.domain}" ];
+    domains = [ "home.${configVars.domain}" "${configVars.healthDomain}" ];
     # This is because the porkbun protocol requires they keys "apikey" and "secretapikey" instead of "username" and "password"
     extraConfig = ''
       apikey=${apikey}
