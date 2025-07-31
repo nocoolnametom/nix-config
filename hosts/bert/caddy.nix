@@ -121,6 +121,12 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
+    "${configVars.networking.subdomains.netbox}.${configVars.domain}" = {
+      extraConfig = ''
+        reverse_proxy 127.0.0.1:${builtins.toString config.services.netbox.port}
+        # reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString config.services.netbox.port}
+      '';
+    };
     "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
       extraConfig = ''
         # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbget}
