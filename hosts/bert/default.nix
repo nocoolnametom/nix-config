@@ -68,9 +68,7 @@
   # Enable stash-vr
   services.stashapp.vr-helper.enable = false;
   services.stashapp.vr-helper.stash-host = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
-  sops.secrets = {
-    "bert-stashapp-api-key" = { };
-  };
+  sops.secrets."bert-stashapp-api-key" = { };
   sops.templates."stash-vr.conf".content = ''
     STASH_API_KEY=${config.sops.placeholder."bert-stashapp-api-key"}
   '';
@@ -164,6 +162,15 @@
     ND_AUTH_PROXY_AUTO_CREATE_USERS=true
     ND_AUTH_PROXY_DEFAULT_ROLE=USER
   '';
+
+  # Bombadil Failover Cert Sync
+  sops.secrets."acme-failover-key" = {
+    key = "ssh/personal/root_only/acme-failover-key";
+    mode = "0600";
+  };
+  services.rsyncCertSync.enable = true;
+  services.rsyncCertSync.vpsHost = configVars.networking.external.bombadil.mainUrl;
+  services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
   # Security
   security.sudo.wheelNeedsPassword = false;
