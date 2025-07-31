@@ -16,6 +16,11 @@
         redir https://${configVars.networking.subdomains.authentik}.{host}{uri}
       '';
     };
+    "${configVars.statusDomain}" = {
+      extraConfig = ''
+        respond / "Service is UP" 200
+      '';
+    };
     "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
       extraConfig = ''
         @websockets {

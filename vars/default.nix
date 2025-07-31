@@ -5,6 +5,7 @@
     handles
     domain
     homeDomain
+    statusDomain
     email
     networking
     work
