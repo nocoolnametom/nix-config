@@ -35,7 +35,7 @@
   ];
 
   # UptimeKuma
-  services.nginx.virtualHosts."${configVars.networking.subdomains.status}.${configVars.homeDomain}" = lib.mkIf config.services.uptime-kuma.enable {
+  services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}" = lib.mkIf config.services.uptime-kuma.enable {
     enableACME = true;
     http2 = true;
     forceSSL = true;
