@@ -14,7 +14,7 @@ in
     };
 
     statusPageDomain = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+      type = lib.types.str;
       default = "status.domain.name";
       description = "Domain to redirect the failovers to with a temporary redirect";
     };
@@ -27,12 +27,15 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    systemd.services.nginx.reloadTriggers = [ cfg.outputConfigPath ];
     systemd.services.failover-redirects-generate = {
       description = "Generate Nginx Failover Redirects Config";
       path = [ pkgs.bash pkgs.findutils pkgs.gnused pkgs.nginx ];
       serviceConfig = {
         Type = "oneshot";
         ExecStart = ''
+          mkdir -p $(dirname ${cfg.outputConfigPath})
+          touch ${cfg.outputConfigPath}
           set -e
           tmpfile=$(mktemp)
           echo "map \$host \$redirect_target {" > $tmpfile
@@ -82,12 +85,15 @@ in
     # Nginx reload when config changes (optional safety net)
     systemd.services.nginx-reload-on-failover-change = {
       description = "Reload Nginx when failover-redirects.conf changes";
-      path = [ pkgs.inotify-tools pkgs.bash ];
       serviceConfig = {
         ExecStart = ''
-          ${pkgs.inotify-tools}/bin/inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
-            systemctl reload nginx
-          done
+          ${pkgs.bash}/bin/bash -c '
+            mkdir $(dirname ${cfg.outputConfigPath})
+            touch ${cfg.outputConfigPath}
+            ${pkgs.inotify-tools}/bin/inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
+              systemctl reload nginx
+            done
+          '
         '';
         Restart = "always";
       };

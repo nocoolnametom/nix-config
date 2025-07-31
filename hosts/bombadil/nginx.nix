@@ -18,6 +18,14 @@
     "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}"
   ];
   services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
+  # Ensure that the acme user has permissions to write new certificate in the nginx group
+  users.users.acme.extraGroups = [ "nginx" ];
+  users.users.acme.openssh.authorizedKeys.keyFiles = [
+    ./acme-failover-key.pub
+  ];
+  systemd.tmpfiles.rules = [
+    "d /var/lib/acme 2750 acme nginx -"
+  ];
 
   # Note that the NGINX setups for Mastodon is actually located in the Mastodon service file!
 
