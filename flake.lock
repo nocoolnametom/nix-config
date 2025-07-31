@@ -727,7 +727,6 @@
     "nix-secrets": {
       "locked": {
         "lastModified": 1753999423,
-        "narHash": "sha256-0v7s0w1BeNF4CBMNfC+0Gx2IV6Ke++N56aePnNayHyM=",
         "ref": "main",
         "rev": "d71568348e9dd298c85a96abf46c92f2c998f9b4",
         "shallow": true,

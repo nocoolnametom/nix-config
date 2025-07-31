@@ -7,6 +7,7 @@
   maestral = import ./maestral.nix;
   nzbget-to-management = import ./nzbget-to-management.nix;
   per-user-vpn = import ./per-user-vpn.nix;
+  rsync-cert-sync = import ./rsync-cert-sync.nix;
   sauronsync = import ./sauronsync.nix;
   systemd-failure-alert = import ./systemd-failure-alert.nix;
   stashapp = import ./stashapp.nix;
