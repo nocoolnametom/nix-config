@@ -6,6 +6,19 @@
   ...
 }:
 {
+  # We're using bombadil for failover-redirects for the Uptime-Kuma status page
+  services.failoverRedirects.enable = lib.mkDefault true;
+  services.failoverRedirects.excludeDomains = [
+    configVars.domain
+    configVars.networking.external.bombadil.mainUrl
+    configVars.networking.blog.friends.domain
+    "www.${configVars.domain}"
+    "www.${configVars.networking.external.bombadil.mainUrl}"
+    "www.${configVars.networking.blog.friends.domain}"
+    "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}"
+  ];
+  services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}"
+
   # Note that the NGINX setups for Mastodon is actually located in the Mastodon service file!
 
   # Set up sops secret for basic auth file
