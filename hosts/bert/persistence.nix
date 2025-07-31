@@ -25,7 +25,10 @@
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
       "/var/lib/fprint"
+      "/var/lib/netbox"
       "/var/lib/nixos"
+      "/var/lib/postgresql"
+      "/var/lib/redis"
       "/var/lib/systemd/coredump"
       "/var/log"
     ];
