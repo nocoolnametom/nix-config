@@ -2,6 +2,7 @@
 {
   sops.secrets."netbox-keyfile".owner = "netbox";
   services.netbox.enable = lib.mkDefault true;
+  services.netbox.listenAddress = lib.mkDefault "0.0.0.0";
   services.netbox.secretKeyFile = config.sops.secrets."netbox-keyfile".path;
   services.netbox.plugins = ps: with ps; [
     ps.netbox-bgp
