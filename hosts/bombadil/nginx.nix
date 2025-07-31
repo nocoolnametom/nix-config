@@ -17,7 +17,7 @@
     "www.${configVars.networking.blog.friends.domain}"
     "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}"
   ];
-  services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}"
+  services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
 
   # Note that the NGINX setups for Mastodon is actually located in the Mastodon service file!
 
