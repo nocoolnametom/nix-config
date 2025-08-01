@@ -65,7 +65,7 @@ in
             --exclude=acme-challenge \
             --exclude=".*" \
             --chown=${cfg.vpsUser}:${cfg.vpsServerGroup} --chmod=D750,F640 \
-            -e "ssh -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=yes" \
+            -e "${pkgs.openssh}/bin/ssh -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=yes" \
             ${cfg.localCertPath}/ ${cfg.vpsUser}@${cfg.vpsHost}:${cfg.vpsTargetPath}/
         ''}/bin/failover-cert-sync";
         User = "root";
