@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.services.failoverRedirects;
@@ -9,7 +14,7 @@ in
 
     excludeDomains = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [];
+      default = [ ];
       description = "List of domains to exclude (e.g., status.domain.name)";
     };
 
@@ -29,10 +34,11 @@ in
   config = lib.mkIf cfg.enable {
     systemd.services.failover-redirects-generate = {
       description = "Generate Nginx Failover Redirects Config";
-      path = [ pkgs.bash pkgs.findutils pkgs.gnused pkgs.nginx ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = ''
+        ExecStart = "${pkgs.writeShellScriptBin "failover-redirects-generate" ''
+          mkdir -p $(dirname ${cfg.outputConfigPath})
+          touch ${cfg.outputConfigPath}
           set -e
           tmpfile=$(mktemp)
           echo "map \$host \$redirect_target {" > $tmpfile
@@ -67,7 +73,7 @@ in
           echo "}" >> $tmpfile
 
           mv $tmpfile ${cfg.outputConfigPath}
-        '';
+        ''}/bin/failover-redirects-generate";
       };
     };
 
@@ -84,11 +90,13 @@ in
       description = "Reload Nginx when failover-redirects.conf changes";
       path = [ pkgs.inotify-tools pkgs.bash ];
       serviceConfig = {
-        ExecStart = ''
+        ExecStart = "${pkgs.writeShellScriptBin "nginx-reload-on-failover-change" ''
+          mkdir $(dirname ${cfg.outputConfigPath})
+          touch ${cfg.outputConfigPath}
           ${pkgs.inotify-tools}/bin/inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
             systemctl reload nginx
           done
-        '';
+        ''}/nginx-reload-on-failover-change";
         Restart = "always";
       };
       wantedBy = [ "multi-user.target" ];
@@ -100,4 +108,3 @@ in
     '';
   };
 }
-
