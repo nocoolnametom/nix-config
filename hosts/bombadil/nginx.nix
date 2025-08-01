@@ -28,9 +28,9 @@
         "www.${config.services.mastodon.localDomain}"
       ];
       wordpressUrls =
-        (builtins.attrNames services.wordpress.sites)
-        ++ (builtins.map (x: "www.${x}") (builtins.attrNames services.wordpress.sites))
-        ++ (builtins.map (x: "beta.${x}") (builtins.attrNames services.wordpress.sites));
+        (builtins.attrNames config.services.wordpress.sites)
+        ++ (builtins.map (x: "www.${x}") (builtins.attrNames config.services.wordpress.sites))
+        ++ (builtins.map (x: "beta.${x}") (builtins.attrNames config.services.wordpress.sites));
     in
     [
       # Specify any manual urls here not made in the above dynamic lists
