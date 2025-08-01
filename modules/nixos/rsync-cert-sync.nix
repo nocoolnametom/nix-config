@@ -29,6 +29,12 @@ in
       description = "Domain or IP address of the VPS.";
     };
 
+    vpsSshPort = lib.mkOption {
+      type = lib.types.int;
+      default = 22;
+      description = "Domain or IP address of the VPS.";
+    };
+
     vpsTargetPath = lib.mkOption {
       type = lib.types.str;
       default = "/var/lib/acme";
@@ -65,7 +71,7 @@ in
             --exclude=acme-challenge \
             --exclude=".*" \
             --chown=${cfg.vpsUser}:${cfg.vpsServerGroup} --chmod=D750,F640 \
-            -e "${pkgs.openssh}/bin/ssh -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=yes" \
+            -e "${pkgs.openssh}/bin/ssh -p ${builtins.toString cfg.vpsSshPort} -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=yes" \
             ${cfg.localCertPath}/ ${cfg.vpsUser}@${cfg.vpsHost}:${cfg.vpsTargetPath}/
         ''}/bin/failover-cert-sync";
         User = "root";
