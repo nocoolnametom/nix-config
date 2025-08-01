@@ -8,15 +8,38 @@
 {
   # We're using bombadil for failover-redirects for the Uptime-Kuma status page
   services.failoverRedirects.enable = lib.mkDefault true;
-  services.failoverRedirects.excludeDomains = [
-    configVars.domain
-    configVars.networking.external.bombadil.mainUrl
-    configVars.networking.blog.friends.domain
-    "www.${configVars.domain}"
-    "www.${configVars.networking.external.bombadil.mainUrl}"
-    "www.${configVars.networking.blog.friends.domain}"
-    "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}"
-  ];
+  services.failoverRedirects.excludeDomains =
+    let
+      akkomaUrl = config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;
+      akkomaUrls = lib.optionals config.services.akkoma.enable [
+        akkomaDomain
+        "www.${akkomaDomain}"
+        "${configVars.handles.mastodon}.${akkomaDomain}"
+        "private.${akkomaDomain}"
+        "cache.${akkomaDomain}"
+        "media.${akkomaDomain}"
+      ];
+      goToSocialUrls = lib.optionals config.services.gotosocial.enable [
+        config.services.gotosocial.settings.host
+      ];
+      mastodonUrls = lib.optionals config.services.mastodon.enable [
+        config.services.mastodon.localDomain
+        "reddit-feed.${config.services.mastodon.localDomain}"
+        "www.${config.services.mastodon.localDomain}"
+      ];
+      wordpressUrls =
+        (builtins.attrNames services.wordpress.sites)
+        ++ (builtins.map (x: "www.${x}") (builtins.attrNames services.wordpress.sites))
+        ++ (builtins.map (x: "beta.${x}") (builtins.attrNames services.wordpress.sites));
+    in
+    [
+      # Specify any manual urls here not made in the above dynamic lists
+    ]
+    ++ [ config.services.failoverRedirects.statusPageDomain ]
+    ++ akkomaUrls
+    ++ goToSocialUrls
+    ++ mastodonUrls
+    ++ wordpressUrls;
   services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
   # Ensure that the acme user has permissions to write new certificate in the nginx group
   users.users.acme.extraGroups = [ "nginx" ];
@@ -56,17 +79,18 @@
   ];
 
   # UptimeKuma
-  services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}" = lib.mkIf config.services.uptime-kuma.enable {
-    enableACME = true;
-    http2 = true;
-    forceSSL = true;
-    locations = {
-      "/" = {
-        proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.uptime-kuma}";
-        proxyWebsockets = true;
+  services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}" =
+    lib.mkIf config.services.uptime-kuma.enable {
+      enableACME = true;
+      http2 = true;
+      forceSSL = true;
+      locations = {
+        "/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.uptime-kuma}";
+          proxyWebsockets = true;
+        };
       };
     };
-  };
 
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "webmaster@${configVars.domain}";
