@@ -45,7 +45,8 @@
   users.users.acme.extraGroups = [ "nginx" ];
   users.users.acme.shell = pkgs.bash;
   services.openssh.settings.AllowUsers = [ "acme" ];
-  services.openssh.settings.AllowGroups = [ "acme" ];
+  # wheel is included here because otherwise it wipes it out, not sure why
+  services.openssh.settings.AllowGroups = [ "acme" "wheel" ];
   users.users.acme.openssh.authorizedKeys.keyFiles = [
     ./acme-failover-key.pub
   ];
