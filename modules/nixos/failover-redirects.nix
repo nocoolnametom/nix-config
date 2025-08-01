@@ -39,7 +39,6 @@ in
         Type = "oneshot";
         ExecStart = "${pkgs.writeShellScriptBin "failover-redirects-generate" ''
           mkdir -p $(dirname ${cfg.outputConfigPath})
-          touch ${cfg.outputConfigPath}
           set -e
           tmpfile=$(mktemp)
           echo "map \$host \$redirect_target {" > $tmpfile
@@ -94,6 +93,7 @@ in
         ExecStart = "${pkgs.writeShellScriptBin "nginx-reload-on-failover-change" ''
           mkdir $(dirname ${cfg.outputConfigPath})
           touch ${cfg.outputConfigPath}
+          chmod 644 ${cfg.outputConfigPath}
           ${pkgs.inotify-tools}/bin/inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
             systemctl reload nginx
           done
