@@ -61,7 +61,7 @@ in
           # Server block
           echo "server {" >> $tmpfile
           echo "    listen 443 ssl;" >> $tmpfile
-          echo "    server_name $(ls /var/lib/acme | grep -v -E \"^(${lib.concatStringsSep "|" cfg.excludeDomains})$\");" >> $tmpfile
+          echo "    server_name _failover_domains $(ls /var/lib/acme | grep -v -E "^(acme-challenge|${lib.concatStringsSep "|" cfg.excludeDomains})$");" >> $tmpfile
           echo "    ssl_certificate /var/lib/acme/\$host/fullchain.pem;" >> $tmpfile
           echo "    ssl_certificate_key /var/lib/acme/\$host/key.pem;" >> $tmpfile
           echo "    location / {" >> $tmpfile
