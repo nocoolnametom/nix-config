@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 
 let
   cfg = config.services.rsyncCertSync;
@@ -55,14 +60,14 @@ in
       after = [ "network-online.target" ];
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = ''
+        ExecStart = "${pkgs.writeShellScriptBin "failover-cert-sync" ''
           ${pkgs.rsync}/bin/rsync -az \
             --exclude=acme-challenge \
             --exclude=".*" \
             --chown=${cfg.vpsUser}:${cfg.vpsServerGroup} --chmod=D750,F640 \
             -e "ssh -i ${cfg.sshKeyPath} -o StrictHostKeyChecking=yes" \
             ${cfg.localCertPath}/ ${cfg.vpsUser}@${cfg.vpsHost}:${cfg.vpsTargetPath}/
-        '';
+        ''}/bin/failover-cert-sync";
         User = "root";
       };
     };
@@ -76,7 +81,9 @@ in
       };
     };
 
-    environment.systemPackages = with pkgs; [ rsync openssh ];
+    environment.systemPackages = with pkgs; [
+      rsync
+      openssh
+    ];
   };
 }
-
