@@ -10,7 +10,7 @@
   services.failoverRedirects.enable = lib.mkDefault true;
   services.failoverRedirects.excludeDomains =
     let
-      akkomaUrl = config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;
+      akkomaDomain = config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;
       akkomaUrls = lib.optionals config.services.akkoma.enable [
         akkomaDomain
         "www.${akkomaDomain}"
