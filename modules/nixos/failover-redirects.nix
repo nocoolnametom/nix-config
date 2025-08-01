@@ -74,6 +74,7 @@ in
           echo "}" >> $tmpfile
 
           mv $tmpfile ${cfg.outputConfigPath}
+          chmod 644 ${cfg.outputConfigPath}
         ''}/bin/failover-redirects-generate";
       };
     };
