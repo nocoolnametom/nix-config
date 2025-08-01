@@ -170,6 +170,7 @@
   };
   services.rsyncCertSync.enable = true;
   services.rsyncCertSync.vpsHost = configVars.networking.external.bombadil.mainUrl;
+  services.rsyncCertSync.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
   services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
   # Security

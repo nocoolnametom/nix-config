@@ -43,9 +43,26 @@
   services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
   # Ensure that the acme user has permissions to write new certificate in the nginx group
   users.users.acme.extraGroups = [ "nginx" ];
+  services.openssh.settings.AllowUsers = [ "acme" ];
   users.users.acme.openssh.authorizedKeys.keyFiles = [
-    ./acme-failover-key.pub
+    ./acme-failover-key.restricted-rsync.pub
   ];
+  environment.etc."rsync-shell".source = "${pkgs.writeShellScriptBin "rsync-shell" ''
+    case "$SSH_ORIGINAL_COMMAND" in
+        *\&*|*\|*|*\;*|*\>*|*\<*|*\`*|*\\*)
+            echo "Rejected unsafe characters in command"
+            exit 1
+            ;;
+        rsync\ --server\ --*)
+            exec $SSH_ORIGINAL_COMMAND
+            ;;
+        *)
+            echo "Rejected command: $SSH_ORIGINAL_COMMAND"
+            exit 1
+            ;;
+    esac
+  ''}/bin/rsync-shell";
+  environment.etc."rsync-shell".mode = "0755";
   systemd.tmpfiles.rules = [
     "d /var/lib/acme 2750 acme nginx -"
   ];
