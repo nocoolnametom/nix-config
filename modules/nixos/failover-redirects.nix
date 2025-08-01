@@ -96,7 +96,7 @@ in
           ${pkgs.inotify-tools}/bin/inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
             systemctl reload nginx
           done
-        ''}/nginx-reload-on-failover-change";
+        ''}/bin/nginx-reload-on-failover-change";
         Restart = "always";
       };
       wantedBy = [ "multi-user.target" ];
