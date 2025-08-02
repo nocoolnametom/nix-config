@@ -173,17 +173,6 @@
   services.rsyncCertSync.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
   services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
-  # Bombadil DNS Failover Switcher
-  sops.secrets."porkbun/dns-failover/key" = { };
-  sops.secrets."porkbun/dns-failover/secret" = { };
-  services.dnsFailover.enable = true;
-  services.dnsFailover.healthUrl = configVars.healthDomain;
-  services.dnsFailover.failoverDomain = "home.${configVars.domain}";
-  services.dnsFailover.targetServerName = configVars.networking.subnets.bert.name;
-  services.dnsFailover.statusServerUrl = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
-  services.dnsFailover.porkbunApiKeyFile = config.sops.secrets."porkbun/dns-failover/key".path;
-  services.dnsFailover.porkbunApiSecretFile = config.sops.secrets."porkbun/dns-failover/secret".path;
-
   # Security
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;

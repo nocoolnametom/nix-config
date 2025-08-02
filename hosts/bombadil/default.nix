@@ -92,6 +92,17 @@ in
   ];
   networking.firewall.allowPing = true; # Linode's LISH console requires ping
 
+  # Bombadil DNS Failover Switcher
+  sops.secrets."porkbun/dns-failover/key" = { };
+  sops.secrets."porkbun/dns-failover/secret" = { };
+  services.dnsFailover.enable = true;
+  services.dnsFailover.healthUrl = configVars.healthDomain;
+  services.dnsFailover.failoverDomain = "home.${configVars.domain}";
+  services.dnsFailover.targetServerName = configVars.networking.subnets.bert.name;
+  services.dnsFailover.statusServerUrl = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
+  services.dnsFailover.porkbunApiKeyFile = config.sops.secrets."porkbun/dns-failover/key".path;
+  services.dnsFailover.porkbunApiSecretFile = config.sops.secrets."porkbun/dns-failover/secret".path;
+
   # Mastodon setup
   services.mastodon.localDomain = socialUrl;
   services.mastodon.webProcesses = 0; # This is the WEB_CONCURRENCY env variable for Puma, 0 is a single process
