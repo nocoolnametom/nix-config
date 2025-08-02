@@ -96,7 +96,7 @@ in
   sops.secrets."porkbun/dns-failover/key" = { };
   sops.secrets."porkbun/dns-failover/secret" = { };
   services.dnsFailover.enable = true;
-  services.dnsFailover.healthUrl = configVars.healthDomain;
+  services.dnsFailover.healthUrl = "https://${configVars.healthDomain}";
   services.dnsFailover.failoverDomain = "home.${configVars.domain}";
   services.dnsFailover.targetServerName = configVars.networking.subnets.bert.name;
   services.dnsFailover.statusServerUrl = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";

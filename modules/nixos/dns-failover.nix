@@ -59,7 +59,7 @@ in
 
         echo "[Failover] Checking health of ${cfg.targetServerName}..."
 
-        if curl -s --max-time 10 --fail ${cfg.healthUrl} >/dev/null; then
+        if ${pkgs.curl}/bin/curl -s --max-time 10 --fail ${cfg.healthUrl} >/dev/null; then
           echo "[Failover] ${cfg.targetServerName} is UP. No action needed."
           exit 0
         else
@@ -78,14 +78,14 @@ in
 
         if [ "$CURRENT_IPv4" != "$STATUS_SERVER_IPv4" ]; then
           echo "[Failover] Updating A record to Status Server ($STATUS_SERVER_IPv4)"
-          curl -s -X POST "https://porkbun.com/api/json/v3/dns/editByNameType/${cfg.failoverDomain}/A" \
+          ${pkgs.curl}/bin/curl -s -X POST "https://porkbun.com/api/json/v3/dns/editByNameType/${cfg.failoverDomain}/A" \
             -H "Content-Type: application/json" \
             -d "{\"apikey\":\"$PORKBUN_API_KEY\",\"secretapikey\":\"$PORKBUN_SECRET\",\"content\":\"$STATUS_SERVER_IPv4\",\"ttl\":\"300\"}"
         fi
 
         if [ "$CURRENT_IPv6" != "$STATUS_SERVER_IPv6" ]; then
           echo "[Failover] Updating AAAA record to Status Server ($STATUS_SERVER_IPv6)"
-          curl -s -X POST "https://porkbun.com/api/json/v3/dns/editByNameType/${cfg.failoverDomain}/AAAA" \
+          ${pkgs.curl}/bin/curl -s -X POST "https://porkbun.com/api/json/v3/dns/editByNameType/${cfg.failoverDomain}/AAAA" \
             -H "Content-Type: application/json" \
             -d "{\"apikey\":\"$PORKBUN_API_KEY\",\"secretapikey\":\"$PORKBUN_SECRET\",\"content\":\"$STATUS_SERVER_IPv6\",\"ttl\":\"300\"}"
         fi
