@@ -1,4 +1,10 @@
-To update only a specific inputs (eg, nix-secrets and nixpkgs-unstable):
+# NixOS Configuration Repository
+
+This repository contains a comprehensive NixOS/Nix-Darwin configuration managing a fleet of heterogeneous machines using Nix flakes. The design emphasizes code reuse, modularity, and clear organization to minimize configuration duplication across systems.
+
+## Quick Start
+
+To update only specific inputs (eg, nix-secrets and nixpkgs-unstable):
 
 ```bash
 nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
@@ -10,26 +16,124 @@ To run a full check on any system:
 nix flake check --no-build --all-systems
 ```
 
-### TODO
+## Repository Structure
 
- * [X] ~~Fix homeConfigurations as part of the output packages~~
-       ~~It's needed so that Home-Manager can build any system (because it can't determine on its own the system type), so we build HM configurations for ALL systems and put them in `packages.${system}.homeConfigurations` for HM to have access to them.  However, this means that `homeConfigurations` is an object of HM configs, NOT a derivation.~~
-       Resolved this by moving my version of the nix binary to the one from DeterminateSystems with the proposed `schema` syntax which understands home config outputs
- * [X] ~~Finish moving Wordpress from elrond to glorfindel~~ Done!
- * [X] ~~Fix custom Wordpress plugins from breaking `nix flake check` - Maybe move to their own flake repo?~~ Done!
- * [X] ~~Add fedibox configuration~~ Merged into bombadil for now
-   * [ ] Personal resume site (it'd also be cool to have this auto-update the date as part of the git hooks)
-   * [ ] Figure out how to build a VM from the fedibox config for local testing of stuff
- * [X] ~~Fix and add steamdeck HM configuration~~ Added!
- * [x] ~~Remove references to diskio - I'm not planning on adjusting partitions using a tool, and it's not useful for existing systems~~
- * [ ] Investigate the impact of migrating back to Sway from Hyprland - I don't need the visual special sauce and Sway might be a bit easier on resources
- * [ ] Clean up configuration of pangolin, thinkpad, and melian to move the majority of the custom configuration into imported files
- * [ ] Rebuild the script creation for auto-downloading of work repos and define the list of work repos in their own flake repo?
- * [ ] Figure out how to have active machines pull down new configurations when commits are pushed to GitHub master
-     * [ ] It may make sense to re-visit using some centralized system, like GitHub Actions, to use NixOps to build and push out new configs.  I need to figure out where and how to store the keys and state data, though.
-     * [ ] Relatedly, figure out how to have active machines update flake inputs of my private repos, like nix-secrets, when I push new commits
-     * [ ] Investigate `deploy-rs` as a potential solution
- * [X] ~~Figure out how to have systems, like glorfindel, which are set to auto-update send me an email when a rebuild fails~~ Done!
- * [ ] See if there's any way I can rebuild my personal packages (with shasums and verson numbers) when a new stable version is released
- * [X] ~~Look into nix-mineral for security hardening~~
-     * Looked into it; should probably just use the NixOS hardening guides in the wiki to apply to remotes like bombadil directly
+### Core Directories
+
+- **`flake.nix`** - Main flake definition containing all machine configurations
+- **`hosts/`** - NixOS system-level configurations
+  - `common/core/` - Required base system configuration (auto-imported)
+  - `common/optional/` - Optional system features (import as needed)
+  - `common/users/` - User account definitions
+  - `common/darwin/` - macOS-specific shared modules
+  - `[machine]/` - Machine-specific system configurations
+- **`home/`** - Home Manager user environment configurations
+  - `tdoggett/common/core/` - Required base home configuration
+  - `tdoggett/common/optional/` - Optional home features
+  - `tdoggett/[machine].nix` - Machine-specific home configurations
+  - `tdoggett/persistence/` - Per-machine impermanence settings
+- **`modules/`** - Custom NixOS, nix-darwin, and Home Manager modules
+- **`pkgs/`** - Custom package definitions
+- **`overlays/`** - Package overlays and modifications
+- **`lib/`** - Utility functions and helpers
+- **`vars/`** - Global variables and configuration constants
+
+### Configuration Philosophy
+
+**Modularity First**: Each machine's configuration should be easily understood by examining only:
+1. The imports list (showing which features are enabled)
+2. A small set of machine-specific configuration options
+
+**Shared by Default**: Common configurations live in `hosts/common/` and `home/common/` directories. Machine-specific files should only contain settings that are truly unique to that machine.
+
+**Example Machine Configuration Structure**:
+```nix
+# hosts/pangolin11/default.nix
+{
+  imports = [
+    ./hardware-configuration.nix
+    ./persistence.nix
+  ] ++ (map configLib.relativeToRoot [
+    "hosts/common/core"                    # Required base config
+    "hosts/common/optional/hyprland.nix"   # Optional: Hyprland desktop
+    "hosts/common/optional/steam.nix"      # Optional: Steam gaming
+    "hosts/common/users/${configVars.username}"
+  ]);
+  
+  # Only machine-specific settings here
+  networking.hostName = "pangolin11";
+  stylix.image = ./wallpaper.jpg;
+}
+```
+
+## Machine Fleet
+
+### NixOS Systems (Full System Control)
+- **pangolin11** - System76 Pangolin 11 laptop (primary development)
+- **thinkpadx1** - ThinkPad X1 Carbon laptop
+- **melian** - Asus Zenbook 13 laptop  
+- **smeagol** - AMD desktop (dual boot)
+- **sauron** - Windows WSL2 NixOS
+- **bert** - Raspberry Pi 4 (home server)
+- **glorfindel** - Linode VPS (web services)
+- **bombadil** - Linode VPS (web services) 
+- **fedibox** - AWS EC2 (fediverse services)
+
+### Nix-Darwin Systems (macOS with Nix)
+- **macbookpro** - Corporate MacBook Pro (limited by corporate policies)
+
+### Home Manager Only (Limited System Access)
+- **steamdeck** - Steam Deck (SteamOS with HM overlay)
+- **vm1** - Work Ubuntu VM (HM for user environment only)
+
+## Key Features & Technologies
+
+- **Nix Flakes** - Modern, reproducible configuration management
+- **Home Manager** - Declarative user environment management
+- **Impermanence** - Ephemeral root filesystem with selective persistence
+- **SOPS-nix** - Encrypted secrets management
+- **Stylix** - System-wide theming and styling
+- **Lanzaboote** - Secure Boot support for NixOS
+- **Hyprland** - Primary Wayland compositor for desktop systems
+
+## Development Roadmap
+
+### Completed ✅
+ * [X] ~~Fix homeConfigurations as part of the output packages~~ - Resolved by using DeterminateSystems nix with `schema` syntax
+ * [X] ~~Finish moving Wordpress from elrond to glorfindel~~ - Migration completed
+ * [X] ~~Fix custom Wordpress plugins from breaking `nix flake check`~~ - Moved to separate flake repo
+ * [X] ~~Add fedibox configuration~~ - Merged into bombadil configuration
+ * [X] ~~Fix and add steamdeck HM configuration~~ - Steam Deck now managed via Home Manager
+ * [X] ~~Remove references to diskio~~ - No longer needed for existing systems
+ * [X] ~~Figure out email alerts for failed auto-updates~~ - Systems like glorfindel now send failure notifications
+ * [X] ~~Look into nix-mineral for security hardening~~ - Using NixOS hardening guides instead
+
+### High Priority 🔥
+ * [ ] **Implement better deployment workflow** - Deploy uncommitted changes to remote machines for testing
+ * [ ] **Local remote builds** - Build remote machine configurations locally to verify compatibility before committing  
+ * [ ] **Clean commit history** - Rebase entire history to remove "Typo" and "Fixes" commits
+ * [ ] **Create more `hosts/common` modules** - Move shared configuration out of machine-specific files
+ * [ ] **Create more `home/common` modules** - Minimize user-specific declarations in machine files
+
+### Medium Priority 📋
+ * [ ] Clean up configuration of pangolin11, thinkpadx1, and melian to move custom config into imported files
+ * [ ] Figure out how to build a VM from configurations for local testing
+ * [ ] Investigate `deploy-rs` or similar tools for automated deployment
+ * [ ] Implement centralized configuration updates (GitHub Actions + NixOps or similar)
+ * [ ] Set up automatic flake input updates for private repos like nix-secrets
+ * [ ] Create better testing infrastructure and CI/CD pipeline
+
+### Low Priority 🔮
+ * [ ] Personal resume site with auto-updating dates via git hooks
+ * [ ] Investigate Sway migration from Hyprland for better resource usage
+ * [ ] Rebuild work repo auto-download scripts as separate flake
+ * [ ] Auto-rebuild personal packages when new stable versions are released
+ * [ ] Implement comprehensive documentation and usage examples
+ * [ ] Create custom modules for common configuration patterns
+
+### Infrastructure Improvements 🛠️
+ * [ ] Better secrets management workflow
+ * [ ] Monitoring and alerting for all managed systems  
+ * [ ] Backup and disaster recovery procedures
+ * [ ] Security hardening implementation across all systems
+ * [ ] Performance optimization and resource monitoring
