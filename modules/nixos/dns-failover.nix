@@ -91,7 +91,7 @@ in
         fi
 
         echo "[Failover] DNS failover complete."
-      ''}/bin/dns-failover-check";
+      ''}";
       serviceConfig.Type = "oneshot";
     };
 
