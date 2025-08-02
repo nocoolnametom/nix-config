@@ -16,17 +16,12 @@ in
 
     healthUrl = mkOption {
       type = types.str;
-      description = "The health check URL to monitor (e.g., https://health.nocoolnametom.com)";
-    };
-
-    statusPageUrl = mkOption {
-      type = types.str;
-      description = "URL to the status page (e.g., https://status.doggett.family)";
+      description = "The health check URL to monitor (e.g., https://health.domain.name)";
     };
 
     failoverDomain = mkOption {
       type = types.str;
-      description = "The domain whose A/AAAA records should be updated during failover (e.g., home.nocoolnametom.com)";
+      description = "The domain whose A/AAAA records should be updated during failover (e.g., status.domain.name)";
     };
 
     targetServerName = mkOption {
@@ -38,7 +33,7 @@ in
     statusServerUrl = mkOption {
       type = types.str;
       default = config.networking.hostName;
-      description = "The hostname or URL of the status page server (used to resolve Bombadil's IPs dynamically)";
+      description = "The hostname or URL of the status page server (used to resolve failover server's IPs dynamically)";
     };
 
     porkbunApiKeyFile = mkOption {
@@ -58,6 +53,9 @@ in
       # Note that the api key and secrets are environment variables so we can use sops template and parameters
       script = "${pkgs.writeShellScript "dns-failover-check" ''
         set -e
+
+        PORKBUN_API_KEY=`cat ${cfg.porkbunApiKeyFile}`
+        PORKBUN_SECRET=`cat ${cfg.porkbunApiSecretFile}`
 
         echo "[Failover] Checking health of ${cfg.targetServerName}..."
 
