@@ -19,7 +19,7 @@ in
     };
 
     statusPageDomain = lib.mkOption {
-      type = lib.types.listOf lib.types.str;
+      type = lib.types.str;
       default = "status.domain.name";
       description = "Domain to redirect the failovers to with a temporary redirect";
     };
@@ -104,7 +104,6 @@ in
 
     systemd.services.nginx-reload-on-failover-change = {
       description = "Reload Nginx when failover-redirects.conf changes";
-      path = [ pkgs.inotify-tools pkgs.bash ];
       serviceConfig = {
         ExecStart = "${pkgs.writeShellScriptBin "nginx-reload-on-failover-change" ''
           inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do

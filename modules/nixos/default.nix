@@ -3,6 +3,7 @@
 {
   # List your module files here
   # my-module = import ./my-module.nix;
+  dns-failover = import ./dns-failover.nix;
   failover-redirects = import ./failover-redirects.nix;
   maestral = import ./maestral.nix;
   nzbget-to-management = import ./nzbget-to-management.nix;
