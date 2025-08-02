@@ -139,7 +139,7 @@ in
 
           echo -n "Testing $domain (IPv6) ... "
           # Resolve IPv6 address from /etc/hosts or DNS
-          IPV6_ADDR=$(getent ahosts $HOSTNAME | grep 'STREAM' | grep -oE '([0-9a-fA-F:]+:+)+[0-9a-fA-F]+' | grep ':' | head -n1)
+          IPV6_ADDR=$(ip -6 addr show dev eth0 | grep 'scope global' | grep -oP 'inet6 \K[^/]*f03c:95ff:fe43:[0-9a-fA-F:]+' | head -n1)
 
           if [[ -z "$IPV6_ADDR" ]]; then
             echo "SKIP (No IPv6 found)"
