@@ -110,6 +110,11 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
       '';
     };
+    "${configVars.networking.subdomains.mylar}.${configVars.domain}" = {
+      extraConfig = ''
+        reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.mylar}
+      '';
+    };
     "${configVars.networking.subdomains.nas}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.nas}
