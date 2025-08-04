@@ -55,6 +55,8 @@
     { name = "tfenv"; }
     # FUB uses dnsmasq and wants to control the config file, so we use brew instead of nix
     { name = "dnsmasq"; }
+    # Podman should work better than docker on MacOS
+    { name = "podman-desktop"; }
   ];
   homebrew.casks = [ ];
   homebrew.taps = [
