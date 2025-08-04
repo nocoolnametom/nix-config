@@ -12,7 +12,4 @@
   # This will add your inputs to the system's legacy channels
   # Making legacy nix commands consistent as well, awesome!
   nix.nixPath = lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry;
-
-  nix.gc.automatic = true;
-  nix.gc.options = "--delete-older-than 10d";
 }
