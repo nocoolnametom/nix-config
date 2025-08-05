@@ -198,5 +198,10 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
+    "${configVars.networking.subdomains.tubearchivist}.${configVars.domain}" = {
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubearchivist}
+      '';
+    };
   };
 }
