@@ -100,6 +100,11 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}
       '';
     };
+    "${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}" = {
+      extraConfig = ''
+        reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.karakeep}
+      '';
+    };
     "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}

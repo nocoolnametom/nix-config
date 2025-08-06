@@ -46,6 +46,7 @@
       "hosts/common/optional/services/ddclient.nix"
       "hosts/common/optional/services/deluge.nix"
       "hosts/common/optional/services/flood.nix"
+      "hosts/common/optional/services/karakeep.nix"
       "hosts/common/optional/services/navidrome.nix"
       "hosts/common/optional/services/nzbget.nix"
       "hosts/common/optional/services/nzbhydra.nix"
@@ -152,6 +153,9 @@
 
   # NZBHydra Data Storage
   services.nzbhydra2.dataDir = "/media/g_drive/nzbhydra2";
+
+  # Karakeep Asset Storage
+  services.karakeep.extraEnvironment.ASSETS_DIR = "/media/g_drive/karakeep/assets";
 
   # Navidrome Music Server
   services.navidrome.settings.MusicFolder = "/mnt/Backup/Takeout/${configVars.handle}/Google_Play_Music";
