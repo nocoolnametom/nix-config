@@ -11,6 +11,7 @@
   ];
 
   programs.git.userEmail = configVars.gitHubEmail;
+  programs.nh.flake = "/etc/nixos";
 
   home = {
     stateVersion = "25.05";
