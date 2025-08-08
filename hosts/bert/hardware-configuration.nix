@@ -79,8 +79,7 @@ in
   };
 
   # Cirdan SMB mounts
-  fileSystems."/mnt/cirdan/smb/Movies" = cirdanSmbConfig "Movies";
-  fileSystems."/mnt/cirdan/smb/TV_Shows" = cirdanSmbConfig "TV_Shows";
+  fileSystems."/mnt/cirdan/smb/data.dat" = cirdanSmbConfig "data.dat";
   fileSystems."/mnt/cirdan/smb/Comics" = cirdanSmbConfig "Comics";
   fileSystems."/mnt/cirdan/smb/Jellyfin" = cirdanSmbConfig "Jellyfin";
   fileSystems."/mnt/cirdan/smb/NetBackup" = cirdanSmbConfig "NetBackup";
