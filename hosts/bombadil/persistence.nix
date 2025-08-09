@@ -75,7 +75,11 @@
   # Because we're persisting a /var/lib/private directory impermanence will create /var/lib/private for mounting
   #`This is bad, though, because it's made with the wrong permissions for private systemd services to use
   # So we need to change the permissions BACK to what they should be after starting up.
-  system.activationScripts."createPersistentStorageDirs".deps = [ "var-lib-private-permissions" "users" "groups" ];
+  system.activationScripts."createPersistentStorageDirs".deps = [
+    "var-lib-private-permissions"
+    "users"
+    "groups"
+  ];
   system.activationScripts = {
     "var-lib-private-permissions" = {
       deps = [ "specialfs" ];

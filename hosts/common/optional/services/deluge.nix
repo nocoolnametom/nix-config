@@ -1,4 +1,9 @@
-{ config, lib, pkgs, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  ...
+}:
 {
   sops.secrets."deluge-auth" = {
     owner = config.services.deluge.user;
@@ -19,7 +24,11 @@
     dont_count_slow_torrents = false;
     download_location = "/media/g_drive/Deluge/Downloads";
     download_location_paths_list = [ ];
-    enabled_plugins = [ "AutoAdd" "Label" "Stats" ];
+    enabled_plugins = [
+      "AutoAdd"
+      "Label"
+      "Stats"
+    ];
     enc_in_policy = 1;
     enc_level = 2;
     enc_out_policy = 1;
@@ -27,7 +36,10 @@
     ignore_limits_on_local_network = true;
     info_sent = 0.0;
     listen_interface = "";
-    listen_ports = [ 6881 6891 ];
+    listen_ports = [
+      6881
+      6891
+    ];
     listen_random_port = 61906;
     listen_reuse_port = true;
     listen_use_sys_port = false;

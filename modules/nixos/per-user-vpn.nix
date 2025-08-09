@@ -441,7 +441,8 @@ in
       boot.kernel.sysctl = {
         "net.ipv4.conf.all.rp_filter" = 2;
         "net.ipv4.conf.default.rp_filter" = 2;
-      } // mapAttrs' (name: _: nameValuePair "net.ipv4.conf.${name}.rp_filter" 2) cfg.servers;
+      }
+      // mapAttrs' (name: _: nameValuePair "net.ipv4.conf.${name}.rp_filter" 2) cfg.servers;
 
       # Set NixOS' firewall reverse path filtering to loose.
       networking.firewall.checkReversePath = "loose";
@@ -504,11 +505,9 @@ in
       # Set up VPN service.
       services.openvpn.servers = mapAttrs (name: srv: {
         autoStart = true;
-        config =
-          (mkOpenVpnConfig name srv)
-          + ''
-            auth-user-pass ${srv.credentialsFile}
-          '';
+        config = (mkOpenVpnConfig name srv) + ''
+          auth-user-pass ${srv.credentialsFile}
+        '';
         up = mkOpenVpnUpScript name srv;
         updateResolvConf = true;
       }) cfg.servers;

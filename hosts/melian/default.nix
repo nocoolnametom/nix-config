@@ -15,51 +15,50 @@
   ...
 }:
 {
-  imports =
-    [
-      ######################## Every Host Needs This ############################
-      ./hardware-configuration.nix
+  imports = [
+    ######################## Every Host Needs This ############################
+    ./hardware-configuration.nix
 
-      ########################## Hardware Modules ###############################
-      inputs.hardware.nixosModules.asus-zenbook-ux371
-      # Double-check this? There's no other zenbook module, but this is a different model
+    ########################## Hardware Modules ###############################
+    inputs.hardware.nixosModules.asus-zenbook-ux371
+    # Double-check this? There's no other zenbook module, but this is a different model
 
-      ########################### Impermanence ##################################
-      ./persistence.nix
+    ########################### Impermanence ##################################
+    ./persistence.nix
 
-      ############################ Lanzaboote ###################################
-      inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
+    ############################ Lanzaboote ###################################
+    inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
 
-      ############################## Stylix #####################################
-      inputs.stylix.nixosModules.stylix
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/core"
+    ############################## Stylix #####################################
+    inputs.stylix.nixosModules.stylix
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/core"
 
-      #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/boot/plymouth.nix"
-      "hosts/common/optional/boot/silent.nix"
-      "hosts/common/optional/services/greetd.nix"
-      "hosts/common/optional/services/openssh.nix" # allow remote SSH access
-      "hosts/common/optional/services/pipewire.nix" # audio
-      "hosts/common/optional/services/printing.nix"
-      "hosts/common/optional/blinkstick.nix"
-      "hosts/common/optional/determinate.nix"
-      "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
-      "hosts/common/optional/laptop-as-server.nix" # Always-on and other settings
-      "hosts/common/optional/light.nix" # Monitor brightness
-      "hosts/common/optional/steam.nix"
-      "hosts/common/optional/thunar.nix" # Thunar File-Browser
-      "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
-      "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
-      "hosts/common/optional/yubikey.nix"
-      "hosts/common/optional/stylix.nix" # System-wide styling
+    #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/boot/plymouth.nix"
+    "hosts/common/optional/boot/silent.nix"
+    "hosts/common/optional/services/greetd.nix"
+    "hosts/common/optional/services/openssh.nix" # allow remote SSH access
+    "hosts/common/optional/services/pipewire.nix" # audio
+    "hosts/common/optional/services/printing.nix"
+    "hosts/common/optional/blinkstick.nix"
+    "hosts/common/optional/determinate.nix"
+    "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
+    "hosts/common/optional/laptop-as-server.nix" # Always-on and other settings
+    "hosts/common/optional/light.nix" # Monitor brightness
+    "hosts/common/optional/steam.nix"
+    "hosts/common/optional/thunar.nix" # Thunar File-Browser
+    "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
+    "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
+    "hosts/common/optional/yubikey.nix"
+    "hosts/common/optional/stylix.nix" # System-wide styling
 
-      #################### Users to Create ####################
-      "home/${configVars.username}/persistence/melian.nix"
-      "hosts/common/users/${configVars.username}"
-    ]);
+    #################### Users to Create ####################
+    "home/${configVars.username}/persistence/melian.nix"
+    "hosts/common/users/${configVars.username}"
+  ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {

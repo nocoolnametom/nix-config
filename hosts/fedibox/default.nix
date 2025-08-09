@@ -20,38 +20,37 @@ let
 in
 {
   # @TODO: THIS IS A WORK IN PROGRESS - JUST A COPY OF BOMBADIL FOR NOW, UPDATE WITH EC2 SPECIFIC CONFIG
-  imports =
-    [
-      ######################## Every Host Needs This ############################
-      ./hardware-configuration.nix
+  imports = [
+    ######################## Every Host Needs This ############################
+    ./hardware-configuration.nix
 
-      ############################## Nginx ######################################
-      ./nginx.nix
+    ############################## Nginx ######################################
+    ./nginx.nix
 
-      ########################### Impermanence ##################################
-      ./persistence.nix
+    ########################### Impermanence ##################################
+    ./persistence.nix
 
-      ############################## Stylix #####################################
-      # inputs.stylix.nixosModules.stylix # No GUI on AWS
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/core"
+    ############################## Stylix #####################################
+    # inputs.stylix.nixosModules.stylix # No GUI on AWS
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/core"
 
-      #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/services/akkoma.nix"
-      "hosts/common/optional/services/openssh.nix"
-      "hosts/common/optional/services/postgresql.nix"
-      "hosts/common/optional/services/elasticsearch.nix"
-      "hosts/common/optional/services/mailserver.nix"
-      "hosts/common/optional/determinate.nix"
-      "hosts/common/optional/linode.nix"
-      "hosts/common/optional/nostr.nix"
+    #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/services/akkoma.nix"
+    "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/postgresql.nix"
+    "hosts/common/optional/services/elasticsearch.nix"
+    "hosts/common/optional/services/mailserver.nix"
+    "hosts/common/optional/determinate.nix"
+    "hosts/common/optional/linode.nix"
+    "hosts/common/optional/nostr.nix"
 
-      #################### Users to Create ####################
-      "home/${configVars.username}/persistence/${hostName}.nix"
-      "hosts/common/users/${configVars.username}"
-    ]);
+    #################### Users to Create ####################
+    "home/${configVars.username}/persistence/${hostName}.nix"
+    "hosts/common/users/${configVars.username}"
+  ]);
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   # networking.hostName = hostName; # Technically, the hostname should be set within AWS

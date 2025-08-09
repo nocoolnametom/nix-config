@@ -37,21 +37,22 @@ in
     # I never could get the sops secret version of this to work with a hashedPasswordFile
     hashedPassword = lib.mkDefault "$y$j9T$5SGpsUDjjH9wZ61QMwXf0.$C.cQnNS.mmXLEQ34/cqfpU.LXJ0BydbEFr4oukpn8u/";
     openssh.authorizedKeys.keys = lib.lists.forEach pubKeys (key: builtins.readFile key);
-    extraGroups =
-      [ "wheel" ]
-      ++ ifTheyExist [
-        "users"
-        "input" # input devices
-        "audio" # audio levels
-        "disk" # mount stuff
-        "networkmanager" # connect to network
-        "docker" # docker
-        "lxd"
-        "kvm" # virtualization
-        "adbusers" # android debugging
-        "media" # media downloading
-        "video" # monitor
-        "dialout" # serial ports for arduino
-      ];
+    extraGroups = [
+      "wheel"
+    ]
+    ++ ifTheyExist [
+      "users"
+      "input" # input devices
+      "audio" # audio levels
+      "disk" # mount stuff
+      "networkmanager" # connect to network
+      "docker" # docker
+      "lxd"
+      "kvm" # virtualization
+      "adbusers" # android debugging
+      "media" # media downloading
+      "video" # monitor
+      "dialout" # serial ports for arduino
+    ];
   };
 }

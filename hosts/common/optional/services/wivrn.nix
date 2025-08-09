@@ -36,7 +36,8 @@
     pkgs.steam.override (prev: {
       extraEnv = {
         PRESSURE_VESSEL_FILESYSTEMS_RW = "$XDG_RUNTIME_DIR/wivrn/comp_ipc";
-      } // (prev.extraEnv or { });
+      }
+      // (prev.extraEnv or { });
     })
   );
 

@@ -12,7 +12,7 @@
 
   # User-level GUI packages to have installed
   home.packages = with pkgs; [
-    protonmail-desktop
+    unstable.protonmail-desktop
     czkawka
     discord
     firefox

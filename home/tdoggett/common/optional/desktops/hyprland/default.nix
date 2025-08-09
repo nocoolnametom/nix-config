@@ -16,15 +16,14 @@
     systemd.enable = true;
     package = null;
     portalPackage = null;
-    plugins =
-      [
-        pkgs.hyprlandPlugins.hypr-dynamic-cursors
-        pkgs.hyprlandPlugins.hyprspace
-        pkgs.hyprlandPlugins.hyprsplit
-      ]
-      ++ (pkgs.lib.optionals (configVars.use-hy3) [
-        pkgs.hyprlandPlugins.hy3
-      ]);
+    plugins = [
+      pkgs.hyprlandPlugins.hypr-dynamic-cursors
+      pkgs.hyprlandPlugins.hyprspace
+      pkgs.hyprlandPlugins.hyprsplit
+    ]
+    ++ (pkgs.lib.optionals (configVars.use-hy3) [
+      pkgs.hyprlandPlugins.hy3
+    ]);
     settings = {
       # Monitors - Remember to define system-specific ones explicity in home/<user>/<host>/default.nix!
       monitor = [

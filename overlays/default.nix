@@ -27,16 +27,15 @@
     python312 = prev.python312.override {
       packageOverrides = self: super: {
         rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
-          disabledTests =
-            [
-              # Needs Internet access
-              "test_long_img"
-            ]
-            ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
-              # segfault when built with cuda support but GPU is not availaible in build environment
-              "test_ort_cuda_warning"
-              "test_ort_dml_warning"
-            ];
+          disabledTests = [
+            # Needs Internet access
+            "test_long_img"
+          ]
+          ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
+            # segfault when built with cuda support but GPU is not availaible in build environment
+            "test_ort_cuda_warning"
+            "test_ort_dml_warning"
+          ];
         });
       };
     };

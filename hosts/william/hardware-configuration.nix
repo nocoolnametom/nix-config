@@ -21,13 +21,19 @@ let
       in
       [
         "${automount_opts},credentials=${
-          config.sops.secrets."william-smb-secrets".path
+          config.sops.templates."cirdan-smb-creds".path
         },file_mode=0777,dir_mode=0777"
       ];
   };
 in
 {
-  sops.secrets."william-smb-secrets" = {
+  sops.secrets."cirdan-smb-user" = { };
+  sops.secrets."cirdan-smb-password" = { };
+  sops.templates."cirdan-smb-creds" = {
+    content = ''
+      username=${config.sops.placeholder."cirdan-smb-user"}
+      password=${config.sops.placeholder."cirdan-smb-password"}
+    '';
     neededForUsers = true;
   };
 
@@ -49,33 +55,6 @@ in
   fileSystems."/firmware" = {
     device = "/dev/disk/by-label/FIRMWARE";
     fsType = "vfat";
-  };
-  fileSystems."/media/g_drive" = {
-    device = "/dev/disk/by-label/g_drive";
-    fsType = "ext4";
-    options = [
-      "auto"
-      "noatime"
-      "commit=60"
-      "discard"
-      "errors=remount-ro"
-    ];
-  };
-  fileSystems."/mnt/bigssd" = {
-    device = "/dev/disk/by-label/bigssd";
-    fsType = "ext4";
-    options = [
-      "auto"
-      "errors=remount-ro"
-    ];
-  };
-  fileSystems."/mnt/Backup" = {
-    device = "/dev/disk/by-label/DoggettBackup";
-    fsType = "ext4";
-    options = [
-      "auto"
-      "errors=remount-ro"
-    ];
   };
 
   # Cirdan SMB mounts

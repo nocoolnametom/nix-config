@@ -1,4 +1,9 @@
-{ inputs, lib, configVars, ... }:
+{
+  inputs,
+  lib,
+  configVars,
+  ...
+}:
 {
   # We're now using Determinate for security purposes
   nix.enable = false;

@@ -31,7 +31,7 @@
   services.karakeep.meilisearch.enable = lib.mkDefault true;
   services.karakeep.environmentFile = lib.mkDefault config.sops.templates."karakeep-secrets.env".path;
   services.karakeep.extraEnvironment.PORT = builtins.toString configVars.networking.ports.tcp.karakeep;
-  services.karakeep.extraEnvironment.DISABLE_PASSWORD_AUTH= "true";
+  services.karakeep.extraEnvironment.DISABLE_PASSWORD_AUTH = "true";
   services.karakeep.extraEnvironment.DISABLE_NEW_RELEASE_CHECK = "true";
   services.karakeep.extraEnvironment.NEXTAUTH_URL = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
   services.karakeep.extraEnvironment.OAUTH_WELLKNOWN_URL = "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/karakeep/.well-known/openid-configuration";

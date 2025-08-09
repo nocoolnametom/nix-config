@@ -15,53 +15,52 @@
   ...
 }:
 {
-  imports =
-    [
-      ######################## Every Host Needs This ############################
-      ./hardware-configuration.nix
+  imports = [
+    ######################## Every Host Needs This ############################
+    ./hardware-configuration.nix
 
-      ########################## Hardware Modules ###############################
-      inputs.hardware.nixosModules.raspberry-pi-4
+    ########################## Hardware Modules ###############################
+    inputs.hardware.nixosModules.raspberry-pi-4
 
-      ############################## SMB Shares #################################
-      ./smb-shares.nix
+    ############################## SMB Shares #################################
+    ./smb-shares.nix
 
-      ############################## Nginx ######################################
-      # ./nginx.nix
-      ./caddy.nix
+    ############################## Nginx ######################################
+    # ./nginx.nix
+    ./caddy.nix
 
-      ########################### Impermanence ##################################
-      ./persistence.nix
+    ########################### Impermanence ##################################
+    ./persistence.nix
 
-      ############################## Stylix #####################################
-      # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/core"
+    ############################## Stylix #####################################
+    # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/core"
 
-      #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/per-user-vpn-setup.nix"
-      # "hosts/common/optional/determinate.nix" # Tends to force compilation of kernels
-      "hosts/common/optional/services/ddclient.nix"
-      "hosts/common/optional/services/deluge.nix"
-      "hosts/common/optional/services/flood.nix"
-      "hosts/common/optional/services/karakeep.nix"
-      "hosts/common/optional/services/navidrome.nix"
-      "hosts/common/optional/services/nzbget.nix"
-      "hosts/common/optional/services/nzbhydra.nix"
-      "hosts/common/optional/services/ombi.nix"
-      "hosts/common/optional/services/openssh.nix"
-      "hosts/common/optional/services/radarr.nix"
-      "hosts/common/optional/services/sickrage.nix"
-      "hosts/common/optional/services/sonarr.nix"
-      "hosts/common/optional/services/stashapp.nix"
-      # "hosts/common/optional/services/ytdl-sub.nix"
+    #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/per-user-vpn-setup.nix"
+    # "hosts/common/optional/determinate.nix" # Tends to force compilation of kernels
+    "hosts/common/optional/services/ddclient.nix"
+    "hosts/common/optional/services/deluge.nix"
+    "hosts/common/optional/services/flood.nix"
+    "hosts/common/optional/services/karakeep.nix"
+    "hosts/common/optional/services/navidrome.nix"
+    "hosts/common/optional/services/nzbget.nix"
+    "hosts/common/optional/services/nzbhydra.nix"
+    "hosts/common/optional/services/ombi.nix"
+    "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/radarr.nix"
+    "hosts/common/optional/services/sickrage.nix"
+    "hosts/common/optional/services/sonarr.nix"
+    "hosts/common/optional/services/stashapp.nix"
+    # "hosts/common/optional/services/ytdl-sub.nix"
 
-      #################### Users to Create ####################
-      "home/${configVars.username}/persistence/bert.nix"
-      "hosts/common/users/${configVars.username}"
-    ]);
+    #################### Users to Create ####################
+    "home/${configVars.username}/persistence/bert.nix"
+    "hosts/common/users/${configVars.username}"
+  ]);
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;

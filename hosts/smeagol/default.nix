@@ -15,44 +15,43 @@
   ...
 }:
 {
-  imports =
-    [
-      ######################## Every Host Needs This ############################
-      ./hardware-configuration.nix # Note that this only describes WSL stuff!
+  imports = [
+    ######################## Every Host Needs This ############################
+    ./hardware-configuration.nix # Note that this only describes WSL stuff!
 
-      ########################## Hardware Modules ###############################
-      # No hardware to define!
+    ########################## Hardware Modules ###############################
+    # No hardware to define!
 
-      ########################### Impermanence ##################################
-      # ./persistence.nix
+    ########################### Impermanence ##################################
+    # ./persistence.nix
 
-      ############################## Stylix #####################################
-      inputs.stylix.nixosModules.stylix
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/core"
+    ############################## Stylix #####################################
+    inputs.stylix.nixosModules.stylix
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/core"
 
-      #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
-      "hosts/common/optional/services/comfyui/default.nix"
-      "hosts/common/optional/services/flatpak.nix"
-      "hosts/common/optional/services/ollama.nix"
-      "hosts/common/optional/services/openssh.nix"
-      "hosts/common/optional/services/pipewire.nix" # audio
-      "hosts/common/optional/services/printing.nix"
-      "hosts/common/optional/services/stashapp.nix"
-      "hosts/common/optional/services/wivrn.nix"
-      "hosts/common/optional/cross-compiling.nix"
-      # "hosts/common/optional/determinate.nix" # Removed to help with cross-compiling
-      "hosts/common/optional/jovian.nix"
-      "hosts/common/optional/nvidia.nix"
-      "hosts/common/optional/steam.nix"
+    #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
+    "hosts/common/optional/services/comfyui/default.nix"
+    "hosts/common/optional/services/flatpak.nix"
+    "hosts/common/optional/services/ollama.nix"
+    "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/pipewire.nix" # audio
+    "hosts/common/optional/services/printing.nix"
+    "hosts/common/optional/services/stashapp.nix"
+    "hosts/common/optional/services/wivrn.nix"
+    "hosts/common/optional/cross-compiling.nix"
+    # "hosts/common/optional/determinate.nix" # Removed to help with cross-compiling
+    "hosts/common/optional/jovian.nix"
+    "hosts/common/optional/nvidia.nix"
+    "hosts/common/optional/steam.nix"
 
-      #################### Users to Create ####################
-      # "home/${configVars.username}/persistence/smeagol.nix"
-      "hosts/common/users/${configVars.username}"
-    ]);
+    #################### Users to Create ####################
+    # "home/${configVars.username}/persistence/smeagol.nix"
+    "hosts/common/users/${configVars.username}"
+  ]);
 
   # NzbGet Server - Current module is very bert-centric
   services.nzbget.enable = true;

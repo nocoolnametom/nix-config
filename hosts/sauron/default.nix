@@ -15,33 +15,32 @@
   ...
 }:
 {
-  imports =
-    [
-      ######################## Every Host Needs This ############################
-      ./hardware-configuration.nix # Note that this only describes WSL stuff!
+  imports = [
+    ######################## Every Host Needs This ############################
+    ./hardware-configuration.nix # Note that this only describes WSL stuff!
 
-      ########################## Hardware Modules ###############################
-      # No hardware to define!
+    ########################## Hardware Modules ###############################
+    # No hardware to define!
 
-      ########################### Impermanence ##################################
-      ./persistence.nix
+    ########################### Impermanence ##################################
+    ./persistence.nix
 
-      ############################## Stylix #####################################
-      # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/core"
+    ############################## Stylix #####################################
+    # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/core"
 
-      #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/services/openssh.nix"
-      "hosts/common/optional/cross-compiling.nix"
-      "hosts/common/optional/determinate.nix"
+    #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/cross-compiling.nix"
+    "hosts/common/optional/determinate.nix"
 
-      #################### Users to Create ####################
-      "home/${configVars.username}/persistence/sauron.nix"
-      "hosts/common/users/${configVars.username}"
-    ]);
+    #################### Users to Create ####################
+    "home/${configVars.username}/persistence/sauron.nix"
+    "hosts/common/users/${configVars.username}"
+  ]);
 
   services.ollama.enable = true;
   services.ollama.package = pkgs.unstable.ollama;

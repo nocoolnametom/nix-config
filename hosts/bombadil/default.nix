@@ -19,41 +19,40 @@ let
   hostName = configVars.networking.external.bombadil.name;
 in
 {
-  imports =
-    [
-      ######################## Every Host Needs This ############################
-      ./hardware-configuration.nix
+  imports = [
+    ######################## Every Host Needs This ############################
+    ./hardware-configuration.nix
 
-      ############################## Nginx ######################################
-      ./nginx.nix
-      ./wordpress.nix
+    ############################## Nginx ######################################
+    ./nginx.nix
+    ./wordpress.nix
 
-      ########################### Impermanence ##################################
-      ./persistence.nix
+    ########################### Impermanence ##################################
+    ./persistence.nix
 
-      ############################## Stylix #####################################
-      # inputs.stylix.nixosModules.stylix # No GUI on Linode
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/core"
+    ############################## Stylix #####################################
+    # inputs.stylix.nixosModules.stylix # No GUI on Linode
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/core"
 
-      #################### Host-specific Optional Configs ####################
-      "hosts/common/optional/services/akkoma.nix"
-      "hosts/common/optional/services/openssh.nix"
-      "hosts/common/optional/services/mastodon.nix"
-      "hosts/common/optional/services/postgresql.nix"
-      "hosts/common/optional/services/elasticsearch.nix"
-      "hosts/common/optional/services/mailserver.nix"
-      "hosts/common/optional/services/uptime-kuma.nix"
-      "hosts/common/optional/determinate.nix"
-      "hosts/common/optional/linode.nix"
-      "hosts/common/optional/nostr.nix"
+    #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/services/akkoma.nix"
+    "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/mastodon.nix"
+    "hosts/common/optional/services/postgresql.nix"
+    "hosts/common/optional/services/elasticsearch.nix"
+    "hosts/common/optional/services/mailserver.nix"
+    "hosts/common/optional/services/uptime-kuma.nix"
+    "hosts/common/optional/determinate.nix"
+    "hosts/common/optional/linode.nix"
+    "hosts/common/optional/nostr.nix"
 
-      #################### Users to Create ####################
-      "home/${configVars.username}/persistence/${hostName}.nix"
-      "hosts/common/users/${configVars.username}"
-    ]);
+    #################### Users to Create ####################
+    "home/${configVars.username}/persistence/${hostName}.nix"
+    "hosts/common/users/${configVars.username}"
+  ]);
 
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [

@@ -16,26 +16,25 @@
   ...
 }:
 {
-  imports =
-    [
-      ######################## Direct Imports for MBP ############################
-    ]
-    ++ (map configLib.relativeToRoot [
-      #################### Required Configs ####################
-      "hosts/common/darwin/core"
+  imports = [
+    ######################## Direct Imports for MBP ############################
+  ]
+  ++ (map configLib.relativeToRoot [
+    #################### Required Configs ####################
+    "hosts/common/darwin/core"
 
-      #################### Host-specific Optional Configs ####################
-      # Be very careful, most of these are meant for NixOS, not Darwin!
-      "hosts/common/optional/direnv.nix"
-      "hosts/common/optional/tmux.nix"
-      "hosts/common/optional/yubikey.nix"
-      "hosts/common/darwin/optional/dnsmasq.nix"
-      "hosts/common/darwin/optional/determinate.nix"
+    #################### Host-specific Optional Configs ####################
+    # Be very careful, most of these are meant for NixOS, not Darwin!
+    "hosts/common/optional/direnv.nix"
+    "hosts/common/optional/tmux.nix"
+    "hosts/common/optional/yubikey.nix"
+    "hosts/common/darwin/optional/dnsmasq.nix"
+    "hosts/common/darwin/optional/determinate.nix"
 
-      #################### Users to Manage ####################
-      "home/${configVars.username}/persistence/macbookpro.nix"
-      "hosts/common/users/${configVars.username}/darwin.nix"
-    ]);
+    #################### Users to Manage ####################
+    "home/${configVars.username}/persistence/macbookpro.nix"
+    "hosts/common/users/${configVars.username}/darwin.nix"
+  ]);
 
   networking.hostName = configVars.networking.work.macbookpro.name;
 
