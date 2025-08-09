@@ -19,4 +19,5 @@ rec {
   stash-vr = pkgs.callPackage ./stash-vr { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
+  deploy-script = pkgs.callPackage ./deploy-script { inherit inputs; };
 }

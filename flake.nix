@@ -43,6 +43,10 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
 
+    # Deployment tool
+    deploy-rs.url = "github:serokell/deploy-rs";
+    deploy-rs.inputs.nixpkgs.follows = "nixpkgs";
+
     # Nixified.AI
     # nixified-ai.url = "github:nixified-ai/flake";
     # Using this upstream MR branch until it get merged to get a newer version of Comfy
@@ -102,6 +106,7 @@
       nixos-wsl,
       stylix,
       sops-nix,
+      deploy-rs,
       nixified-ai,
       nix-flatpak,
       # nixos-cosmic,
@@ -154,13 +159,13 @@
         import ./pkgs { inherit inputs pkgs; }
       );
 
-      checks = forAllSystems (
+      checks = lib.recursiveUpdate (forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
         import ./checks { inherit inputs system pkgs; }
-      );
+      )) (builtins.mapAttrs (system: deployLib: deployLib.deployChecks self.deploy) deploy-rs.lib);
 
       # Nix formatter available through 'nix fmt' https://github.com/NixOS/nixfmt
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
@@ -315,5 +320,54 @@
               };
         };
       });
+
+      #################### Deploy-rs Configurations ####################
+      #
+      # Deploy configurations available through `deploy --flake .`
+      #
+      deploy.nodes = {
+        # Local machines (behind NAT)
+        bert = {
+          hostname = configVars.networking.subnets.bert.ip; # 192.168.0.20
+          profiles.system = {
+            sshUser = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.bert;
+          };
+        };
+        
+        smeagol = {
+          hostname = configVars.networking.subnets.smeagol.ip; # 192.168.0.25  
+          profiles.system = {
+            sshUser = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.smeagol;
+          };
+        };
+
+        # Public VPS machines
+        glorfindel = {
+          hostname = configVars.networking.external.glorfindel.ip; # 72.14.183.148
+          profiles.system = {
+            sshUser = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.glorfindel;
+          };
+        };
+        
+        bombadil = {
+          hostname = configVars.networking.external.bombadil.ip; # 172.234.207.124
+          profiles.system = {
+            sshUser = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.bombadil;
+          };
+        };
+        
+        fedibox = {
+          hostname = configVars.networking.external.fedibox.ip; # 18.237.19.163
+          profiles.system = {
+            sshUser = "root";
+            path = deploy-rs.lib.x86_64-linux.activate.nixos self.nixosConfigurations.fedibox;
+          };
+        };
+      };
+
     };
 }
