@@ -13,6 +13,9 @@
 
     impermanence.url = "github:nix-community/impermanence";
 
+    # Rasbpi Helping Stuff
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi";
+
     # Lanzaboote Secure Bootloader for NixOS
     lanzaboote.url = "github:nix-community/lanzaboote/v0.4.2";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
@@ -93,6 +96,7 @@
     {
       self,
       nixpkgs,
+      nixos-raspberrypi,
       determinate,
       impermanence,
       lanzaboote,
@@ -220,6 +224,17 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/bert
+          ];
+        };
+        # Raspberry Pi 5
+        # To build remotely, run as regular user:
+        # nixos-rebuild switch --use-remote-sudo --flake .#william -v --target-host william --build-host localhost --use-substitutes
+        william = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/william
           ];
         };
         # Linode 4GB VPS
