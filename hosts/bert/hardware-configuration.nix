@@ -25,6 +25,11 @@ let
         },file_mode=0777,dir_mode=0777"
       ];
   };
+  cirdanNfsConfig = name: {
+    device = "${configVars.networking.subnets.cirdan.ip}:/volume1/${name}";
+    nfsType = "nfs";
+    options = [ "x-systemd.automount" "noauto" "x-systemd.idle-timeout=600" ];
+  };
 in
 {
   sops.secrets."bert-smb-secrets" = {
@@ -84,6 +89,10 @@ in
   fileSystems."/mnt/cirdan/smb/Jellyfin" = cirdanSmbConfig "Jellyfin";
   fileSystems."/mnt/cirdan/smb/NetBackup" = cirdanSmbConfig "NetBackup";
   fileSystems."/mnt/cirdan/smb/Family_Data" = cirdanSmbConfig "Family_Data";
+
+  # Cirdan NFS mounts
+  fileSystems."/mnt/cirdan/nfs/data.dat" = cirdanNfsConfig "data.dat";
+  fileSystems."/mnt/cirdan/nfs/syncthing" = cirdanNfsConfig "syncthing";
 
   # Swap
   swapDevices = [
