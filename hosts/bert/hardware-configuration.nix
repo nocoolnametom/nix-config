@@ -11,7 +11,10 @@
 }:
 
 {
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ../common/optional/cirdan-smb-shares.nix ];
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    ../common/optional/cirdan-smb-shares.nix
+  ];
 
   boot.initrd.availableKernelModules = [
     "ahci"

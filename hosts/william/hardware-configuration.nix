@@ -11,7 +11,16 @@
 }:
 
 {
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ../common/optional/cirdan-smb-shares.nix ];
+  system.nixos.tags = [
+    "raspberry-pi-${config.boot.loader.raspberryPi.variant}"
+    config.boot.loader.raspberryPi.bootloader
+    config.boot.kernelPackages.kernel.version
+  ];
+
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    ../common/optional/cirdan-smb-shares.nix
+  ];
 
   boot.initrd.availableKernelModules = [
     "ahci"

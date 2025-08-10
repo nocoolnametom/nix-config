@@ -37,12 +37,12 @@
     };
     "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
       '';
     };
     "${configVars.networking.subdomains.budget}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.budget}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.budget}
       '';
     };
     "${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}" = {
@@ -51,52 +51,47 @@
       '';
     };
     "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
+      # Served through cirdan from archer/smeagol
       extraConfig = ''
-        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
+      # Served through cirdan from archer/smeagol
       extraConfig = ''
-        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" =
-      lib.mkIf config.services.deluge.web.enable
-        {
-          extraConfig = ''
-            # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.delugeweb}
-            reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-          '';
-        };
-    "${configVars.networking.subdomains.flood}.${configVars.domain}" =
-      lib.mkIf config.services.flood.enable
-        {
-          extraConfig = ''
-            # reverse_proxy 127.0.0.1:${builtins.toString config.services.flood.port}
-            reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-          '';
-        };
-    "${configVars.networking.subdomains.nzbhydra}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = {
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbhydra}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+      '';
+    };
+    "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
+      # Served through cirdan from bert
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+      '';
+    };
+    "${configVars.networking.subdomains.nzbhydra}.${configVars.domain}" = {
+      # Served through cirdan from bert
+      extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
       '';
     };
     "${configVars.networking.subdomains.immich-share}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich-share}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich-share}
       '';
     };
-    "${configVars.networking.subdomains.jellyfin}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.hedgedoc}
       '';
     };
     "${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}" = {
@@ -106,17 +101,17 @@
     };
     "${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.karakeep}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.karakeep}
       '';
     };
-    "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
+    "${configVars.networking.subdomains.kavita}.${configVars.domain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
       '';
     };
-    "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
       '';
     };
     "${configVars.networking.subdomains.mylar}.${configVars.domain}" = {
@@ -130,20 +125,20 @@
       '';
     };
     "${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}" = {
+      # Served through cirdan for william
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString config.services.navidrome.settings.Port}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
+      # Served through cirdan for bert
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.nzbget}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
+      # Servied through cirdan for william
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString config.services.ombi.port}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
@@ -163,47 +158,32 @@
       '';
     };
     "${configVars.networking.subdomains.radarr}.${configVars.domain}" = {
+      # Served through cirdan for bert
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.radarr}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
+      # Served through cirdan for bert
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString config.services.sickbeard.port}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.sonarr}.${configVars.domain}" = {
+      # Served through cirdan for bert
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString configVars.networking.ports.tcp.sonarr}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.standardnotes}.${configVars.homeDomain}" = {
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes}
-      '';
-    };
-    "${configVars.networking.subdomains.standardnotes-files}.${configVars.homeDomain}" = {
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes-files}
-      '';
-    };
-    "${configVars.networking.subdomains.standardnotes-server}.${configVars.homeDomain}" = {
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.standardnotes-server}
-      '';
-    };
     "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
+      # Served through cirdan for bert
       extraConfig = ''
-        # reverse_proxy 127.0.0.1:${builtins.toString config.services.stashapp.port}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
+      # Served through cirdan from cirdan (because we can't compile it on bert/william)
       extraConfig = ''
-        # reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };

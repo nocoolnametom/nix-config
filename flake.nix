@@ -92,6 +92,13 @@
     nix-secrets.inputs = { };
   };
 
+  nixConfig.extra-substituters = [
+    "https://nixos-raspberrypi.cachix.org"
+  ];
+  nixConfig.extra-trusted-public-keys = [
+    "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+  ];
+
   outputs =
     {
       self,
@@ -137,6 +144,7 @@
           configLib
           nixpkgs
           configurationRevision
+          nixos-raspberrypi
           ;
       };
     in
@@ -229,7 +237,7 @@
         # Raspberry Pi 5
         # To build remotely, run as regular user:
         # nixos-rebuild switch --use-remote-sudo --flake .#william -v --target-host william --build-host localhost --use-substitutes
-        william = lib.nixosSystem {
+        william = nixos-raspberrypi.lib.nixosSystem {
           inherit specialArgs;
           modules = [
             home-manager.nixosModules.home-manager

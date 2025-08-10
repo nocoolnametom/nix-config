@@ -41,7 +41,8 @@ let
     "uid=${toString config.users.users.datadat.uid}"
     "gid=${toString config.users.groups.datadat.gid}"
   ] "secondary";
-in {
+in
+{
   sops.secrets."cirdan-smb-primary-secrets" = {
     neededForUsers = true;
   };

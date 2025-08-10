@@ -20,7 +20,10 @@
     ./hardware-configuration.nix
 
     ########################## Hardware Modules ###############################
-    inputs.hardware.nixosModules.raspberry-pi-5
+    # inputs.hardware.nixosModules.raspberry-pi-5
+    inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
+    inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
+    inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.bluetooth
 
     ############################## Nginx ######################################
     ./caddy.nix
@@ -38,22 +41,14 @@
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/services/ddclient.nix"
     "hosts/common/optional/services/openssh.nix"
-
-    # Actual Budget
     "hosts/common/optional/services/actual-budget.nix"
-    # Audiobookshelf
     "hosts/common/optional/services/audiobookshelf.nix"
-    # Immich Public Proxy
+    "hosts/common/optional/services/hedgedoc.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
-    # Karakeep
     "hosts/common/optional/services/karakeep.nix"
-    # Kavita
     "hosts/common/optional/services/kavita.nix"
-    # Navidrome
     "hosts/common/optional/services/navidrome.nix"
-    # Ombi
     "hosts/common/optional/services/ombi.nix"
-    # calibre-web-automated via docker?
     # tube-archivist via docker?
 
     #################### Users to Create ####################
