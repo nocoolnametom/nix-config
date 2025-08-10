@@ -10,34 +10,8 @@
   ...
 }:
 
-let
-  cirdanSmbConfig = name: {
-    device = "//${configVars.networking.subnets.cirdan.ip}/${name}";
-    fsType = "cifs";
-    options =
-      let
-        # this line prevents hanging on network split
-        automount_opts = "x-systemd.automount,noauto,x-systemd.idle-timeout=60,x-systemd.device-timeout=5s,x-systemd.mount-timeout=5s";
-      in
-      [
-        "${automount_opts},credentials=${
-          config.sops.templates."cirdan-smb-creds".path
-        },file_mode=0777,dir_mode=0777"
-      ];
-  };
-in
 {
-  sops.secrets."cirdan-smb-user" = { };
-  sops.secrets."cirdan-smb-password" = { };
-  sops.templates."cirdan-smb-creds" = {
-    content = ''
-      username=${config.sops.placeholder."cirdan-smb-user"}
-      password=${config.sops.placeholder."cirdan-smb-password"}
-    '';
-    neededForUsers = true;
-  };
-
-  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ../common/optional/cirdan-smb-shares.nix ];
 
   boot.initrd.availableKernelModules = [
     "ahci"
@@ -58,11 +32,12 @@ in
   };
 
   # Cirdan SMB mounts
-  fileSystems."/mnt/cirdan/smb/data.dat" = cirdanSmbConfig "data.dat";
-  fileSystems."/mnt/cirdan/smb/Comics" = cirdanSmbConfig "Comics";
-  fileSystems."/mnt/cirdan/smb/Jellyfin" = cirdanSmbConfig "Jellyfin";
-  fileSystems."/mnt/cirdan/smb/NetBackup" = cirdanSmbConfig "NetBackup";
-  fileSystems."/mnt/cirdan/smb/Family_Data" = cirdanSmbConfig "Family_Data";
+  fileSystems."/mnt/cirdan/smb/Comics" = cirdanSmb.mainConfig "Comics";
+  fileSystems."/mnt/cirdan/smb/Jellyfin" = cirdanSmb.mainConfig "Jellyfin";
+  fileSystems."/mnt/cirdan/smb/NetBackup" = cirdanSmb.mainConfig "NetBackup";
+  fileSystems."/mnt/cirdan/smb/Family_Data" = cirdanSmb.mainConfig "Family_Data";
+  fileSystems."/mnt/cirdan/smb/data.dat" = cirdanSmb.secondaryConfig "data.dat";
+  fileSystems."/mnt/cirdan/smb/syncthing" = cirdanSmb.ROSecondaryConfig "syncthing";
 
   # Swap
   swapDevices = [

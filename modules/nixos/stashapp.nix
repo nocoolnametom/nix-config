@@ -177,7 +177,10 @@ in
           stashapp = {
             isSystemUser = true;
             group = cfg.group;
-            extraGroups = [ "video" ];
+            extraGroups = [
+              "video"
+              config.users.groups.datadat.name
+            ];
             home = cfg.dataDir;
             createHome = true;
           };

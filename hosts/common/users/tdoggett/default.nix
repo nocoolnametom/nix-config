@@ -32,6 +32,15 @@ in
   # Ensure shared media group exists
   users.groups.media = { };
 
+  # Ensure datadat user and group exists
+  users.groups.datadat = { };
+  users.users.datadat = {
+    isSystemUser = true;
+    group = config.users.groups.datadat.name;
+    extraGroups = [ "video" ];
+    home = "/var/lib/datadat";
+  };
+
   users.users.${configVars.username} = {
     isNormalUser = true;
     # I never could get the sops secret version of this to work with a hashedPasswordFile
@@ -53,6 +62,7 @@ in
       "media" # media downloading
       "video" # monitor
       "dialout" # serial ports for arduino
+      "datadat" # stash data managment
     ];
   };
 }
