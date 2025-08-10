@@ -4,25 +4,7 @@
   lib,
   ...
 }:
-{
-  sops.secrets."cirdan-smb/primary/user" = { };
-  sops.secrets."cirdan-smb/primary/password" = { };
-  sops.secrets."cirdan-smb/secondary/user" = { };
-  sops.secrets."cirdan-smb/secondary/password" = { };
-  sops.templates."cirdan-smb-primary-creds" = {
-    content = ''
-      username=${config.sops.placeholder."cirdan-smb/primary/user"}
-      password=${config.sops.placeholder."cirdan-smb/primary/password"}
-    '';
-    neededForUsers = true;
-  };
-  sops.templates."cirdan-smb-secondary-creds" = {
-    content = ''
-      username=${config.sops.placeholder."cirdan-smb/secondary/user"}
-      password=${config.sops.placeholder."cirdan-smb/secondary/password"}
-    '';
-    neededForUsers = true;
-  };
+let
   cirdanSmbGenConfig = ordinal_opts: ordinal: name: {
     device = "//${configVars.networking.subnets.cirdan.ip}/${name}";
     fsType = "cifs";
@@ -40,7 +22,7 @@
         automount_opts = lib.strings.concatStringsSep "," mountingOpts;
       in
       [
-        "${automount_opts},credentials=${config.sops.templates."cirdan-smb-${ordinal}-creds".path},"
+        "${automount_opts},credentials=${config.sops.secrets."cirdan-smb-${ordinal}-secrets".path},"
       ];
   };
   mainConfig = cirdanSmbGenConfig [
@@ -59,4 +41,18 @@
     "uid=${toString config.users.users.datadat.uid}"
     "gid=${toString config.users.groups.datadat.gid}"
   ] "secondary";
+in {
+  sops.secrets."cirdan-smb-primary-secrets" = {
+    neededForUsers = true;
+  };
+  sops.secrets."cirdan-smb-secondary-secrets" = {
+    neededForUsers = true;
+  };
+
+  #Cirdan SMB mounts
+  fileSystems."/mnt/cirdan/smb/Comics" = mainConfig "Comics";
+  fileSystems."/mnt/cirdan/smb/Jellyfin" = mainConfig "Jellyfin";
+  fileSystems."/mnt/cirdan/smb/NetBackup" = mainConfig "NetBackup";
+  fileSystems."/mnt/cirdan/smb/data.dat" = secondaryConfig "data.dat";
+  fileSystems."/mnt/cirdan/smb/syncthing" = ROSecondaryConfig "syncthing";
 }

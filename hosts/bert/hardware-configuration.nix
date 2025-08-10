@@ -58,14 +58,6 @@
     ];
   };
 
-  # Cirdan SMB mounts
-  fileSystems."/mnt/cirdan/smb/Comics" = cirdanSmb.mainConfig "Comics";
-  fileSystems."/mnt/cirdan/smb/Jellyfin" = cirdanSmb.mainConfig "Jellyfin";
-  fileSystems."/mnt/cirdan/smb/NetBackup" = cirdanSmb.mainConfig "NetBackup";
-  fileSystems."/mnt/cirdan/smb/Family_Data" = cirdanSmb.mainConfig "Family_Data";
-  fileSystems."/mnt/cirdan/smb/data.dat" = cirdanSmb.secondaryConfig "data.dat";
-  fileSystems."/mnt/cirdan/smb/syncthing" = cirdanSmb.ROSecondaryConfig "syncthing";
-
   # Swap
   swapDevices = [
     {

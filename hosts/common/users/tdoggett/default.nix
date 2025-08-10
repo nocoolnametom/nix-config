@@ -33,8 +33,9 @@ in
   users.groups.media = { };
 
   # Ensure datadat user and group exists
-  users.groups.datadat = { };
+  users.groups.datadat.gid = 976;
   users.users.datadat = {
+    uid = 979;
     isSystemUser = true;
     group = config.users.groups.datadat.name;
     extraGroups = [ "video" ];
