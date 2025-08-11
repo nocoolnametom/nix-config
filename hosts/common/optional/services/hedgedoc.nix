@@ -1,4 +1,9 @@
-{ lib, configVars, config, ... }:
+{
+  lib,
+  configVars,
+  config,
+  ...
+}:
 {
   services.hedgedoc.enable = lib.mkDefault true;
   services.hedgedoc.settings.domain = "${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";

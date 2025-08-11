@@ -47,10 +47,10 @@
     "hosts/common/optional/services/immich-public-proxy.nix"
     "hosts/common/optional/services/karakeep.nix"
     "hosts/common/optional/services/kavita.nix"
+    "hosts/common/optional/services/mealie.nix"
     "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/paperless.nix"
-    "hosts/common/optional/services/tandoor-recipes.nix"
     # tube-archivist via docker?
 
     #################### Users to Create ####################

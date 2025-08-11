@@ -16,11 +16,11 @@
   };
   sops.secrets."homelab/oidc/actual/authentik/client-id" = { };
   sops.secrets."homelab/oidc/actual/authentik/client-secret" = { };
-  users.users."actual" ={
+  users.users."actual" = {
     isSystemUser = true;
     group = "actual";
   };
-  users.groups."actual" = {};
+  users.groups."actual" = { };
   sops.templates."actual-oidc-keys.env" = {
     content = ''
       ACTUAL_OPENID_CLIENT_ID=${config.sops.placeholder."homelab/oidc/actual/authentik/client-id"}

@@ -1,4 +1,9 @@
-{ lib, configVars, config, ... }:
+{
+  lib,
+  configVars,
+  config,
+  ...
+}:
 {
   services.kavita.enable = lib.mkDefault true;
   services.kavita.settings.Port = configVars.networking.ports.tcp.kavitan;
