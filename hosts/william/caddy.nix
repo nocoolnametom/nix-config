@@ -147,6 +147,11 @@
         reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       '';
     };
+    "${configVars.networking.subdomains.paperless}.${configVars.homeDomain}" = {
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.wiliam.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
+      '';
+    };
     "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}
@@ -185,6 +190,11 @@
       # Served through cirdan from cirdan (because we can't compile it on bert/william)
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+      '';
+    };
+    "${configVars.networking.subdomains.tandoor}.${configVars.homeDomain}" = {
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.wiliam.ip}:${builtins.toString configVars.networking.ports.tcp.tandoor}
       '';
     };
     "${configVars.networking.subdomains.tubearchivist}.${configVars.domain}" = {

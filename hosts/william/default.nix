@@ -49,6 +49,8 @@
     "hosts/common/optional/services/kavita.nix"
     "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/ombi.nix"
+    "hosts/common/optional/services/paperless.nix"
+    "hosts/common/optional/services/tandoor-recipes.nix"
     # tube-archivist via docker?
 
     #################### Users to Create ####################
