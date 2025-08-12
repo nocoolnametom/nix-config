@@ -47,6 +47,9 @@
   # If this seems to be causing issues, change it to empty string
   environment.sessionVariables.NIX_REMOTE = lib.mkDefault "daemon";
 
+  # Allow USB mounting
+  services.udisks2.enable = true;
+
   # Set up the root user (uses secrets from nix-secrets and ./sops.nix)
   users.users.root = {
     # Use the same hashedPassword or defined password as the main username has

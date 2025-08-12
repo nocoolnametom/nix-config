@@ -12,7 +12,6 @@
     #################### Host-specific Optional Configs ####################
     common/optional/sops.nix
     common/optional/git.nix
-    common/optional/immersed.nix
     common/optional/desktops
     common/optional/desktops/hyprland.nix
     common/optional/devenv.nix
@@ -46,6 +45,8 @@
   programs.git.userEmail = configVars.gitHubEmail;
 
   home.packages = with pkgs; [
+    calibre
+    unzip
     gnumake
     remmina
     bottles
