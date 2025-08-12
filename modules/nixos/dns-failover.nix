@@ -69,7 +69,7 @@ in
         STATUS_SERVER_IPv4=$(${pkgs.dnsutils}/bin/dig +short A ${cfg.statusServerUrl} | head -n1)
         STATUS_SERVER_IPv6=$(${pkgs.dnsutils}/bin/dig +short AAAA ${cfg.statusServerUrl} | head -n1)
 
-        RECORDS=$(curl -s -X POST "https://porkbun.com/api/json/v3/dns/retrieve/${cfg.failoverDomain}" \
+        RECORDS=$(${pkgs.curl}/bin/curl -s -X POST "https://porkbun.com/api/json/v3/dns/retrieve/${cfg.failoverDomain}" \
           -H "Content-Type: application/json" \
           -d "{\"apikey\":\"$PORKBUN_API_KEY\", \"secretapikey\":\"$PORKBUN_SECRET\"}")
 
