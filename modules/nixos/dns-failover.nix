@@ -69,23 +69,31 @@ in
         STATUS_SERVER_IPv4=$(${pkgs.dnsutils}/bin/dig +short A ${cfg.statusServerUrl} | head -n1)
         STATUS_SERVER_IPv6=$(${pkgs.dnsutils}/bin/dig +short AAAA ${cfg.statusServerUrl} | head -n1)
 
-        RECORDS=$(${pkgs.curl}/bin/curl -s -X POST "https://porkbun.com/api/json/v3/dns/retrieve/${cfg.failoverDomain}" \
+        # Strip everything up to the last two dot-separated fields
+        HOST="${cfg.failoverDomain}"
+        DOMAIN=$(echo "$HOST" | ${pkgs.gawk}/bin/awk -F. '{if (NF>2) print $(NF-1)"."$NF; else print $0}')
+        SUBDOMAIN=""
+        if [ "$HOST" != "$DOMAIN" ]; then
+          SUBDOMAIN="/${"$"}{HOST%.$DOMAIN}"
+        fi
+
+        RECORDS=$(${pkgs.curl}/bin/curl -s -X POST "https://api.porkbun.com/api/json/v3/dns/retrieve/$DOMAIN" \
           -H "Content-Type: application/json" \
           -d "{\"apikey\":\"$PORKBUN_API_KEY\", \"secretapikey\":\"$PORKBUN_SECRET\"}")
 
-        CURRENT_IPv4=$(echo $RECORDS | ${pkgs.jq}/bin/jq -r '.records[] | select(.type=="A") | .content')
-        CURRENT_IPv6=$(echo $RECORDS | ${pkgs.jq}/bin/jq -r '.records[] | select(.type=="AAAA") | .content')
+        CURRENT_IPv4=$(echo $RECORDS | ${pkgs.jq}/bin/jq -r '.records[] | select(.name=="${cfg.failoverDomain}" and .type=="A") | .content')
+        CURRENT_IPv6=$(echo $RECORDS | ${pkgs.jq}/bin/jq -r '.records[] | select(.name=="${cfg.failoverDomain}" and .type=="AAAA") | .content')
 
         if [ "$CURRENT_IPv4" != "$STATUS_SERVER_IPv4" ]; then
           echo "[Failover] Updating A record to Status Server ($STATUS_SERVER_IPv4)"
-          ${pkgs.curl}/bin/curl -s -X POST "https://porkbun.com/api/json/v3/dns/editByNameType/${cfg.failoverDomain}/A" \
+          ${pkgs.curl}/bin/curl -s -X POST "https://api.porkbun.com/api/json/v3/dns/editByNameType/$DOMAIN/A$SUBDOMAIN" \
             -H "Content-Type: application/json" \
             -d "{\"apikey\":\"$PORKBUN_API_KEY\",\"secretapikey\":\"$PORKBUN_SECRET\",\"content\":\"$STATUS_SERVER_IPv4\",\"ttl\":\"300\"}"
         fi
 
         if [ "$CURRENT_IPv6" != "$STATUS_SERVER_IPv6" ]; then
           echo "[Failover] Updating AAAA record to Status Server ($STATUS_SERVER_IPv6)"
-          ${pkgs.curl}/bin/curl -s -X POST "https://porkbun.com/api/json/v3/dns/editByNameType/${cfg.failoverDomain}/AAAA" \
+          ${pkgs.curl}/bin/curl -s -X POST "https://api.porkbun.com/api/json/v3/dns/editByNameType/$DOMAIN/AAAA$SUBDOMAIN" \
             -H "Content-Type: application/json" \
             -d "{\"apikey\":\"$PORKBUN_API_KEY\",\"secretapikey\":\"$PORKBUN_SECRET\",\"content\":\"$STATUS_SERVER_IPv6\",\"ttl\":\"300\"}"
         fi
