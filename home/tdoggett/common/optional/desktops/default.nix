@@ -24,7 +24,7 @@
     slack
     vlc
     xfce.thunar
-    todoist-electron
+    # todoist-electron
     unstable.zed-editor
 
     # Fonts

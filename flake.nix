@@ -9,8 +9,6 @@
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
     nixpkgs-old.url = "github:NixOS/nixpkgs/nixos-24.11";
 
-    determinate.url = "https://flakehub.com/f/DeterminateSystems/determinate/*";
-
     impermanence.url = "github:nix-community/impermanence";
 
     # Rasbpi Helping Stuff
@@ -104,7 +102,6 @@
       self,
       nixpkgs,
       nixos-raspberrypi,
-      determinate,
       impermanence,
       lanzaboote,
       hardware,

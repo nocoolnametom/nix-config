@@ -29,7 +29,6 @@
     "hosts/common/optional/tmux.nix"
     "hosts/common/optional/yubikey.nix"
     "hosts/common/darwin/optional/dnsmasq.nix"
-    "hosts/common/darwin/optional/determinate.nix"
 
     #################### Users to Manage ####################
     "home/${configVars.username}/persistence/macbookpro.nix"

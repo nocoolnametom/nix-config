@@ -47,7 +47,6 @@
     "hosts/common/optional/adb.nix" # Android Debugging
     "hosts/common/optional/blinkstick.nix"
     "hosts/common/optional/cross-compiling.nix"
-    "hosts/common/optional/determinate.nix"
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
     "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader

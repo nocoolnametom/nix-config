@@ -99,7 +99,6 @@ nix flake check --no-build --all-systems
 ## Development Roadmap
 
 ### Completed ✅
- * [X] ~~Fix homeConfigurations as part of the output packages~~ - Resolved by using DeterminateSystems nix with `schema` syntax
  * [X] ~~Finish moving Wordpress from elrond to glorfindel~~ - Migration completed
  * [X] ~~Fix custom Wordpress plugins from breaking `nix flake check`~~ - Moved to separate flake repo
  * [X] ~~Add fedibox configuration~~ - Merged into bombadil configuration

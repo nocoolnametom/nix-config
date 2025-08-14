@@ -44,7 +44,6 @@
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/blinkstick.nix"
-    "hosts/common/optional/determinate.nix"
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/light.nix" # Monitor brightness
     "hosts/common/optional/steam.nix"

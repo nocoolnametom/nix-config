@@ -45,7 +45,6 @@ in
     "hosts/common/optional/services/elasticsearch.nix"
     "hosts/common/optional/services/mailserver.nix"
     "hosts/common/optional/services/uptime-kuma.nix"
-    "hosts/common/optional/determinate.nix"
     "hosts/common/optional/linode.nix"
     "hosts/common/optional/nostr.nix"
 

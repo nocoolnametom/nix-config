@@ -38,7 +38,6 @@
 
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/per-user-vpn-setup.nix"
-    # "hosts/common/optional/determinate.nix" # Tends to force compilation of kernels
     "hosts/common/optional/services/ddclient.nix"
     "hosts/common/optional/services/deluge.nix"
     "hosts/common/optional/services/flood.nix"
