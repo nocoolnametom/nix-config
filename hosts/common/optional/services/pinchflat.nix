@@ -22,7 +22,7 @@
       BASIC_AUTH_USERNAME=${config.sops.placeholder."pinchflat/username"}
       BASIC_AUTH_PASSWORD=${config.sops.placeholder."pinchflat/password"}
     '';
-    owner = config.services.pinchflat.user;
+    owner = if (builtins.hasAttr "user" config.services.pinchflat) then config.services.pinchflat.user else "root";
   };
   services.pinchflat.secretsFile = lib.mkDefault config.sops.templates."pinchflat-secrets.env".path;
 }
