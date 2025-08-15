@@ -82,6 +82,10 @@
   system.keyboard.enableKeyMapping = lib.mkDefault true;
   system.keyboard.remapCapsLockToControl = lib.mkDefault true;
 
+  # We use the determinate installer for nix on darwin
+  # It lasts/recovers far more easily through OS updates
+  nix.enable = false;
+
   # Set Git commit hash for darwin-version.
   system.configurationRevision = configurationRevision;
 }
