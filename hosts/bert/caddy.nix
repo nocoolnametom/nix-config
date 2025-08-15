@@ -152,6 +152,11 @@
         reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       '';
     };
+    "${configVars.networking.subdomains.pinchflat}.${configVars.domain}" = {
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+      '';
+    };
     "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}

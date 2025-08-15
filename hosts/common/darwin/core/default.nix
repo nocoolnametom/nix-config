@@ -38,6 +38,7 @@
   environment.systemPackages = [
     pkgs.wget
     pkgs.git # Needed for flakes!
+    pkgs.git-lfs
     pkgs.nixfmt-rfc-style
     pkgs.dnsmasq
     pkgs.docutils

@@ -47,6 +47,7 @@
     "hosts/common/optional/services/nzbhydra.nix"
     "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/pinchflat.nix"
     "hosts/common/optional/services/radarr.nix"
     "hosts/common/optional/services/sickrage.nix"
     "hosts/common/optional/services/sonarr.nix"
@@ -145,6 +146,9 @@
     "--dehost=localhost"
     "--deport=${builtins.toString config.services.deluge.config.daemon_port}"
   ];
+
+  # Pinchflat Data Storage
+  services.pinchflat.mediaDir = "/mnt/cirdan/smb/Jellyfin/TV_Shows/Tube";
 
   # NZBHydra Data Storage
   services.nzbhydra2.dataDir = "/media/g_drive/nzbhydra2";

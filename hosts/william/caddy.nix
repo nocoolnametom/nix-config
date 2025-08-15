@@ -157,6 +157,12 @@
         reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
       '';
     };
+    "${configVars.networking.subdomains.pinchflat}.${configVars.domain}" = {
+      # Served through cirdan from bert
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+      '';
+    };
     "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}
