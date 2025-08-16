@@ -72,6 +72,12 @@ in
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "william" = {
+        host = configVars.networking.subnets.william.name;
+        hostname = configVars.networking.subnets.william.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "router" = {
         host = configVars.networking.subnets.router.name;
         hostname = configVars.networking.subnets.router.ip;
