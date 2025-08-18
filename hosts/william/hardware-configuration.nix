@@ -33,8 +33,13 @@
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS_SD";
     fsType = "ext4";
-    options = [ "noatime" ];
   };
+
+  fileSystems."/boot/firmware" = {
+    device = "systemd-1";
+    fsType = "autofs";
+  };
+
   fileSystems."/firmware" = {
     device = "/dev/disk/by-label/FIRMWARE";
     fsType = "vfat";
