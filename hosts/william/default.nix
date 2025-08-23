@@ -1,7 +1,7 @@
 ###############################################################################
 #
-#  Bert - RasPi
-#  NixOS running on Raspberry Pi 4 Model B Rev 1.4
+#  William - RasPi 5
+#  NixOS running on Raspberry Pi 5 Model B
 #
 ###############################################################################
 
@@ -58,7 +58,7 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
-  # I'm not currently running persistence on the RasPi! RAM is too limited.
+  # I'm not currently running persistence on William! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   ## Imports overrides
@@ -73,7 +73,7 @@
     ];
     networkmanager.enable = true;
     enableIPv6 = true;
-    # Bert is behind a NAT, so access to ports is already restricted
+    # William is behind a NAT, so access to ports is already restricted
     firewall.enable = false;
     firewall.allowedTCPPorts = [
       80 # HTTP
@@ -109,6 +109,12 @@
     unzip
     vim
     wget
+    git
+    curl
+    tree
+    htop
+    libraspberrypi
+    raspberrypi-eeprom
   ];
 
   # Use the systemd-boot EFI boot loader.
@@ -130,5 +136,5 @@
 
   system.stateVersion = "25.05";
 
-  users.users.root.initialHashedPassword = "$y$j9T$Mm6q6iMh6EExH6KXCxJMo0$i5B3WiTn0iugMb2WcRpCuOw/6QA..GSrTcPZZjMhKy6";
+  users.users.root.initialHashedPassword = "$y$j9T$5SGpsUDjjH9wZ61QMwXf0.$C.cQnNS.mmXLEQ34/cqfpU.LXJ0BydbEFr4oukpn8u/";
 }

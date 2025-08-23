@@ -23,26 +23,27 @@
   ];
 
   boot.initrd.availableKernelModules = [
-    "ahci"
-    "sd_mod"
+    "xhci_pci"
+    "usbhid"
+    "usb_storage"
   ];
   boot.initrd.kernelModules = [ ];
-  boot.kernelModules = [ "kvm-intel" ];
+  boot.kernelModules = [ ];
   boot.extraModulePackages = [ ];
 
   fileSystems."/" = {
     device = "/dev/disk/by-label/NIXOS_SD";
     fsType = "ext4";
+    options = [ "noatime" ];
   };
 
-  fileSystems."/boot/firmware" = {
-    device = "systemd-1";
-    fsType = "autofs";
-  };
-
-  fileSystems."/firmware" = {
+  fileSystems."/boot" = {
     device = "/dev/disk/by-label/FIRMWARE";
     fsType = "vfat";
+    options = [
+      "fmask=0022"
+      "dmask=0022"
+    ];
   };
 
   # Swap
@@ -67,4 +68,7 @@
   # networking.interfaces.wlan0.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "aarch64-linux";
+
+  # Enable hardware support
+  hardware.enableRedistributableFirmware = true;
 }

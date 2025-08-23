@@ -18,7 +18,11 @@
     content = ''
       SECRET_KEY_BASE=${config.sops.placeholder."pinchflat/key-base"}
     '';
-    owner = if (builtins.hasAttr "user" config.services.pinchflat) then config.services.pinchflat.user else "root";
+    owner =
+      if (builtins.hasAttr "user" config.services.pinchflat) then
+        config.services.pinchflat.user
+      else
+        "root";
   };
   services.pinchflat.secretsFile = lib.mkDefault config.sops.templates."pinchflat-secrets.env".path;
 }
