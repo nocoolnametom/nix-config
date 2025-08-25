@@ -22,8 +22,8 @@
     ########################## Hardware Modules ###############################
     # inputs.hardware.nixosModules.raspberry-pi-5
     inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.base
-    inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
-    inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.bluetooth
+    # inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.display-vc4
+    # inputs.nixos-raspberrypi.nixosModules.raspberry-pi-5.bluetooth
 
     ############################## Nginx ######################################
     ./caddy.nix
@@ -62,6 +62,7 @@
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   ## Imports overrides
+  services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
@@ -71,7 +72,9 @@
       "1.0.0.1#one.one.one.one"
       "8.8.8.8#eight.eight.eight.eight"
     ];
+    wireless.enable = false;
     networkmanager.enable = true;
+    networkmanager.wifi.backend = "iwd";
     enableIPv6 = true;
     # William is behind a NAT, so access to ports is already restricted
     firewall.enable = false;
