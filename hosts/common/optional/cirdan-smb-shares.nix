@@ -54,6 +54,7 @@ in
   fileSystems."/mnt/cirdan/smb/Comics" = mainConfig "Comics";
   fileSystems."/mnt/cirdan/smb/Jellyfin" = mainConfig "Jellyfin";
   fileSystems."/mnt/cirdan/smb/NetBackup" = mainConfig "NetBackup";
+  fileSystems."/mnt/cirdan/smb/Immich" = mainConfig "Immich";
   fileSystems."/mnt/cirdan/smb/data.dat" = secondaryConfig "data.dat";
   fileSystems."/mnt/cirdan/smb/syncthing" = ROSecondaryConfig "syncthing";
 }

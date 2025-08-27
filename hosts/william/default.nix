@@ -44,6 +44,7 @@
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
     "hosts/common/optional/services/hedgedoc.nix"
+    "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
     "hosts/common/optional/services/karakeep.nix"
     "hosts/common/optional/services/kavita.nix"
@@ -62,7 +63,8 @@
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   ## Imports overrides
-  services.openssh.settings.PermitRootLogin = lib.mkForce "yes";
+  services.paperless.configureTika = lib.mkForce false;
+  services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {

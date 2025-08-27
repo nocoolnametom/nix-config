@@ -11,11 +11,13 @@
   networking.firewall.allowedTCPPorts = [ 8001 ];
   services.hedgedoc.settings.oauth.providerName = "authentik";
   services.hedgedoc.settings.oauth.scope = "openid email profile";
-  services.hedgedoc.settings.oauth.userProfileUrl =
+  services.hedgedoc.settings.oauth.baseURL =
+    "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/hedgedoc/";
+  services.hedgedoc.settings.oauth.userProfileURL =
     "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/userinfo/";
-  services.hedgedoc.settings.oauth.tokenUrl =
+  services.hedgedoc.settings.oauth.tokenURL =
     "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/token/";
-  services.hedgedoc.settings.oauth.authorizationUrl =
+  services.hedgedoc.settings.oauth.authorizationURL =
     "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/authorize/";
   services.hedgedoc.settings.oauth.userProfileUsernameAttr = "preferred_username";
   services.hedgedoc.settings.oauth.userProfileDisplayNameAttr = "name";

@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   config,
   configVars,
@@ -19,6 +20,11 @@
   services.paperless.enable = lib.mkDefault true;
   services.paperless.port = lib.mkDefault configVars.networking.ports.tcp.paperless;
   services.paperless.configureTika = lib.mkDefault true;
+  services.gotenberg = {
+    package = pkgs.gotenberg;
+    libreoffice.package = pkgs.libreoffice;
+    chromium.package = pkgs.chromium;
+  };
   services.paperless.database.createLocally = true;
   services.paperless.passwordFile =
     lib.mkDefault
