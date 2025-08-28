@@ -66,6 +66,16 @@
   services.paperless.configureTika = lib.mkForce false;
   services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
 
+  # Navidrome Music Server
+  services.navidrome.settings.MusicFolder = "/mnt/cirdan/smb/Music";
+  services.navidrome.settings.BaseUrl = "";
+  services.navidrome.settings.ReverseProxyWhitelist = "${configVars.networking.subnets.cirdan.ip}/32";
+  services.navidrome.settings.ReverseProxyUserHeader = "X-Authentik-Username";
+  services.navidrome.environmentFile = pkgs.writeText "stack.env" ''
+    ND_AUTH_PROXY_AUTO_CREATE_USERS=true
+    ND_AUTH_PROXY_DEFAULT_ROLE=USER
+  '';
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "william";
