@@ -52,6 +52,18 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Stylix wallpaper
+  stylix.image = pkgs.fetchurl {
+    url = "https://codeberg.org/exorcist/wallpapers/raw/branch/master/gruvbox/cottage.jpg";
+    sha256 = "sha256-NUDGJ13fF+0AZAFcN6HoiuaPhewsfwQ65FRXvuB7rKo=";
+  };
+
+  # Using Rocm instead of Cuda since AMD APU/GPU
+  nixpkgs.config.cudaSupport = lib.mkForce false;
+  nixpkgs.config.cudnnSupport = lib.mkForce false;
+  nixpkgs.config.rocmSupport = true;
+  services.ollama.acceleration = "rocm";
+
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
   # so that the tokens are injected into the nix-daemon systemd job
