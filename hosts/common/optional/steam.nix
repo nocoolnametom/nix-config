@@ -10,5 +10,8 @@
   hardware.graphics.enable32Bit = true;
 
   programs.steam.enable = lib.mkDefault true;
+  programs.steam.extraCompatPackages = [
+    pkgs.proton-ge-bin
+  ];
   programs.steam.localNetworkGameTransfers.openFirewall = true;
 }
