@@ -22,6 +22,14 @@
     # I'm not using zen and dislike having to keep rebuild it
     # zen-browser-flake = inputs.zen-browser.packages.${final.system};
     myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
+    # @TODO Used by steam at least until verson 15 is added to unstable
+    proton-ge-bin-15 = prev.proton-ge-bin.overrideAttrs (old: rec {
+      version = "GE-Proton10-15";
+      src = final.fetchzip {
+        url = "https://github.com/GloriousEggroll/proton-ge-custom/releases/download/${version}/${version}.tar.gz";
+        hash = "sha256-VS9oFut8Wz2sbMwtX5tZkeusLDcZP3FOLUsQRabaZ0c=";
+      };
+    });
     # Fixes installation of open-webui
     # See if https://github.com/NixOS/nixpkgs/pull/382920 has been merged, if so you can remove this!
     python312 = prev.python312.override {

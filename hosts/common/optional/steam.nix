@@ -11,7 +11,9 @@
 
   programs.steam.enable = lib.mkDefault true;
   programs.steam.extraCompatPackages = [
-    pkgs.proton-ge-bin
+    # @TODO using the overlay until version 15 is added to unstable
+    # pkgs.unstable.proton-ge-bin
+    pkgs.proton-ge-bin-15
   ];
   programs.steam.localNetworkGameTransfers.openFirewall = true;
 }
