@@ -289,6 +289,17 @@
             ./hosts/smeagol
           ];
         };
+        # AMD Framework Desktop Dual Boot
+        barliman = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            # cosmicCacheModule
+            # nixos-cosmic.nixosModules.default
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/barliman
+          ];
+        };
       };
 
       #################### Nix-Darwin Configurations ####################

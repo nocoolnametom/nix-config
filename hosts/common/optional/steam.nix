@@ -10,4 +10,5 @@
   hardware.graphics.enable32Bit = true;
 
   programs.steam.enable = lib.mkDefault true;
+  programs.steam.localNetworkGameTransfers.openFirewall = true;
 }
