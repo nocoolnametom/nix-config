@@ -19,6 +19,12 @@ in
       description = "Enable the ComfyUIMini frontend service.";
     };
 
+    openFirewall = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Open the firewall for the comfyui-mini service";
+    };
+
     version = lib.mkOption {
       type = lib.types.str;
       default = "1.6.0";
@@ -33,6 +39,7 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    networking.firewall = lib.mkIf cfg.openFirewall { allowedTCPPorts = [ 3000 ]; };
     systemd.services.comfyuimini = {
       description = "ComfyUIMini frontend service";
       after = [ "network.target" ];

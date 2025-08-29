@@ -98,6 +98,12 @@ in
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "barliman" = {
+        host = configVars.networking.subnets.barliman.name;
+        hostname = configVars.networking.subnets.barliman.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "smeagol" = {
         host = configVars.networking.subnets.smeagol.name;
         hostname = configVars.networking.subnets.smeagol.ip;

@@ -41,7 +41,6 @@
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
-    "hosts/common/optional/services/stashapp.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/steam.nix"
@@ -83,8 +82,11 @@
 
   # Open-WebUI is a web-frontend for chatting with ollama
   services.ollama.models = "/var/lib/ai-models/ollama";
+  services.ollama.environmentVariables.HCC_AMDGPU_TARGET = "gfx1151";
+  services.ollama.rocmOverrideGfx = "11.5.1";
   services.open-webui.enable = true;
   services.open-webui.host = "0.0.0.0";
+  services.open-webui.openFirewall = true;
   sops.secrets = {
     "open-webui-slug" = { };
     "open-webui-clientid" = { };

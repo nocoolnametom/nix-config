@@ -59,6 +59,7 @@
 
   services.comfyui.enable = lib.mkDefault true;
   services.comfyui.host = lib.mkDefault "0.0.0.0";
+  networking.firewall.allowedTCPPorts = [ 8188 ];
   services.comfyui.models = lib.mkDefault (
     pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineModels
   );
