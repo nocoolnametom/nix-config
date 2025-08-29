@@ -81,8 +81,14 @@
   hardware.bluetooth.settings.Policy.AutoEnable = true;
 
   # Open-WebUI is a web-frontend for chatting with ollama
+  services.ollama.models = "/var/lib/ai-models/ollama";
   services.open-webui.enable = true;
   services.open-webui.host = "0.0.0.0";
+  sops.secrets = {
+    "open-webui-slug" = { };
+    "open-webui-clientid" = { };
+    "open-webui-clientsecret" = { };
+  };
   sops.templates."open-webui.conf".content = ''
     ENABLE_OAUTH_SIGNUP=true
     OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
