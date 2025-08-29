@@ -27,6 +27,15 @@
       {
         PRESSURE_VESSEL_FILESYSTEMS_RW = "$XDG_RUNTIME_DIR/wivrn/comp_ipc";
       }
+    )
+    // (lib.attrsets.optionalAttrs
+      (
+        (lib.attrsets.hasAttrByPath [ "programs" "steam" "extraCompatPackages" ] config)
+        && (!(builtins.lessThan (builtins.length config.programs.steam.extraCompatPackages) 1))
+      )
+      {
+        STEAM_EXTRA_COMPAT_TOOLS_PATHS = lib.makeSearchPathOutput "steamcompattool" "" config.programs.steam.extraCompatPackages;
+      }
     );
 
   services.desktopManager.plasma6.enable = true;
