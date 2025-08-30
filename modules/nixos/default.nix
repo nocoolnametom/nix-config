@@ -5,6 +5,7 @@
   # my-module = import ./my-module.nix;
   dns-failover = import ./dns-failover.nix;
   failover-redirects = import ./failover-redirects.nix;
+  kavitan = import ./kavitan.nix;
   maestral = import ./maestral.nix;
   nzbget-to-management = import ./nzbget-to-management.nix;
   per-user-vpn = import ./per-user-vpn.nix;

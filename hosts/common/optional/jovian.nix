@@ -34,7 +34,9 @@
         && (!(builtins.lessThan (builtins.length config.programs.steam.extraCompatPackages) 1))
       )
       {
-        STEAM_EXTRA_COMPAT_TOOLS_PATHS = lib.makeSearchPathOutput "steamcompattool" "" config.programs.steam.extraCompatPackages;
+        STEAM_EXTRA_COMPAT_TOOLS_PATHS =
+          lib.makeSearchPathOutput "steamcompattool" ""
+            config.programs.steam.extraCompatPackages;
       }
     );
 
