@@ -43,15 +43,16 @@
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
+    "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/hedgedoc.nix"
-    "hosts/common/optional/services/immich.nix"
+    # "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
-    "hosts/common/optional/services/karakeep.nix"
-    "hosts/common/optional/services/kavita.nix"
+    # "hosts/common/optional/services/karakeep.nix"
+    # "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
     "hosts/common/optional/services/mealie.nix"
     "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/ombi.nix"
-    "hosts/common/optional/services/paperless.nix"
+    # "hosts/common/optional/services/paperless.nix"
     # tube-archivist via docker?
 
     #################### Users to Create ####################
@@ -63,8 +64,20 @@
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   ## Imports overrides
-  services.paperless.configureTika = lib.mkForce false;
-  services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
+  # services.paperless.configureTika = lib.mkForce false;
+  # services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
+  # services.immich.machine-learning.enable = false;
+
+  # Currently-Docker Stuff
+  # Can replase kavita users below with kavita module when 0.8.8 is released!
+  users.groups.kavita = {};
+  users.users.kavita.isSystemUser = true;
+  users.users.kavita.group = "kavita";
+  users.users.kavita.home = "/var/lib/kavita";
+  users.groups.kavitan = {};
+  users.users.kavitan.isSystemUser = true;
+  users.users.kavitan.group = "kavitan";
+  users.users.kavitan.home = "/var/lib/kavitan";
 
   # Navidrome Music Server
   services.navidrome.settings.MusicFolder = "/mnt/cirdan/smb/Music";
