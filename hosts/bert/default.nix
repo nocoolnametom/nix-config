@@ -171,7 +171,8 @@
     key = "ssh/personal/root_only/acme-failover-key";
     mode = "0600";
   };
-  services.rsyncCertSync.enable = true;
+  # Moving caddy over to william
+  services.rsyncCertSync.enable = false;
   services.rsyncCertSync.vpsHost = configVars.networking.external.bombadil.mainUrl;
   services.rsyncCertSync.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
   services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
