@@ -24,7 +24,7 @@
       OAUTH_CLIENT_ID=${config.sops.placeholder."homelab/oidc/karakeep/authentik/client-id"} 
       OAUTH_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/karakeep/authentik/client-secret"} 
     '';
-    owner = "karakeep";
+    owner = if config.services.karakeep.enable then "karakeep" else "root";
   };
   services.karakeep.enable = lib.mkDefault true;
   services.karakeep.browser.enable = lib.mkDefault true;

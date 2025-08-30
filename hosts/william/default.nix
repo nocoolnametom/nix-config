@@ -45,14 +45,14 @@
     "hosts/common/optional/services/audiobookshelf.nix"
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/hedgedoc.nix"
-    # "hosts/common/optional/services/immich.nix"
+    "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
-    # "hosts/common/optional/services/karakeep.nix"
-    # "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
+    "hosts/common/optional/services/karakeep.nix"
+    "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
     "hosts/common/optional/services/mealie.nix"
     "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/ombi.nix"
-    # "hosts/common/optional/services/paperless.nix"
+    "hosts/common/optional/services/paperless.nix"
     # tube-archivist via docker?
 
     #################### Users to Create ####################
@@ -64,12 +64,20 @@
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   ## Imports overrides
-  # services.paperless.configureTika = lib.mkForce false;
-  # services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
-  # services.immich.machine-learning.enable = false;
+  services.karakeep.enable = lib.mkForce false; # It's not building right now for some reason
+  services.karakeep.package = lib.mkForce pkgs.unstable.karakeep;
+  services.karakeep.browser.exe = lib.mkForce "${pkgs.unstable.chromium}/bin/chromium";
+  services.paperless.enable = lib.mkForce false; # The executable is broken for some reason
+  services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
+  services.immich.enable = lib.mkForce false; # Currently tries to inject invalid vector plugins to postgresql which then fails to start
+  services.immich.package = lib.mkForce pkgs.unstable.immich;
+  services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
+  # services.immich.database.enableVectors = lib.mkForce false; # This option should prevent the vector plugins but isn't available on 25.05
 
   # Currently-Docker Stuff
   # Can replase kavita users below with kavita module when 0.8.8 is released!
+  services.kavita.enable = lib.mkForce false; # Using docker right now
+  services.kavitan.enable = lib.mkForce false; # Using docker right now
   users.groups.kavita = {};
   users.users.kavita.isSystemUser = true;
   users.users.kavita.group = "kavita";

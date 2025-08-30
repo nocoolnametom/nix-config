@@ -7,6 +7,7 @@
 }:
 {
   services.caddy.enable = true;
+  networking.firewall.allowedTCPPorts = [ 80 443 2019 ];
 
   # Virtual hosts configuration
   services.caddy.virtualHosts = {
@@ -80,8 +81,10 @@
       '';
     };
     "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
+        # I haven't gotten immich working locally on william yet, so it's on cirdan's Podtainer for now
+        # reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
       '';
     };
     "${configVars.networking.subdomains.immich-share}.${configVars.homeDomain}" = {
@@ -104,12 +107,12 @@
         reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.karakeep}
       '';
     };
-    "${configVars.networking.subdomains.kavita}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
       '';
     };
-    "${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}" = {
+    "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
       '';
@@ -148,11 +151,15 @@
       '';
     };
     "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
+        # Will move to barliman soon
+        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       '';
     };
     "${configVars.networking.subdomains.paperless}.${configVars.homeDomain}" = {
+        # I can't get paperless to work on william yet, so it's on cirdan's portainer
+        # reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
       '';
