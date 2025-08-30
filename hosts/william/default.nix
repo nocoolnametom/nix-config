@@ -64,6 +64,8 @@
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   ## Imports overrides
+  services.audiobookshelf.package = lib.mkForce pkgs.unstable.audiobookshelf;
+  services.actual.package = lib.mkForce pkgs.unstable.actual-server;
   services.karakeep.enable = lib.mkForce false; # It's not building right now for some reason
   services.karakeep.package = lib.mkForce pkgs.unstable.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.unstable.chromium}/bin/chromium";
@@ -86,6 +88,10 @@
   users.users.kavitan.isSystemUser = true;
   users.users.kavitan.group = "kavitan";
   users.users.kavitan.home = "/var/lib/kavitan";
+  users.groups.karakeep = {};
+  users.users.karakeep.isSystemUser = true;
+  users.users.karakeep.group = "karakeep";
+  users.users.karakeep.home = "/var/lib/karakeep";
 
   # Navidrome Music Server
   services.navidrome.settings.MusicFolder = "/mnt/cirdan/smb/Music";
