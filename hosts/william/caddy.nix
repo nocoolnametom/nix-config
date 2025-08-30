@@ -109,12 +109,12 @@
     };
     "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
       '';
     };
     "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
+        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
       '';
     };
     "${configVars.networking.subdomains.mealie}.${configVars.homeDomain}" = {
