@@ -150,6 +150,14 @@
   # Pinchflat Data Storage
   services.pinchflat.package = lib.mkForce pkgs.unstable.pinchflat;
   services.pinchflat.mediaDir = "/mnt/cirdan/smb/Jellyfin/TV_Shows/Tube";
+  users.groups.pinchflat = {};
+  users.users.pinchflat.group = "pinchflat";
+  users.users.pinchflat.isSystemUser = true;
+  users.users.pinchflat.home = "/var/lib/pinchflat";
+  systemd.services.pinchflat.serviceConfig.DynamicUser = lib.mkForce false;
+  systemd.services.pinchflat.serviceConfig.StateDirectory = lib.mkForce null;
+  systemd.services.pinchflat.serviceConfig.User = lib.mkForce "pinchflat";
+  systemd.services.pinchflat.serviceConfig.Group = lib.mkForce "pinchflat";
 
   # NZBHydra Data Storage
   services.nzbhydra2.dataDir = "/media/g_drive/nzbhydra2";
