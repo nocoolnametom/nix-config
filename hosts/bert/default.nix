@@ -24,7 +24,7 @@
 
     ############################## Nginx ######################################
     # ./nginx.nix
-    ./caddy.nix
+    # ./caddy.nix
 
     ########################### Impermanence ##################################
     ./persistence.nix
@@ -41,11 +41,11 @@
     "hosts/common/optional/services/ddclient.nix"
     "hosts/common/optional/services/deluge.nix"
     "hosts/common/optional/services/flood.nix"
-    "hosts/common/optional/services/karakeep.nix"
-    "hosts/common/optional/services/navidrome.nix"
+    # "hosts/common/optional/services/karakeep.nix"
+    # "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/nzbget.nix"
     "hosts/common/optional/services/nzbhydra.nix"
-    "hosts/common/optional/services/ombi.nix"
+    # "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/pinchflat.nix"
     "hosts/common/optional/services/radarr.nix"
