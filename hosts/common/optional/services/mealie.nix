@@ -33,8 +33,6 @@
     OPENAI_ENABLE_IMAGE_SERVICES = "false";
     OPENAI_REQUEST_TIMEOUT = "180";
   };
-  # services.karakeep.extraEnvironment.OLLAMA_KEEP_ALIVE = "5m";
-  # services.karakeep.extraEnvironment.INFERENCE_ENABLE_AUTO_SUMMARIZATION = "true";
   sops.templates."mealie-secrets.env" = {
     # If using postgres put the password in here
     content = ''

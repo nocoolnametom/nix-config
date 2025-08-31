@@ -148,6 +148,7 @@
   ];
 
   # Pinchflat Data Storage
+  services.pinchflat.package = lib.mkForce pkgs.unstable.pinchflat;
   services.pinchflat.mediaDir = "/mnt/cirdan/smb/Jellyfin/TV_Shows/Tube";
 
   # NZBHydra Data Storage
