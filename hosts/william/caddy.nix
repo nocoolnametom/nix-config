@@ -165,9 +165,9 @@
       '';
     };
     "${configVars.networking.subdomains.pinchflat}.${configVars.domain}" = {
-      # Served through cirdan from bert
+      # For some reason the proxy provider for authentik does NOT work with pinchflat!
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.pinchflat}
       '';
     };
     "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
