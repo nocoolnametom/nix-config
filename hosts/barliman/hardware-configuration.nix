@@ -17,6 +17,16 @@
   # BIOS Updater through LVFS - Run `fwupdmgr update` to update firmware
   services.fwupd.enable = true;
 
+  # Video Hardware
+  hardware.graphics.extraPackages = with pkgs.rocmPackages; [
+    clr
+    clr.icd
+    rocblas
+    rpp
+    pkgs.amdvlk
+    pkgs.nvtopPackages.amd
+  ];
+
   boot.initrd.enable = true;
   boot.supportedFilesystems = [ "btrfs" ];
   boot.initrd.availableKernelModules = [

@@ -80,6 +80,13 @@
   hardware.bluetooth.settings.General.Experimental = true;
   hardware.bluetooth.settings.Policy.AutoEnable = true;
 
+  systemd.sleep.extraConfig = ''
+    AllowSuspend=no
+    AllowHibernation=no
+    AllowHybridSleep=no
+    AllowSuspendThenHibernate=no
+  '';
+
   # Open-WebUI is a web-frontend for chatting with ollama
   services.ollama.models = "/var/lib/ai-models/ollama";
   services.ollama.environmentVariables.HCC_AMDGPU_TARGET = "gfx1151";
