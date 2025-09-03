@@ -13,14 +13,12 @@
     # You CAN get a model up to ~40GB, but it'll mostly be CPU driven and slow.
     # YC = Can talk about Chinese censored info, NC = Chinese info blocked
     # YA = Can talk about upsetting info, NA = Will refuse talk about it
-    # 17.0 GB  2025-04-09  YC  YA
-    "pidrilkin/gemma3_27b_abliterated"
     # 55.0 GB  2025-03-01  YC  YA
     "huihui_ai/gemma3-abliterated:27b"
-    # 26.0 GB  2024-12-20  YC  YA
-    "dolphin-mixtral"
-    # 25.0 GB  2025-06-23  YC  YA - Best for Characters
-    "ScrambieBambie/Dans-PersonalityEngine-v1.3.0-24b-Q8_0"
+    # 17.0 GB  2024-12-20  YC  YA
+    "dolphin-mixtral:8x7b-v2.5-q2_K"
+    # 19.0 GB  2025-07-02  YC  YA - Best for Characters
+    "HammerAI/dans-personalityengine-v1.3.0"
     #  4.9 GB  2025-02-19  YC  YA - Very talkative
     "huihui_ai/deephermes3-abliterated"
     #  1.5 GB  2025-02-14  NC  NA - Usually refuses, sometimes ignores the upsetting aspects
