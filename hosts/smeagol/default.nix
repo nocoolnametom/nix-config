@@ -52,6 +52,13 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # LXD Management
+  virtualisation.lxd.enable = true;
+  virtualisation.lxd.recommendedSysctlSettings = true;
+  virtualisation.lxd.ui.enable = true;
+  virtualisation.lxc.lxcfs.enable = true;
+  networking.firewall.allowedTCPPorts = [ 8443 ];
+
   # NzbGet Server - Current module is very bert-centric
   services.nzbget.enable = true;
   systemd.services.nzbget.path = with pkgs; [
@@ -72,6 +79,7 @@
   ];
   users.users."${configVars.username}".extraGroups = [
     config.services.stashapp.group
+    "lxd"
   ];
   users.users.nzbget.extraGroups = [
     config.services.stashapp.group
