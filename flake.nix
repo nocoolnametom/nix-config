@@ -242,6 +242,15 @@
             ./hosts/william
           ];
         };
+        # Beelink SER5 Mini PC
+        estel = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/estel
+          ];
+        };
         # Linode 4GB VPS
         glorfindel = lib.nixosSystem {
           inherit specialArgs;
