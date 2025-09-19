@@ -20,22 +20,20 @@
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
-      "/etc/secureboot"
+      "/var/lib/sbctl"
       "/var/db/sudo/lectured"
       "/var/lib/bluetooth"
       # "/var/lib/cups" # Handling via NixOS options
-      "/var/lib/docker"
-      "/var/lib/fprint"
-      "/var/lib/netbox"
+      #"/var/lib/docker"
+      #"/var/lib/fprint"
+      #"/var/lib/netbox"
       "/var/lib/nixos"
-      "/var/lib/postgresql"
-      "/var/lib/redis"
+      #"/var/lib/postgresql"
+      #"/var/lib/redis"
       "/var/lib/systemd/coredump"
-      "/var/log"
     ];
     files = [
       "/etc/machine-id"
-      "/etc/nix/id_rsa"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
       "/var/lib/logrotate.status"
       {

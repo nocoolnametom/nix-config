@@ -9,5 +9,5 @@
   boot.initrd.systemd.enable = true;
 
   boot.lanzaboote.enable = lib.mkDefault true;
-  boot.lanzaboote.pkiBundle = lib.mkDefault "/etc/secureboot";
+  boot.lanzaboote.pkiBundle = lib.mkDefault "/var/lib/sbctl";
 }
