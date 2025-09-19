@@ -4,104 +4,106 @@
 { config, configVars, lib, pkgs, modulesPath, ... }:
 
 {
-  imports =
-    [ (modulesPath + "/installer/scan/not-detected.nix")
-    ];
+  imports = [ (modulesPath + "/installer/scan/not-detected.nix") ];
 
-  # Use the systemd-boot EFI boot loader.
-  boot.loader.systemd-boot.enable = true;
-  boot.loader.efi.canTouchEfiVariables = true;
 
-  boot.initrd.systemd.enable = true;
-  boot.initrd.luks.devices."estel".device = "/dev/disk/by-uuid/bbf231eb-a21d-4036-916d-1957411f1075";
-
-  boot.initrd.availableKernelModules = [
-    "nvme"
-    "xhci_pci"
-    "usb_storage"
-    "usbhid"
-    "sd_mod"
-  ];
-  boot.initrd.kernelModules = [ ];
+  boot.initrd.availableKernelModules = [ "nvme" "xhci_pci" "usb_storage" "usbhid" "sd_mod" ];
+  boot.initrd.kernelModules = [ "cryptd" ];
+  boot.initrd.luks.devices."cryptroot".device = "/dev/disk/by-label/nixluks";
+  boot.initrd.luks.devices."cryptroot".crypttabExtraOpts = [ "tpm2-device=auto" ];
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  fileSystems."/" =
-    { device = "/dev/disk/by-uuid/59072bfb-dce5-4624-b53a-1e02a24f695d";
-      fsType = "btrfs";
-      options = [
-        "defaults"
-        "compress-force=zstd"
-        "noatime"
-        "ssd"
-        "subvol=root"
-      ];
-    };
+## Commenting out to use tmpfs-based root for impermanence
+## Bring back once using btrfs-snapshot and systemd-based impermanence
+#   fileSystems."/" =
+#     { device = "/dev/disk/by-label/nixos";
+#       fsType = "btrfs";
+#       options = [
+#         "subvol=root"
+#         "defaults"
+#         "compress-force=zstd"
+#         "noatime"
+#         "ssd"
+#       ];
+#     };
+##
+
+  fileSystems."/" = {
+    device = "none";
+    fsType = "tmpfs";
+    options = [
+      "mode=755" # Needed for SSH to be happy!
+      "uid=0" # Root owns base / directory
+      "gid=0" # Root owns base / directory
+    ];
+    neededForBoot = true; # required
+  };
 
   fileSystems."/home" =
-    { device = "/dev/disk/by-uuid/59072bfb-dce5-4624-b53a-1e02a24f695d";
+    { device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
       options = [
+        "subvol=home"
         "defaults"
         "compress-force=zstd"
         "noatime"
         "ssd"
-        "subvol=home"
       ];
     };
 
   fileSystems."/nix" =
-    { device = "/dev/disk/by-uuid/59072bfb-dce5-4624-b53a-1e02a24f695d";
+    { device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
       options = [
+        "subvol=nix"
         "defaults"
         "compress-force=zstd"
         "noatime"
         "ssd"
-        "subvol=nix"
       ];
     };
 
   fileSystems."/persist" =
-    { device = "/dev/disk/by-uuid/59072bfb-dce5-4624-b53a-1e02a24f695d";
+    { device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
       options = [
+        "subvol=persist"
         "defaults"
         "compress-force=zstd"
         "noatime"
         "ssd"
-        "subvol=persist"
       ];
       neededForBoot = true;
     };
 
   fileSystems."/etc/nixos" =
-    { device = "/dev/disk/by-uuid/59072bfb-dce5-4624-b53a-1e02a24f695d";
+    { device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
       options = [
+        "subvol=nixos-config"
         "defaults"
         "compress-force=zstd"
         "noatime"
         "ssd"
-        "subvol=nixos-config"
       ];
     };
 
   fileSystems."/var/log" =
-    { device = "/dev/disk/by-uuid/59072bfb-dce5-4624-b53a-1e02a24f695d";
+    { device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
       options = [
+        "subvol=log"
         "defaults"
         "compress-force=zstd"
         "noatime"
         "ssd"
-        "subvol=log"
       ];
       neededForBoot = true;
     };
 
   fileSystems."/boot" =
-    { device = "/dev/disk/by-uuid/D680-F6A9";
+    { device = "/dev/disk/by-label/boot";
       fsType = "vfat";
       options = [
         "uid=0"
@@ -116,16 +118,17 @@
     };
 
   swapDevices =
-    [ { device = "/dev/disk/by-uuid/42683d7b-94cb-41d2-8985-616e72d32913"; }
+    [ { device = "/dev/disk/by-label/swap"; }
     ];
 
   boot.initrd.systemd.services.rollback = {
-    enable = config.environment.persistence."${configVars.persistFolder}".enable;
+    #enable = config.environment.persistence."${configVars.persistFolder}".enable;
+    enable = false; # Enable once we get everything working
     description = "Rollback BTRFS root subvolume to a pristine state";
     wantedBy = ["initrd.target"];
 
-    # LUKS/TPM process. 
-    after = ["systemd-cryptsetup@estel.service"];
+    # LUKS/TPM process
+    after = ["systemd-cryptsetup@cryptroot.service"];
 
     # Before mounting the system root (/sysroot) during the early boot process
     before = ["sysroot.mount"];
@@ -137,7 +140,7 @@
 
       # We first mount the BTRFS root to /mnt
       # so we can manipulate btrfs subvolumes.
-      mount -o subvol=/ /dev/mapper/estel /mnt
+      mount -o subvol=/ /dev/mapper/cryptroot /mnt
 
       # While we're tempted to just delete /root and create
       # a new snapshot from /root-blank, /root is already
@@ -175,5 +178,6 @@
   # networking.interfaces.wlo1.useDHCP = lib.mkDefault true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
+  hardware.enableAllFirmware = true;
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

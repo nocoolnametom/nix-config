@@ -16,7 +16,7 @@
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
-    enable = lib.mkDefault false;
+    enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
