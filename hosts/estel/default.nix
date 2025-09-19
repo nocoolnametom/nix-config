@@ -63,12 +63,9 @@
   ## Imports overrides
   services.audiobookshelf.package = lib.mkForce pkgs.unstable.audiobookshelf;
   services.actual.package = lib.mkForce pkgs.unstable.actual-server;
-  services.karakeep.enable = lib.mkForce false; # It's not building right now for some reason
   services.karakeep.package = lib.mkForce pkgs.unstable.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.unstable.chromium}/bin/chromium";
-  services.paperless.enable = lib.mkForce false; # The executable is broken for some reason
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
-  services.immich.enable = lib.mkForce false; # Currently tries to inject invalid vector plugins to postgresql which then fails to start
   services.immich.package = lib.mkForce pkgs.unstable.immich;
   services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
   # services.immich.database.enableVectors = lib.mkForce false; # This option should prevent the vector plugins but isn't available on 25.05
@@ -153,11 +150,6 @@
     tree
     htop
   ];
-
-  # Use the systemd-boot EFI boot loader.
-  boot.tmp.cleanOnBoot = true;
-  boot.tmp.useTmpfs = true;
-  boot.initrd.systemd.enable = true;
 
   # Bombadil Failover Cert Sync
   sops.secrets."acme-failover-key" = {

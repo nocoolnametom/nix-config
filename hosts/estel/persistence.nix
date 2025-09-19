@@ -30,8 +30,8 @@
       "/var/lib/immich"
       "/var/lib/iwd"
       "/var/lib/karakeep"
-      # "/var/lib/kavita" # Once we move from docker!
-      # "/var/lib/kavitan" # Once we move from docker!
+      "/var/lib/kavita" # Once we move from docker!
+      "/var/lib/kavitan" # Once we move from docker!
       "/var/lib/navidrome"
       "/var/lib/nixos"
       "/var/lib/ombi"
@@ -49,7 +49,6 @@
     ];
     files = [
       "/etc/machine-id"
-      # "/var/lib/cups/printers.conf" # Handling via NixOS options
       "/var/lib/logrotate.status"
       {
         file = "/etc/ssh/ssh_host_ed25519_key";
