@@ -20,17 +20,32 @@
     hideMounts = true;
     directories = [
       "/etc/NetworkManager/system-connections"
-      "/var/lib/sbctl"
       "/var/db/sudo/lectured"
+      "/var/lib/acme"
+      "/var/lib/audiobookshelf"
       "/var/lib/bluetooth"
-      # "/var/lib/cups" # Handling via NixOS options
-      #"/var/lib/docker"
-      #"/var/lib/fprint"
-      #"/var/lib/netbox"
+      "/var/lib/caddy"
+      "/var/lib/docker"
+      "/var/lib/fprint"
+      "/var/lib/hedgedoc"
+      #"/var/lib/immich"
+      "/var/lib/iwd"
+      "/var/lib/karakeep"
+      "/var/lib/kavita"
+      "/var/lib/kavitan"
+      "/var/lib/navidrome"
       "/var/lib/nixos"
-      #"/var/lib/postgresql"
-      #"/var/lib/redis"
+      "/var/lib/ombi"
+      #"/var/lib/paperless"
+      "/var/lib/postresql"
+      "/var/lib/private/actual"
+      "/var/lib/private/ddclient"
+      "/var/lib/private/mealie"
+      "/var/lib/redis-immich"
+      #"/var/lib/redis-paperless"
+      "/var/lib/sbctl"
       "/var/lib/systemd/coredump"
+      "/var/lib/tor"
     ];
     files = [
       "/etc/machine-id"
@@ -62,4 +77,18 @@
       }
     ];
   };
+
+  system.activationScripts."createPersistentStorageDirs".deps = [ "var-lib-private-permissions" "users" "groups" ];
+  system.activationScripts = {
+    "var-lib-private-permissions" = {
+      deps = [ "specialfs" ];
+      text = ''
+        mkdir -p /persist/var/lib/private
+        chmod 0700 /persist/var/lib/private
+      '';
+    };
+  };
+  systemd.tmpfiles.rules = [
+    "d /var/lib/private 0700 root root"
+  ];
 }
