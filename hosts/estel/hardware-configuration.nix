@@ -14,42 +14,17 @@
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-## Commenting out to use tmpfs-based root for impermanence
-## Bring back once using btrfs-snapshot and systemd-based impermanence
-#   fileSystems."/" =
-#     { device = "/dev/disk/by-label/nixos";
-#       fsType = "btrfs";
-#       options = [
-#         "subvol=root"
-#         "defaults"
-#         "compress-force=zstd"
-#         "noatime"
-#         "ssd"
-#       ];
-#     };
-##
-
-  fileSystems."/" = {
-    device = "none";
-    fsType = "tmpfs";
-    options = [
-      "mode=755" # Needed for SSH to be happy!
-      "uid=0" # Root owns base / directory
-      "gid=0" # Root owns base / directory
-    ];
-    neededForBoot = true; # required
-  };
-
-  fileSystems."/home" =
+  fileSystems."/" =
     { device = "/dev/disk/by-label/nixos";
       fsType = "btrfs";
       options = [
-        "subvol=home"
+        "subvol=root"
         "defaults"
         "compress-force=zstd"
         "noatime"
         "ssd"
       ];
+      neededForBoot = true; # required
     };
 
   fileSystems."/nix" =
@@ -122,8 +97,7 @@
     ];
 
   boot.initrd.systemd.services.rollback = {
-    #enable = config.environment.persistence."${configVars.persistFolder}".enable;
-    enable = false; # Enable once we get everything working
+    enable = config.environment.persistence."${configVars.persistFolder}".enable;
     description = "Rollback BTRFS root subvolume to a pristine state";
     wantedBy = ["initrd.target"];
 
