@@ -20,6 +20,7 @@
 
   services.paperless.enable = lib.mkDefault true;
   services.paperless.port = lib.mkDefault configVars.networking.ports.tcp.paperless;
+  services.paperless.address = lib.mkDefault "0.0.0.0";
   services.paperless.configureTika = lib.mkDefault true;
   services.gotenberg = {
     package = pkgs.gotenberg;

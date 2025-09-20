@@ -26,6 +26,7 @@
           "Projects"
           ".local/share/direnv"
           # ".config/Yubico"
+          ".config/codimd"
           ".vscode"
           {
             directory = ".gnupg";
