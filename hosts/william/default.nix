@@ -80,15 +80,15 @@
   # Can replase kavita users below with kavita module when 0.8.8 is released!
   services.kavita.enable = lib.mkForce false; # Using docker right now
   services.kavitan.enable = lib.mkForce false; # Using docker right now
-  users.groups.kavita = {};
+  users.groups.kavita = { };
   users.users.kavita.isSystemUser = true;
   users.users.kavita.group = "kavita";
   users.users.kavita.home = "/var/lib/kavita";
-  users.groups.kavitan = {};
+  users.groups.kavitan = { };
   users.users.kavitan.isSystemUser = true;
   users.users.kavitan.group = "kavitan";
   users.users.kavitan.home = "/var/lib/kavitan";
-  users.groups.karakeep = {};
+  users.groups.karakeep = { };
   users.users.karakeep.isSystemUser = true;
   users.users.karakeep.group = "karakeep";
   users.users.karakeep.home = "/var/lib/karakeep";

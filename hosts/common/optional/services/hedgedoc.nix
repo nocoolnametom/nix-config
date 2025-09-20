@@ -27,6 +27,15 @@
   sops.templates."hedgedoc-secrets.env" = {
     # If using postgres put the password in here
     content = ''
+      CMD_OAUTH2_BASE_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/hedgedoc/
+      CMD_OAUTH2_USER_PROFILE_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/userinfo/
+      CMD_OAUTH2_TOKEN_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/token/
+      CMD_OAUTH2_AUTHORIZATION_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/authorize/
+      CMD_OAUTH2_PROVIDERNAME=Authentik
+      CMD_OAUTH2_SCOPE=openid email profile
+      CMD_OAUTH2_USER_PROFILE_USERNAME_ATTR=preferred_username
+      CMD_OAUTH2_USER_PROFILE_DISPLAY_NAME_ATTR=name
+      CMD_OAUTH2_USER_PROFILE_EMAIL_ATTR=email
       CMD_OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/hedgedoc/authentik/client-id"}
       CMD_OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/hedgedoc/authentik/client-secret"}
     '';

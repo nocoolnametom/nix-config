@@ -13,7 +13,8 @@
   sops.secrets."homelab/smtp/sendingDomain" = { };
   sops.secrets."homelab/smtp/ssl" = { };
   sops.secrets."homelab/smtp/tls" = { };
-  sops.secrets."paperless-superuser-password".owner = if config.services.paperless.enable then config.services.paperless.user else "root";
+  sops.secrets."paperless-superuser-password".owner =
+    if config.services.paperless.enable then config.services.paperless.user else "root";
   sops.secrets."homelab/oidc/paperless/authentik/client-id" = { };
   sops.secrets."homelab/oidc/paperless/authentik/client-secret" = { };
 

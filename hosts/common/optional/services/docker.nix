@@ -1,4 +1,5 @@
-{ lib, configVars, ... }: {
+{ lib, configVars, ... }:
+{
   virtualisation.docker.enable = lib.mkDefault true;
   virtualisation.docker.listenOptions = lib.mkDefault [
     "0.0.0.0:2375"

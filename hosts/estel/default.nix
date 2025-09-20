@@ -60,6 +60,14 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Get as much set up with the minimal GPU as possible
+  hardware.graphics.enable = true;
+  hardware.graphics.enable32Bit = true;
+  hardware.graphics.extraPackages = with pkgs; [
+    clinfo # lets you check available OpenCL devices
+    vulkan-tools # includes vulkaninfo
+  ];
+
   ## Imports overrides
   services.audiobookshelf.package = lib.mkForce pkgs.unstable.audiobookshelf;
   services.actual.package = lib.mkForce pkgs.unstable.actual-server;
@@ -68,21 +76,21 @@
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
   services.immich.package = lib.mkForce pkgs.unstable.immich;
   services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
-  # services.immich.database.enableVectors = lib.mkForce false; # This option should prevent the vector plugins but isn't available on 25.05
+  services.immich.machine-learning.enable = false; # For now this seems too intensive for the little mini pc
 
   # Currently-Docker Stuff
   # Can replase kavita users below with kavita module when 0.8.8 is released!
   services.kavita.enable = lib.mkForce false; # Using docker right now
   services.kavitan.enable = lib.mkForce false; # Using docker right now
-  users.groups.kavita = {};
+  users.groups.kavita = { };
   users.users.kavita.isSystemUser = true;
   users.users.kavita.group = "kavita";
   users.users.kavita.home = "/var/lib/kavita";
-  users.groups.kavitan = {};
+  users.groups.kavitan = { };
   users.users.kavitan.isSystemUser = true;
   users.users.kavitan.group = "kavitan";
   users.users.kavitan.home = "/var/lib/kavitan";
-  users.groups.karakeep = {};
+  users.groups.karakeep = { };
   users.users.karakeep.isSystemUser = true;
   users.users.karakeep.group = "karakeep";
   users.users.karakeep.home = "/var/lib/karakeep";

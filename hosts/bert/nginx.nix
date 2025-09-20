@@ -872,7 +872,7 @@
         '';
       };
     };
-  security.acme.acceptTerms = true;
+
   security.acme.certs =
     let
       domain = configVars.domain;
