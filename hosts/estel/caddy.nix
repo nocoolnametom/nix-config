@@ -236,9 +236,8 @@
     };
     "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan for bert
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}
       '';
     };
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
