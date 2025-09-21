@@ -244,7 +244,10 @@
       useACMEHost = "wild-${configVars.domain}";
       # Served through cirdan from cirdan (because we can't compile it on bert/estel)
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+        basic_auth {
+          ${configVars.networking.caddy.basic_auth.stashvr}
+        }
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
       '';
     };
     "${configVars.networking.subdomains.tubearchivist}.${configVars.domain}" = {
