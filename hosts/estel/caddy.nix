@@ -240,6 +240,22 @@
         reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}
       '';
     };
+    "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
+      useACMEHost = "wild-${configVars.domain}";
+      # Served through cirdan from cirdan (because we can't compile it on bert/estel)
+      extraConfig = ''
+        basic_auth {
+          ${configVars.networking.caddy.basic_auth.archer-stashvr}
+        }
+        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
+      '';
+    };
+        "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
+      useACMEHost = "wild-${configVars.domain}";
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
+      '';
+    };
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
       # Served through cirdan from cirdan (because we can't compile it on bert/estel)

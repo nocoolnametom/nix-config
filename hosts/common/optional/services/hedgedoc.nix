@@ -8,7 +8,12 @@
 {
   services.postgresql.enable = lib.mkDefault true;
   services.postgresql.ensureDatabases = [ "hedgedoc" ];
-  services.postgresql.ensureUsers = [ { name = "hedgedoc"; ensureDBOwnership = true; } ];
+  services.postgresql.ensureUsers = [
+    {
+      name = "hedgedoc";
+      ensureDBOwnership = true;
+    }
+  ];
   services.hedgedoc.enable = lib.mkDefault true;
   services.hedgedoc.settings.db.username = "hedgedoc";
   services.hedgedoc.settings.db.database = "hedgedoc";
