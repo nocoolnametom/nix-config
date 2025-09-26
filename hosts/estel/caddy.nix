@@ -234,14 +234,14 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
+    "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
+      useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.domain}";
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}
+        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
       '';
     };
     "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
+      useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
       # Served through cirdan from cirdan (because we can't compile it on bert/estel)
       extraConfig = ''
         basic_auth {
@@ -250,10 +250,10 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
       '';
     };
-        "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
+    "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
+        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}
       '';
     };
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
@@ -294,6 +294,18 @@
     };
     "wild-${configVars.homeDomain}" = {
       domain = "*.${configVars.homeDomain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
+      domain = "${configVars.networking.subdomains.archerstash}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
+      domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
