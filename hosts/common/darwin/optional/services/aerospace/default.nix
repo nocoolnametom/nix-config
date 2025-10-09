@@ -53,10 +53,12 @@ in
   services.aerospace.settings.on-window-detected = lib.mkDefault (
     [
       {
+        # Float the file finder
         "if".app-name-regex-substring = "Finder";
         run = "layout floating";
       }
       {
+        # Float iTerm updater window popup
         "if".window-title-regex-substring = "Updating iTerm";
         run = "layout floating";
       }
@@ -64,6 +66,12 @@ in
         # Float the MAIN Apple Music window, but NOT the miniplayer!
         "if".app-id = "com.apple.Music";
         "if".window-title-regex-substring = "(Music|Activity|Equalizer)";
+        run = "layout floating";
+      }
+      {
+        # Float Kepper login SSO window
+        "if".app-id = "com.callpod.keepermac.lite";
+        "if".window-title-regex-substring = "- Sign In";
         run = "layout floating";
       }
     ]

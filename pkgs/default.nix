@@ -15,6 +15,7 @@ rec {
   phanpy = pkgs.callPackage ./phanpy { };
   split-my-cbz = pkgs.callPackage ./split-my-cbz { };
   update-cbz-tags = pkgs.callPackage ./update-cbz-tags { };
+  sol = pkgs.callPackage ./sol { };
   stashapp = pkgs.callPackage ./stashapp { };
   stash-vr = pkgs.callPackage ./stash-vr { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
