@@ -34,6 +34,10 @@
     stylix.url = "github:danth/stylix/release-25.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # San Francisco Fonts | Apple Fonts
+    apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
+    apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
+
     # Secrets management
     sops-nix.url = "github:Mic92/sops-nix";
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
@@ -102,6 +106,7 @@
       nix-darwin,
       nixos-wsl,
       stylix,
+      apple-fonts,
       sops-nix,
       nixified-ai,
       nix-flatpak,

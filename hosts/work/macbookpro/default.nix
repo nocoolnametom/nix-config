@@ -29,6 +29,9 @@
     "hosts/common/optional/tmux.nix"
     "hosts/common/optional/yubikey.nix"
     "hosts/common/darwin/optional/dnsmasq.nix"
+    "hosts/common/darwin/optional/services/aerospace"
+    "hosts/common/darwin/optional/services/jankyborders"
+    "hosts/common/darwin/optional/services/sketchybar"
 
     #################### Users to Manage ####################
     "home/${configVars.username}/persistence/macbookpro.nix"
@@ -39,9 +42,15 @@
 
   system.primaryUser = configVars.username;
 
+  fonts.packages = with pkgs; [
+    nerd-fonts.hack
+    appleFonts.sf-pro-nerd
+    appleFonts.sf-mono-nerd
+  ];
+
   # Move to import once this is working
   services.tailscale.enable = true;
-  services.tailscale.package = pkgs.unstable.tailscale;
+  ## services.tailscale.package = pkgs.unstable.tailscale;
 
   homebrew.enable = true;
   homebrew.user = configVars.username;
