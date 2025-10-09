@@ -13,7 +13,7 @@ writeShellScript "sketchybar_space_windows" ''
       while read -r app; do
         icon_strip+=" $(${icon_map_fn} "$app")"
       done <<<"${"$"}{prevapps}"
-      sketchybar --set space.$PREV_WORKSPACE label="$icon_strip"
+      sketchybar --set space.$PREV_WORKSPACE label="$icon_strip" display=
     fi
   else
     FOCUSED_WORKSPACE="$(aerospace list-workspaces --focused)"
@@ -40,5 +40,5 @@ writeShellScript "sketchybar_space_windows" ''
   else
     icon_strip=""
   fi
-  sketchybar --set space.$FOCUSED_WORKSPACE label="$icon_strip"
+  sketchybar --set space.$FOCUSED_WORKSPACE label="$icon_strip" display=
 ''
