@@ -60,6 +60,12 @@ in
         "if".window-title-regex-substring = "Updating iTerm";
         run = "layout floating";
       }
+      {
+        # Float the MAIN Apple Music window, but NOT the miniplayer!
+        "if".app-id = "com.apple.Music";
+        "if".window-title-regex-substring = "(Music|Activity|Equalizer)";
+        run = "layout floating";
+      }
     ]
     # Float these apps by default
     ++ (builtins.map
