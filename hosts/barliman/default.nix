@@ -116,6 +116,7 @@
   # While this is a Jovian machine, it's NOT a SteamDeck
   jovian.devices.steamdeck.enable = lib.mkForce false;
   jovian.steamos.enableBluetoothConfig = true;
+  jovian.decky-loader.enable = true;
   environment.plasma6.excludePackages = with pkgs; [
     kdePackages.baloo # File search than can take a lot of resources to index
     kdePackages.baloo-widgets # Widgets for using baloo
