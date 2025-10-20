@@ -58,6 +58,7 @@
   };
 
   # Using Rocm instead of Cuda since AMD APU/GPU
+  hardware.nvidia-container-toolkit.enable = lib.mkForce false;
   nixpkgs.config.cudaSupport = lib.mkForce false;
   nixpkgs.config.cudnnSupport = lib.mkForce false;
   nixpkgs.config.rocmSupport = true;

@@ -48,38 +48,48 @@ in
   # You can effectively turn off macOS "Hide application" (cmd-h) feature by toggling this flag
   # Useful if you don't use this macOS feature, but accidentally hit cmd-h or cmd-alt-h key
   # Also see: https://nikitabobko.github.io/AeroSpace/goodies#disable-hide-app
-  services.aerospace.settings.automatically-unhide-macos-hidden-apps = lib.mkDefault false;
+  services.aerospace.settings.automatically-unhide-macos-hidden-apps = lib.mkDefault true;
 
   services.aerospace.settings.on-window-detected = lib.mkDefault (
     [
       {
         # Float the file finder
-        "if".app-name-regex-substring = "Finder";
-        run = "layout floating";
+        "if" = {
+          app-name-regex-substring = "Finder";
+        };
+        run = [ "layout floating" ];
       }
       {
         # Float iTerm updater window popup
-        "if".window-title-regex-substring = "Updating iTerm";
-        run = "layout floating";
+        "if" = {
+          window-title-regex-substring = "Updating iTerm";
+        };
+        run = [ "layout floating" ];
       }
       {
         # Float the MAIN Apple Music window, but NOT the miniplayer!
-        "if".app-id = "com.apple.Music";
-        "if".window-title-regex-substring = "(Music|Activity|Equalizer)";
-        run = "layout floating";
+        "if" = {
+          app-id = "com.apple.Music";
+          window-title-regex-substring = "(Music|Activity|Equalizer)";
+        };
+        run = [ "layout floating" ];
       }
       {
         # Float Kepper login SSO window
-        "if".app-id = "com.callpod.keepermac.lite";
-        "if".window-title-regex-substring = "- Sign In";
-        run = "layout floating";
+        "if" = {
+          app-id = "com.callpod.keepermac.lite";
+          window-title-regex-substring = "- Sign In";
+        };
+        run = [ "layout floating" ];
       }
     ]
     # Float these apps by default
     ++ (builtins.map
       (app_id: {
-        "if".app-id = app_id;
-        run = "layout floating";
+        "if" = {
+          app-id = app_id;
+        };
+        run = [ "layout floating" ];
       })
       [
         # Finder
@@ -111,7 +121,7 @@ in
   # Gaps between windows (inner-*) and between monitor edges (outer-*).
   # Possible values:
   # - Constant:     gaps.outer.top = 8
-  # - Per monitor:  gaps.outer.top = [{ monitor.main = 16 }, { monitor."some-pattern" = 32 }, 24]
+  # - Per monitor:  gaps.outer.top = [{ monitor.main = 16 } { monitor."some-pattern" = 32 } 24]
   #                 In this example, 24 is a default value when there is no match.
   #                 Monitor pattern is the same as for "workspace-to-monitor-force-assignment".
   #                 See:
@@ -120,7 +130,7 @@ in
   services.aerospace.settings.gaps.inner.vertical = lib.mkDefault 4;
   services.aerospace.settings.gaps.outer.left = lib.mkDefault 4;
   services.aerospace.settings.gaps.outer.bottom = lib.mkDefault 4;
-  services.aerospace.settings.gaps.outer.top = lib.mkDefault 40;
+  services.aerospace.settings.gaps.outer.top = lib.mkDefault [ { monitor."built-in" = 0; } 40 ];
   services.aerospace.settings.gaps.outer.right = lib.mkDefault 4;
 
   services.aerospace.settings.workspace-to-monitor-force-assignment."1" = lib.mkDefault [
@@ -219,10 +229,10 @@ in
   services.aerospace.settings.mode.main.binding."${meh}-f" = lib.mkDefault "fullscreen";
 
   # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
-  services.aerospace.settings.mode.main.binding."${hyper}-left" = lib.mkDefault "workspace prev";
-  services.aerospace.settings.mode.main.binding."${hyper}-right" = lib.mkDefault "workspace next";
-  services.aerospace.settings.mode.main.binding."${hyper}-up" = lib.mkDefault "focus-monitor prev";
-  services.aerospace.settings.mode.main.binding."${hyper}-down" = lib.mkDefault "focus-monitor next";
+  services.aerospace.settings.mode.main.binding."${meh}-left" = lib.mkDefault "workspace prev";
+  services.aerospace.settings.mode.main.binding."${meh}-right" = lib.mkDefault "workspace next";
+  services.aerospace.settings.mode.main.binding."${meh}-up" = lib.mkDefault "focus-monitor prev";
+  services.aerospace.settings.mode.main.binding."${meh}-down" = lib.mkDefault "focus-monitor next";
   services.aerospace.settings.mode.main.binding."${meh}-1" = lib.mkDefault "workspace 1";
   services.aerospace.settings.mode.main.binding."${meh}-2" = lib.mkDefault "workspace 2";
   services.aerospace.settings.mode.main.binding."${meh}-3" = lib.mkDefault "workspace 3";

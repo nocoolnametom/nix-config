@@ -24,6 +24,7 @@
   #   })
   # ];
 
+  hardware.nvidia-container-toolkit.enable = lib.mkDefault true;
   nixpkgs.config.cudaSupport = lib.mkDefault true;
   nixpkgs.config.cudnnSupport = lib.mkDefault true;
 

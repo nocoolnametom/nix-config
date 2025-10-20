@@ -30,7 +30,8 @@
     "hosts/common/optional/yubikey.nix"
     "hosts/common/darwin/optional/dnsmasq.nix"
     "hosts/common/darwin/optional/services/aerospace"
-    "hosts/common/darwin/optional/services/jankyborders"
+    # This can be re-enabled once nixpkgs gets the new Mac compilation stuff for Tahoe working
+    # "hosts/common/darwin/optional/services/jankyborders"
     "hosts/common/darwin/optional/services/sketchybar"
 
     #################### Users to Manage ####################
@@ -94,9 +95,12 @@
   services.dnsmasq.enable = false; # Find out if we want this as a service or if teleport runs it manually
   services.dnsmasq.addresses = { } // configVars.work.dnsmasq.addresses;
 
-  system.defaults.dock.autohide = false;
+  system.defaults.dock.autohide = true;
   system.defaults.dock.orientation = "right";
   system.defaults.dock.showhidden = true;
+  system.defaults.dock.expose-group-apps = true;
+  # system.defaults.universalaccess.reduceMotion = true;
+  system.defaults.NSGlobalDomain._HIHideMenuBar = true;
 
   # Used for backwards compatibility, please read the changelog before changing.
   # $ darwin-rebuild changelog
