@@ -1,5 +1,6 @@
-{ lib, pkgs, ... }: {
-  virtualisation.arion.projects."invokeai" = {
+{ inputs, lib, pkgs, ... }: {
+  imports = [ inputs.arion.nixosModules.arion ];
+  services.arion.projects."invokeai" = {
     settings = {
       services.invokeai = {
         image = "ghcr.io/invoke-ai/invokeai:latest";

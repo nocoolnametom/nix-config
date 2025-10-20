@@ -36,7 +36,7 @@
     "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
     "hosts/common/optional/services/comfyui/default.nix"
     "hosts/common/optional/services/docker.nix"
-    "hosts/common/optional/services/docker/invoke.nix"
+    "hosts/common/optional/services/docker/invokeai.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"

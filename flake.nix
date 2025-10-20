@@ -26,6 +26,9 @@
     nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-25.05";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
+    arion.url = "github:hercules-ci/arion";
+    arion.inputs.nixpkgs.follows = "nixpkgs";
+
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
     #################### Utilities ####################
@@ -104,6 +107,7 @@
       hardware,
       home-manager,
       nix-darwin,
+      arion,
       nixos-wsl,
       stylix,
       apple-fonts,
