@@ -130,7 +130,10 @@ in
   services.aerospace.settings.gaps.inner.vertical = lib.mkDefault 4;
   services.aerospace.settings.gaps.outer.left = lib.mkDefault 4;
   services.aerospace.settings.gaps.outer.bottom = lib.mkDefault 4;
-  services.aerospace.settings.gaps.outer.top = lib.mkDefault [ { monitor."built-in" = 0; } 40 ];
+  services.aerospace.settings.gaps.outer.top = lib.mkDefault [
+    { monitor."built-in" = 0; }
+    40
+  ];
   services.aerospace.settings.gaps.outer.right = lib.mkDefault 4;
 
   services.aerospace.settings.workspace-to-monitor-force-assignment."1" = lib.mkDefault [

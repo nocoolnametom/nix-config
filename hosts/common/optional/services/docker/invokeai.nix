@@ -1,4 +1,10 @@
-{ inputs, lib, pkgs, ... }: {
+{
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
+{
   virtualisation.arion.backend = "docker";
   virtualisation.arion.projects."invokeai".settings.services."invokeai".service = {
     image = "ghcr.io/invoke-ai/invokeai:latest";
