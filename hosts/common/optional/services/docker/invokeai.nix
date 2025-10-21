@@ -73,49 +73,49 @@ in
 
     modelsDir = mkOption {
       type = path;
-      default = "${workingDir}/models";
+      default = "${cfg.workingDir}/models";
       description = "Path to the models directory.";
     };
 
     downloadCacheDir = mkOption {
       type = path;
-      default = "${workingDir}/downloads";
+      default = "${cfg.workingDir}/downloads";
       description = "Path to the directory containing dynamically downloaded models.";
     };
 
     legacyConfDir = mkOption {
       type = path;
-      default = "${workingDir}/configs";
+      default = "${cfg.workingDir}/configs";
       description = "Path to directory of legacy checkpoint config files.";
     };
 
     dbDir = mkOption {
       type = path;
-      default = "${workingDir}/db";
+      default = "${cfg.workingDir}/db";
       description = "Path to InvokeAI databases directory.";
     };
 
     outputsDir = mkOption {
       type = path;
-      default = "${workingDir}/outputs";
+      default = "${cfg.workingDir}/outputs";
       description = "Path to directory for outputs.";
     };
 
     customNodesDir = mkOption {
       type = path;
-      default = "${workingDir}/custom_nodes";
+      default = "${cfg.workingDir}/custom_nodes";
       description = "Path to directory for custom nodes.";
     };
 
     stylePresetsDir = mkOption {
       type = path;
-      default = "${workingDir}/style_presets";
+      default = "${cfg.workingDir}/style_presets";
       description = "Path to directory for style presets.";
     };
 
     workflowThumbnailsDir = mkOption {
       type = path;
-      default = "${workingDir}/workflow_thumbnails";
+      default = "${cfg.workingDir}/workflow_thumbnails";
       description = "Path to directory for workflow thumbnails.";
     };
 
