@@ -79,43 +79,43 @@ in
 
     downloadCacheDir = mkOption {
       type = path;
-      example = "${workingDir}/downloads";
+      default = "${workingDir}/downloads";
       description = "Path to the directory containing dynamically downloaded models.";
     };
 
     legacyConfDir = mkOption {
       type = path;
-      example = "${workingDir}/configs";
+      default = "${workingDir}/configs";
       description = "Path to directory of legacy checkpoint config files.";
     };
 
     dbDir = mkOption {
       type = path;
-      example = "${workingDir}/db";
+      default = "${workingDir}/db";
       description = "Path to InvokeAI databases directory.";
     };
 
     outputsDir = mkOption {
       type = path;
-      example = "${workingDir}/outputs";
+      default = "${workingDir}/outputs";
       description = "Path to directory for outputs.";
     };
 
     customNodesDir = mkOption {
       type = path;
-      example = "${workingDir}/custom_nodes";
+      default = "${workingDir}/custom_nodes";
       description = "Path to directory for custom nodes.";
     };
 
     stylePresetsDir = mkOption {
       type = path;
-      example = "${workingDir}/style_presets";
+      default = "${workingDir}/style_presets";
       description = "Path to directory for style presets.";
     };
 
     workflowThumbnailsDir = mkOption {
       type = path;
-      example = "${workingDir}/workflow_thumbnails";
+      default = "${workingDir}/workflow_thumbnails";
       description = "Path to directory for workflow thumbnails.";
     };
 
