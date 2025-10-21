@@ -162,7 +162,6 @@ in
               "error"
               "critical"
             ]);
-            default = "info";
             description = "Emit logging messages at this level or higher.";
           };
 
