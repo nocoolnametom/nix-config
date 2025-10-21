@@ -414,7 +414,7 @@ in
       image = "ghcr.io/invoke-ai/invokeai:${cfg.version}";
       container_name = "invokeai";
       env_file = [ cfg.envFile ];
-      ports = [ "${cfg.port}:9090" ];
+      ports = [ "${builtins.toString cfg.port}:9090" ];
       volumes = [
         "${cfg.customNodesDir}:/invokeai/custom_nodes"
         "${cfg.legacyConfDir}:/invokeai/configs"
