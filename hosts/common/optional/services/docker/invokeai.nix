@@ -46,7 +46,7 @@ in
       description = "Enable the InvokeAI service";
     };
 
-    version = mkOptions {
+    version = mkOption {
       type = str;
       example = "latest";
       default = "6.9.0";
