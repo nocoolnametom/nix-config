@@ -405,6 +405,18 @@ in
       default = pkgs.writeText "invokeai.env" (concatStringsSep "\n" envLines);
       description = "Generated environment file containing INVOKEAI_* variables.";
     };
+
+    additionalEnvironmentFile = mkOption {
+      type = with types; nullOr path;
+      default = null;
+      example = "/var/lib/invoke/invokeai.env";
+      description = ''
+        Environment file as defined in {manpage}`systemd.exec(5)`.
+        Secrets may be passed to the service without adding them to the world-readable
+        Nix store, by specifying placeholder variables as the option value in Nix and
+        setting these variables accordingly in the environment file.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -413,7 +425,10 @@ in
     virtualisation.arion.projects."invokeai".settings.services."invokeai".service = mkIf cfg.active {
       image = "ghcr.io/invoke-ai/invokeai:v${cfg.version}-cuda";
       container_name = "invokeai";
-      env_file = [ "${cfg.envFile}" ];
+      env_file = [
+        "${cfg.envFile}"
+      ]
+      ++ (lib.optionals (cfg.additionalEnvironmentFile != null) [ "${cfg.additionalEnvironmentFile}" ]);
       ports = [ "${builtins.toString cfg.port}:9090" ];
       volumes = [
         "${cfg.customNodesDir}:/invokeai/custom_nodes"
