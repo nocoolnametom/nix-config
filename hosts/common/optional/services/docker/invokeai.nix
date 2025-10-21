@@ -413,7 +413,7 @@ in
     virtualisation.arion.projects."invokeai".settings.services."invokeai".service = mkIf cfg.active {
       image = "ghcr.io/invoke-ai/invokeai:${cfg.version}";
       container_name = "invokeai";
-      env_file = [ cfg.envFile ];
+      env_file = [ "${cfg.envFile}" ];
       ports = [ "${builtins.toString cfg.port}:9090" ];
       volumes = [
         "${cfg.customNodesDir}:/invokeai/custom_nodes"
