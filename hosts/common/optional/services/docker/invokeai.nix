@@ -411,7 +411,7 @@ in
     virtualisation.arion.backend = mkForce "docker";
 
     virtualisation.arion.projects."invokeai".settings.services."invokeai".service = mkIf cfg.active {
-      image = "ghcr.io/invoke-ai/invokeai:${cfg.version}";
+      image = "ghcr.io/invoke-ai/invokeai:v${cfg.version}-cuda";
       container_name = "invokeai";
       env_file = [ "${cfg.envFile}" ];
       ports = [ "${builtins.toString cfg.port}:9090" ];
