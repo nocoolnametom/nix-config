@@ -124,238 +124,224 @@ in
         freeformType = attrsOf anything;
         options = {
           log_tokenization = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Enable logging of parsed prompt tokens.";
           };
 
           patchmatch = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Enable patchmatch inpaint code.";
           };
 
           log_handlers = mkOption {
-            type = (nullOr listOf str);
+            type = nullOr (listOf str);
             example = [ "console" ];
             description = "List of log handlers (console, file=, syslog=path|address:host:port, http=).";
           };
 
           log_format = mkOption {
-            type = (
-              nullOr enum [
-                "plain"
-                "color"
-                "syslog"
-                "legacy"
-              ]
-            );
+            type = nullOr (enum [
+              "plain"
+              "color"
+              "syslog"
+              "legacy"
+            ]);
             description = "Log format.";
           };
 
           log_level = mkOption {
-            type = (
-              nullOr enum [
-                "debug"
-                "info"
-                "warning"
-                "error"
-                "critical"
-              ]
-            );
+            type = nullOr (enum [
+              "debug"
+              "info"
+              "warning"
+              "error"
+              "critical"
+            ]);
             default = "info";
             description = "Emit logging messages at this level or higher.";
           };
 
           log_sql = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Log SQL queries (only if log_level=debug).";
           };
 
           log_level_network = mkOption {
-            type = (
-              nullOr enum [
-                "debug"
-                "info"
-                "warning"
-                "error"
-                "critical"
-              ]
-            );
+            type = nullOr (enum [
+              "debug"
+              "info"
+              "warning"
+              "error"
+              "critical"
+            ]);
             example = "info";
             description = "Log level for network-related messages.";
           };
 
           use_memory_db = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Use in-memory database (useful for development).";
           };
 
           dev_reload = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Automatically reload when Python sources are changed.";
           };
 
           profile_graphs = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Enable graph profiling using cProfile.";
           };
 
           profile_prefix = mkOption {
-            type = (nullOr str);
+            type = nullOr str;
             description = "Optional prefix for profile output files.";
           };
 
           profiles_dir = mkOption {
-            type = (nullOr path);
+            type = nullOr path;
             example = "/var/lib/invokeai/profiles";
             description = "Path to profiles output directory.";
           };
 
           max_cache_ram_gb = mkOption {
-            type = (nullOr float);
+            type = nullOr float;
             description = "Maximum CPU RAM for model caching (GB).";
           };
 
           max_cache_vram_gb = mkOption {
-            type = (nullOr float);
+            type = nullOr float;
             description = "Maximum VRAM for model caching (GB).";
           };
 
           log_memory_usage = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Log memory snapshots before/after model cache operations.";
           };
 
           device_working_mem_gb = mkOption {
-            type = (nullOr float);
+            type = nullOr float;
             description = "Working memory reserved on GPU (GB).";
           };
 
           enable_partial_loading = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Enable partial loading of models to reduce VRAM usage.";
           };
 
           keep_ram_copy_of_weights = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Keep RAM copy of weights to speed up model switching.";
           };
 
           pytorch_cuda_alloc_conf = mkOption {
-            type = (nullOr str);
+            type = nullOr str;
             description = "Torch CUDA memory allocator configuration string (e.g., backend:cudaMallocAsync).";
           };
 
           precision = mkOption {
-            type = (
-              nullOr enum [
-                "auto"
-                "float16"
-                "bfloat16"
-                "float32"
-              ]
-            );
+            type = nullOr (enum [
+              "auto"
+              "float16"
+              "bfloat16"
+              "float32"
+            ]);
             description = "Floating point precision.";
           };
 
           sequential_guidance = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Compute guidance serially instead of in parallel.";
           };
 
           attention_type = mkOption {
-            type = (
-              nullOr enum [
-                "auto"
-                "normal"
-                "xformers"
-                "sliced"
-                "torch-sdp"
-              ]
-            );
+            type = nullOr (enum [
+              "auto"
+              "normal"
+              "xformers"
+              "sliced"
+              "torch-sdp"
+            ]);
             description = "Attention implementation type.";
           };
 
           attention_slice_size = mkOption {
-            type = (
-              nullOr oneOf [
-                int
-                (enum [
-                  "auto"
-                  "balanced"
-                  "max"
-                ])
-              ]
-            );
+            type = nullOr (oneOf [
+              int
+              (enum [
+                "auto"
+                "balanced"
+                "max"
+              ])
+            ]);
             description = "Slice size for sliced attention mode.";
           };
 
           force_tiled_decode = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Enable tiled VAE decode to reduce memory consumption.";
           };
 
           pil_compress_level = mkOption {
-            type = (nullOr int);
+            type = nullOr int;
             description = "PNG compression level for PIL (0–9).";
           };
 
           max_queue_size = mkOption {
-            type = (nullOr int);
+            type = nullOr int;
             description = "Maximum number of items in session queue.";
           };
 
           clear_queue_on_startup = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Clear session queue on startup.";
           };
 
           allow_nodes = mkOption {
-            type = (nullOr listOf str);
+            type = nullOr (listOf str);
             description = "List of nodes to allow ";
           };
 
           deny_nodes = mkOption {
-            type = (nullOr listOf str);
+            type = nullOr (listOf str);
             description = "List of nodes to deny";
           };
 
           node_cache_size = mkOption {
-            type = (nullOr int);
+            type = nullOr int;
             description = "Number of cached nodes to keep in memory";
           };
 
           hashing_algorithm = mkOption {
-            type = (
-              nullOr enum [
-                "blake3_multi"
-                "blake3_single"
-                "random"
-                "md5"
-                "sha1"
-                "sha224"
-                "sha256"
-                "sha384"
-                "sha512"
-                "blake2b"
-                "blake2s"
-                "sha3_224"
-                "sha3_256"
-                "sha3_384"
-                "sha3_512"
-                "shake_128"
-                "shake_256"
-              ]
-            );
+            type = nullOr (enum [
+              "blake3_multi"
+              "blake3_single"
+              "random"
+              "md5"
+              "sha1"
+              "sha224"
+              "sha256"
+              "sha384"
+              "sha512"
+              "blake2b"
+              "blake2s"
+              "sha3_224"
+              "sha3_256"
+              "sha3_384"
+              "sha3_512"
+              "shake_128"
+              "shake_256"
+            ]);
             description = "Model hashing algorithm for model installs";
           };
 
           remote_api_tokens = mkOption {
-            type = (nullOr (listOf attrs));
+            type = nullOr (listOf attrs);
             description = "List of regex/token pairs for authenticated model downloads";
           };
 
           allow_unknown_models = mkOption {
-            type = (nullOr bool);
+            type = nullOr bool;
             description = "Allow installation of unrecognized models";
           };
         };
