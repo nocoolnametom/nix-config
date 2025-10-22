@@ -423,7 +423,6 @@ in
     virtualisation.arion.backend = mkForce "docker";
 
     virtualisation.arion.projects."invokeai".settings = {
-      host.nixStorePrefix = "/mnt";
       services."invokeai".service = mkIf cfg.active {
         image = "ghcr.io/invoke-ai/invokeai:v${cfg.version}-cuda";
         container_name = "invokeai";
@@ -432,8 +431,8 @@ in
         ]
         ++ (lib.optionals (cfg.additionalEnvironmentFile != null) [ "${cfg.additionalEnvironmentFile}" ]);
         ports = [ "${builtins.toString cfg.port}:9090" ];
-        useHostStore = true;
         volumes = [
+          "/nix/store:/mnt/nix/store:ro"
           "${cfg.customNodesDir}:/invokeai/custom_nodes"
           "${cfg.legacyConfDir}:/invokeai/configs"
           "${cfg.dbDir}:/invokeai/db"
