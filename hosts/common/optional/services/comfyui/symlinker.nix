@@ -32,30 +32,53 @@ in
       text =
         let
           models = config.services.comfyui.models;
-          generateLinks = concatStringsSep "\n" (
-            flatten (
-              mapAttrsToList (
-                linkName: targetDir:
+          generateLinksForPath =
+            linkName: targetDir:
+            let
+              modelsForPath = lib.filter (
+                drv:
+                hasAttrByPath [ "passthru" "comfyui" "installPaths" ] drv
+                && elem linkName drv.passthru.comfyui.installPaths
+              ) models;
+              dirs = [
+                {
+                  path = targetDir;
+                  prefix = "";
+                }
+                {
+                  path = "${targetDir}-arion";
+                  prefix = "/mnt";
+                }
+              ];
+            in
+            concatStringsSep "\n" (
+              map (
+                dir:
                 let
-                  modelsForPath = lib.filter (
-                    drv:
-                    hasAttrByPath [ "passthru" "comfyui" "installPaths" ] drv
-                    && elem linkName drv.passthru.comfyui.installPaths
-                  ) models;
+                  targetPath = dir.path;
+                  prefix = dir.prefix;
                 in
-                [
-                  "mkdir -p ${targetDir}"
-                  "find ${targetDir}/ -maxdepth 1 -type l -exec rm -f {} \\;"
-                  (concatStringsSep "\n" (
-                    map (model: "ln -sfn ${model} ${targetDir}/\$(basename ${model.name})") modelsForPath
-                  ))
-                ]
-              ) config.services.comfyui.symlinkPaths
-            )
+                ''
+                  mkdir -p ${targetPath}
+                  find ${targetPath}/ -maxdepth 1 -type l -exec rm -f {} \;
+                  ${concatStringsSep "\n" (
+                    map (
+                      model:
+                      let
+                        modelPath = "${prefix}${model}";
+                      in
+                      "ln -sfn ${modelPath} ${targetPath}/\$(basename ${model.name})"
+                    ) modelsForPath
+                  )}
+                ''
+              ) dirs
+            );
+          generateAllLinks = concatStringsSep "\n" (
+            mapAttrsToList generateLinksForPath config.services.comfyui.symlinkPaths
           );
         in
         ''
-          ${generateLinks}
+          ${generateAllLinks}
         '';
     };
   };
