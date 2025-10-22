@@ -130,6 +130,7 @@
   hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
 
   # InvokeAI stuff
+  services.invokeai.workingDir = "/var/lib/stable-diffusion";
   sops.templates."invokeai-secrets.env" = {
     content = ''
       INVOKEAI_REMOTE_API_TOKENS=${
