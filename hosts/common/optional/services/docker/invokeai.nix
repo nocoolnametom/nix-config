@@ -31,6 +31,24 @@ let
   ) filteredSettings;
 
   envFile = pkgs.writeText "invokeai.env" (concatStringsSep "\n" envLines);
+
+  sops.templates."invokeai-secrets.env" = {
+    content = ''
+      INVOKEAI_REMOTE_API_TOKENS=${
+        builtins.toJSON [
+          {
+            url_regex = "civitai.com";
+            token = config.sops.placeholder."civitai_key";
+          }
+          {
+            url_regex = "huggingface";
+            token = config.sops.placeholder."huggingface_key";
+          }
+        ]
+      }
+    '';
+    mode = "777";
+  };
 in
 {
   options.services.invokeai = with types; {
@@ -408,7 +426,7 @@ in
 
     additionalEnvironmentFile = mkOption {
       type = with types; nullOr path;
-      default = null;
+      default = config.sops.templates."invokeai-secrets.env".path;
       example = "/var/lib/invoke/invokeai.env";
       description = ''
         Environment file as defined in {manpage}`systemd.exec(5)`.
@@ -422,34 +440,38 @@ in
   config = mkIf cfg.enable {
     virtualisation.arion.backend = mkForce "docker";
 
-    virtualisation.arion.projects."invokeai".settings.services."invokeai".service = mkIf cfg.active {
-      image = "ghcr.io/invoke-ai/invokeai:v${cfg.version}-cuda";
-      container_name = "invokeai";
-      env_file = [
-        "${cfg.envFile}"
-      ]
-      ++ (lib.optionals (cfg.additionalEnvironmentFile != null) [ "${cfg.additionalEnvironmentFile}" ]);
-      ports = [ "${builtins.toString cfg.port}:9090" ];
-      volumes = [
-        "${cfg.customNodesDir}:/invokeai/custom_nodes"
-        "${cfg.legacyConfDir}:/invokeai/configs"
-        "${cfg.dbDir}:/invokeai/db"
-        "${cfg.downloadCacheDir}:/invokeai/downloads"
-        "${cfg.modelsDir}:/invokeai/models"
-        "${cfg.outputsDir}:/invokeai/outputs"
-        "${cfg.stylePresetsDir}:/invokeai/style_presets"
-        "${cfg.workflowThumbnailsDir}:/invokeai/workflow_thumbnails"
-      ];
-      restart = "unless-stopped";
-      devices = [ "nvidia.com/gpu=all" ];
+    virtualisation.arion.projects."invokeai".settings = {
+      host.nixStorePrefix = "/mnt";
+      services."invokeai".service = mkIf cfg.active {
+        image = "ghcr.io/invoke-ai/invokeai:v${cfg.version}-cuda";
+        container_name = "invokeai";
+        env_file = [
+          "${cfg.envFile}"
+        ]
+        ++ (lib.optionals (cfg.additionalEnvironmentFile != null) [ "${cfg.additionalEnvironmentFile}" ]);
+        ports = [ "${builtins.toString cfg.port}:9090" ];
+        useHostStore = true;
+        volumes = [
+          "${cfg.customNodesDir}:/invokeai/custom_nodes"
+          "${cfg.legacyConfDir}:/invokeai/configs"
+          "${cfg.dbDir}:/invokeai/db"
+          "${cfg.downloadCacheDir}:/invokeai/downloads"
+          "${cfg.modelsDir}:/invokeai/models"
+          "${cfg.outputsDir}:/invokeai/outputs"
+          "${cfg.stylePresetsDir}:/invokeai/style_presets"
+          "${cfg.workflowThumbnailsDir}:/invokeai/workflow_thumbnails"
+        ];
+        restart = "unless-stopped";
+        devices = [ "nvidia.com/gpu=all" ];
+      };
+
+      # Optional system-wide Docker settings
+      virtualisation.docker.enable = mkForce true;
+      virtualisation.docker.enableOnBoot = mkDefault true;
+      hardware.nvidia-container-toolkit.enable = mkForce true;
+
+      # Optional: open firewall
+      networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
     };
-
-    # Optional system-wide Docker settings
-    virtualisation.docker.enable = mkForce true;
-    virtualisation.docker.enableOnBoot = mkDefault true;
-    hardware.nvidia-container-toolkit.enable = mkForce true;
-
-    # Optional: open firewall
-    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
   };
 }
