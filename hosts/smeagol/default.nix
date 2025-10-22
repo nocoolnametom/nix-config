@@ -129,6 +129,26 @@
   hardware.bluetooth.enable = true; # enables support for Bluetooth
   hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
 
+  # InvokeAI stuff
+  sops.templates."invokeai-secrets.env" = {
+    content = ''
+      INVOKEAI_REMOTE_API_TOKENS=${
+        builtins.toJSON [
+          {
+            url_regex = "civitai.com";
+            token = config.sops.placeholder."civitai_key";
+          }
+          {
+            url_regex = "huggingface";
+            token = config.sops.placeholder."huggingface_key";
+          }
+        ]
+      }
+    '';
+    mode = "777";
+  };
+  services.invokeai.additionalEnvironmentFile = config.sops.templates."invokeai-secrets.env".path;
+
   # Open-WebUI is a web-frontend for chatting with ollama
   services.open-webui.enable = true;
   services.open-webui.host = "0.0.0.0";

@@ -31,24 +31,6 @@ let
   ) filteredSettings;
 
   envFile = pkgs.writeText "invokeai.env" (concatStringsSep "\n" envLines);
-
-  sops.templates."invokeai-secrets.env" = {
-    content = ''
-      INVOKEAI_REMOTE_API_TOKENS=${
-        builtins.toJSON [
-          {
-            url_regex = "civitai.com";
-            token = config.sops.placeholder."civitai_key";
-          }
-          {
-            url_regex = "huggingface";
-            token = config.sops.placeholder."huggingface_key";
-          }
-        ]
-      }
-    '';
-    mode = "777";
-  };
 in
 {
   options.services.invokeai = with types; {
@@ -426,7 +408,7 @@ in
 
     additionalEnvironmentFile = mkOption {
       type = with types; nullOr path;
-      default = config.sops.templates."invokeai-secrets.env".path;
+      default = null;
       example = "/var/lib/invoke/invokeai.env";
       description = ''
         Environment file as defined in {manpage}`systemd.exec(5)`.
