@@ -464,14 +464,14 @@ in
         restart = "unless-stopped";
         devices = [ "nvidia.com/gpu=all" ];
       };
-
-      # Optional system-wide Docker settings
-      virtualisation.docker.enable = mkForce true;
-      virtualisation.docker.enableOnBoot = mkDefault true;
-      hardware.nvidia-container-toolkit.enable = mkForce true;
-
-      # Optional: open firewall
-      networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
     };
+
+    # Optional system-wide Docker settings
+    virtualisation.docker.enable = mkForce true;
+    virtualisation.docker.enableOnBoot = mkDefault true;
+    hardware.nvidia-container-toolkit.enable = mkForce true;
+
+    # Optional: open firewall
+    networking.firewall.allowedTCPPorts = mkIf cfg.openFirewall [ cfg.port ];
   };
 }
