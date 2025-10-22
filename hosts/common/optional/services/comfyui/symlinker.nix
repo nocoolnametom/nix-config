@@ -16,6 +16,7 @@ let
     hasAttrByPath
     elem
     ;
+  arionSuffix = "-arion";
 in
 {
   options.services.comfyui.symlinkPaths = mkOption {
@@ -25,9 +26,14 @@ in
   };
 
   config = mkIf config.services.comfyui.enable {
-    systemd.tmpfiles.rules = mapAttrsToList (
-      name: path: "d ${path} 0777 root root -"
-    ) config.services.comfyui.symlinkPaths;
+    systemd.tmpfiles.rules = lib.flatten (
+      mapAttrsToList (name: path: [
+        # Original directory
+        "d ${path} 0777 root root -"
+        # Corresponding -arion directory
+        "d ${path}${arionSuffix} 0777 root root -"
+      ]) config.services.comfyui.symlinkPaths
+    );
     system.activationScripts.linkComfyuiModels = {
       text =
         let
@@ -46,7 +52,7 @@ in
                   prefix = "";
                 }
                 {
-                  path = "${targetDir}-arion";
+                  path = "${targetDir}${arionSuffix}";
                   prefix = "/mnt";
                 }
               ];
