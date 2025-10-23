@@ -1,16 +1,20 @@
-{ inputs, lib, ... }:
 {
-  imports = [ inputs.nixos-cosmic.nixosModules.default ];
+  inputs,
+  lib,
+  pkgs,
+  ...
+}:
+{
+  # imports = [ inputs.nixos-cosmic.nixosModules.default ];
 
-  services.desktopManager.cosmic.enable = true;
-  services.displayManager.cosmic-greeter.enable = true;
+  services.desktopManager.cosmic.enable = lib.mkDefault true;
+  services.displayManager.cosmic-greeter.enable = lib.mkDefault true;
+  environment.sessionVariables.COSMIC_DATA_CONTROL_ENABLED = lib.mkDefault 1;
+  # systemd.packages = [ pkgs.observatory ];
+  # systemd.services.monitord.wantedBy = [ "multi-user.target" ];
 
   # Ensure other Desktop Environments are off
   services.greetd.enable = lib.mkForce false;
   programs.hyprlock.enable = lib.mkForce false;
   programs.hyprland.enable = lib.mkForce false;
-  programs.sway.enable = lib.mkForce false;
-  services.xserver.desktopManager.plasma5.enable = lib.mkForce false;
-  services.desktopManager.plasma6.enable = lib.mkForce false;
-  services.displayManager.sddm.enable = lib.mkForce false;
 }

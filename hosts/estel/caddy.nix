@@ -16,7 +16,7 @@
   # Virtual hosts configuration
   services.caddy.virtualHosts = {
     "${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
+      useACMEHost = configVars.homeDomain;
       # Redirect empty main domain to the auth page
       extraConfig = ''
         redir https://${configVars.networking.subdomains.authentik}.{host}{uri}
@@ -286,6 +286,12 @@
     owner = if config.services.caddy.enable then "caddy" else "root";
   };
   security.acme.certs = {
+    configVars.homeDomain = {
+      domain = configVars.homeDomain;
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
     "wild-${configVars.domain}" = {
       domain = "*.${configVars.domain}";
       group = "caddy";

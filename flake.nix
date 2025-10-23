@@ -66,6 +66,12 @@
     # nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
     # nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    cosmic-ext-alternative-startup.url = "github:Drakulix/cosmic-ext-alternative-startup";
+    cosmic-ext-alternative-startup.flake = false;
+
+    cosmic-ext-extra-sessions.url = "github:Drakulix/cosmic-ext-extra-sessions";
+    cosmic-ext-extra-sessions.flake = false;
+
     # Plasma Manager
     # plasma-manager.url = "github:nix-community/plasma-manager";
     # plasma-manager.inputs.nixpkgs.follows = "nixpkgs";

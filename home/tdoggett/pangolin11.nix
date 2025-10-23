@@ -1,5 +1,6 @@
 {
   pkgs,
+  lib,
   configVars,
   osConfig,
   ...
@@ -13,7 +14,7 @@
     common/optional/sops.nix
     common/optional/git.nix
     common/optional/desktops
-    common/optional/desktops/hyprland.nix
+    # common/optional/desktops/hyprland.nix
     common/optional/devenv.nix
     common/optional/wakatime.nix
 
@@ -43,6 +44,12 @@
   services.blueman-applet.enable = true;
   services.waynergy.host = "192.168.0.10";
   programs.git.userEmail = configVars.gitHubEmail;
+
+  programs.ssh.compression = lib.mkForce true;
+  programs.ssh.addKeysToAgent = lib.mkForce "yes"; # req'd for enabling yubikey-agent
+  programs.ssh.controlMaster = lib.mkForce "auto";
+  programs.ssh.controlPath = lib.mkForce "~/.ssh/sockets/master-%r@%h:%p";
+  programs.ssh.controlPersist = lib.mkForce "10m";
 
   home.packages = with pkgs; [
     calibre

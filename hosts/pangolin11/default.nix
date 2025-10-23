@@ -39,7 +39,7 @@
     "hosts/common/optional/boot/hibernation.nix"
     "hosts/common/optional/boot/plymouth.nix"
     "hosts/common/optional/boot/silent.nix"
-    "hosts/common/optional/services/greetd.nix"
+    # "hosts/common/optional/services/greetd.nix"
     "hosts/common/optional/services/openssh.nix" # allow remote SSH access
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
@@ -47,10 +47,13 @@
     "hosts/common/optional/adb.nix" # Android Debugging
     "hosts/common/optional/blinkstick.nix"
     "hosts/common/optional/cross-compiling.nix"
+    "hosts/common/optional/cosmic.nix"
+    # "hosts/common/optional/cosmic-niri.nix"
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
-    "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
+    # "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/light.nix" # Monitor brightness
+    "hosts/common/optional/niri.nix"
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/stylix.nix" # System-wide styling
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
@@ -61,6 +64,11 @@
     "home/${configVars.username}/persistence/pangolin11.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Somepackage requires this, not sure which
+  nixpkgs.config.permittedInsecurePackages = [
+    "qtwebengine-5.15.19"
+  ];
 
   # services.gotosocial.settings.landing-page-user = "tom";
 
