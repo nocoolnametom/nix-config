@@ -52,6 +52,9 @@
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/smeagol.nix"
     "hosts/common/users/${configVars.username}"
+
+    #
+    "hosts/smeagol/logindhelper.nix"
   ]);
 
   # LXD Management
