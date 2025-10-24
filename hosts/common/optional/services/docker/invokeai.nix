@@ -216,7 +216,7 @@ in
           };
 
           max_cache_ram_gb = mkOption {
-            default = null;
+            default = 40.0;
             type = nullOr float;
             description = "Maximum CPU RAM for model caching (GB).";
           };
@@ -234,13 +234,13 @@ in
           };
 
           device_working_mem_gb = mkOption {
-            default = null;
+            default = 3.0;
             type = nullOr float;
             description = "Working memory reserved on GPU (GB).";
           };
 
           enable_partial_loading = mkOption {
-            default = null;
+            default = true;
             type = nullOr bool;
             description = "Enable partial loading of models to reduce VRAM usage.";
           };
@@ -252,7 +252,7 @@ in
           };
 
           pytorch_cuda_alloc_conf = mkOption {
-            default = null;
+            default = "backend:cudaMallocAsync";
             type = nullOr str;
             description = "Torch CUDA memory allocator configuration string (e.g., backend:cudaMallocAsync).";
           };
