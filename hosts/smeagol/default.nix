@@ -136,8 +136,8 @@
   services.invokeai.workingDir = "/var/lib/stable-diffusion";
   services.invokeai.settings.enable_partial_loading = true;
   services.invokeai.settings.pytorch_cuda_alloc_conf = "backend:cudaMallocAsync";
-  services.invokeai.settings.max_cache_ram_gb = 40;
-  services.invokeai.settings.device_working_mem_gb = 3;
+  services.invokeai.settings.max_cache_ram_gb = 40.0;
+  services.invokeai.settings.device_working_mem_gb = 3.0;
   sops.templates."invokeai-secrets.env" = {
     content = ''
       INVOKEAI_REMOTE_API_TOKENS=${
