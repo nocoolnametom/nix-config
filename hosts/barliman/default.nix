@@ -49,6 +49,9 @@
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
     "hosts/common/users/${configVars.username}"
+
+    # Temporary empty modules to help pass rebuild errors
+    "hosts/barliman/logindhelper.nix"
   ]);
 
   # Stylix wallpaper

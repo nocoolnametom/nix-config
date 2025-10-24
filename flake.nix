@@ -78,7 +78,7 @@
     # plasma-manager.inputs.home-manager.follows = "home-manager";
 
     # Jovian SteamOS-like helpers
-    jovian.url = "github:Jovian-Experiments/Jovian-NixOS/f81c48f403c976463fe5812e9e6bca8cf49aebdc";
+    jovian.url = "github:Jovian-Experiments/Jovian-NixOS";
     jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # Disposable email list
