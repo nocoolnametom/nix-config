@@ -58,6 +58,7 @@
     remmina
     bottles
     standardnotes
+    helium-browser-flake
   ];
 
   home = {

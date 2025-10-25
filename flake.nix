@@ -46,10 +46,12 @@
     sops-nix.inputs.nixpkgs.follows = "nixpkgs";
 
     # Pre-commit hooks
-    pre-commit-hooks = {
-      url = "github:cachix/git-hooks.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
+    pre-commit-hooks.url = "github:cachix/git-hooks.nix";
+    pre-commit-hooks.inputs.nixpkgs.follows = "nixpkgs";
+
+    # Helium Browser
+    helium.url = "github:FKouhai/helium2nix/main";
+    helium.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nixified.AI
     # nixified-ai.url = "github:nixified-ai/flake";
@@ -118,6 +120,7 @@
       stylix,
       apple-fonts,
       sops-nix,
+      helium,
       nixified-ai,
       nix-flatpak,
       # nixos-cosmic,
