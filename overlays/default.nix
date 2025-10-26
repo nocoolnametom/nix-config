@@ -3,6 +3,20 @@
 #
 
 { inputs, ... }:
+
+let rapidocrOverrides = prev: self: super: {
+  rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
+    disabledTests = [
+      # Needs Internet access
+      "test_long_img"
+    ]
+    ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
+      # segfault when built with cuda support but GPU is not availaible in build environment
+      "test_ort_cuda_warning"
+      "test_ort_dml_warning"
+    ];
+  });
+}; in
 {
   # This one brings our custom packages from the 'pkgs' directory
   additions =
@@ -35,21 +49,10 @@
     });
     # Fixes installation of open-webui
     # See if https://github.com/NixOS/nixpkgs/pull/382920 has been merged, if so you can remove this!
-    python312 = prev.python312.override {
-      packageOverrides = self: super: {
-        rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
-          disabledTests = [
-            # Needs Internet access
-            "test_long_img"
-          ]
-          ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
-            # segfault when built with cuda support but GPU is not availaible in build environment
-            "test_ort_cuda_warning"
-            "test_ort_dml_warning"
-          ];
-        });
-      };
-    };
+    python312 = prev.python312.override { packageOverrides = rapidocrOverrides prev; };
+    python313 = prev.python313.override { packageOverrides = rapidocrOverrides prev; };
+    python314 = prev.python314.override { packageOverrides = rapidocrOverrides prev; };
+    python315 = prev.python315.override { packageOverrides = rapidocrOverrides prev; };
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
