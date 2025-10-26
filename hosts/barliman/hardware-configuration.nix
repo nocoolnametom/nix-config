@@ -23,7 +23,6 @@
     clr.icd
     rocblas
     rpp
-    pkgs.amdvlk
     pkgs.nvtopPackages.amd
   ];
 

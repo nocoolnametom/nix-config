@@ -55,7 +55,6 @@ nix flake check --no-build --all-systems
     ./persistence.nix
   ] ++ (map configLib.relativeToRoot [
     "hosts/common/core"                    # Required base config
-    "hosts/common/optional/hyprland.nix"   # Optional: Hyprland desktop
     "hosts/common/optional/steam.nix"      # Optional: Steam gaming
     "hosts/common/users/${configVars.username}"
   ]);
@@ -94,7 +93,6 @@ nix flake check --no-build --all-systems
 - **SOPS-nix** - Encrypted secrets management
 - **Stylix** - System-wide theming and styling
 - **Lanzaboote** - Secure Boot support for NixOS
-- **Hyprland** - Primary Wayland compositor for desktop systems
 
 ## Development Roadmap
 
@@ -124,7 +122,6 @@ nix flake check --no-build --all-systems
 
 ### Low Priority 🔮
  * [ ] Personal resume site with auto-updating dates via git hooks
- * [ ] Investigate Sway migration from Hyprland for better resource usage
  * [ ] Rebuild work repo auto-download scripts as separate flake
  * [ ] Auto-rebuild personal packages when new stable versions are released
  * [ ] Implement comprehensive documentation and usage examples

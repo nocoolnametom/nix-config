@@ -1,22 +1,20 @@
 { lib, configVars, ... }:
 {
   programs.git.enable = true;
-  programs.git.userName = configVars.userFullName;
-  programs.git.userEmail = lib.mkDefault configVars.gitHubEmail;
+  programs.git.settings.user.name = configVars.userFullName;
+  programs.git.settings.user.email = lib.mkDefault configVars.gitHubEmail;
   programs.git.signing.key = "7EC0EE35DDC9D227";
   # I want to figure out how to use nix-secrets and sops to automatically set up my GPG keys!
   programs.git.signing.signByDefault = lib.mkDefault false;
-  programs.git.aliases.co = "checkout";
-  programs.git.extraConfig = {
-    core.editor = "vim";
-    log.decorate = "full";
-    rebase.autostash = lib.mkDefault true;
-    pull.rebase = lib.mkDefault true;
-    stash.showPatch = lib.mkDefault true;
-    "color \"status\"" = {
-      added = "green";
-      changed = "yellow bold";
-      untracked = "red bold";
-    };
+  programs.git.settings.alias.co = "checkout";
+  programs.git.settings.core.editor = "vim";
+  programs.git.settings.log.decorate = "full";
+  programs.git.settings.rebase.autostash = lib.mkDefault true;
+  programs.git.settings.pull.rebase = lib.mkDefault true;
+  programs.git.settings.stash.showPatch = lib.mkDefault true;
+  programs.git.settings."color \"status\"" = {
+    added = "green";
+    changed = "yellow bold";
+    untracked = "red bold";
   };
 }

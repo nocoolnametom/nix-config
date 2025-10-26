@@ -12,7 +12,7 @@
     common/optional/git.nix
   ];
 
-  programs.git.userEmail = configVars.gitHubEmail;
+  programs.git.settings.user.email = configVars.gitHubEmail;
 
   home = {
     stateVersion = "25.05";

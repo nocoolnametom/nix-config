@@ -23,6 +23,9 @@
   # Not sure if this matters, see https://serverfault.com/questions/637102/what-is-the-difference-between-pv-and-hvm-virtualization-types-in-ec2
   ec2.hvm = true;
 
+  # EC2 instances don't use USB mounting
+  services.udisks2.enable = lib.mkForce false;
+
   # Mounting S3 bucket
   fileSystems."nocoolnamtom-com-pleroma" =
     let

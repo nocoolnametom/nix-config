@@ -5,7 +5,6 @@
   ...
 }:
 {
-  programs.ssh.addKeysToAgent = lib.mkForce "yes";
   programs.ssh.forwardAgent = true;
   programs.ssh.hashKnownHosts = false;
   programs.ssh.serverAliveInterval = 0;
@@ -14,5 +13,8 @@
     IdentityFile ${config.home.homeDirectory}/.ssh/id_yubikey
     IdentityFile ${config.home.homeDirectory}/.ssh/work_rsa
   '';
-  programs.ssh.matchBlocks = configVars.work.sshMatchBlocks { inherit config; };
+  programs.ssh.matchBlocks = {
+    "*".addKeysToAgent = lib.mkForce "yes";
+  }
+  // configVars.work.sshMatchBlocks { inherit config; };
 }

@@ -49,7 +49,6 @@
     "hosts/common/optional/light.nix" # Monitor brightness
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
-    "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
     "hosts/common/optional/yubikey.nix"
     "hosts/common/optional/stylix.nix" # System-wide styling
@@ -66,17 +65,8 @@
     enableIPv6 = true;
   };
 
-  # Stylix wallpaper
-  stylix.image = pkgs.fetchurl {
-    url = "https://codeberg.org/exorcist/wallpapers/raw/branch/master/gruvbox/cottage.jpg";
-    sha256 = "sha256-NUDGJ13fF+0AZAFcN6HoiuaPhewsfwQ65FRXvuB7rKo=";
-  };
-  #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
-  #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
-
-  # Auto-login through Greetd and TuiGreet to Hyprland
-  autoLogin.enable = true;
-  autoLogin.username = configVars.username;
+  # Stylix theme
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
 
   # Hardware
   hardware.bluetooth.enable = true;

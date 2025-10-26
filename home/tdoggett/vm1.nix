@@ -20,7 +20,7 @@
     common/optional/devenv.nix
   ];
 
-  programs.git.userEmail = configVars.email.work;
+  programs.git.settings.user.email = configVars.email.work;
 
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [

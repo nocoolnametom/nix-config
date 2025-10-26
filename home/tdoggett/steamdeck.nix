@@ -22,7 +22,11 @@
     common/optional/wakatime.nix
   ];
 
-  programs.git.userEmail = configVars.gitHubEmail;
+  home.packages = with pkgs; [
+    helium-browser-flake
+  ];
+
+  programs.git.settings.user.email = configVars.gitHubEmail;
 
   programs.bash.initExtra = ''
     PS1='(\u@\h \W)\$ '

@@ -57,7 +57,6 @@ in
       "disk" # mount stuff
       "networkmanager" # connect to network
       "docker" # docker
-      "lxd"
       "kvm" # virtualization
       "adbusers" # android debugging
       "media" # media downloading

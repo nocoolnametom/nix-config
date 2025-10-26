@@ -54,11 +54,8 @@
     "hosts/barliman/logindhelper.nix"
   ]);
 
-  # Stylix wallpaper
-  stylix.image = pkgs.fetchurl {
-    url = "https://codeberg.org/exorcist/wallpapers/raw/branch/master/gruvbox/cottage.jpg";
-    sha256 = "sha256-NUDGJ13fF+0AZAFcN6HoiuaPhewsfwQ65FRXvuB7rKo=";
-  };
+  # Stylix theme
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
 
   # Using Rocm instead of Cuda since AMD APU/GPU
   hardware.nvidia-container-toolkit.enable = lib.mkForce false;

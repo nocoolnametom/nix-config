@@ -17,8 +17,6 @@ in
 {
   # Declare custom options for conditionally enabling auto login
   options.autoLogin = {
-    enable = lib.mkEnableOption "Enable automatic login";
-
     username = lib.mkOption {
       type = lib.types.str;
       default = configVars.username;
@@ -45,13 +43,8 @@ in
       restart = lib.mkDefault true;
       settings = {
         default_session = {
-          command = lib.mkDefault "${pkgs.greetd.tuigreet}/bin/tuigreet --remember --remember-session --time --time-format '%I:%M %p | %a • %h | %F'";
+          command = lib.mkDefault "${pkgs.tuigreet}/bin/tuigreet --remember --remember-session --time --time-format '%I:%M %p | %a • %h | %F'";
           user = lib.mkForce "${cfg.username}";
-        };
-
-        initial_session = lib.mkIf cfg.enable {
-          command = lib.mkDefault "${pkgs.uwsm}/bin/uwsm start ${config.programs.hyprland.package}/bin/Hyprland";
-          user = lib.mkDefault "${cfg.username}";
         };
       };
     };

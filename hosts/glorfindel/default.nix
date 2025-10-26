@@ -83,7 +83,7 @@ in
   boot.loader.grub.enable = true;
   boot.loader.grub.forceInstall = true; # Linode uses partitionless disks
   boot.loader.grub.device = "nodev"; # Linode's LISH console requires this
-  boot.loader.timeout = 0; # Linode's LISH console requires this
+  boot.loader.timeout = lib.mkForce 0; # Override linode.nix default - LISH console requires this
   boot.loader.grub.copyKernels = true;
   boot.loader.grub.fsIdentifier = "label";
   boot.loader.grub.extraConfig = ''

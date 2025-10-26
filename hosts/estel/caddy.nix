@@ -286,7 +286,7 @@
     owner = if config.services.caddy.enable then "caddy" else "root";
   };
   security.acme.certs = {
-    configVars.homeDomain = {
+    "${configVars.homeDomain}" = {
       domain = configVars.homeDomain;
       group = "caddy";
       dnsProvider = "porkbun";

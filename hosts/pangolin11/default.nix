@@ -50,10 +50,9 @@
     "hosts/common/optional/cosmic.nix"
     # "hosts/common/optional/cosmic-niri.nix"
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
-    # "hosts/common/optional/hyprland.nix" # Hyprland, includes some related services
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/light.nix" # Monitor brightness
-    "hosts/common/optional/niri.nix"
+    # "hosts/common/optional/niri.nix"
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/stylix.nix" # System-wide styling
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
@@ -103,18 +102,26 @@
     };
   };
 
-  # Stylix wallpaper
-  stylix.image = pkgs.fetchurl {
-    url = "https://www.pixelstalk.net/wp-content/uploads/images8/A-nyugalom-sarka-HD-Backgrounds-Green.jpg";
-    sha256 = "sha256-sYaK25CuA9EjKJWl3bSJwd3zZypIrx9jx7lepAIjFV0=";
-  };
-  #stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/monokai.yaml";
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/gruvbox-material-dark-soft.yaml";
+  fonts.packages = with pkgs; [
+    nerd-fonts.hack
+    appleFonts.sf-pro-nerd
+    appleFonts.sf-mono-nerd
+  ];
+
+  # Stylix theme
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
+  stylix.fonts.serif.package = pkgs.appleFonts.sf-pro;
+  stylix.fonts.serif.name = "SFProText Nerd Font";
+  stylix.fonts.sansSerif.package = pkgs.appleFonts.sf-pro;
+  stylix.fonts.sansSerif.name = "SFProDisplay Nerd Font";
+  stylix.fonts.monospace.package = pkgs.appleFonts.sf-mono;
+  stylix.fonts.monospace.name = "SFMono Nerd Font";
 
   environment.systemPackages = [
     pkgs.gparted
     pkgs.split-my-cbz
     pkgs.update-cbz-tags
+    pkgs.claude-code
   ];
 
   # Hardware
@@ -133,8 +140,10 @@
   # Optional, hint electron apps to use wayland:
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
 
-  # Use Gnomestuff outside of gnome (okay to enable this if gnome is enabled, too)
-  services.gnome.gnome-keyring.enable = true;
+  # Gnome keyring daemon is enabled via Home Manager for VSCode/app credential storage
+  # NixOS PAM integration disabled - it conflicts with COSMIC login timing and causes
+  # "gkr-pam: unable to locate daemon control file" errors during boot
+  # services.gnome.gnome-keyring.enable = false; # Already false by default
   programs.dconf.enable = true;
 
   # Fixes VSCode remote

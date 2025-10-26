@@ -19,7 +19,7 @@
         "diffEditor.ignoreTrimWhitespace" = false;
         "editor.fontLigatures" = true;
         "editor.inlineSuggest.enabled" = true;
-        "editor.minimap.autohide" = true;
+        "editor.minimap.autohide" = "scroll";
         "editor.minimap.enabled" = true;
         "editor.minimap.renderCharacters" = false;
         "editor.minimap.scale" = 1;

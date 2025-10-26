@@ -18,7 +18,7 @@
     common/optional/devenv.nix
   ];
 
-  programs.git.userEmail = lib.mkForce configVars.email.work;
+  programs.git.settings.user.email = lib.mkForce configVars.email.work;
 
   home.sessionVariables = {
     TERM = lib.mkForce "xterm-256color";

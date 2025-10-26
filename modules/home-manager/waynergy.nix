@@ -460,10 +460,6 @@ in
           # restart_on_fatal = false;
         };
         sections = {
-          screensaver = {
-            start = "pkill -SIGUSR1 hypridle";
-            #stop = "pkill hyprlock";
-          };
           idle-inhibit = {
             method = "key";
             keyname = "HYPR";

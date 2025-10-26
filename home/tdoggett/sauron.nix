@@ -18,7 +18,7 @@
     common/optional/git.nix
   ];
 
-  programs.git.userEmail = configVars.gitHubEmail;
+  programs.git.settings.user.email = configVars.gitHubEmail;
 
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [

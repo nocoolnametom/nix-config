@@ -129,7 +129,6 @@ imports = [
 - **SOPS**: Secrets management
 - **Stylix**: System-wide theming
 - **Lanzaboote**: Secure Boot support
-- **Hyprland**: Wayland compositor (primary desktop)
 
 ## Testing & Validation Commands
 

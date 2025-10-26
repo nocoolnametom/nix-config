@@ -27,7 +27,7 @@
     common/optional/services/syncthing.nix
   ];
 
-  programs.git.userEmail = configVars.gitHubEmail;
+  programs.git.settings.user.email = configVars.gitHubEmail;
   services.gpg-agent.enable = true;
   services.blueman-applet.enable = true;
 
@@ -35,6 +35,7 @@
   home.packages = with pkgs; [
     bottles
     handbrake
+    helium-browser-flake
   ];
 
   # Flatpaks

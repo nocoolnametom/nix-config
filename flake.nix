@@ -4,7 +4,7 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
     nixpkgs-old.url = "github:NixOS/nixpkgs/nixos-24.11";
@@ -20,10 +20,12 @@
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    home-manager.url = "github:nix-community/home-manager/release-25.05";
+    # home-manager.url = "github:nix-community/home-manager/release-25.11";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix-darwin.url = "github:LnL7/nix-darwin/nix-darwin-25.05";
+    # nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     arion.url = "github:hercules-ci/arion";
@@ -34,7 +36,8 @@
     #################### Utilities ####################
 
     # Styling for Visual Applications
-    stylix.url = "github:danth/stylix/release-25.05";
+    # stylix.url = "github:nix-community/stylix/release-25.11";
+    stylix.url = "github:nix-community/stylix";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     # San Francisco Fonts | Apple Fonts
@@ -54,30 +57,12 @@
     helium.inputs.nixpkgs.follows = "nixpkgs";
 
     # Nixified.AI
-    # nixified-ai.url = "github:nixified-ai/flake";
-    # Using this upstream MR branch until it get merged to get a newer version of Comfy
-    # BatteredBunny's branch is for ComfyUI v0.3.30
-    nixified-ai.url = "github:BatteredBunny/nixifed-ai/bump-comfyui";
-    nixified-ai.inputs.nixpkgs.follows = "nixpkgs-old";
+    nixified-ai.url = "github:nixified-ai/flake";
+    nixified-ai.inputs.nixpkgs.follows = "nixpkgs";
 
     # Declarative Flatpak management (like homebrew on nix-darwin)
     # "latest" should be the most recent released version
     nix-flatpak.url = "github:gmodena/nix-flatpak/?ref=latest";
-
-    # Cosmis Desktop Environment
-    # nixos-cosmic.url = "github:lilyinstarlight/nixos-cosmic";
-    # nixos-cosmic.inputs.nixpkgs.follows = "nixpkgs-unstable";
-
-    cosmic-ext-alternative-startup.url = "github:Drakulix/cosmic-ext-alternative-startup";
-    cosmic-ext-alternative-startup.flake = false;
-
-    cosmic-ext-extra-sessions.url = "github:Drakulix/cosmic-ext-extra-sessions";
-    cosmic-ext-extra-sessions.flake = false;
-
-    # Plasma Manager
-    # plasma-manager.url = "github:nix-community/plasma-manager";
-    # plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
-    # plasma-manager.inputs.home-manager.follows = "home-manager";
 
     # Jovian SteamOS-like helpers
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS";
@@ -123,9 +108,6 @@
       helium,
       nixified-ai,
       nix-flatpak,
-      # nixos-cosmic,
-      # plasma-manager,
-      # hyprland,
       jovian,
       disposable-email-domains,
       my-wordpress-plugins,

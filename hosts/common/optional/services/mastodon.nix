@@ -53,7 +53,6 @@ in
   services.mastodon.vapidPublicKeyFile = config.sops.secrets."mastodon-vapid-public-key".path;
   services.mastodon.vapidPrivateKeyFile = config.sops.secrets."mastodon-vapid-private-key".path;
   services.mastodon.secretKeyBaseFile = config.sops.secrets."mastodon-secret-key-base".path;
-  services.mastodon.otpSecretFile = config.sops.secrets."mastodon-otp-secret".path;
   services.mastodon.elasticsearch =
     if config.services.elasticsearch.enable then
       {

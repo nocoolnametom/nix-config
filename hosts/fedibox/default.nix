@@ -43,7 +43,7 @@ in
     "hosts/common/optional/services/postgresql.nix"
     "hosts/common/optional/services/elasticsearch.nix"
     "hosts/common/optional/services/mailserver.nix"
-    "hosts/common/optional/linode.nix"
+    # "hosts/common/optional/linode.nix" # Until removed from EC2 we can't use Linode settings
     "hosts/common/optional/nostr.nix"
 
     #################### Users to Create ####################
@@ -118,7 +118,7 @@ in
   services.postgresqlBackup.enable = true;
   services.postgresqlBackup.backupAll = true;
   services.postgresqlBackup.location = "/mnt/s3mount/backups/postgresql";
-  services.postgresqlBackup.startAt = "weekly";
+  services.postgresqlBackup.startAt = lib.mkForce "weekly";
 
   # Nostr Setup
   programs.nostr.enable = true;

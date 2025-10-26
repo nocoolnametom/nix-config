@@ -10,7 +10,7 @@
     common/optional/git.nix
   ];
 
-  programs.git.userEmail = configVars.gitHubEmail;
+  programs.git.settings.user.email = configVars.gitHubEmail;
   programs.nh.flake = "/etc/nixos";
 
   home = {

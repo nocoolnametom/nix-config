@@ -14,11 +14,13 @@
   # yt-dlp
   (p.buildPythonPackage rec {
     pname = "stashapp-tools";
-    version = "0.2.58";
+    version = "0.2.59";
+    pyproject = true;
     src = p.fetchPypi {
       inherit pname version;
-      sha256 = "sha256-krruLbBI4FMruoXPiJEde9403hY7se6aeDsO+AqA8jo=";
+      sha256 = "sha256-Y52YueWHp8C2FsnJ01YMBkz4O2z4d7RBeCswWGr8SjY=";
     };
+    build-system = [ p.setuptools ];
     doCheck = false;
     propagatedBuildInputs = [
       # Specify dependencies
