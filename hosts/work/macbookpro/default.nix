@@ -33,6 +33,7 @@
     # This can be re-enabled once nixpkgs gets the new Mac compilation stuff for Tahoe working
     # "hosts/common/darwin/optional/services/jankyborders"
     "hosts/common/darwin/optional/services/sketchybar"
+    "hosts/common/darwin/optional/services/synergy"
 
     #################### Users to Manage ####################
     "home/${configVars.username}/persistence/macbookpro.nix"
