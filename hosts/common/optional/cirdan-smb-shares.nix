@@ -45,9 +45,11 @@ in
 {
   sops.secrets."cirdan-smb-primary-secrets" = {
     neededForUsers = true;
+    mode = "777";
   };
   sops.secrets."cirdan-smb-secondary-secrets" = {
     neededForUsers = true;
+    mode = "777";
   };
 
   #Cirdan SMB mounts
