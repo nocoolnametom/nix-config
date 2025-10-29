@@ -108,6 +108,8 @@ let
 in
 {
   services.dnsmasq.enable = lib.mkDefault true;
+  # I used to set these here, but the values are now dynamically looked up from tailscale
+  # If you need to set others this would be the place to do so
   # services.dnsmasq.addresses = configVars.networking.workDnsmasq.addresses;
 
   environment.etc =
@@ -124,6 +126,11 @@ in
       }) (configVars.networking.workDnsmasq.domains)
     ))
     // {
+      # Load the generated configs
+      "dnsmasq.conf".text = ''
+        # load all config snippets from the directory
+        conf-dir=/etc/dnsmasq.d
+      '';
       # ensure dnsmasq loads the generated hosts file
       "dnsmasq.d/tailscale.conf".text = ''
         addn-hosts=${outputName}
