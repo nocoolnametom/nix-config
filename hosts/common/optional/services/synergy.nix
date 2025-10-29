@@ -1,8 +1,16 @@
-{ pkgs, lib, config, configVars, ... }: with lib; 
+{
+  pkgs,
+  lib,
+  config,
+  configVars,
+  ...
+}:
+with lib;
 
 let
   cfg = config.services.mysynergy;
-in {
+in
+{
   options.services.mysynergy = with types; {
     enable = mkOption {
       type = bool;
@@ -10,11 +18,11 @@ in {
     };
     localMachineName = mkOption {
       type = str;
-      default = config.networking.hostName
+      default = config.networking.hostName;
     };
     machineToLeft = mkOption {
       type = str;
-      default = configVars.networking.work.macbookpro.name;;
+      default = configVars.networking.work.macbookpro.name;
     };
     settings = mkOption {
       type = str;
@@ -62,10 +70,13 @@ in {
   };
 
   config = mkIf cfg.enable {
-    sops.secrets."synergy/tls/${configVars.networking.work.macbookpro.name}" = {};
+    sops.secrets."synergy/tls/${configVars.networking.work.macbookpro.name}" = { };
 
-    services.synergy.server.enable = mkDefault true;
-    services.synergy.server.tls.enable = mkDefault true;
-    services.synergy.server.tls.cert = mkDefault config.sops.secrets."synergy/tls/${configVars.networking.work.macbookpro.name}".path;
+    services.synergy.client.enable = mkDefault true;
+    services.synergy.client.serverAddress = mkDefault configVars.networking.work.macbookpro.ip;
+    services.synergy.client.tls.enable = mkDefault true;
+    services.synergy.client.tls.cert =
+      mkDefault
+        config.sops.secrets."synergy/tls/${configVars.networking.work.macbookpro.name}".path;
   };
 }

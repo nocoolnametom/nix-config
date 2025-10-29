@@ -71,6 +71,10 @@
 
   # services.gotosocial.settings.landing-page-user = "tom";
 
+  # Once synergy is actually working on Comsic we can re-enable this, but until then it
+  # makes sense to not have a useless service just sitting open
+  services.synergy.client.enable = false;
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "pangolin11";

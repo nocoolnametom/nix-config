@@ -4,19 +4,21 @@
 
 { inputs, ... }:
 
-let rapidocrOverrides = prev: self: super: {
-  rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
-    disabledTests = [
-      # Needs Internet access
-      "test_long_img"
-    ]
-    ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
-      # segfault when built with cuda support but GPU is not availaible in build environment
-      "test_ort_cuda_warning"
-      "test_ort_dml_warning"
-    ];
-  });
-}; in
+let
+  rapidocrOverrides = prev: self: super: {
+    rapidocr-onnxruntime = super.rapidocr-onnxruntime.overridePythonAttrs (old: rec {
+      disabledTests = [
+        # Needs Internet access
+        "test_long_img"
+      ]
+      ++ prev.lib.optionals prev.onnxruntime.cudaSupport [
+        # segfault when built with cuda support but GPU is not availaible in build environment
+        "test_ort_cuda_warning"
+        "test_ort_dml_warning"
+      ];
+    });
+  };
+in
 {
   # This one brings our custom packages from the 'pkgs' directory
   additions =

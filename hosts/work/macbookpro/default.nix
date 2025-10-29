@@ -28,12 +28,15 @@
     "hosts/common/optional/direnv.nix"
     "hosts/common/optional/tmux.nix"
     "hosts/common/optional/yubikey.nix"
-    "hosts/common/darwin/optional/dnsmasq.nix"
+    # We're using brew to manage dnsmasq
+    "hosts/common/darwin/optional/homebrew"
     "hosts/common/darwin/optional/services/aerospace"
+    "hosts/common/darwin/optional/services/dnsmasq"
     # This can be re-enabled once nixpkgs gets the new Mac compilation stuff for Tahoe working
     # "hosts/common/darwin/optional/services/jankyborders"
     "hosts/common/darwin/optional/services/sketchybar"
     "hosts/common/darwin/optional/services/synergy"
+    "hosts/common/darwin/optional/services/tailscale"
 
     #################### Users to Manage ####################
     "home/${configVars.username}/persistence/macbookpro.nix"
@@ -50,31 +53,9 @@
     appleFonts.sf-mono-nerd
   ];
 
-  # Move to import once this is working
-  services.tailscale.enable = true;
-  ## services.tailscale.package = pkgs.unstable.tailscale;
-
-  homebrew.enable = true;
-  homebrew.user = configVars.username;
-  homebrew.onActivation.autoUpdate = true;
-  homebrew.onActivation.cleanup = "uninstall";
-  homebrew.onActivation.upgrade = true;
-  homebrew.brews = [
-    # No current nixpkgs
-    { name = "tfenv"; }
-    # FUB uses dnsmasq and wants to control the config file, so we use brew instead of nix
-    { name = "dnsmasq"; }
-    { name = "podman"; }
-    { name = "podman-compose"; }
-  ];
-  homebrew.casks = [
-    # Podman should work better than docker on MacOS
-    { name = "podman-desktop"; }
-  ];
-  homebrew.taps = [
-    { name = "amar1729/formulae"; }
-    { name = "homebrew/services"; }
-  ];
+  # Once synergy is actually working on Comsic we can re-enable this, but until then it
+  # makes sense to not have a useless service just sitting open
+  # services.synergy.server.enable = false;
 
   environment.systemPackages = [
     pkgs.awscli2
@@ -92,14 +73,10 @@
   programs.vim.enable = true;
   programs.vim.enableSensible = true;
 
-  services.dnsmasq.enable = false; # Find out if we want this as a service or if teleport runs it manually
-  services.dnsmasq.addresses = { } // configVars.work.dnsmasq.addresses;
-
   system.defaults.dock.autohide = true;
   system.defaults.dock.orientation = "right";
   system.defaults.dock.showhidden = true;
   system.defaults.dock.expose-group-apps = true;
-  # system.defaults.universalaccess.reduceMotion = true;
   system.defaults.NSGlobalDomain._HIHideMenuBar = true;
 
   # Used for backwards compatibility, please read the changelog before changing.
