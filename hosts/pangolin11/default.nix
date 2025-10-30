@@ -43,6 +43,7 @@
     "hosts/common/optional/services/openssh.nix" # allow remote SSH access
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
+    "hosts/common/optional/services/synergy.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/adb.nix" # Android Debugging
     "hosts/common/optional/blinkstick.nix"
