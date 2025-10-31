@@ -46,6 +46,7 @@ in
         pandas
         configparser
         py7zr
+        standard-imghdr
       ]
     ))
     ffmpeg
