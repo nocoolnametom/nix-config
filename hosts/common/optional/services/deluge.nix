@@ -44,11 +44,11 @@
     listen_reuse_port = true;
     listen_use_sys_port = false;
     lsd = false;
-    max_active_downloading = 5;
-    max_active_limit = 10;
+    max_active_downloading = 200;
+    max_active_limit = 100;
     max_active_seeding = 3;
-    max_connections_global = 100;
-    max_connections_per_second = 10;
+    max_connections_global = -1;
+    max_connections_per_second = -1;
     max_connections_per_torrent = -1;
     max_download_speed = -1.0;
     max_download_speed_per_torrent = -1;

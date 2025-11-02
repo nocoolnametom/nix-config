@@ -33,6 +33,7 @@
           "Sync"
           "Videos"
           "bin"
+          ".claude"
           ".Immersed"
           ".local/share/bottles"
           ".local/share/direnv"
@@ -61,7 +62,11 @@
             mode = "0700";
           }
         ];
-        files = [ ".bash_history" ];
+        files = [
+          ".bash_history"
+          ".claude.json"
+          ".claude.json.backup"
+        ];
       };
 
   # Don't allow mutation of users outside of the config.
