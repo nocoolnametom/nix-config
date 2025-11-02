@@ -45,6 +45,7 @@
     "hosts/common/optional/services/stashapp.nix"
     "hosts/common/optional/services/wivrn.nix"
     "hosts/common/optional/cross-compiling.nix"
+    "hosts/common/optional/direnv.nix"
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/nvidia.nix"
     "hosts/common/optional/steam.nix"
