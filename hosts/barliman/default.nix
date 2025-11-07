@@ -39,6 +39,7 @@
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/open-webui.nix"
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/cross-compiling.nix"
@@ -92,27 +93,6 @@
   services.ollama.models = "/var/lib/ai-models/ollama";
   services.ollama.environmentVariables.HCC_AMDGPU_TARGET = "gfx1151";
   services.ollama.rocmOverrideGfx = "11.5.1";
-  services.open-webui.enable = true;
-  services.open-webui.host = "0.0.0.0";
-  services.open-webui.openFirewall = true;
-  sops.secrets = {
-    "open-webui-slug" = { };
-    "open-webui-clientid" = { };
-    "open-webui-clientsecret" = { };
-  };
-  sops.templates."open-webui.conf".content = ''
-    ENABLE_OAUTH_SIGNUP=true
-    OAUTH_MERGE_ACCOUNTS_BY_EMAIL=true
-    OAUTH_PROVIDER_NAME=Authentik
-    OPENID_PROVIDER_URL=https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/${
-      config.sops.placeholder."open-webui-slug"
-    }/.well-known/openid-configuration
-    OAUTH_CLIENT_ID=${config.sops.placeholder."open-webui-clientid"}
-    OAUTH_CLIENT_SECRET=${config.sops.placeholder."open-webui-clientsecret"}
-    OAUTH_SCOPES=openid email profile
-    OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.domain}/oauth/oidc/callback
-  '';
-  services.open-webui.environmentFile = config.sops.templates."open-webui.conf".path;
 
   # While this is a Jovian machine, it's NOT a SteamDeck
   jovian.devices.steamdeck.enable = lib.mkForce false;
