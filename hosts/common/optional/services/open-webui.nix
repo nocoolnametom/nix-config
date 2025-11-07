@@ -1,4 +1,11 @@
-{ lib, pkgs, configVars, ... }: {
+{
+  lib,
+  pkgs,
+  config,
+  configVars,
+  ...
+}:
+{
   services.open-webui.enable = lib.mkDefault true;
   services.open-webui.host = lib.mkDefault "0.0.0.0";
   services.open-webui.port = lib.mkDefault configVars.networking.ports.tcp.openwebui;
