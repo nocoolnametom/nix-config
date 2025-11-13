@@ -90,7 +90,7 @@
     "d ${config.users.users.stashapp.home}/data/data.dat/av1 777 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
   ];
   services.stashapp.vr-helper.enable = true;
-  services.stashapp.vr-helper.stash-host = "http://${configVars.networking.subnets.smeagol.actual}:${builtins.toString configVars.networking.ports.tcp.stash}";
+  services.stashapp.vr-helper.stash-host = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.stash}";
   sops.secrets = {
     "smeagol-stashapp-api-key" = { };
   };
