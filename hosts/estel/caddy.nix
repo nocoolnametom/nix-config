@@ -63,14 +63,14 @@
     };
     "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from archer/smeagol
+      # Served through cirdan from smeagol
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from archer/smeagol
+      # Served through cirdan from smeagol
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
@@ -181,9 +181,9 @@
     "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
       # Will move to barliman soon
-      # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
+      # reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
+        reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       '';
     };
     "${configVars.networking.subdomains.paperless}.${configVars.homeDomain}" = {
@@ -237,7 +237,7 @@
     "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
       useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.domain}";
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
+        reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
       '';
     };
     "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {

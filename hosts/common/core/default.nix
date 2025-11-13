@@ -54,6 +54,7 @@
     pkgs.nixfmt-rfc-style
     pkgs.nil
     pkgs.screen
+    pkgs.tmux
     pkgs.unrar
     pkgs.unzip
   ];

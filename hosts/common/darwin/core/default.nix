@@ -43,6 +43,7 @@
     pkgs.dnsmasq
     pkgs.docutils
     pkgs.mkcert
+    pkgs.tmux
     # pkgs.openssh # Need to make sure launchctl is switched first!
   ];
 

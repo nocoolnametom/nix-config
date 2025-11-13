@@ -8,16 +8,10 @@ with lib;
   homebrew.onActivation.upgrade = mkDefault true;
   homebrew.brews = [
     # No current nixpkgs
-    { name = "tfenv"; }
-    { name = "podman"; }
-    { name = "podman-compose"; }
+    { name = "reddix"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS
     { name = "podman-desktop"; }
-  ];
-  homebrew.taps = [
-    { name = "amar1729/formulae"; }
-    { name = "homebrew/services"; }
   ];
 }

@@ -52,13 +52,13 @@
     };
     "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
       extraConfig = ''
-        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}
+        # reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyui}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
     "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
       extraConfig = ''
-        # reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}
+        # reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.comfyuimini}
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
@@ -149,7 +149,7 @@
     };
     "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
+        reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
       '';
     };
     "${configVars.networking.subdomains.pinchflat}.${configVars.domain}" = {

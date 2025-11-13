@@ -27,7 +27,7 @@
     OIDC_ADMIN_GROUP = "mealie-admins"; # <Your admins group created in authentik>
     OIDC_AUTO_REDIRECT = "true"; # Optional: The login page will be bypassed and you will be sent directly to your Identity Provider.
     OIDC_REMEMBER_ME = "true"; # Optional: By setting this value to true, a session will be extended as if "Remember Me" was checked.
-    OPENAI_BASE_URL = "http://${configVars.networking.subnets.archer.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}/v1";
+    OPENAI_BASE_URL = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}/v1";
     OPENAI_API_KEY = "1234567890123456"; # Ollama doesn't care about api keys
     OPENAI_MODEL = "llama3.2:latest";
     OPENAI_ENABLE_IMAGE_SERVICES = "false";

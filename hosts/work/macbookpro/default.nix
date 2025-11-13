@@ -28,7 +28,6 @@
     "hosts/common/optional/direnv.nix"
     "hosts/common/optional/tmux.nix"
     "hosts/common/optional/yubikey.nix"
-    # We're using brew to manage dnsmasq
     "hosts/common/darwin/optional/homebrew"
     "hosts/common/darwin/optional/services/aerospace"
     "hosts/common/darwin/optional/services/dnsmasq"
