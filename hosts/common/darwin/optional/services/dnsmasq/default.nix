@@ -7,7 +7,7 @@
 }:
 let
   outputDir = "/etc/dnsmasq.d";
-  outputName = "${outputDir}/tailscale.hosts";
+  outputName = "${outputDir}/tailscale.conf";
   # build the updater into the Nix store (uses jq from pkgs)
   tailscaleUpdater = pkgs.writeShellScriptBin "tailscale-updater" ''
     #!/usr/bin/env bash
@@ -59,11 +59,10 @@ let
 
       echo "found ip ''${ip} for name ''${name}" >&2
 
-      line="''${ip} ''${name}"
+      # Generate address= directives for dnsmasq (supports wildcards)
       for d in ''${domains}; do
-        line="''${line} ''${d}"
+        echo "address=/''${d}/''${ip}" >> "''${TMP}"
       done
-      echo "''${line}" >> "''${TMP}"
     done
 
     rm -f "''${status_json}"
@@ -74,7 +73,7 @@ let
 
     touch "''${OUT_FILE}" || true
 
-    chmod 755 "''${OUT_FILE}" || true
+    chmod 644 "''${OUT_FILE}" || true
 
     reload_dnsmasq() {
       if command -v launchctl >/dev/null 2>&1; then
@@ -97,7 +96,7 @@ let
 
     if ! cmp -s "''${TMP}" "''${OUT_FILE}" 2>/dev/null; then
       mv "''${TMP}" "''${OUT_FILE}"
-      chmod 755 "''${OUT_FILE}" || true
+      chmod 644 "''${OUT_FILE}" || true
       echo "$(date -u) - updated ''${OUT_FILE}; reloading dnsmasq" >&2
       reload_dnsmasq
     else
@@ -129,12 +128,10 @@ in
       # Load the generated configs
       "dnsmasq.conf".text = ''
         # load all config snippets from the directory
-        conf-dir=/etc/dnsmasq.d
+        conf-dir=/etc/dnsmasq.d,*.conf
       '';
-      # ensure dnsmasq loads the generated hosts file
-      "dnsmasq.d/tailscale.conf".text = ''
-        addn-hosts=${outputName}
-      '';
+      # The tailscale.conf file with address= directives is generated dynamically
+      # by the tailscale-dnsmasq-updater service and loaded via conf-dir above
     };
 
   # declare a nix-darwin launchd job (no plist file needed)
