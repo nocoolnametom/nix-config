@@ -119,7 +119,7 @@
   services.stash-video-conversion.incomingDir = "/var/lib/stash-video-conversion/incoming";
   services.stash-video-conversion.transcodingDir = "/var/lib/stash-video-conversion/transcoding";
   services.stash-video-conversion.finishedDir = "/var/lib/stash-video-conversion/finished";
-  services.stash-video-conversion.handbrakePresetJsonFilePath = "/var/lib/stashapp/data/data.dat/MyVRAV1s.json";
+  services.stash-video-conversion.handbrakePresetJsonFilePath = "/var/lib/stash-video-conversion/MyVRAV1s.json";
   services.stash-video-conversion.handbrakePreset = "MyVRAV1s";
   services.stash-video-conversion.perPageLimit = 50;
 

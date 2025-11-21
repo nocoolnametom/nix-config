@@ -36,11 +36,11 @@ in
     # ...
     # });
     # I'm not using zen and dislike having to keep rebuild it
-    # zen-browser-flake = inputs.zen-browser.packages.${final.system};
+    # zen-browser-flake = inputs.zen-browser.packages.${final.stdenv.hostPlatform.system};
     # helium-browser from a flake
-    helium-browser-flake = inputs.helium.defaultPackage.${final.system};
-    myWpPlugins = inputs.my-wordpress-plugins.packages.${final.system};
-    appleFonts = inputs.apple-fonts.packages.${final.system};
+    helium-browser-flake = inputs.helium.defaultPackage.${final.stdenv.hostPlatform.system};
+    myWpPlugins = inputs.my-wordpress-plugins.packages.${final.stdenv.hostPlatform.system};
+    appleFonts = inputs.apple-fonts.packages.${final.stdenv.hostPlatform.system};
     # @TODO Used by steam at least until verson 15 is added to unstable
     proton-ge-bin-15 = prev.proton-ge-bin.overrideAttrs (old: rec {
       version = "GE-Proton10-15";
