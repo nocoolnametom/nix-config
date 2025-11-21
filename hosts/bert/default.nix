@@ -72,11 +72,8 @@
   services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
 
   # Add stash-conversion public key for remote video conversion from smeagol
-  sops.secrets."stash-conversion-pubkey" = {
-    key = "ssh/personal/root_only/stash-conversion.pub";
-  };
   users.users.${configVars.username}.openssh.authorizedKeys.keyFiles = [
-    config.sops.secrets."stash-conversion-pubkey".path
+    ./stash-conversion.pub
   ];
 
   ## Imports overrides
