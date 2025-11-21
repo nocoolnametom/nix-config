@@ -11,6 +11,6 @@
   stylix.fonts.sansSerif.name = lib.mkDefault "DejaVu Sans";
   stylix.fonts.monospace.package = lib.mkDefault pkgs.dejavu_fonts;
   stylix.fonts.monospace.name = lib.mkDefault "DejaVu Sans Mono";
-  stylix.fonts.emoji.package = lib.mkDefault pkgs.noto-fonts-emoji;
+  stylix.fonts.emoji.package = lib.mkDefault pkgs.noto-fonts-color-emoji;
   stylix.fonts.emoji.name = lib.mkDefault "Noto Color Emoji";
 }
