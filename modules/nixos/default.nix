@@ -3,7 +3,6 @@
 {
   # List your module files here
   # my-module = import ./my-module.nix;
-  bert-video-conversion = import ./bert-video-conversion.nix;
   dns-failover = import ./dns-failover.nix;
   failover-redirects = import ./failover-redirects.nix;
   kavitan = import ./kavitan.nix;
@@ -12,8 +11,9 @@
   per-user-vpn = import ./per-user-vpn.nix;
   rsync-cert-sync = import ./rsync-cert-sync.nix;
   sauronsync = import ./sauronsync.nix;
-  systemd-failure-alert = import ./systemd-failure-alert.nix;
+  stash-video-conversion = import ./stash-video-conversion.nix;
   stashapp = import ./stashapp.nix;
+  systemd-failure-alert = import ./systemd-failure-alert.nix;
   yubikey = import ./yubikey.nix;
   zsa-udev-rules = import ./zsa-udev-rules.nix;
 }

@@ -108,34 +108,34 @@
   services.nzbget-to-management.handbrakePresetJsonFilePath = "/var/lib/stashapp/data/data.dat/MyVRAV1s.json";
   services.nzbget-to-management.handbrakePreset = "MyVRAV1s";
 
-  # Remote video conversion from bert
-  services.bert-video-conversion.enable = true;
-  services.bert-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.bert.ip}:${
+  # Remote video conversion from stash server
+  services.stash-video-conversion.enable = true;
+  services.stash-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.bert.ip}:${
     builtins.toString configVars.networking.ports.tcp.stash
   }/graphql";
-  services.bert-video-conversion.remoteHost = configVars.networking.subnets.bert.ip;
-  services.bert-video-conversion.remoteUser = configVars.username;
-  services.bert-video-conversion.remoteUploadDir = "/media/g_drive/nzbget/dest/software/finished";
-  services.bert-video-conversion.incomingDir = "/var/lib/bert-video-conversion/incoming";
-  services.bert-video-conversion.transcodingDir = "/var/lib/bert-video-conversion/transcoding";
-  services.bert-video-conversion.finishedDir = "/var/lib/bert-video-conversion/finished";
-  services.bert-video-conversion.handbrakePresetJsonFilePath = "/var/lib/stashapp/data/data.dat/MyVRAV1s.json";
-  services.bert-video-conversion.handbrakePreset = "MyVRAV1s";
-  services.bert-video-conversion.perPageLimit = 50;
+  services.stash-video-conversion.remoteHost = configVars.networking.subnets.bert.ip;
+  services.stash-video-conversion.remoteUser = configVars.username;
+  services.stash-video-conversion.remoteUploadDir = "/media/g_drive/nzbget/dest/software/finished";
+  services.stash-video-conversion.incomingDir = "/var/lib/stash-video-conversion/incoming";
+  services.stash-video-conversion.transcodingDir = "/var/lib/stash-video-conversion/transcoding";
+  services.stash-video-conversion.finishedDir = "/var/lib/stash-video-conversion/finished";
+  services.stash-video-conversion.handbrakePresetJsonFilePath = "/var/lib/stashapp/data/data.dat/MyVRAV1s.json";
+  services.stash-video-conversion.handbrakePreset = "MyVRAV1s";
+  services.stash-video-conversion.perPageLimit = 50;
 
   # Secrets configuration
   sops.secrets."bert-stashapp-api-key" = { };
-  sops.secrets."bert-video-rsync-key" = {
+  sops.secrets."stash-video-rsync-key" = {
     key = "ssh/personal/root_only/stash-conversion"; # Passwordless key for automation
     mode = "0600";
-    owner = config.services.bert-video-conversion.user;
-    group = config.services.bert-video-conversion.group;
+    owner = config.services.stash-video-conversion.user;
+    group = config.services.stash-video-conversion.group;
   };
-  sops.templates."bert-video-conversion.env".content = ''
+  sops.templates."stash-video-conversion.env".content = ''
     API_KEY=${config.sops.placeholder."bert-stashapp-api-key"}
-    SSH_KEY_PATH=${config.sops.secrets."bert-video-rsync-key".path}
+    SSH_KEY_PATH=${config.sops.secrets."stash-video-rsync-key".path}
   '';
-  services.bert-video-conversion.environmentFile = config.sops.templates."bert-video-conversion.env".path;
+  services.stash-video-conversion.environmentFile = config.sops.templates."stash-video-conversion.env".path;
 
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models
