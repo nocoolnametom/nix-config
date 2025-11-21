@@ -397,16 +397,16 @@ in
     systemd.services.bert-video-fetch = {
       description = "Bert Video Conversion - Fetch Service";
 
+      # Rate limiting: max 5 restarts in 5 minutes
+      startLimitIntervalSec = 300;
+      startLimitBurst = 5;
+
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
         ExecStart = fetchScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
-
-        # Rate limiting: max 5 restarts in 5 minutes
-        StartLimitIntervalSec = 300;
-        StartLimitBurst = 5;
       };
 
       # Don't start on boot
@@ -417,16 +417,16 @@ in
     systemd.services.bert-video-convert = {
       description = "Bert Video Conversion - Convert Service";
 
+      # Rate limiting: max 5 restarts in 5 minutes
+      startLimitIntervalSec = 300;
+      startLimitBurst = 5;
+
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
         ExecStart = convertScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
-
-        # Rate limiting: max 5 restarts in 5 minutes
-        StartLimitIntervalSec = 300;
-        StartLimitBurst = 5;
       };
 
       # Don't start on boot
@@ -437,16 +437,16 @@ in
     systemd.services.bert-video-upload = {
       description = "Bert Video Conversion - Upload Service";
 
+      # Rate limiting: max 5 restarts in 5 minutes
+      startLimitIntervalSec = 300;
+      startLimitBurst = 5;
+
       serviceConfig = {
         Type = "oneshot";
         User = cfg.user;
         Group = cfg.group;
         ExecStart = uploadScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
-
-        # Rate limiting: max 5 restarts in 5 minutes
-        StartLimitIntervalSec = 300;
-        StartLimitBurst = 5;
       };
 
       # Don't start on boot
