@@ -15,7 +15,7 @@ let
   cfg = config.services.stash-video-conversion;
 
   # Fetch script: Query GraphQL, download first unconverted video
-  fetchScript = pkgs.writeShellScript "bert-video-fetch.sh" ''
+  fetchScript = pkgs.writeShellScript "stash-video-fetch.sh" ''
     set -euo pipefail
 
     STATE_DIR="${cfg.stateDirectory}"
@@ -130,7 +130,7 @@ QUERY_END
   '';
 
   # Convert script: Convert all videos in incoming dir
-  convertScript = pkgs.writeShellScript "bert-video-convert.sh" ''
+  convertScript = pkgs.writeShellScript "stash-video-convert.sh" ''
     set -euo pipefail
 
     STATE_DIR="${cfg.stateDirectory}"
@@ -156,7 +156,7 @@ QUERY_END
       # Set flag to prevent infinite loop
       touch "$EMPTY_FLAG"
       echo "[INFO] Starting upload service to sync any completed files before stopping"
-      systemctl start bert-video-upload.service
+      systemctl start stash-video-upload.service
       exit 1
     fi
 
@@ -217,7 +217,7 @@ QUERY_END
   '';
 
   # Upload script: Rsync finished videos back to bert
-  uploadScript = pkgs.writeShellScript "bert-video-upload.sh" ''
+  uploadScript = pkgs.writeShellScript "stash-video-upload.sh" ''
     set -euo pipefail
 
     STATE_DIR="${cfg.stateDirectory}"
@@ -254,10 +254,10 @@ QUERY_END
   '';
 
   # Launcher script: Just starts the fetch service and exits immediately
-  launcherScript = pkgs.writeShellScript "bert-video-launcher.sh" ''
+  launcherScript = pkgs.writeShellScript "stash-video-launcher.sh" ''
     set -euo pipefail
     echo "[INFO] Starting stash-video-conversion state machine"
-    ${pkgs.systemd}/bin/systemctl start --no-block bert-video-fetch.service
+    ${pkgs.systemd}/bin/systemctl start --no-block stash-video-fetch.service
   '';
 
 in
@@ -276,12 +276,12 @@ in
         Example using sops-nix:
         ```nix
         sops.secrets."bert-stashapp-api-key" = { };
-        sops.secrets."bert-video-rsync-key" = {
+        sops.secrets."stash-video-rsync-key" = {
           mode = "0600";
         };
         sops.templates."stash-video-conversion.env".content = '''
           API_KEY=''${config.sops.placeholder."bert-stashapp-api-key"}
-          SSH_KEY_PATH=''${config.sops.secrets."bert-video-rsync-key".path}
+          SSH_KEY_PATH=''${config.sops.secrets."stash-video-rsync-key".path}
         ''';
         services.stash-video-conversion.environmentFile =
           config.sops.templates."stash-video-conversion.env".path;
@@ -381,8 +381,8 @@ in
     ];
 
     # Fetch service: Query GraphQL and download video
-    systemd.services.bert-video-fetch = {
-      description = "Bert Video Conversion - Fetch Service";
+    systemd.services.stash-video-fetch = {
+      description = "Stash Video Conversion - Fetch Service";
 
       # Rate limiting: max 5 restarts in 5 minutes
       startLimitIntervalSec = 300;
@@ -395,7 +395,7 @@ in
         ExecStart = fetchScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
         # Start convert service after successful completion
-        ExecStartPost = "${pkgs.systemd}/bin/systemctl start --no-block bert-video-convert.service";
+        ExecStartPost = "${pkgs.systemd}/bin/systemctl start --no-block stash-video-convert.service";
       };
 
       # Don't start on boot
@@ -403,8 +403,8 @@ in
     };
 
     # Convert service: Transcode videos
-    systemd.services.bert-video-convert = {
-      description = "Bert Video Conversion - Convert Service";
+    systemd.services.stash-video-convert = {
+      description = "Stash Video Conversion - Convert Service";
 
       # Rate limiting: max 5 restarts in 5 minutes
       startLimitIntervalSec = 300;
@@ -417,7 +417,7 @@ in
         ExecStart = convertScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
         # Start upload service after successful completion
-        ExecStartPost = "${pkgs.systemd}/bin/systemctl start --no-block bert-video-upload.service";
+        ExecStartPost = "${pkgs.systemd}/bin/systemctl start --no-block stash-video-upload.service";
       };
 
       # Don't start on boot
@@ -425,8 +425,8 @@ in
     };
 
     # Upload service: Rsync back to bert
-    systemd.services.bert-video-upload = {
-      description = "Bert Video Conversion - Upload Service";
+    systemd.services.stash-video-upload = {
+      description = "Stash Video Conversion - Upload Service";
 
       # Rate limiting: max 5 restarts in 5 minutes
       startLimitIntervalSec = 300;
@@ -444,7 +444,7 @@ in
             echo "[INFO] Empty flag detected, not restarting fetch service"
             exit 0
           fi
-          ${pkgs.systemd}/bin/systemctl start --no-block bert-video-fetch.service
+          ${pkgs.systemd}/bin/systemctl start --no-block stash-video-fetch.service
         '';
       };
 
@@ -453,8 +453,8 @@ in
     };
 
     # Launcher service: Kicks off the state machine and returns immediately
-    systemd.services.bert-video-launcher = {
-      description = "Bert Video Conversion - Launcher";
+    systemd.services.stash-video-launcher = {
+      description = "Stash Video Conversion - Launcher";
 
       serviceConfig = {
         Type = "oneshot";
@@ -467,9 +467,9 @@ in
 
     # Target to control all services
     systemd.targets.stash-video-conversion = {
-      description = "Bert Video Conversion Target";
+      description = "Stash Video Conversion Target";
       wants = [
-        "bert-video-launcher.service"
+        "stash-video-launcher.service"
       ];
     };
   };
