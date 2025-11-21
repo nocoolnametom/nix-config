@@ -15,7 +15,7 @@
     nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi";
 
     # Lanzaboote Secure Bootloader for NixOS
-    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.2";
+    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.3";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
 
     hardware.url = "github:nixos/nixos-hardware";
