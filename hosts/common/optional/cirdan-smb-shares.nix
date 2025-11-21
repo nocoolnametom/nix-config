@@ -44,12 +44,12 @@ let
 in
 {
   sops.secrets."cirdan-smb-primary-secrets" = {
-    neededForUsers = true;
     mode = "777";
+    path = "/var/lib/cirdan/primary.txt";
   };
   sops.secrets."cirdan-smb-secondary-secrets" = {
-    neededForUsers = true;
     mode = "777";
+    path = "/var/lib/cirdan/secondary.txt";
   };
 
   #Cirdan SMB mounts
