@@ -394,8 +394,8 @@ in
         Group = cfg.group;
         ExecStart = fetchScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
-        # Start convert service after successful completion
-        ExecStartPost = "${pkgs.systemd}/bin/systemctl start --no-block stash-video-convert.service";
+        # Start convert service after successful completion (+ prefix runs as root)
+        ExecStartPost = "+${pkgs.systemd}/bin/systemctl start --no-block stash-video-convert.service";
       };
 
       # Don't start on boot
@@ -416,8 +416,8 @@ in
         Group = cfg.group;
         ExecStart = convertScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
-        # Start upload service after successful completion
-        ExecStartPost = "${pkgs.systemd}/bin/systemctl start --no-block stash-video-upload.service";
+        # Start upload service after successful completion (+ prefix runs as root)
+        ExecStartPost = "+${pkgs.systemd}/bin/systemctl start --no-block stash-video-upload.service";
       };
 
       # Don't start on boot
@@ -439,7 +439,8 @@ in
         ExecStart = uploadScript;
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
         # Loop back to fetch service only if upload was successful (no empty flag)
-        ExecStartPost = pkgs.writeShellScript "upload-post.sh" ''
+        # + prefix runs as root so systemctl has permission
+        ExecStartPost = "+" + pkgs.writeShellScript "upload-post.sh" ''
           if [[ -f "${cfg.stateDirectory}/empty-incoming-flag" ]]; then
             echo "[INFO] Empty flag detected, not restarting fetch service"
             exit 0
