@@ -131,6 +131,19 @@
     ];
   };
 
+  fileSystems."/var/lib/bert-video-conversion" = {
+    device = "/dev/disk/by-label/Insignia";
+    fsType = "btrfs";
+    options = [
+      "subvol=stash-convert"
+      "users"
+      "auto"
+      "compress=zstd"
+      "nofail"
+      "defaults"
+    ];
+  };
+
   fileSystems."/var/lib/stashapp/data" = {
     device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";
