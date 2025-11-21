@@ -131,7 +131,7 @@
     ];
   };
 
-  fileSystems."/var/lib/bert-video-conversion" = {
+  fileSystems."/var/lib/stash-video-conversion" = {
     device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";
     options = [
