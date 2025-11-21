@@ -34,7 +34,7 @@
       nix-tree # nix package tree viewer
       pciutils
       p7zip # compression & encryption
-      silver-searcher # better grep
+      ripgrep # better grep
       tree # cli dir tree viewer
       unzip # zip extraction
       unrar # rar extraction
@@ -55,6 +55,13 @@
       allowUnfreePredicate = (_: true);
     };
   };
+
+  # shell aliases for interactive shells (available via Home Manager)
+  programs.bash.initExtra = lib.mkDefault ''
+    # Provide ag alias that uses rg so my finger memory continues to work
+    alias ag='rg --smart-case'
+  '';
+  programs.zsh.shellAliases.ag = "rg --smart-case";
 
   nix = {
     package = lib.mkDefault pkgs.nix;
