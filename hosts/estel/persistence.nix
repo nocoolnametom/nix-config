@@ -41,7 +41,6 @@
       "/var/lib/private/ddclient"
       "/var/lib/private/karakeep-browser"
       "/var/lib/private/mealie"
-      "/var/lib/private/meilisearch"
       "/var/lib/redis-immich"
       "/var/lib/redis-paperless"
       "/var/lib/sbctl"
