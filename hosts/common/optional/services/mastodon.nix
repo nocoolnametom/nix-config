@@ -89,6 +89,17 @@ in
       limit_conn conn_limit_per_ip 10;
     '';
     locations."/system/".alias = "/var/lib/mastodon/public-system/";
+    locations."/packs/" = {
+      tryFiles = "$uri =404";
+      extraConfig = ''
+        # Disable rate limiting for static assets
+        limit_req off;
+        limit_conn off;
+        # Cache assets for 1 year
+        expires 1y;
+        add_header Cache-Control "public, immutable";
+      '';
+    };
     locations."/".tryFiles = "$uri @proxy";
     locations."@proxy".proxyPass = (
       if config.services.mastodon.enableUnixSocket then
