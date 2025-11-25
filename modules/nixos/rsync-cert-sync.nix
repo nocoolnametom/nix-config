@@ -162,12 +162,19 @@ in
           # Parse the schedule and add the configured delay in minutes
           OnCalendar =
             let
+              # Helper to remove leading zeros to avoid octal interpretation
+              removeLeadingZeros = str:
+                let
+                  stripped = lib.removePrefix "0" str;
+                in
+                  if stripped == "" then "0" else stripped;
+
               # Extract the time portion (assumes format "*-*-* HH:MM:SS")
               parts = lib.splitString " " cfg.receiver.timerSchedule;
               timePart = lib.elemAt parts (lib.length parts - 1);
               timeParts = lib.splitString ":" timePart;
-              hour = lib.toInt (lib.elemAt timeParts 0);
-              minute = lib.toInt (lib.elemAt timeParts 1);
+              hour = lib.toInt (removeLeadingZeros (lib.elemAt timeParts 0));
+              minute = lib.toInt (removeLeadingZeros (lib.elemAt timeParts 1));
               second = lib.elemAt timeParts 2;
 
               # Add delay minutes
