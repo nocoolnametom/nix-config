@@ -85,31 +85,40 @@ in
     enableACME = true;
     extraConfig = ''
       gzip_static on;
-      limit_req zone=req_limit_per_ip burst=20 nodelay;
-      limit_conn conn_limit_per_ip 10;
     '';
     locations."/system/".alias = "/var/lib/mastodon/public-system/";
     locations."/packs/" = {
       tryFiles = "$uri =404";
       extraConfig = ''
-        # Disable rate limiting for static assets
-        limit_req off;
-        limit_conn off;
         # Cache assets for 1 year
         expires 1y;
         add_header Cache-Control "public, immutable";
       '';
     };
     locations."/".tryFiles = "$uri @proxy";
-    locations."@proxy".proxyPass = (
-      if config.services.mastodon.enableUnixSocket then
-        "http://unix:/run/mastodon-web/web.socket"
-      else
-        "http://127.0.0.1:${toString (config.services.mastodon.webPort)}"
-    );
-    locations."@proxy".proxyWebsockets = true;
-    locations."/api/v1/streaming/".proxyPass = "http://mastodon-streaming";
-    locations."/api/v1/streaming/".proxyWebsockets = true;
+    locations."@proxy" = {
+      proxyPass = (
+        if config.services.mastodon.enableUnixSocket then
+          "http://unix:/run/mastodon-web/web.socket"
+        else
+          "http://127.0.0.1:${toString (config.services.mastodon.webPort)}"
+      );
+      proxyWebsockets = true;
+      extraConfig = ''
+        # Apply rate limiting only to dynamic content
+        limit_req zone=req_limit_per_ip burst=20 nodelay;
+        limit_conn conn_limit_per_ip 10;
+      '';
+    };
+    locations."/api/v1/streaming/" = {
+      proxyPass = "http://mastodon-streaming";
+      proxyWebsockets = true;
+      extraConfig = ''
+        # Apply rate limiting to API endpoints
+        limit_req zone=req_limit_per_ip burst=20 nodelay;
+        limit_conn conn_limit_per_ip 10;
+      '';
+    };
   };
   services.nginx.upstreams.mastodon-streaming.extraConfig = ''
     least_conn;

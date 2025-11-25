@@ -132,8 +132,11 @@ in
     (lib.mkIf cfg.receiver.enable {
       systemd.services.rsync-cert-fix-permissions = {
         description = "Fix Certificate Permissions After Rsync";
+        wantedBy = [ "multi-user.target" ];
+        before = [ "nginx.service" ];
         serviceConfig = {
           Type = "oneshot";
+          RemainAfterExit = true;
           ExecStart = "${pkgs.writeShellScriptBin "fix-cert-permissions" ''
             # Fix ownership and permissions for all certificates
             ${pkgs.findutils}/bin/find ${cfg.receiver.certPath} -type d -exec ${pkgs.coreutils}/bin/chmod 750 {} \;
