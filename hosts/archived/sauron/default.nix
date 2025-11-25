@@ -1,7 +1,10 @@
 ###############################################################################
 #
-#  Pangolin11 - Laptop
-#  NixOS running on System76 Pangolin11 AMD Laptop
+#  Sauron - WSL2 (ARCHIVED)
+#  NixOS running on Windows WSL2
+#
+#  This configuration is archived and no longer in active use.
+#  It is maintained for reference purposes only.
 #
 ###############################################################################
 
@@ -40,6 +43,15 @@
     "home/${configVars.username}/persistence/sauron.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Mark this system as deprecated
+  system.deprecation = {
+    isDeprecated = true;
+    reason = "Windows machine no longer in use";
+    deprecatedSince = "2025-01";
+    lastKnownGoodBuild = "c3cb053";
+    replacedBy = "";
+  };
 
   services.ollama.enable = true;
   services.ollama.package = pkgs.unstable.ollama;

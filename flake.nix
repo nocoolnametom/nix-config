@@ -195,24 +195,6 @@
             ./hosts/pangolin11
           ];
         };
-        # Thinkpad X1 Carbon Laptop
-        thinkpadx1 = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/thinkpadx1
-          ];
-        };
-        # Asus Zenbook 13 Laptop
-        melian = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/melian
-          ];
-        };
         # Raspberry Pi 4
         # To build remotely, run as regular user:
         # nixos-rebuild switch --use-remote-sudo --flake .#bert -v --target-host bert --build-host localhost --use-substitutes
@@ -224,17 +206,6 @@
             ./hosts/bert
           ];
         };
-        # Raspberry Pi 5
-        # To build remotely, run as regular user:
-        # nixos-rebuild switch --use-remote-sudo --flake .#william -v --target-host william --build-host localhost --use-substitutes
-        william = nixos-raspberrypi.lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/william
-          ];
-        };
         # Beelink SER5 Mini PC
         estel = lib.nixosSystem {
           inherit specialArgs;
@@ -242,15 +213,6 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/estel
-          ];
-        };
-        # Linode 4GB VPS
-        glorfindel = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/glorfindel
           ];
         };
         # Linode 4GB VPS
@@ -269,15 +231,6 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/fedibox
-          ];
-        };
-        # Windows WSL2 NixOS
-        sauron = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/sauron
           ];
         };
         # AMD Desktop Dual Boot
@@ -301,6 +254,62 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/barliman
+          ];
+        };
+      };
+
+      #################### Archived NixOS Configurations ####################
+      #
+      # These systems are no longer in active use but are maintained for reference
+      # and to ensure configuration examples remain valid. They are still validated
+      # by `nix flake check`.
+      #
+      # To build an archived system: `nixos-rebuild build --flake .#thinkpadx1`
+      #
+      archivedNixosConfigurations = {
+        # Thinkpad X1 Carbon Laptop (ARCHIVED)
+        thinkpadx1 = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/thinkpadx1
+          ];
+        };
+        # Asus Zenbook 13 Laptop (ARCHIVED)
+        melian = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/melian
+          ];
+        };
+        # Raspberry Pi 5 (ARCHIVED)
+        william = nixos-raspberrypi.lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/william
+          ];
+        };
+        # Windows WSL2 NixOS (ARCHIVED)
+        sauron = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/sauron
+          ];
+        };
+        # Linode 4GB VPS (ARCHIVED)
+        glorfindel = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/glorfindel
           ];
         };
       };

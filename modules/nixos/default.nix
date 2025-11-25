@@ -3,6 +3,7 @@
 {
   # List your module files here
   # my-module = import ./my-module.nix;
+  deprecation = import ./deprecation.nix;
   dns-failover = import ./dns-failover.nix;
   failover-redirects = import ./failover-redirects.nix;
   kavitan = import ./kavitan.nix;

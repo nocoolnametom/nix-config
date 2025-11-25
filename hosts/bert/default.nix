@@ -38,7 +38,6 @@
 
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/per-user-vpn-setup.nix"
-    "hosts/common/optional/services/ddclient.nix"
     "hosts/common/optional/services/deluge.nix"
     "hosts/common/optional/services/flood.nix"
     # "hosts/common/optional/services/karakeep.nix"
@@ -88,6 +87,13 @@
     ];
     networkmanager.enable = true;
     enableIPv6 = true;
+    # Static IPv6 address for reliable remote access
+    interfaces.end0.ipv6.addresses = [
+      {
+        address = "2603:7081:7e3f:1b92::42"; # Static IPv6 for bert
+        prefixLength = 64;
+      }
+    ];
     # Bert is behind a NAT, so access to ports is already restricted
     firewall.enable = false;
     firewall.allowedTCPPorts = [
@@ -100,6 +106,12 @@
       443 # HTTPS
     ];
     firewall.allowPing = true; # Linode's LISH console requires ping
+  };
+
+  # Disable IPv6 privacy extensions to prevent temporary address rotation
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.all.use_tempaddr" = 0;
+    "net.ipv6.conf.end0.use_tempaddr" = 0;
   };
 
   services.resolved = {
@@ -186,10 +198,10 @@
     mode = "0600";
   };
   # Moving caddy over to william
-  services.rsyncCertSync.enable = false;
-  services.rsyncCertSync.vpsHost = configVars.networking.external.bombadil.mainUrl;
-  services.rsyncCertSync.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
-  services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
+  services.rsyncCertSync.sender.enable = false;
+  services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
+  services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
+  services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
   # Security
   security.sudo.wheelNeedsPassword = false;

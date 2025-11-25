@@ -110,9 +110,7 @@
 
   # Remote video conversion from stash server
   services.stash-video-conversion.enable = true;
-  services.stash-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.bert.ip}:${
-    builtins.toString configVars.networking.ports.tcp.stash
-  }/graphql";
+  services.stash-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}/graphql";
   services.stash-video-conversion.remoteHost = configVars.networking.subnets.bert.ip;
   services.stash-video-conversion.remoteUser = configVars.username;
   services.stash-video-conversion.remoteUploadDir = "/media/g_drive/nzbget/dest/software/finished";
@@ -135,7 +133,8 @@
     API_KEY=${config.sops.placeholder."bert-stashapp-api-key"}
     SSH_KEY_PATH=${config.sops.secrets."stash-video-rsync-key".path}
   '';
-  services.stash-video-conversion.environmentFile = config.sops.templates."stash-video-conversion.env".path;
+  services.stash-video-conversion.environmentFile =
+    config.sops.templates."stash-video-conversion.env".path;
 
   # Comfy Models
   # You must on the initial usage of the comfyui optional module NOT load any remote models

@@ -1,7 +1,10 @@
 ###############################################################################
 #
-#  Glorfindel - Linode 4GB
+#  Glorfindel - Linode 4GB (ARCHIVED)
 #  NixOS running on Linode 4GB instance (Qemu/KVM)
+#
+#  This configuration is archived and no longer in active use.
+#  It is maintained for reference purposes only.
 #
 ###############################################################################
 
@@ -49,6 +52,15 @@ in
     "home/${configVars.username}/persistence/glorfindel.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Mark this system as deprecated
+  system.deprecation = {
+    isDeprecated = true;
+    reason = "Linode VPS decommissioned, services moved to bombadil";
+    deprecatedSince = "2024-12";
+    lastKnownGoodBuild = "c3cb053";
+    replacedBy = "bombadil";
+  };
 
   # I'm not currently running persistence on the Linode as I need to figure out
   # how to handle it via BtrFS and not via TmpFS as the RAM is very limited.

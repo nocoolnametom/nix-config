@@ -57,6 +57,14 @@
     "d /var/lib/acme 2750 acme nginx -"
   ];
 
+  # Rsync certificate receiver - fixes permissions after certs are synced from estel
+  services.rsyncCertSync.receiver.enable = true;
+  services.rsyncCertSync.receiver.certPath = "/var/lib/acme";
+  services.rsyncCertSync.receiver.certUser = "acme";
+  services.rsyncCertSync.receiver.certGroup = "nginx";
+  services.rsyncCertSync.receiver.timerSchedule = "*-*-* 03:00:00"; # Match estel's sender schedule
+  services.rsyncCertSync.receiver.delayMinutes = 5; # Run 5 minutes after rsync completes
+
   # Note that the NGINX setups for Mastodon is actually located in the Mastodon service file!
 
   # Set up sops secret for basic auth file

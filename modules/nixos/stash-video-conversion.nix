@@ -16,117 +16,117 @@ let
 
   # Fetch script: Query GraphQL, download first unconverted video
   fetchScript = pkgs.writeShellScript "stash-video-fetch.sh" ''
-    set -euo pipefail
+        set -euo pipefail
 
-    STATE_DIR="${cfg.stateDirectory}"
-    COMPLETED_IDS="$STATE_DIR/completed.ids"
-    FAILED_IDS="$STATE_DIR/failed.ids"
-    CURRENT_QUERY="$STATE_DIR/current-query"
-    CURRENT_PAGE="$STATE_DIR/current-page"
-    INCOMING_DIR="${cfg.incomingDir}"
+        STATE_DIR="${cfg.stateDirectory}"
+        COMPLETED_IDS="$STATE_DIR/completed.ids"
+        FAILED_IDS="$STATE_DIR/failed.ids"
+        CURRENT_QUERY="$STATE_DIR/current-query"
+        CURRENT_PAGE="$STATE_DIR/current-page"
+        INCOMING_DIR="${cfg.incomingDir}"
 
-    # Initialize state files
-    mkdir -p "$STATE_DIR" "$INCOMING_DIR"
-    touch "$COMPLETED_IDS" "$FAILED_IDS"
+        # Initialize state files
+        mkdir -p "$STATE_DIR" "$INCOMING_DIR"
+        touch "$COMPLETED_IDS" "$FAILED_IDS"
 
-    # Read or initialize query state
-    if [[ ! -f "$CURRENT_QUERY" ]]; then
-      echo "high-res" > "$CURRENT_QUERY"
-      echo "1" > "$CURRENT_PAGE"
-    fi
+        # Read or initialize query state
+        if [[ ! -f "$CURRENT_QUERY" ]]; then
+          echo "high-res" > "$CURRENT_QUERY"
+          echo "1" > "$CURRENT_PAGE"
+        fi
 
-    QUERY_TYPE=$(cat "$CURRENT_QUERY")
-    PAGE=$(cat "$CURRENT_PAGE")
+        QUERY_TYPE=$(cat "$CURRENT_QUERY")
+        PAGE=$(cat "$CURRENT_PAGE")
 
-    echo "[INFO] Fetching videos - Query: $QUERY_TYPE, Page: $PAGE"
+        echo "[INFO] Fetching videos - Query: $QUERY_TYPE, Page: $PAGE"
 
-    # Build GraphQL query based on type using temp file
-    QUERY_FILE=$(${pkgs.coreutils}/bin/mktemp)
-    trap "rm -f $QUERY_FILE" EXIT
+        # Build GraphQL query based on type using temp file
+        QUERY_FILE=$(${pkgs.coreutils}/bin/mktemp)
+        trap "rm -f $QUERY_FILE" EXIT
 
-    if [[ "$QUERY_TYPE" == "high-res" ]]; then
-      ${pkgs.coreutils}/bin/cat > "$QUERY_FILE" <<'QUERY_END'
-{"operationName":"FindScenes","variables":{"filter":{"q":"","page":PAGE_PLACEHOLDER,"per_page":LIMIT_PLACEHOLDER,"sort":"filesize","direction":"DESC"},"scene_filter":{"video_codec":{"value":"av1","modifier":"NOT_EQUALS"},"resolution":{"value":"FULL_HD","modifier":"GREATER_THAN"},"framerate":{"modifier":"LESS_THAN","value":50}}},"query":"query FindScenes($filter: FindFilterType, $scene_filter: SceneFilterType, $scene_ids: [Int!]){findScenes(filter:$filter,scene_filter:$scene_filter,scene_ids:$scene_ids){scenes{id files{path}}}}"}
-QUERY_END
-    else
-      ${pkgs.coreutils}/bin/cat > "$QUERY_FILE" <<'QUERY_END'
-{"operationName":"FindScenes","variables":{"filter":{"q":"","page":PAGE_PLACEHOLDER,"per_page":LIMIT_PLACEHOLDER,"sort":"filesize","direction":"DESC"},"scene_filter":{"video_codec":{"value":"av1","modifier":"NOT_EQUALS"},"resolution":{"value":"QUAD_HD","modifier":"LESS_THAN"}}},"query":"query FindScenes($filter: FindFilterType, $scene_filter: SceneFilterType, $scene_ids: [Int!]){findScenes(filter:$filter,scene_filter:$scene_filter,scene_ids:$scene_ids){scenes{id files{path}}}}"}
-QUERY_END
-    fi
+        if [[ "$QUERY_TYPE" == "high-res" ]]; then
+          ${pkgs.coreutils}/bin/cat > "$QUERY_FILE" <<'QUERY_END'
+    {"operationName":"FindScenes","variables":{"filter":{"q":"","page":PAGE_PLACEHOLDER,"per_page":LIMIT_PLACEHOLDER,"sort":"filesize","direction":"DESC"},"scene_filter":{"video_codec":{"value":"av1","modifier":"NOT_EQUALS"},"resolution":{"value":"FULL_HD","modifier":"GREATER_THAN"},"framerate":{"modifier":"LESS_THAN","value":50}}},"query":"query FindScenes($filter: FindFilterType, $scene_filter: SceneFilterType, $scene_ids: [Int!]){findScenes(filter:$filter,scene_filter:$scene_filter,scene_ids:$scene_ids){scenes{id files{path}}}}"}
+    QUERY_END
+        else
+          ${pkgs.coreutils}/bin/cat > "$QUERY_FILE" <<'QUERY_END'
+    {"operationName":"FindScenes","variables":{"filter":{"q":"","page":PAGE_PLACEHOLDER,"per_page":LIMIT_PLACEHOLDER,"sort":"filesize","direction":"DESC"},"scene_filter":{"video_codec":{"value":"av1","modifier":"NOT_EQUALS"},"resolution":{"value":"QUAD_HD","modifier":"LESS_THAN"}}},"query":"query FindScenes($filter: FindFilterType, $scene_filter: SceneFilterType, $scene_ids: [Int!]){findScenes(filter:$filter,scene_filter:$scene_filter,scene_ids:$scene_ids){scenes{id files{path}}}}"}
+    QUERY_END
+        fi
 
-    # Replace placeholders
-    ${pkgs.gnused}/bin/sed -i "s/PAGE_PLACEHOLDER/$PAGE/g" "$QUERY_FILE"
-    ${pkgs.gnused}/bin/sed -i "s/LIMIT_PLACEHOLDER/${toString cfg.perPageLimit}/g" "$QUERY_FILE"
+        # Replace placeholders
+        ${pkgs.gnused}/bin/sed -i "s/PAGE_PLACEHOLDER/$PAGE/g" "$QUERY_FILE"
+        ${pkgs.gnused}/bin/sed -i "s/LIMIT_PLACEHOLDER/${toString cfg.perPageLimit}/g" "$QUERY_FILE"
 
-    # Make GraphQL request
-    RESPONSE=$(${pkgs.curl}/bin/curl -s -X POST "${cfg.graphqlEndpoint}" \
-      -H "Content-Type: application/json" \
-      -H "ApiKey: $API_KEY" \
-      -d @"$QUERY_FILE")
+        # Make GraphQL request
+        RESPONSE=$(${pkgs.curl}/bin/curl -s -X POST "${cfg.graphqlEndpoint}" \
+          -H "Content-Type: application/json" \
+          -H "ApiKey: $API_KEY" \
+          -d @"$QUERY_FILE")
 
-    echo "[DEBUG] GraphQL Response: $RESPONSE"
+        echo "[DEBUG] GraphQL Response: $RESPONSE"
 
-    # Parse response and extract scenes
-    SCENES=$(echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.data.findScenes.scenes // []')
-    SCENE_COUNT=$(echo "$SCENES" | ${pkgs.jq}/bin/jq 'length')
+        # Parse response and extract scenes
+        SCENES=$(echo "$RESPONSE" | ${pkgs.jq}/bin/jq -r '.data.findScenes.scenes // []')
+        SCENE_COUNT=$(echo "$SCENES" | ${pkgs.jq}/bin/jq 'length')
 
-    echo "[INFO] Found $SCENE_COUNT scenes in response"
+        echo "[INFO] Found $SCENE_COUNT scenes in response"
 
-    # If no scenes, try next page or switch query
-    if [[ "$SCENE_COUNT" -eq 0 ]]; then
-      if [[ "$QUERY_TYPE" == "high-res" ]]; then
-        echo "[INFO] High-res query exhausted, switching to low-res"
-        echo "low-res" > "$CURRENT_QUERY"
-        echo "1" > "$CURRENT_PAGE"
-        # Recursively call ourselves to try the next query
-        exec "$0"
-      else
-        echo "[INFO] All queries exhausted, no more videos to convert"
-        exit 0
-      fi
-    fi
+        # If no scenes, try next page or switch query
+        if [[ "$SCENE_COUNT" -eq 0 ]]; then
+          if [[ "$QUERY_TYPE" == "high-res" ]]; then
+            echo "[INFO] High-res query exhausted, switching to low-res"
+            echo "low-res" > "$CURRENT_QUERY"
+            echo "1" > "$CURRENT_PAGE"
+            # Recursively call ourselves to try the next query
+            exec "$0"
+          else
+            echo "[INFO] All queries exhausted, no more videos to convert"
+            exit 0
+          fi
+        fi
 
-    # Find first unconverted video
-    FOUND_VIDEO=""
-    for i in $(seq 0 $((SCENE_COUNT - 1))); do
-      VIDEO_ID=$(echo "$SCENES" | ${pkgs.jq}/bin/jq -r ".[$i].id")
-      VIDEO_PATH=$(echo "$SCENES" | ${pkgs.jq}/bin/jq -r ".[$i].files[0].path")
+        # Find first unconverted video
+        FOUND_VIDEO=""
+        for i in $(seq 0 $((SCENE_COUNT - 1))); do
+          VIDEO_ID=$(echo "$SCENES" | ${pkgs.jq}/bin/jq -r ".[$i].id")
+          VIDEO_PATH=$(echo "$SCENES" | ${pkgs.jq}/bin/jq -r ".[$i].files[0].path")
 
-      # Check if already processed
-      if grep -Fxq "$VIDEO_ID" "$COMPLETED_IDS" || grep -Fxq "$VIDEO_ID" "$FAILED_IDS"; then
-        echo "[INFO] Skipping already processed video ID: $VIDEO_ID"
-        continue
-      fi
+          # Check if already processed
+          if grep -Fxq "$VIDEO_ID" "$COMPLETED_IDS" || grep -Fxq "$VIDEO_ID" "$FAILED_IDS"; then
+            echo "[INFO] Skipping already processed video ID: $VIDEO_ID"
+            continue
+          fi
 
-      FOUND_VIDEO="$VIDEO_ID:$VIDEO_PATH"
-      break
-    done
+          FOUND_VIDEO="$VIDEO_ID:$VIDEO_PATH"
+          break
+        done
 
-    # If no unconverted video found on this page, try next page
-    if [[ -z "$FOUND_VIDEO" ]]; then
-      NEXT_PAGE=$((PAGE + 1))
-      echo "[INFO] No unconverted videos on page $PAGE, trying page $NEXT_PAGE"
-      echo "$NEXT_PAGE" > "$CURRENT_PAGE"
-      # Recursively call ourselves to try the next page
-      exec "$0"
-    fi
+        # If no unconverted video found on this page, try next page
+        if [[ -z "$FOUND_VIDEO" ]]; then
+          NEXT_PAGE=$((PAGE + 1))
+          echo "[INFO] No unconverted videos on page $PAGE, trying page $NEXT_PAGE"
+          echo "$NEXT_PAGE" > "$CURRENT_PAGE"
+          # Recursively call ourselves to try the next page
+          exec "$0"
+        fi
 
-    # Parse found video
-    VIDEO_ID=$(echo "$FOUND_VIDEO" | cut -d: -f1)
-    VIDEO_PATH=$(echo "$FOUND_VIDEO" | cut -d: -f2-)
+        # Parse found video
+        VIDEO_ID=$(echo "$FOUND_VIDEO" | cut -d: -f1)
+        VIDEO_PATH=$(echo "$FOUND_VIDEO" | cut -d: -f2-)
 
-    echo "[INFO] Downloading video ID $VIDEO_ID from $VIDEO_PATH"
+        echo "[INFO] Downloading video ID $VIDEO_ID from $VIDEO_PATH"
 
-    # Rsync the video file
-    ${pkgs.rsync}/bin/rsync -avz --progress \
-      -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" \
-      "${cfg.remoteUser}@${cfg.remoteHost}:$VIDEO_PATH" \
-      "$INCOMING_DIR/"
+        # Rsync the video file
+        ${pkgs.rsync}/bin/rsync -avz --progress \
+          -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" \
+          "${cfg.remoteUser}@${cfg.remoteHost}:$VIDEO_PATH" \
+          "$INCOMING_DIR/"
 
-    # Store the video ID for the convert service to use
-    echo "$VIDEO_ID" > "$STATE_DIR/current-video-id"
+        # Store the video ID for the convert service to use
+        echo "$VIDEO_ID" > "$STATE_DIR/current-video-id"
 
-    echo "[INFO] Download complete"
+        echo "[INFO] Download complete"
   '';
 
   # Convert script: Convert all videos in incoming dir
@@ -440,13 +440,15 @@ in
         EnvironmentFile = mkIf (cfg.environmentFile != null) cfg.environmentFile;
         # Loop back to fetch service only if upload was successful (no empty flag)
         # + prefix runs as root so systemctl has permission
-        ExecStartPost = "+" + pkgs.writeShellScript "upload-post.sh" ''
-          if [[ -f "${cfg.stateDirectory}/empty-incoming-flag" ]]; then
-            echo "[INFO] Empty flag detected, not restarting fetch service"
-            exit 0
-          fi
-          ${pkgs.systemd}/bin/systemctl start --no-block stash-video-fetch.service
-        '';
+        ExecStartPost =
+          "+"
+          + pkgs.writeShellScript "upload-post.sh" ''
+            if [[ -f "${cfg.stateDirectory}/empty-incoming-flag" ]]; then
+              echo "[INFO] Empty flag detected, not restarting fetch service"
+              exit 0
+            fi
+            ${pkgs.systemd}/bin/systemctl start --no-block stash-video-fetch.service
+          '';
       };
 
       # Don't start on boot

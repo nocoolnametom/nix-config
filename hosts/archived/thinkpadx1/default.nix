@@ -1,7 +1,10 @@
 ###############################################################################
 #
-#  Thinkpadx1 - Laptop
+#  Thinkpadx1 - Laptop (ARCHIVED)
 #  NixOS running on Lenovo Thinkpad X1 Extreme 1st Generation
+#
+#  This configuration is archived and no longer in active use.
+#  It is maintained for reference purposes only.
 #
 ###############################################################################
 
@@ -56,6 +59,15 @@
     "home/${configVars.username}/persistence/thinkpadx1.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Mark this system as deprecated
+  system.deprecation = {
+    isDeprecated = true;
+    reason = "Hardware no longer in use";
+    deprecatedSince = "2024-06";
+    lastKnownGoodBuild = "c3cb053";
+    replacedBy = "";
+  };
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {

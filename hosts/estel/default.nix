@@ -117,6 +117,14 @@
     networkmanager.enable = true;
     networkmanager.wifi.backend = "iwd";
     enableIPv6 = true;
+    # Static IPv6 address for reliable remote access
+    # Using ::50 to differentiate from bert's ::42
+    interfaces.end0.ipv6.addresses = [
+      {
+        address = "2603:7081:7e3f:1b92::50"; # Static IPv6 for estel
+        prefixLength = 64;
+      }
+    ];
     # Estel is behind a NAT, so access to ports is already restricted
     firewall.enable = false;
     firewall.allowedTCPPorts = [
@@ -129,6 +137,12 @@
       443 # HTTPS
     ];
     firewall.allowPing = true; # Linode's LISH console requires ping
+  };
+
+  # Disable IPv6 privacy extensions to prevent temporary address rotation
+  boot.kernel.sysctl = {
+    "net.ipv6.conf.all.use_tempaddr" = 0;
+    "net.ipv6.conf.end0.use_tempaddr" = 0;
   };
 
   services.resolved = {
@@ -164,10 +178,10 @@
     key = "ssh/personal/root_only/acme-failover-key";
     mode = "0600";
   };
-  services.rsyncCertSync.enable = true;
-  services.rsyncCertSync.vpsHost = configVars.networking.external.bombadil.mainUrl;
-  services.rsyncCertSync.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
-  services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
+  services.rsyncCertSync.sender.enable = true;
+  services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
+  services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
+  services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
   # Security
   security.sudo.wheelNeedsPassword = false;

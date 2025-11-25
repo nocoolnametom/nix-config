@@ -1,7 +1,10 @@
 ###############################################################################
 #
-#  William - RasPi 5
+#  William - RasPi 5 (ARCHIVED)
 #  NixOS running on Raspberry Pi 5 Model B
+#
+#  This configuration is archived and no longer in active use.
+#  It is maintained for reference purposes only.
 #
 ###############################################################################
 
@@ -59,6 +62,15 @@
     "home/${configVars.username}/persistence/william.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Mark this system as deprecated
+  system.deprecation = {
+    isDeprecated = true;
+    reason = "Replaced by estel (Beelink SER5 Mini PC)";
+    deprecatedSince = "2024-10";
+    lastKnownGoodBuild = "c3cb053";
+    replacedBy = "estel";
+  };
 
   # I'm not currently running persistence on William! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
@@ -169,10 +181,10 @@
     key = "ssh/personal/root_only/acme-failover-key";
     mode = "0600";
   };
-  services.rsyncCertSync.enable = true;
-  services.rsyncCertSync.vpsHost = configVars.networking.external.bombadil.mainUrl;
-  services.rsyncCertSync.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
-  services.rsyncCertSync.sshKeyPath = config.sops.secrets.acme-failover-key.path;
+  services.rsyncCertSync.sender.enable = true;
+  services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
+  services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
+  services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
   # Security
   security.sudo.wheelNeedsPassword = false;
