@@ -141,8 +141,8 @@
 
   # Disable IPv6 privacy extensions to prevent temporary address rotation
   boot.kernel.sysctl = {
-    "net.ipv6.conf.all.use_tempaddr" = 0;
-    "net.ipv6.conf.end0.use_tempaddr" = 0;
+    "net.ipv6.conf.all.use_tempaddr" = lib.mkForce 0;
+    "net.ipv6.conf.end0.use_tempaddr" = lib.mkForce 0;
   };
 
   services.resolved = {
