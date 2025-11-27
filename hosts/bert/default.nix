@@ -22,10 +22,6 @@
     ########################## Hardware Modules ###############################
     inputs.hardware.nixosModules.raspberry-pi-4
 
-    ############################## Nginx ######################################
-    # ./nginx.nix
-    # ./caddy.nix
-
     ########################### Impermanence ##################################
     ./persistence.nix
 
@@ -191,17 +187,6 @@
     ND_AUTH_PROXY_AUTO_CREATE_USERS=true
     ND_AUTH_PROXY_DEFAULT_ROLE=USER
   '';
-
-  # Bombadil Failover Cert Sync
-  sops.secrets."acme-failover-key" = {
-    key = "ssh/personal/root_only/acme-failover-key";
-    mode = "0600";
-  };
-  # Moving caddy over to william
-  services.rsyncCertSync.sender.enable = false;
-  services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
-  services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
-  services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
 
   # Security
   security.sudo.wheelNeedsPassword = false;
