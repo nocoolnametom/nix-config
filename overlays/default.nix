@@ -75,5 +75,14 @@ in
     };
   };
 
+  # When applied, the master nixpkgs set (declared in the flake inputs) will
+  # be accessible through 'pkgs.bleeding'
+  bleeding-packages = final: _prev: {
+    bleeding = import inputs.nixpkgs-master {
+      system = final.stdenv.hostPlatform.system;
+      config.allowUnfree = true;
+    };
+  };
+
   my-sd-models = inputs.my-sd-models.overlay;
 }

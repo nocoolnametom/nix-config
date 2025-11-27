@@ -80,8 +80,8 @@
 
   # Currently-Docker Stuff
   # Can replase kavita users below with kavita module when 0.8.8 is released!
-  services.kavita.enable = lib.mkForce false; # Using docker right now
-  services.kavitan.enable = lib.mkForce false; # Using docker right now
+  services.kavita.package = lib.mkForce pkgs.bleeding.kavita;
+  services.kavitan.package = lib.mkForce pkgs.bleeding.kavita;
   users.groups.kavita = { };
   users.users.kavita.isSystemUser = true;
   users.users.kavita.group = "kavita";
