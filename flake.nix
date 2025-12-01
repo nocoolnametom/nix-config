@@ -257,6 +257,17 @@
             ./hosts/barliman
           ];
         };
+        # KAMRUI E2 Mini PC
+        durin = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            # cosmicCacheModule
+            # nixos-cosmic.nixosModules.default
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/durin
+          ];
+        };
       };
 
       #################### Archived NixOS Configurations ####################
