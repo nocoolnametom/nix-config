@@ -21,9 +21,15 @@
 
     # Persistence (adjust as needed)
     ./persistence.nix
+
+    ############################ Lanzaboote ###################################
+    inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
   ]
   ++ (map configLib.relativeToRoot [
     "hosts/common/core"
+
+    # Lanzaboote Secure Bootloader (like estel)
+    "hosts/common/optional/lanzaboote.nix"
 
     # Copy the same optional service modules as bert; enable/disable as you prefer
     "hosts/common/optional/per-user-vpn-setup.nix"
@@ -45,6 +51,10 @@
 
   # Keep persistence off by default; enable if this machine will hold data
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
+
+  # Lanzaboote not yet configured with secure boot keys - use regular systemd-boot for now
+  boot.lanzaboote.enable = lib.mkForce false;
+  boot.loader.systemd-boot.enable = lib.mkForce true;
 
   # Stash VR helper: update secret names and hostnames as needed
   services.stashapp.vr-helper.enable = false;
