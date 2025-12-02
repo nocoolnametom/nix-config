@@ -2,9 +2,10 @@
 {
   environment.systemPackages = [
     pkgs.sbctl
+    pkgs.tpm2-tss
   ];
 
-  boot.loader.systemd-boot.enable = lib.mkForce false;
+  boot.loader.systemd-boot.enable = false;
   boot.loader.efi.canTouchEfiVariables = true;
   boot.initrd.systemd.enable = true;
 

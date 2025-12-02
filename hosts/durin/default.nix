@@ -52,10 +52,6 @@
   # Keep persistence off by default; enable if this machine will hold data
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
-  # Lanzaboote not yet configured with secure boot keys - use regular systemd-boot for now
-  boot.lanzaboote.enable = lib.mkForce false;
-  boot.loader.systemd-boot.enable = lib.mkForce true;
-
   # Stash VR helper: update secret names and hostnames as needed
   services.stashapp.vr-helper.enable = false;
   services.stashapp.vr-helper.stash-host = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
