@@ -22,25 +22,16 @@
   boot.initrd.luks.devices."enc".device = "/dev/disk/by-uuid/678b29b2-dd2d-4b2a-bd0a-98e6fb7e2c0a";
 
   # USB DAS - 4x 4TB SSDs in BTRFS RAID5
+  # Decrypted by systemd-cryptsetup AFTER boot (not in initrd) to avoid USB enumeration delays
   # TPM2 auto-unlock with password fallback
   # To enroll TPM2 keys after first boot, run for each device:
   #   sudo systemd-cryptenroll --tpm2-device=auto /dev/disk/by-uuid/<UUID>
-  boot.initrd.luks.devices."usb_das_1" = {
-    device = "/dev/disk/by-uuid/df0adec1-e2b7-479f-befa-26af079b118c";
-    crypttabExtraOpts = [ "tpm2-device=auto" ];
-  };
-  boot.initrd.luks.devices."usb_das_2" = {
-    device = "/dev/disk/by-uuid/272a11cd-61ee-4c35-87ac-7edde497359d";
-    crypttabExtraOpts = [ "tpm2-device=auto" ];
-  };
-  boot.initrd.luks.devices."usb_das_3" = {
-    device = "/dev/disk/by-uuid/7a29e1e2-a0ae-40fc-8c43-1a1134df1d69";
-    crypttabExtraOpts = [ "tpm2-device=auto" ];
-  };
-  boot.initrd.luks.devices."usb_das_4" = {
-    device = "/dev/disk/by-uuid/4ca6a3ed-cc82-4184-bb6c-b726536745e5";
-    crypttabExtraOpts = [ "tpm2-device=auto" ];
-  };
+  environment.etc."crypttab".text = ''
+    usb_das_1 UUID=df0adec1-e2b7-479f-befa-26af079b118c - tpm2-device=auto
+    usb_das_2 UUID=272a11cd-61ee-4c35-87ac-7edde497359d - tpm2-device=auto
+    usb_das_3 UUID=7a29e1e2-a0ae-40fc-8c43-1a1134df1d69 - tpm2-device=auto
+    usb_das_4 UUID=4ca6a3ed-cc82-4184-bb6c-b726536745e5 - tpm2-device=auto
+  '';
 
   fileSystems."/home" =
     { device = "/dev/disk/by-uuid/695982ba-f44d-4605-9026-6111de47a1a6";
@@ -81,12 +72,13 @@
     };
 
   # USB DAS BTRFS RAID5 volume - mounts after decryption
-  # nofail ensures boot continues even if drives aren't available
+  # Decrypted after boot by systemd-cryptsetup using /etc/crypttab
+  # nofail + x-systemd.device-timeout ensure boot continues if drives aren't available
   # compress-force=zstd enables transparent compression for all files
   fileSystems."/arkenstone" =
     { device = "/dev/disk/by-uuid/64da11e3-1656-4d81-b3e6-656d60f4d5ed";
       fsType = "btrfs";
-      options = [ "nofail" "noatime" "compress-force=zstd" "space_cache=v2" ];
+      options = [ "nofail" "noatime" "compress-force=zstd" "space_cache=v2" "x-systemd.device-timeout=30" ];
     };
 
   swapDevices =
