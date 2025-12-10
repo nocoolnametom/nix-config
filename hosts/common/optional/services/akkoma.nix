@@ -12,10 +12,10 @@ let
         proxy_cache akkoma_media_cache;
 
         # Cache objects in slices of 1 MiB
-        slice 1m;
-        proxy_cache_key $host$uri$is_args$args$slice_range;
-        proxy_set_header Range $slice_range;
-        chunked_transfer_encoding on;
+        # slice 1m;
+        # proxy_cache_key $host$uri$is_args$args$slice_range;
+        # proxy_set_header Range $slice_range;
+        # chunked_transfer_encoding on;
 
         # Decouple proxy and upstream responses
         proxy_buffering on;

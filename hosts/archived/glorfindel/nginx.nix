@@ -10,7 +10,6 @@
 
   # Set up sops secret for basic auth file
   services.nginx.enable = lib.mkDefault true;
-  services.nginx.package = pkgs.nginxQuic;
   services.nginx.enableQuicBPF = true;
   services.nginx.recommendedOptimisation = true;
   services.nginx.recommendedTlsSettings = true;
