@@ -5,6 +5,227 @@
   configVars,
   ...
 }:
+let
+  # Simple service definitions - just the essentials!
+  # These will be automatically converted to both regular and punch-through hosts
+  simpleServices = [
+    # Services on homeDomain (doggett.family)
+    {
+      host = "estel";
+      service = "audiobookshelf";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
+      service = "budget";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "calibreweb";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "immich";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
+      service = "immich-share";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
+      service = "hedgedoc";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "jellyfin";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
+      service = "karakeep";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
+      service = "kavita";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
+      service = "mealie";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "nas";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "navidrome";
+      domain = "homeDomain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "ombi";
+      domain = "homeDomain";
+      port = "authentik";
+    }
+    {
+      host = "estel";
+      service = "paperless";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "podfetch";
+      domain = "homeDomain";
+    }
+    {
+      host = "cirdan";
+      service = "portainer";
+      domain = "homeDomain";
+    }
+
+    # Services on domain (nocoolnametom.com)
+    {
+      host = "cirdan";
+      service = "comfyui";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "comfyuimini";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "delugeweb";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "flood";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "nzbhydra";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "estel";
+      service = "kavitan";
+      domain = "domain";
+    }
+    {
+      host = "cirdan";
+      service = "mylar";
+      domain = "domain";
+    }
+    {
+      host = "cirdan";
+      service = "nzbget";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "smeagol";
+      service = "openwebui";
+      domain = "domain";
+    }
+    {
+      host = "bert";
+      service = "pinchflat";
+      domain = "domain";
+    }
+    {
+      host = "cirdan";
+      service = "radarr";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "sickgear";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "cirdan";
+      service = "sonarr";
+      domain = "domain";
+      port = "authentik";
+    }
+    {
+      host = "bert";
+      service = "stash";
+      domain = "domain";
+    }
+    {
+      host = "cirdan";
+      service = "tubearchivist";
+      domain = "domain";
+    }
+  ];
+
+  # Function to generate both regular and punch-through virtual hosts from simple service definitions
+  makeServiceHosts =
+    serviceList:
+    let
+      makeHost =
+        {
+          host,
+          service,
+          domain,
+          port ? null,
+        }:
+        let
+          hostIp = configVars.networking.subnets.${host}.ip;
+          # If port is not specified, use the service name as the port key
+          portKey = if port != null then port else service;
+          portNum = builtins.toString configVars.networking.ports.tcp.${portKey};
+          baseDomain = if domain == "homeDomain" then configVars.homeDomain else configVars.domain;
+          subdomain = configVars.networking.subdomains.${service};
+
+          # Regular host configuration
+          regularHost = {
+            "${subdomain}.${baseDomain}" = {
+              useACMEHost = "wild-${baseDomain}";
+              extraConfig = ''
+                reverse_proxy ${hostIp}:${portNum}
+              '';
+            };
+          };
+
+          # Punch-through host configuration
+          punchHost = {
+            "${subdomain}.${configVars.networking.subdomains.punch}.${baseDomain}" = {
+              useACMEHost = "wild-${configVars.networking.subdomains.punch}.${baseDomain}";
+              extraConfig = ''
+                reverse_proxy ${hostIp}:${portNum}
+              '';
+            };
+          };
+        in
+        regularHost // punchHost;
+    in
+    lib.foldl' (acc: service: acc // (makeHost service)) { } serviceList;
+
+  # Generate all simple service hosts (both regular and punch-through)
+  generatedHosts = makeServiceHosts simpleServices;
+in
 {
   services.caddy.enable = true;
   networking.firewall.allowedTCPPorts = [
@@ -14,20 +235,26 @@
   ];
 
   # Virtual hosts configuration
-  services.caddy.virtualHosts = {
+  # Most services are auto-generated from simpleServices list above
+  # Complex configurations (websockets, basic auth, custom certs) are defined manually here
+  services.caddy.virtualHosts = generatedHosts // {
+    # Special: Bare domain redirect
     "${configVars.homeDomain}" = {
       useACMEHost = configVars.homeDomain;
-      # Redirect empty main domain to the auth page
       extraConfig = ''
         redir https://${configVars.networking.subdomains.authentik}.{host}{uri}
       '';
     };
+
+    # Special: Health check endpoint (not redirected during failover)
     "${configVars.healthDomain}" = {
       useACMEHost = "wild-${configVars.domain}";
       extraConfig = ''
         respond / "Service is UP" 200
       '';
     };
+
+    # Complex: Authentik with websocket support
     "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
       useACMEHost = "wild-${configVars.homeDomain}";
       extraConfig = ''
@@ -43,206 +270,42 @@
         }
       '';
     };
-    "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
-      '';
-    };
-    "${configVars.networking.subdomains.budget}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.budget}
-      '';
-    };
-    "${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.calibreweb}
-      '';
-    };
-    "${configVars.networking.subdomains.comfyui}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from smeagol
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.comfyuimini}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from smeagol
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.delugeweb}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.flood}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.nzbhydra}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      # I haven't gotten immich working locally on estel yet, so it's on cirdan's Podtainer for now
-      # reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
-      '';
-    };
-    "${configVars.networking.subdomains.immich-share}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.immich-share}
-      '';
-    };
-    "${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.hedgedoc}
-      '';
-    };
-    "${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.jellyfin}
-      '';
-    };
-    "${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.karakeep}
-      '';
-    };
-    "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
-      '';
-    };
-    "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
-      '';
-    };
-    "${configVars.networking.subdomains.mealie}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.mealie}
-      '';
-    };
-    "${configVars.networking.subdomains.mylar}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.mylar}
-      '';
-    };
-    "${configVars.networking.subdomains.nas}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.nas}
-      '';
-    };
-    "${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      # Served through cirdan for estel
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.nzbget}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan for bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      # Servied through cirdan for estel
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Will move to barliman soon
-      # reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
-      '';
-    };
-    "${configVars.networking.subdomains.paperless}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      # I can't get paperless to work on estel yet, so it's on cirdan's portainer
-      # reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
-      '';
-    };
-    "${configVars.networking.subdomains.pinchflat}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # For some reason the proxy provider for authentik does NOT work with pinchflat!
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.pinchflat}
-      '';
-    };
-    "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.podfetch}
-      '';
-    };
-    "${configVars.networking.subdomains.portainer}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.homeDomain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.portainer}
-      '';
-    };
-    "${configVars.networking.subdomains.radarr}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan for bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan for bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
-    "${configVars.networking.subdomains.sonarr}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan for bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
+
+    # Punch-through version of authentik
+    "${configVars.networking.subdomains.authentik}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}" =
+      {
+        useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
+        extraConfig = ''
+          @websockets {
+            header Connection *Upgrade*
+            header Upgrade websocket
+          }
+          reverse_proxy @websockets ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
+          reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik} {
+            header_up Host {host}
+            header_up X-Real-IP {remote_host}
+            header_up X-Forwarded-Proto {scheme}
+          }
+        '';
+      };
+
+    # Complex: Custom SSL certs (not wildcard)
     "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
       useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.domain}";
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
       '';
     };
+    "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
+      {
+        useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
+        extraConfig = ''
+          reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
+        '';
+      };
+
     "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
       useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
-      # Served through cirdan from cirdan (because we can't compile it on bert/estel)
       extraConfig = ''
         basic_auth {
           ${configVars.networking.caddy.basic_auth.archer-stashvr}
@@ -250,15 +313,20 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
       '';
     };
-    "${configVars.networking.subdomains.stash}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}
-      '';
-    };
+    "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
+      {
+        useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
+        extraConfig = ''
+          basic_auth {
+            ${configVars.networking.caddy.basic_auth.archer-stashvr}
+          }
+          reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
+        '';
+      };
+
+    # Complex: Basic auth required
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
-      # Served through cirdan from cirdan (because we can't compile it on bert/estel)
       extraConfig = ''
         basic_auth {
           ${configVars.networking.caddy.basic_auth.stashvr}
@@ -266,12 +334,18 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
       '';
     };
-    "${configVars.networking.subdomains.tubearchivist}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.tubearchivist}
-      '';
-    };
+
+    # Punch-through version of stashvr
+    "${configVars.networking.subdomains.stashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
+      {
+        useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.domain}";
+        extraConfig = ''
+          basic_auth {
+            ${configVars.networking.caddy.basic_auth.stashvr}
+          }
+          reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
+        '';
+      };
   };
 
   security.acme.acceptTerms = true;
@@ -300,6 +374,18 @@
     };
     "wild-${configVars.homeDomain}" = {
       domain = "*.${configVars.homeDomain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-${configVars.networking.subdomains.punch}.${configVars.domain}" = {
+      domain = "*.${configVars.networking.subdomains.punch}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}" = {
+      domain = "*.${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;

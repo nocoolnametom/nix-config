@@ -19,6 +19,8 @@ in
     domains = [
       "home.${configVars.domain}"
       "${configVars.healthDomain}"
+      "${configVars.networking.subdomains.punch}.${configVars.domain}"
+      "${configVars.networking.subdomains.punch}.${configVars.homeDomain}"
     ];
     # This is because the porkbun protocol requires they keys "apikey" and "secretapikey" instead of "username" and "password"
     extraConfig = ''

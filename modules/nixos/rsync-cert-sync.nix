@@ -166,11 +166,12 @@ in
           OnCalendar =
             let
               # Helper to remove leading zeros to avoid octal interpretation
-              removeLeadingZeros = str:
+              removeLeadingZeros =
+                str:
                 let
                   stripped = lib.removePrefix "0" str;
                 in
-                  if stripped == "" then "0" else stripped;
+                if stripped == "" then "0" else stripped;
 
               # Extract the time portion (assumes format "*-*-* HH:MM:SS")
               parts = lib.splitString " " cfg.receiver.timerSchedule;

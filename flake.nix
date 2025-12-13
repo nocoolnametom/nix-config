@@ -21,12 +21,12 @@
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    # home-manager.url = "github:nix-community/home-manager/release-25.11";
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-25.11";
+    # home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    # nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
-    nix-darwin.url = "github:nix-darwin/nix-darwin";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    # nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     arion.url = "github:hercules-ci/arion";
