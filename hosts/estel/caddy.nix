@@ -141,7 +141,7 @@ let
       port = "authentik";
     }
     {
-      host = "smeagol";
+      host = "barliman";
       service = "openwebui";
       domain = "domain";
     }
