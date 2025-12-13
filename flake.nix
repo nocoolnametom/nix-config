@@ -4,7 +4,7 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
     nixpkgs-master.url = "github:NixOS/nixpkgs/master"; # also see 'bleeding-packages' overlay at 'overlays/default.nix"

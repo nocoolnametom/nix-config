@@ -396,8 +396,20 @@ in
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
+    "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}" = {
+      domain = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
     "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
       domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" = {
+      domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
