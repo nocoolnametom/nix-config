@@ -6,8 +6,25 @@
   ...
 }:
 let
+  # Authentik proxy host (change here if Authentik moves to a different machine)
+  authentikHost = "cirdan";
+
   # Simple service definitions - just the essentials!
   # These will be automatically converted to both regular and punch-through hosts
+  #
+  # Keys:
+  #   host: The actual machine hosting the service
+  #   service: Service name (used for subdomain and port lookup)
+  #   domain: Either "homeDomain" or "domain"
+  #   proxy: (optional) Set to "authentik" if regular domain should route through Authentik
+  #
+  # When proxy = "authentik":
+  #   - Regular domain: service.domain → caddy → authentik → host:service (SSO authentication)
+  #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses Authentik for monitoring)
+  #
+  # When proxy is not set:
+  #   - Both regular and punch domains go directly to service
+  #   - Punch domain adds basic auth for monitoring
   simpleServices = [
     # Services on homeDomain (doggett.family)
     {
@@ -66,16 +83,16 @@ let
       domain = "homeDomain";
     }
     {
-      host = "cirdan";
+      host = "estel";
       service = "navidrome";
       domain = "homeDomain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "estel";
       service = "ombi";
       domain = "homeDomain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
       host = "estel";
@@ -95,34 +112,34 @@ let
 
     # Services on domain (nocoolnametom.com)
     {
-      host = "cirdan";
+      host = "smeagol";
       service = "comfyui";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "smeagol";
       service = "comfyuimini";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "delugeweb";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "flood";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "nzbhydra";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
       host = "estel";
@@ -135,10 +152,10 @@ let
       domain = "domain";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "nzbget";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
       host = "barliman";
@@ -149,24 +166,25 @@ let
       host = "durin";
       service = "pinchflat";
       domain = "domain";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "radarr";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "sickgear";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
-      host = "cirdan";
+      host = "durin";
       service = "sonarr";
       domain = "domain";
-      port = "authentik";
+      proxy = "authentik";
     }
     {
       host = "durin";
@@ -189,32 +207,48 @@ let
           host,
           service,
           domain,
-          port ? null,
+          proxy ? null,
         }:
         let
-          hostIp = configVars.networking.subnets.${host}.ip;
-          # If port is not specified, use the service name as the port key
-          portKey = if port != null then port else service;
-          portNum = builtins.toString configVars.networking.ports.tcp.${portKey};
+          # The actual service host and port
+          serviceHostIp = configVars.networking.subnets.${host}.ip;
+          servicePortNum = builtins.toString configVars.networking.ports.tcp.${service};
+
+          # Authentik proxy (if enabled)
+          useAuthentik = proxy == "authentik";
+          authentikIp = configVars.networking.subnets.${authentikHost}.ip;
+          authentikPort = builtins.toString configVars.networking.ports.tcp.authentik;
+
           baseDomain = if domain == "homeDomain" then configVars.homeDomain else configVars.domain;
           subdomain = configVars.networking.subdomains.${service};
 
           # Regular host configuration
+          # If proxy = "authentik", route through Authentik; otherwise go direct to service
           regularHost = {
             "${subdomain}.${baseDomain}" = {
               useACMEHost = "wild-${baseDomain}";
-              extraConfig = ''
-                reverse_proxy ${hostIp}:${portNum}
-              '';
+              extraConfig =
+                if useAuthentik then
+                  ''
+                    reverse_proxy ${authentikIp}:${authentikPort}
+                  ''
+                else
+                  ''
+                    reverse_proxy ${serviceHostIp}:${servicePortNum}
+                  '';
             };
           };
 
           # Punch-through host configuration
+          # Always goes directly to the service (bypassing Authentik) with basic auth
           punchHost = {
             "${subdomain}.${configVars.networking.subdomains.punch}.${baseDomain}" = {
               useACMEHost = "wild-${configVars.networking.subdomains.punch}.${baseDomain}";
               extraConfig = ''
-                reverse_proxy ${hostIp}:${portNum}
+                basic_auth {
+                  ${configVars.networking.caddy.basic_auth.punch}
+                }
+                reverse_proxy ${serviceHostIp}:${servicePortNum}
               '';
             };
           };
@@ -271,11 +305,14 @@ in
       '';
     };
 
-    # Punch-through version of authentik
+    # Punch-through version of authentik (with basic auth for monitoring)
     "${configVars.networking.subdomains.authentik}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}" =
       {
         useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
         extraConfig = ''
+          basic_auth {
+            ${configVars.networking.caddy.basic_auth.punch}
+          }
           @websockets {
             header Connection *Upgrade*
             header Upgrade websocket
@@ -300,10 +337,14 @@ in
       {
         useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
         extraConfig = ''
+          basic_auth {
+            ${configVars.networking.caddy.basic_auth.punch}
+          }
           reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
         '';
       };
 
+    # Complex: archerstashvr with its own basic auth (regular domain)
     "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
       useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
       extraConfig = ''
@@ -313,18 +354,19 @@ in
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
       '';
     };
+    # Punch-through version uses standard punch basic auth for monitoring
     "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
       {
         useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
         extraConfig = ''
           basic_auth {
-            ${configVars.networking.caddy.basic_auth.archer-stashvr}
+            ${configVars.networking.caddy.basic_auth.punch}
           }
           reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
         '';
       };
 
-    # Complex: Basic auth required
+    # Complex: stashvr with its own basic auth (regular domain)
     "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
       useACMEHost = "wild-${configVars.domain}";
       extraConfig = ''
@@ -334,14 +376,13 @@ in
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
       '';
     };
-
-    # Punch-through version of stashvr
+    # Punch-through version uses standard punch basic auth for monitoring
     "${configVars.networking.subdomains.stashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
       {
         useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.domain}";
         extraConfig = ''
           basic_auth {
-            ${configVars.networking.caddy.basic_auth.stashvr}
+            ${configVars.networking.caddy.basic_auth.punch}
           }
           reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
         '';
@@ -396,23 +437,25 @@ in
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
-    "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}" = {
-      domain = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
+    "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
+      {
+        domain = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
+        group = "caddy";
+        dnsProvider = "porkbun";
+        environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+      };
     "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
       domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
-    "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" = {
-      domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
+    "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
+      {
+        domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
+        group = "caddy";
+        dnsProvider = "porkbun";
+        environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+      };
   };
 }
