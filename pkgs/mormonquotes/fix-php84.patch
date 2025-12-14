@@ -1,0 +1,149 @@
+diff --git a/src/Display.php b/src/Display.php
+--- a/src/Display.php
++++ b/src/Display.php
+@@ -67,7 +67,7 @@ class Display
+                   "SELECT * 
+                   FROM quotes
+                   INNER JOIN authors ON quotes.quote_author_id = authors.author_id
+-                  WHERE quote_author_id = '${author_id}'
++                  WHERE quote_author_id = '{$author_id}'
+                   ORDER BY quote_author_id";
+                 $get_quotes_for_author_query = mysqli_query($this->link, $get_quotes_for_author_sql);
+                 $query = $get_quotes_for_author_query;
+@@ -86,7 +86,7 @@ class Display
+                 $title = ucfirst($row['tag_name']);
+                 $tag_id = $row['tag_id'];
+                 $get_quotes_for_tag_sql =
+-              "SELECT *
++              "SELECT *
+               FROM stitches
+               INNER JOIN quotes ON stitches.stitch_quote_id = quotes.quote_id
+               INNER JOIN authors ON quotes.quote_author_id = authors.author_id
+-              WHERE stitch_tag_id = ${tag_id}
++              WHERE stitch_tag_id = {$tag_id}
+               ORDER BY quote_author_id";
+                 $get_quotes_for_tag_query = mysqli_query($this->link, $get_quotes_for_tag_sql);
+                 $query = $get_quotes_for_tag_query;
+@@ -129,7 +129,7 @@ class Display
+ EOF;
+     }
+
+-    public function build_regular_page($query, string $title, int $author_id = null): string
++    public function build_regular_page($query, string $title, ?int $author_id = null): string
+     {
+         return <<<EOF
+         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+@@ -133,7 +133,7 @@ class Display
+         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+         <html lang='en'>
+           <head>
+-            <title>{(${author_id} ? "Quotes from ":"") . ${title})} | Mormon Quotes</title>
++            <title>{$author_id ? "Quotes from " : ""}{$title} | Mormon Quotes</title>
+             <meta http-equiv='Content-type' content='text/html; charset=iso-8859-1'>
+             <meta name='description' content='A resource for studying the doctrine, history, and culture of the Mormon church through the words of its leaders.'>
+             <meta name='keywords' content='Mormon Quotes,Mormon,quotes,LDS,Latter-Day Saints,prophets,Joseph Smith,Brigham Young,prophets,history,Christianity'>diff --git a/src/Display.php b/src/Display.php
+--- a/src/Display.php
++++ b/src/Display.php
+@@ -67,7 +67,7 @@ class Display
+                   "SELECT * 
+                   FROM quotes
+                   INNER JOIN authors ON quotes.quote_author_id = authors.author_id
+-                  WHERE quote_author_id = '${author_id}'
++                  WHERE quote_author_id = '{$author_id}'
+                   ORDER BY quote_author_id";
+                 $get_quotes_for_author_query = mysqli_query($this->link, $get_quotes_for_author_sql);
+                 $query = $get_quotes_for_author_query;
+@@ -91,7 +91,7 @@ class Display
+               "SELECT *
+               FROM stitches
+               INNER JOIN quotes ON stitches.stitch_quote_id = quotes.quote_id
+-              WHERE stitch_tag_id = ${tag_id}
++              WHERE stitch_tag_id = {$tag_id}
+               ORDER BY quote_author_id";
+                 $get_quotes_for_tag_query = mysqli_query($this->link, $get_quotes_for_tag_sql);
+                 $query = $get_quotes_for_tag_query;
+@@ -129,7 +129,7 @@ class Display
+ EOF;
+     }
+
+-    public function build_regular_page($query, string $title, int $author_id = null): string
++    public function build_regular_page($query, string $title, ?int $author_id = null): string
+     {
+         return <<<EOF
+         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+@@ -133,7 +133,7 @@ class Display
+         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+         <html lang='en'>
+           <head>
+-            <title>{(${author_id} ? "Quotes from ":"") . ${title})} | Mormon Quotes</title>
++            <title>{$author_id ? "Quotes from " : ""}{$title} | Mormon Quotes</title>
+             <meta http-equiv='Content-type' content='text/html; charset=iso-8859-1'>
+             <meta name='description' content='A resource for studying the doctrine, history, and culture of the Mormon church through the words of its leaders.'>
+             <meta name='keywords' content='Mormon Quotes,Mormon,quotes,LDS,Latter-Day Saints,prophets,Joseph Smith,Brigham Young,prophets,history,Christianity'>diff --git a/src/Display.php b/src/Display.php
+--- a/src/Display.php
++++ b/src/Display.php
+@@ -67,7 +67,7 @@ class Display
+                   "SELECT * 
+                   FROM quotes
+                   INNER JOIN authors ON quotes.quote_author_id = authors.author_id
+-                  WHERE quote_author_id = '${author_id}'
++                  WHERE quote_author_id = '{$author_id}'
+                   ORDER BY quote_author_id";
+                 $get_quotes_for_author_query = mysqli_query($this->link, $get_quotes_for_author_sql);
+                 $query = $get_quotes_for_author_query;
+@@ -88,7 +88,7 @@ class Display
+               "SELECT *
+               FROM stitches
+               INNER JOIN quotes ON stitches.stitch_quote_id = quotes.quote_id
+-              WHERE stitch_tag_id = ${tag_id}
++              WHERE stitch_tag_id = {$tag_id}
+               ORDER BY quote_author_id";
+                 $get_quotes_for_tag_query = mysqli_query($this->link, $get_quotes_for_tag_sql);
+                 $query = $get_quotes_for_tag_query;
+@@ -132,7 +132,7 @@ class Display
+ EOF;
+     }
+
+-    public function build_regular_page($query, string $title, int $author_id = null): string
++    public function build_regular_page($query, string $title, ?int $author_id = null): string
+     {
+         return <<<EOF
+         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+@@ -136,7 +136,7 @@ class Display
+         <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+         <html lang='en'>
+           <head>
+-            <title>{(${author_id} ? "Quotes from ":"") . ${title})} | Mormon Quotes</title>
++            <title>{$author_id ? "Quotes from " : ""}{$title} | Mormon Quotes</title>
+             <meta http-equiv='Content-type' content='text/html; charset=iso-8859-1'>
+             <meta name='description' content='A resource for studying the doctrine, history, and culture of the Mormon church through the words of its leaders.'>
+             <meta name='keywords' content='Mormon Quotes,Mormon,quotes,LDS,Latter-Day Saints,prophets,Joseph Smith,Brigham Young,prophets,history,Christianity'>diff --git a/src/Display.php b/src/Display.php
+--- a/src/Display.php
++++ b/src/Display.php
+@@
+-                  WHERE quote_author_id = '${author_id}'
++                  WHERE quote_author_id = '{$author_id}'
+@@
+-              WHERE stitch_tag_id = ${tag_id}
++              WHERE stitch_tag_id = {$tag_id}
+@@
+-    public function build_regular_page($query, string $title, int $author_id = null): string
++    public function build_regular_page($query, string $title, ?int $author_id = null): string
+@@
+-            <title>{(${author_id} ? "Quotes from ":"") . ${title})} | Mormon Quotes</title>
++            <title>{$author_id ? "Quotes from " : ""}{$title} | Mormon Quotes</title>diff --git a/src/Display.php b/src/Display.php
+index 1111111..2222222 100644
+--- a/src/Display.php
++++ b/src/Display.php
+@@
+-                  WHERE quote_author_id = '${author_id}'
++                  WHERE quote_author_id = '{$author_id}'
+@@
+-              WHERE stitch_tag_id = ${tag_id}
++              WHERE stitch_tag_id = {$tag_id}
+@@
+-    public function build_regular_page($query, string $title, int $author_id = null): string
++    public function build_regular_page($query, string $title, ?int $author_id = null): string
+@@
+-            <title>{(${author_id} ? "Quotes from ":"") . ${title})} | Mormon Quotes</title>
++            <title>{$author_id ? "Quotes from " : ""}{$title} | Mormon Quotes</title>

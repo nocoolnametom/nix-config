@@ -69,7 +69,7 @@ let
         Group = cfg.group;
         Restart = "on-failure";
         WorkingDirectory = "${sharePath}";
-        ExecStart = ''${phpEnv}/bin/php -S ${inst.listenAddress}:${toString inst.port} -t ${sharePath} ${sharePath}/router.php'';
+        ExecStart = ''${phpEnv}/bin/php -S ${inst.listenAddress}:${toString inst.port} -t ${sharePath}/public ${sharePath}/router.php'';
         EnvironmentFile = lib.optional (inst.database.passwordFile != null) inst.database.passwordFile;
       };
       environment = {

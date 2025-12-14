@@ -54,30 +54,87 @@ stdenv.mkDerivation {
     cp ${sqlSrc}/permissions.sql "$dest/"
 
     cat > "$dest/vendor/autoload.php" <<'AUTOLOADPHP'
-  <?php
-  require_once __DIR__ . '/../src/Display.php';
-  AUTOLOADPHP
+    <?php
+    require_once __DIR__ . '/../src/Display.php';
+    AUTOLOADPHP
 
-    cat > "$dest/router.php" <<'ROUTERPHP'
-<?php
-$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+    # Generate a router appropriate for each site
+    if [ "${phpNamespace}" = "JournalOfDiscourses" ]; then
+      cat > "$dest/router.php" <<'ROUTERPHP'
+    <?php
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
-if ($uri === '/' || $uri === "") {
-    require __DIR__ . '/public/index.php';
-    return true;
-}
-
-if (preg_match('#^/([^/]+)(/([0-9]+))?$#', $uri, $matches)) {
-    $_GET['book'] = urldecode($matches[1]);
-    if (isset($matches[3]) && $matches[3] !== "") {
-        $_GET['chapter'] = $matches[3];
+    if ($uri === '/' || $uri === "") {
+        require __DIR__ . '/public/index.php';
+        return true;
     }
-    require __DIR__ . '/public/index.php';
-    return true;
-}
 
-return false;
-ROUTERPHP
+    // /{volume} or /{volume}/{discourse}
+    if (preg_match('#^/([0-9]+)(/([0-9]+))?$#', $uri, $m)) {
+        $_GET['volume'] = (int)$m[1];
+        if (isset($m[3]) && $m[3] !== "") {
+            $_GET['discourse'] = (int)$m[3];
+        }
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+
+    // /people or /Author_Name (underscored)
+    if ($uri === '/people') {
+        $_GET['author'] = 'people';
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+    if (preg_match('#^/([^/]+)$#', $uri, $m)) {
+        $_GET['author'] = urldecode($m[1]);
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+
+    return false;
+    ROUTERPHP
+    elif [ "${phpNamespace}" = "MormonQuotes" ]; then
+      cat > "$dest/router.php" <<'ROUTERPHP'
+    <?php
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+
+    if ($uri === '/' || $uri === "") {
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+
+    // Treat single path segment as search term (author or tag)
+    if (preg_match('#^/([^/]+)$#', $uri, $m)) {
+        $_GET['one'] = urldecode($m[1]);
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+
+    return false;
+    ROUTERPHP
+    else
+      cat > "$dest/router.php" <<'ROUTERPHP'
+    <?php
+    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+
+    if ($uri === '/' || $uri === "") {
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+
+    // Default: /{book} or /{book}/{chapter}
+    if (preg_match('#^/([^/]+)(/([0-9]+))?$#', $uri, $matches)) {
+        $_GET['book'] = urldecode($matches[1]);
+        if (isset($matches[3]) && $matches[3] !== "") {
+            $_GET['chapter'] = $matches[3];
+        }
+        require __DIR__ . '/public/index.php';
+        return true;
+    }
+
+    return false;
+    ROUTERPHP
+    fi
 
     substituteInPlace "$dest/public/index.php" \
       --replace-quiet "/* DBName: */ '${dbNameDefault}'," "/* DBName: */ (getenv('${envPrefix}_DB_NAME') ?: '${dbNameDefault}')," \
