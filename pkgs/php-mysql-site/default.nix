@@ -53,10 +53,10 @@ stdenv.mkDerivation {
     cp ${sqlSrc}/data.sql "$dest/"
     cp ${sqlSrc}/permissions.sql "$dest/"
 
-    cat > "$dest/vendor/autoload.php" <<'PHP'
-    <?php
-    require_once __DIR__ . '/../src/Display.php';
-    PHP
+    cat > "$dest/vendor/autoload.php" <<'AUTOLOADPHP'
+  <?php
+  require_once __DIR__ . '/../src/Display.php';
+  AUTOLOADPHP
 
     cat > "$dest/router.php" <<'ROUTERPHP'
 <?php
