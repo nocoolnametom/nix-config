@@ -22,7 +22,7 @@
     del_copy_torrent_file = false;
     dht = false;
     dont_count_slow_torrents = false;
-    download_location = "/media/g_drive/Deluge/Downloads";
+    download_location = "/arkenstone/deluge/Downloads";
     download_location_paths_list = [ ];
     enabled_plugins = [
       "AutoAdd"
@@ -58,7 +58,7 @@
     max_upload_speed = -1.0;
     max_upload_speed_per_torrent = -1;
     move_completed = true;
-    move_completed_path = "/media/g_drive/Deluge/Finished";
+    move_completed_path = "/arkenstone/deluge/Finished";
     move_completed_paths_list = [ ];
     natpmp = false;
     new_release_check = false;
@@ -73,7 +73,7 @@
     path_chooser_show_chooser_button_on_localhost = true;
     path_chooser_show_hidden_files = false;
     peer_tos = "0x00";
-    plugins_location = "/var/lib/deluge/.config/deluge/plugins";
+    plugins_location = "/arkenstone/deluge/Plugins";
     pre_allocate_storage = false;
     prioritize_first_last_pieces = false;
     queue_new_to_top = false;
@@ -90,7 +90,7 @@
     stop_seed_at_ratio = false;
     stop_seed_ratio = 2.0;
     super_seeding = false;
-    torrentfiles_location = "/media/g_drive/Deluge/torrents";
+    torrentfiles_location = "/arkenstone/deluge/torrents";
     upnp = false;
     utpex = true;
   };

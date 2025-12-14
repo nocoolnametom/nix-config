@@ -113,7 +113,7 @@
   systemd.services.flood.serviceConfig.EnvironmentFile = config.sops.templates."flood.env".path;
 
   # Example storage mounts - adjust to durin's disks
-  services.nzbhydra2.dataDir = "/media/g_drive/nzbhydra2";
+  services.nzbhydra2.dataDir = "/arkenstone/nzbhydra2";
 
   # Security defaults
   security.sudo.wheelNeedsPassword = false;

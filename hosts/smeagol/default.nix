@@ -113,7 +113,7 @@
   services.stash-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}/graphql";
   services.stash-video-conversion.remoteHost = configVars.networking.subnets.bert.ip;
   services.stash-video-conversion.remoteUser = configVars.username;
-  services.stash-video-conversion.remoteUploadDir = "/media/g_drive/nzbget/dest/software/finished";
+  services.stash-video-conversion.remoteUploadDir = "/arkenstone/stash/library/unorganized/_staging/finished";
   services.stash-video-conversion.incomingDir = "/var/lib/stash-video-conversion/incoming";
   services.stash-video-conversion.transcodingDir = "/var/lib/stash-video-conversion/transcoding";
   services.stash-video-conversion.finishedDir = "/var/lib/stash-video-conversion/finished";

@@ -309,7 +309,7 @@ in
     remoteUploadDir = mkOption {
       type = str;
       description = "Remote directory path where converted files will be uploaded";
-      example = "/media/g_drive/nzbget/dest/software/finished";
+      example = "/arkenstone/stash/library/unorganized/_staging/finished";
     };
 
     incomingDir = mkOption {

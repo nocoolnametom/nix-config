@@ -1,6 +1,6 @@
 { pkgs, config, ... }:
 let
-  calibreLibrary = "/media/g_drive/Calibre";
+  calibreLibrary = "/arkenstone/calibre";
   calibre-update = pkgs.callPackage ./calibre-update-pkg.nix { };
 in
 {

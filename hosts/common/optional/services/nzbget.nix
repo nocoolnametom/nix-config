@@ -82,7 +82,7 @@ in
       '';
     in
     ''
-      rm -f /media/g_drive/nzbget/scripts/nzbToStashApp.sh && ln -s ${nzbToStashApp}/bin/nzbToStashApp.sh /media/g_drive/nzbget/scripts/nzbToStashApp.sh;
+      rm -f /arkenstone/nzbget/scripts/nzbToStashApp.sh && ln -s ${nzbToStashApp}/bin/nzbToStashApp.sh /arkenstone/nzbget/scripts/nzbToStashApp.sh;
     '';
   systemd.timers.nzbget-morning-refresh = {
     wantedBy = [ "timers.target" ];
@@ -118,8 +118,7 @@ in
     };
     script = "${
       updateStashScript [
-        "/media/g_drive/nzbget/dest/software"
-        "/mnt/bigssd/data.dat/software"
+        "/arkenstone/stash/library/unorganized/"
       ]
     }/bin/updateStash.sh";
     serviceConfig = {

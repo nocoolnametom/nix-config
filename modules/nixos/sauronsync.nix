@@ -96,8 +96,8 @@ in
 
     localDestDir = mkOption {
       type = types.str;
-      default = "/media/g_drive/nzbget/dest/software/finished";
-      example = "/media/g_drive/nzbget/dest/software/finished";
+      default = "/arkenstone/stash/library/unorganized/_staging/finished";
+      example = "/arkenstone/stash/library/unorganized/_staging/finished";
       description = "Directory for storing the finished files from Sauron";
     };
 
