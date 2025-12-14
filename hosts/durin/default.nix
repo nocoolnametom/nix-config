@@ -53,6 +53,7 @@
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   # Stash VR helper: update secret names and hostnames as needed
+  users.users.stashapp.extraGroups = lib.optionals config.services.nzbget.enable [ "nzbget" ];
   services.stashapp.vr-helper.enable = false;
   services.stashapp.vr-helper.stash-host = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
   sops.secrets."durin-stashapp-api-key" = { };
@@ -104,6 +105,7 @@
   boot.initrd.systemd.enable = true;
 
   environment.systemPackages = with pkgs; [
+    claude-code
     fuse
     glibcLocales
     nodejs

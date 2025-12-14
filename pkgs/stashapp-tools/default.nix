@@ -11,6 +11,7 @@
   p.lxml
   p.progressbar
   p.requests
+  p.watchdog
   # yt-dlp
   (p.buildPythonPackage rec {
     pname = "stashapp-tools";
@@ -25,6 +26,7 @@
     propagatedBuildInputs = [
       # Specify dependencies
       p.requests
+      p.watchdog
     ];
   })
 ]))
