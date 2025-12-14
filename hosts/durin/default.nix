@@ -69,6 +69,11 @@
   # Networking basics - update IPs and names for durin
   networking = {
     hostName = "durin";
+    nameservers = [
+      "1.1.1.1#one.one.one.one"
+      "1.0.0.1#one.one.one.one"
+      "8.8.8.8#eight.eight.eight.eight"
+    ];
     networkmanager.enable = true;
     enableIPv6 = true;
     firewall.enable = false;
@@ -80,6 +85,18 @@
     ];
     firewall.allowedUDPPorts = [ 443 ];
     firewall.allowPing = true;
+  };
+
+  services.resolved = {
+    enable = true;
+    dnssec = "true";
+    domains = [ "~." ];
+    fallbackDns = [
+      "1.1.1.1#one.one.one.one"
+      "1.0.0.1#one.one.one.one"
+      "8.8.8.8#eight.eight.eight.eight"
+    ];
+    dnsovertls = "true";
   };
 
   boot.tmp.cleanOnBoot = true;
