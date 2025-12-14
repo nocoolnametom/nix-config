@@ -146,7 +146,7 @@ let
       domain = "domain";
     }
     {
-      host = "bert";
+      host = "durin";
       service = "pinchflat";
       domain = "domain";
     }
@@ -169,7 +169,7 @@ let
       port = "authentik";
     }
     {
-      host = "bert";
+      host = "durin";
       service = "stash";
       domain = "domain";
     }
