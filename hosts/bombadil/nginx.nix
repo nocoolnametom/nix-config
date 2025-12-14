@@ -34,9 +34,9 @@
     in
     [
       # Specify any manual urls here not made in the above dynamic lists
-      config.networking.hosting.canon.domain
-      config.networking.hosting.quotes.domain
-      config.networking.hosting.jod.domain
+      configVars.networking.hosting.canon.domain
+      configVars.networking.hosting.quotes.domain
+      configVars.networking.hosting.jod.domain
     ]
     ++ [ config.services.failoverRedirects.statusPageDomain ]
     ++ akkomaUrls
@@ -58,6 +58,7 @@
   ];
   systemd.tmpfiles.rules = [
     "d /var/lib/acme 2750 acme nginx -"
+    "d /run/nginx 0755 root root -"
   ];
 
   # Rsync certificate receiver - fixes permissions after certs are synced from estel
@@ -79,6 +80,8 @@
   services.nginx.recommendedGzipSettings = true;
   services.nginx.recommendedProxySettings = true;
   services.nginx.sslCiphers = "AES256+EECDH:AES256+EDH:!aNULL";
+  services.nginx.serverNamesHashBucketSize = 128;
+  services.nginx.serverNamesHashMaxSize = 1024;
   services.nginx.commonHttpConfig = ''
     # limit clients doing too many requests
     # can be tested with ab -n 20 -c 10 <host>
@@ -95,7 +98,7 @@
   ];
 
   # Mormon Sites reverse proxies
-  services.nginx.virtualHosts."${config.networking.hosting.canon.domain}" = lib.mkIf config.services.mormonsites.enable {
+  services.nginx.virtualHosts."${configVars.networking.hosting.canon.domain}" = lib.mkIf config.services.mormonsites.enable {
     enableACME = true;
     http2 = true;
     forceSSL = true;
@@ -104,7 +107,7 @@
       proxyWebsockets = true;
     };
   };
-  services.nginx.virtualHosts."${config.networking.hosting.quotes.domain}" = lib.mkIf config.services.mormonsites.enable {
+  services.nginx.virtualHosts."${configVars.networking.hosting.quotes.domain}" = lib.mkIf config.services.mormonsites.enable {
     enableACME = true;
     http2 = true;
     forceSSL = true;
@@ -113,7 +116,7 @@
       proxyWebsockets = true;
     };
   };
-  services.nginx.virtualHosts."${config.networking.hosting.jod.domain}" = lib.mkIf config.services.mormonsites.enable {
+  services.nginx.virtualHosts."${configVars.networking.hosting.jod.domain}" = lib.mkIf config.services.mormonsites.enable {
     enableACME = true;
     http2 = true;
     forceSSL = true;

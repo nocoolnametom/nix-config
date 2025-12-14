@@ -58,26 +58,26 @@ stdenv.mkDerivation {
     require_once __DIR__ . '/../src/Display.php';
     PHP
 
-    cat > "$dest/router.php" <<'PHP'
-    <?php
-    $uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
+    cat > "$dest/router.php" <<'ROUTERPHP'
+<?php
+$uri = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH) ?? '/';
 
-    if ($uri === '/' || $uri === ''' ''') {
-        require __DIR__ . '/public/index.php';
-        return true;
+if ($uri === '/' || $uri === "") {
+    require __DIR__ . '/public/index.php';
+    return true;
+}
+
+if (preg_match('#^/([^/]+)(/([0-9]+))?$#', $uri, $matches)) {
+    $_GET['book'] = urldecode($matches[1]);
+    if (isset($matches[3]) && $matches[3] !== "") {
+        $_GET['chapter'] = $matches[3];
     }
+    require __DIR__ . '/public/index.php';
+    return true;
+}
 
-    if (preg_match('#^/([^/]+)(/([0-9]+))?$#', $uri, $matches)) {
-        $_GET['book'] = urldecode($matches[1]);
-        if (isset($matches[3]) && $matches[3] !== ''' ''') {
-            $_GET['chapter'] = $matches[3];
-        }
-        require __DIR__ . '/public/index.php';
-        return true;
-    }
-
-    return false;
-    PHP
+return false;
+ROUTERPHP
 
     substituteInPlace "$dest/public/index.php" \
       --replace-quiet "/* DBName: */ '${dbNameDefault}'," "/* DBName: */ (getenv('${envPrefix}_DB_NAME') ?: '${dbNameDefault}')," \
