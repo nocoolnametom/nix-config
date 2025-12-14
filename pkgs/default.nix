@@ -16,5 +16,8 @@ rec {
   stashapp = pkgs.callPackage ./stashapp { };
   stashapp-tools = pkgs.callPackage ./stashapp-tools { };
   update-cbz-tags = pkgs.callPackage ./update-cbz-tags { };
+  mormoncanon = pkgs.callPackage ./mormoncanon { };
+  mormonquotes = pkgs.callPackage ./mormonquotes { };
+  journalofdiscourses = pkgs.callPackage ./journalofdiscourses { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
 }

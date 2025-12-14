@@ -14,6 +14,8 @@
   sauronsync = import ./sauronsync.nix;
   stash-video-conversion = import ./stash-video-conversion.nix;
   stashapp = import ./stashapp.nix;
+  # mormoncanon module was renamed to mormonsites; keep only the new name
+  mormonsites = import ./mormonsites.nix;
   systemd-failure-alert = import ./systemd-failure-alert.nix;
   yubikey = import ./yubikey.nix;
   zsa-udev-rules = import ./zsa-udev-rules.nix;

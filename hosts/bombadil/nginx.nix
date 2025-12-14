@@ -34,6 +34,9 @@
     in
     [
       # Specify any manual urls here not made in the above dynamic lists
+      config.networking.hosting.canon.domain
+      config.networking.hosting.quotes.domain
+      config.networking.hosting.jod.domain
     ]
     ++ [ config.services.failoverRedirects.statusPageDomain ]
     ++ akkomaUrls
@@ -90,6 +93,35 @@
     "127.0.0.1"
     "[::1]"
   ];
+
+  # Mormon Sites reverse proxies
+  services.nginx.virtualHosts."${config.networking.hosting.canon.domain}" = lib.mkIf config.services.mormonsites.enable {
+    enableACME = true;
+    http2 = true;
+    forceSSL = true;
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.canon.port}";
+      proxyWebsockets = true;
+    };
+  };
+  services.nginx.virtualHosts."${config.networking.hosting.quotes.domain}" = lib.mkIf config.services.mormonsites.enable {
+    enableACME = true;
+    http2 = true;
+    forceSSL = true;
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.quotes.port}";
+      proxyWebsockets = true;
+    };
+  };
+  services.nginx.virtualHosts."${config.networking.hosting.jod.domain}" = lib.mkIf config.services.mormonsites.enable {
+    enableACME = true;
+    http2 = true;
+    forceSSL = true;
+    locations."/" = {
+      proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.jod.port}";
+      proxyWebsockets = true;
+    };
+  };
 
   # UptimeKuma
   services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}" =

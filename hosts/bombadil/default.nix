@@ -41,6 +41,7 @@ in
     "hosts/common/optional/services/akkoma.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/mastodon.nix"
+    "hosts/common/optional/services/mormonsites.nix"
     "hosts/common/optional/services/postgresql.nix"
     "hosts/common/optional/services/elasticsearch.nix"
     "hosts/common/optional/services/mailserver.nix"
