@@ -15,8 +15,8 @@
   ...
 }:
 let
-  socialUrl = configVars.networking.external.fedibox.mainUrl;
-  hostName = configVars.networking.external.fedibox.name;
+  socialUrl = configVars.networking.archived.external.fedibox.mainUrl;
+  hostName = configVars.networking.archived.external.fedibox.name;
 in
 {
   # @TODO: THIS IS A WORK IN PROGRESS - JUST A COPY OF BOMBADIL FOR NOW, UPDATE WITH EC2 SPECIFIC CONFIG
@@ -47,13 +47,15 @@ in
     "hosts/common/optional/nostr.nix"
 
     #################### Users to Create ####################
-    "home/${configVars.username}/persistence/${hostName}.nix"
+    "home/${configVars.username}/archived/${hostName}/persistence.nix"
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Fedibox doesn't have a home config (only persistence), so skip home-manager override
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   # networking.hostName = hostName; # Technically, the hostname should be set within AWS
-  networking.hosts."${configVars.networking.external.fedibox.ip}" = [
+  networking.hosts."${configVars.networking.archived.external.fedibox.ip}" = [
     socialUrl
     "www.${socialUrl}"
   ];
@@ -110,7 +112,7 @@ in
   services.akkoma.enable = false;
   services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host = socialUrl;
   services.akkoma.config.":pleroma".":instance".name =
-    configVars.networking.external.fedibox.niceName;
+    configVars.networking.archived.external.fedibox.niceName;
   services.akkoma.config.":pleroma".":instance".description =
     "A single-user instance for ${configVars.handles.mastodon}";
 

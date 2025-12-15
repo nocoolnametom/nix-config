@@ -7,13 +7,13 @@
 {
   imports = [
     ########################## Required Configs ###########################
-    common/core # required
+    ../../common/core # required
 
     #################### Host-specific Optional Configs ####################
-    common/optional/sops.nix
-    common/optional/git.nix
-    common/optional/desktops
-    common/optional/devenv.nix
+    ../../common/optional/sops.nix
+    ../../common/optional/git.nix
+    ../../common/optional/desktops
+    ../../common/optional/devenv.nix
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/ssh-agent.nix

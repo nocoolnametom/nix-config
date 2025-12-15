@@ -47,27 +47,9 @@ in
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
-      "fedibox" = {
-        # Havne't yet moved fedibox back over to handle the domain it usually handles
-        # host = "${configVars.networking.external.fedibox.name} ${configVars.networking.external.bombadil.mainUrl}";
-        # hostname = configVars.networking.external.fedibox.mainUrl;
-        # port = configVars.networking.ports.tcp.remoteSsh;
-        # identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-        host = "${configVars.networking.external.fedibox.name}";
-        hostname = configVars.networking.external.fedibox.ip;
-        port = configVars.networking.ports.tcp.localSsh;
-        identityFile = [ "${config.home.homeDirectory}/.ssh/id_fedibox" ];
-        user = "root";
-      };
       "archer" = {
         host = configVars.networking.subnets.archer.name;
         hostname = configVars.networking.subnets.archer.ip;
-        port = configVars.networking.ports.tcp.localSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "bert" = {
-        host = configVars.networking.subnets.bert.name;
-        hostname = configVars.networking.subnets.bert.ip;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
@@ -77,30 +59,10 @@ in
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
-      "william" = {
-        host = configVars.networking.subnets.william.name;
-        hostname = configVars.networking.subnets.william.ip;
-        port = configVars.networking.ports.tcp.localSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
       "router" = {
         host = configVars.networking.subnets.router.name;
         hostname = configVars.networking.subnets.router.ip;
         port = configVars.networking.ports.tcp.remoteSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "sauron" = {
-        host = configVars.networking.subnets.sauron.name;
-        hostname = configVars.networking.subnets.sauron.ip;
-        user = configVars.networking.subnets.sauron.username;
-        port = configVars.networking.ports.tcp.localSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "sauron-actual" = {
-        host = "${configVars.networking.subnets.sauron.name}-actual";
-        hostname = configVars.networking.subnets.sauron.actual;
-        user = configVars.networking.subnets.sauron.username;
-        port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "barliman" = {
@@ -125,10 +87,6 @@ in
         host = "home.${configVars.domain}";
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "${configVars.domain}" = {
-        host = "${configVars.domain}";
-        identityFile = [ "${config.home.homeDirectory}/.ssh/id_fedibox" ];
       };
       "steamdeck" = {
         host = configVars.networking.subnets.steamdeck.name;

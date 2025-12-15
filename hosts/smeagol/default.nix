@@ -110,8 +110,8 @@
 
   # Remote video conversion from stash server
   services.stash-video-conversion.enable = true;
-  services.stash-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.stash}/graphql";
-  services.stash-video-conversion.remoteHost = configVars.networking.subnets.bert.ip;
+  services.stash-video-conversion.graphqlEndpoint = "http://${configVars.networking.subnets.durin.ip}:${builtins.toString configVars.networking.ports.tcp.stash}/graphql";
+  services.stash-video-conversion.remoteHost = configVars.networking.subnets.durin.ip;
   services.stash-video-conversion.remoteUser = configVars.username;
   services.stash-video-conversion.remoteUploadDir = "/arkenstone/stash/library/unorganized/_staging/finished";
   services.stash-video-conversion.incomingDir = "/var/lib/stash-video-conversion/incoming";

@@ -59,9 +59,14 @@
     # tube-archivist via docker?
 
     #################### Users to Create ####################
-    "home/${configVars.username}/persistence/william.nix"
+    "home/${configVars.username}/archived/william/persistence.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Override the default home-manager config loading for archived machines
+  home-manager.users.${configVars.username} = lib.mkForce (import (
+    configLib.relativeToRoot "home/${configVars.username}/archived/william/default.nix"
+  ));
 
   # Mark this system as deprecated
   system.deprecation = {

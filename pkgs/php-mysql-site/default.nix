@@ -151,7 +151,7 @@ stdenv.mkDerivation {
 
   meta = with lib; {
     inherit description homepage;
-    license = licenses.unfreeRedistributable;
+    license = licenses.free; # Permissively licensed source code for serving public domain data
     platforms = platforms.unix;
     maintainers = [ ];
   };

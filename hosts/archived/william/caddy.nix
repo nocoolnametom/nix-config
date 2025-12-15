@@ -42,12 +42,12 @@
     };
     "${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.audiobookshelf}
       '';
     };
     "${configVars.networking.subdomains.budget}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.budget}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.budget}
       '';
     };
     "${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}" = {
@@ -86,19 +86,19 @@
     };
     "${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
       # I haven't gotten immich working locally on william yet, so it's on cirdan's Podtainer for now
-      # reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
+      # reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
       extraConfig = ''
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.immich}
       '';
     };
     "${configVars.networking.subdomains.immich-share}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich-share}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.immich-share}
       '';
     };
     "${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.hedgedoc}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.hedgedoc}
       '';
     };
     "${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}" = {
@@ -108,22 +108,22 @@
     };
     "${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.karakeep}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.karakeep}
       '';
     };
     "${configVars.networking.subdomains.kavitan}.${configVars.domain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavitan}
       '';
     };
     "${configVars.networking.subdomains.kavita}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.kavita}
       '';
     };
     "${configVars.networking.subdomains.mealie}.${configVars.homeDomain}" = {
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.mealie}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.mealie}
       '';
     };
     "${configVars.networking.subdomains.mylar}.${configVars.domain}" = {
@@ -163,15 +163,15 @@
     };
     "${configVars.networking.subdomains.paperless}.${configVars.homeDomain}" = {
       # I can't get paperless to work on william yet, so it's on cirdan's portainer
-      # reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
+      # reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
+        reverse_proxy ${configVars.networking.archived.subnets.william.ip}:${builtins.toString configVars.networking.ports.tcp.paperless}
       '';
     };
     "${configVars.networking.subdomains.pinchflat}.${configVars.domain}" = {
       # For some reason the proxy provider for authentik does NOT work with pinchflat!
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.pinchflat}
+        reverse_proxy ${configVars.networking.archived.subnets.bert.ip}:${builtins.toString configVars.networking.ports.tcp.pinchflat}
       '';
     };
     "${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}" = {

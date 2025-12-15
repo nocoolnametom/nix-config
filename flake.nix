@@ -196,17 +196,6 @@
             ./hosts/pangolin11
           ];
         };
-        # Raspberry Pi 4
-        # To build remotely, run as regular user:
-        # nixos-rebuild switch --use-remote-sudo --flake .#bert -v --target-host bert --build-host localhost --use-substitutes
-        bert = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/bert
-          ];
-        };
         # Beelink SER5 Mini PC
         estel = lib.nixosSystem {
           inherit specialArgs;
@@ -223,15 +212,6 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/bombadil
-          ];
-        };
-        # AWS EC2 Instance
-        fedibox = lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/fedibox
           ];
         };
         # AMD Desktop Dual Boot
@@ -322,6 +302,24 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/archived/glorfindel
+          ];
+        };
+        # Raspberry Pi 4 (ARCHIVED)
+        bert = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/bert
+          ];
+        };
+        # AWS EC2 Instance (ARCHIVED)
+        fedibox = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/archived/fedibox
           ];
         };
       };

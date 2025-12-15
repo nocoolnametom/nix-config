@@ -61,10 +61,9 @@ Each machine's configuration should be easily understood by examining only:
 - **pangolin11**: System76 Pangolin 11 AMD laptop - primary development machine (desktop GUI, powerful)
 - **barliman**: AMD Framework desktop (dual boot) - workstation (desktop GUI, powerful, testbed)
 - **smeagol**: AMD desktop (dual boot) - workstation with Docker/Arion support (desktop GUI, powerful, GPU)
-- **bert**: Raspberry Pi 4 - home server (headless, aarch64-linux, low-power, avoid heavy services)
+- **durin**: KAMRUI E2 Mini PC - home server (headless, low-power services)
 - **estel**: Beelink SER5 Mini PC - media/home automation server (headless, powerful enough for media)
 - **bombadil**: Linode 4GB VPS - web services (headless, limited RAM, WordPress, nginx)
-- **fedibox**: AWS EC2 instance - Fediverse services (headless, cloud)
 
 #### Nix-Darwin System
 - **macbookpro**: Corporate MacBook Pro with Nix-Darwin + Home Manager (GUI, work restrictions)
@@ -74,12 +73,16 @@ Each machine's configuration should be easily understood by examining only:
 - **vm1**: Work Ubuntu VM with Home Manager only (limited access, work restrictions)
 
 #### Archived Systems (maintained for reference)
-Located in `hosts/archived/`:
+Located in `hosts/archived/` and `home/tdoggett/archived/`:
+- **bert**: Raspberry Pi 4 - replaced by durin
+- **fedibox**: AWS EC2 instance - Fediverse services moved to bombadil
+- **william**: Raspberry Pi 5 - replaced by estel
 - **thinkpadx1**: ThinkPad X1 Carbon laptop
-- **melian**: Asus Zenbook 13 laptop  
-- **william**: Raspberry Pi 5
+- **melian**: Asus Zenbook 13 laptop
 - **sauron**: Windows WSL2 NixOS
-- **glorfindel**: Linode VPS (replaced by bombadil)
+- **glorfindel**: Linode VPS - replaced by bombadil
+
+**Note**: Archived machines still define their networking info in `nix-secrets` under `networking.archived.*` to support legacy service dependencies.
 
 ### Machine Characteristics for AI Assistants
 
@@ -88,12 +91,11 @@ When suggesting features or services, consider these machine profiles:
 | Machine | GUI | Power | RAM | Special Notes |
 |---------|-----|-------|-----|---------------|
 | pangolin11 | ✓ Desktop | High | 32GB+ | Primary dev machine, test new features here |
-| barliman | ✓ Desktop | High | 32GB+ | Workstation, good testbed |
+| barliman | ✓ Desktop | High | 32GB+ | Gaming machine, good testbed |
 | smeagol | ✓ Desktop | High | 32GB+ | Has GPU, Docker/Arion, AI workloads |
-| bert | ✗ Headless | Low | 4GB | Raspberry Pi - avoid heavy services |
+| durin | ✗ Headless | Low | 8GB | Mini PC - lightweight services, replaced bert |
 | estel | ✗ Headless | Medium | 16GB | Media server, 24/7 uptime |
-| bombadil | ✗ Headless | Low | 4GB | VPS - watch RAM usage |
-| fedibox | ✗ Headless | Medium | Varies | Cloud - web-facing services |
+| bombadil | ✗ Headless | Low | 4GB | VPS - watch RAM usage, handles Fediverse and friends' religious sites |
 | macbookpro | ✓ Desktop | High | 16GB+ | Work machine - corporate restrictions |
 | steamdeck | ✓ Gaming | Medium | 16GB | Read-only system, HM only |
 | vm1 | ✓ Desktop | Low | 8GB | Work VM - HM only, restrictions |
@@ -101,38 +103,43 @@ When suggesting features or services, consider these machine profiles:
 **Decision Matrix:**
 - **Desktop features** (fonts, themes, GUI apps): pangolin11, barliman, smeagol, macbookpro
 - **Heavy services** (AI, video processing): pangolin11, barliman, smeagol, estel
-- **24/7 services** (monitoring, automation): bert, estel, bombadil, fedibox
+- **24/7 services** (monitoring, automation): durin, estel, bombadil
 - **GPU workloads** (AI image gen, ML): smeagol primarily
-- **Public web services**: bombadil, fedibox
-- **Local network services**: bert, estel
+- **Public web services**: bombadil
+- **Local network services**: durin, estel
 
 ### Repository Structure
 
 ```
-├── flake.nix                    # Main flake with nixosConfigurations, darwinConfigurations, homeConfigurations
-├── shell.nix                    # Development shell with tools for working with this config
-├── checks/                      # Flake check validations
-├── hosts/                       # NixOS & nix-darwin system configurations
-│   ├── common/                  # Shared system modules
-│   │   ├── core/               # Required base configuration (auto-imported)
-│   │   ├── darwin/             # macOS-specific shared modules
-│   │   ├── optional/           # Optional feature modules (import as needed)
-│   │   └── users/              # User account definitions
-│   ├── archived/               # Legacy systems maintained for reference
-│   ├── work/                   # Work-specific machine configs
-│   └── [machine]/              # Active machine-specific system configs
-│       ├── default.nix         # Main system config (should be minimal)
+├── flake.nix                  # Main flake with nixosConfigurations, darwinConfigurations, homeConfigurations
+├── shell.nix                  # Development shell with tools for working with this config
+├── checks/                    # Flake check validations
+├── hosts/                     # NixOS & nix-darwin system configurations
+│   ├── common/                # Shared system modules
+│   │   ├── core/              # Required base configuration (auto-imported)
+│   │   ├── darwin/            # macOS-specific shared modules
+│   │   ├── optional/          # Optional feature modules (import as needed)
+│   │   └── users/             # User account definitions
+│   ├── archived/              # Legacy systems maintained for reference
+│   ├── work/                  # Work-specific machine configs
+│   └── [machine]/             # Active machine-specific system configs
+│       ├── default.nix        # Main system config (should be minimal)
 │       ├── hardware-configuration.nix
-│       └── persistence.nix     # Impermanence configuration (if applicable)
-├── home/                       # Home Manager configurations
-│   └── tdoggett/               # User-specific configurations
-│       ├── common/             # Shared home modules
+│       └── persistence.nix    # Impermanence configuration (if applicable)
+├── home/                      # Home Manager configurations
+│   └── tdoggett/              # User-specific configurations
+│       ├── common/            # Shared home modules
 │       │   ├── core/          # Required base home config
 │       │   └── optional/      # Optional home feature modules
-│       ├── persistence/       # Per-machine persistence configs
-│       ├── [machine].nix      # Machine-specific home config (should be minimal)
-│       └── nixos.nix          # Generic NixOS home config
-├── modules/                    # Custom modules extending NixOS/HM functionality
+│       ├── archived/          # Archived machine home configs
+│       │   └── nixos/
+│       │       └── default.nix     # Generic NixOS home config
+│       │   └── [machine]/     # Each archived machine has its own directory
+│       │       ├── default.nix     # Home config (if it exists)
+│       │       └── persistence.nix # Persistence config
+│       ├── persistence/       # Active machines' persistence configs
+│       ├── [machine].nix      # Active machine home config (should be minimal)
+├── modules/                   # Custom modules extending NixOS/HM functionality
 │   ├── nixos/                 # Custom NixOS modules (14+ custom modules)
 │   │   ├── stashapp.nix       # Stash media server
 │   │   ├── kavitan.nix        # Kavita manga/comic reader
@@ -145,13 +152,15 @@ When suggesting features or services, consider these machine profiles:
 │       ├── waycorner.nix      # Wayland corner actions
 │       ├── waynergy.nix       # Wayland Synergy
 │       └── ...
-├── pkgs/                      # Custom packages (8+ packages)
-│   ├── homer/                 # Homer dashboard
-│   ├── phanpy/                # Phanpy Mastodon client
+├── pkgs/                      # Custom packages (10 packages)
+│   ├── journalofdiscourses/   # Journal of Discourses website/app
+│   ├── mormoncanon/           # Mormon canon website/app
+│   ├── mormonquotes/          # Mormon quotes website/app
+│   ├── php-mysql-site/        # Generic PHP/MySQL site builder
 │   ├── stashapp/              # Stash media server package
 │   ├── stash-vr/              # Stash VR plugin
 │   ├── stashapp-tools/        # Stash utilities
-│   ├── split-my-cbz/          # Comic book utilities
+│   ├── split-my-cbz/          # Comic book splitting utilities
 │   ├── update-cbz-tags/       # Comic book metadata tools
 │   └── wakatime-zsh-plugin/   # Wakatime shell integration
 ├── lib/                       # Utility functions (e.g., relativeToRoot)
@@ -255,11 +264,13 @@ All NixOS, Darwin, and Home Manager configurations have access to:
 - **davmail-config**: DavMail Exchange gateway configuration
 
 ### Custom Packages (`pkgs/`)
-All packages include proper update scripts and are maintained in-tree:
-- **homer**: Customizable dashboard for home services
-- **phanpy**: Modern Mastodon web client
+All packages are maintained in-tree (some with update scripts):
+- **journalofdiscourses**: Website/app for the Journal of Discourses
+- **mormoncanon**: Website/app for Mormon canonical texts
+- **mormonquotes**: Website/app for quotes from Mormon leaders
+- **php-mysql-site**: Generic builder for PHP/MySQL websites
 - **stashapp**: Adult media organizer (with update automation)
-- **stash-vr**: VR viewer plugin for Stash
+- **stash-vr**: VR viewer plugin for Stash (with update automation)
 - **stashapp-tools**: Command-line utilities for Stash
 - **split-my-cbz**: Comic book archive splitting tool
 - **update-cbz-tags**: Comic book metadata management
@@ -444,7 +455,7 @@ sudo nixos-rebuild switch --flake .#$(hostname)
    ```
 
 4. **Common culprits after updates**:
-   - Custom packages in `pkgs/` (stashapp, phanpy, etc.) - may need hash updates
+   - Custom packages in `pkgs/` (stashapp, religious sites, etc.) - may need hash updates
    - AI/ML packages from nixified-ai
    - Bleeding-edge services with many dependencies
    - Custom modules that depend on unstable packages
@@ -693,6 +704,93 @@ Create configurations before hardware exists:
 
 ## Other Workflows
 
+### Archiving a Retired Machine
+
+When a machine is decommissioned but you want to preserve its configuration:
+
+1. **Move host configuration**:
+   ```bash
+   mv hosts/oldmachine hosts/archived/oldmachine
+   ```
+
+2. **Reorganize home manager configs**:
+   ```bash
+   mkdir -p home/tdoggett/archived/oldmachine
+   mv home/tdoggett/oldmachine.nix home/tdoggett/archived/oldmachine/default.nix
+   mv home/tdoggett/persistence/oldmachine.nix home/tdoggett/archived/oldmachine/persistence.nix
+   ```
+
+3. **Update networking data in nix-secrets**:
+   ```nix
+   # In nix-secrets/flake.nix
+   networking = {
+     # Move from subnets to archived.subnets
+     archived = {
+       subnets = {
+         oldmachine = { name = "oldmachine"; ip = "192.168.0.X"; };
+       };
+       external = {
+         # For public-facing machines
+       };
+     };
+   };
+   ```
+
+4. **Update references in active systems**:
+   ```nix
+   # Change from:
+   configVars.networking.subnets.oldmachine.ip
+   # To:
+   configVars.networking.archived.subnets.oldmachine.ip
+   ```
+
+5. **Update flake.nix**:
+   ```nix
+   # Move from nixosConfigurations to archivedNixosConfigurations
+   archivedNixosConfigurations = {
+     oldmachine = lib.nixosSystem {
+       inherit specialArgs;
+       modules = [
+         home-manager.nixosModules.home-manager
+         { home-manager.extraSpecialArgs = specialArgs; }
+         ./hosts/archived/oldmachine
+       ];
+     };
+   };
+   ```
+
+6. **Fix import paths in archived host config**:
+   ```nix
+   # In hosts/archived/oldmachine/default.nix
+   imports = [ ... ] ++ (map configLib.relativeToRoot [
+     # Update home persistence path
+     "home/${configVars.username}/archived/oldmachine/persistence.nix"
+   ]);
+   
+   # Override home-manager config loading
+   home-manager.users.${configVars.username} = lib.mkForce (import (
+     configLib.relativeToRoot "home/${configVars.username}/archived/oldmachine/default.nix"
+   ));
+   ```
+
+7. **Remove SSH configuration** (optional):
+   ```nix
+   # In home/tdoggett/common/core/ssh.nix
+   # Remove the matchBlock for archived machines that no longer exist
+   ```
+
+8. **Validate it still evaluates**:
+   ```bash
+   nix build '.#archivedNixosConfigurations.oldmachine.config.system.build.toplevel' --dry-run
+   # May fail due to outdated packages, but structure should be correct
+   ```
+
+**Why archive instead of delete?**
+- Preserves configuration for reference
+- Active systems may still depend on networking info (DNS, monitoring, etc.)
+- Maintains institutional knowledge
+- Can be temporarily revived if needed
+
 ### Adding a New Machine
 
 1. Generate hardware configuration:
@@ -793,17 +891,22 @@ Three inputs require SSH authentication:
 These must be accessible via SSH keys configured on each machine.
 
 ### Raspberry Pi Building
-The Raspberry Pi 4 (bert) is aarch64-linux and should typically be built locally rather than cross-compiled:
+Raspberry Pi systems (archived: bert, william) are aarch64-linux and should typically be built locally rather than cross-compiled:
 - Use `--build-host localhost` when deploying remotely
 - Use `--use-substitutes` to pull from binary caches
 - Cross-compilation can be slow and may have issues
+- Example: `nixos-rebuild switch --use-remote-sudo --flake .#bert --target-host bert --build-host localhost --use-substitutes`
 
 ### Archived Systems
-Archived systems in `hosts/archived/` and `archivedNixosConfigurations`:
-- Still validated by `nix flake check`
+Archived systems in `hosts/archived/`, `home/tdoggett/archived/`, and `archivedNixosConfigurations`:
+- Networking data moved to `nix-secrets` under `networking.archived.subnets` and `networking.archived.external`
+- Active systems can reference archived networking info (e.g., bombadil references archived bert and fedibox)
+- Home configs organized in subdirectories: `home/tdoggett/archived/[machine]/` containing `default.nix` and/or `persistence.nix`
+- Hardware configs may have broken relative imports - fix with `../../common/optional/` paths
+- Still validated by `nix flake check` (though may have outdated package references)
 - Serve as reference configurations
-- Can still be built and deployed if needed
-- Not actively maintained but should remain buildable
+- Can still be built if package names are updated
+- Not actively maintained - expect build errors with current nixpkgs (e.g., `vim_configurable` → `vim-full`)
 
 ### Darwin-Specific
 The macOS system (macbookpro) uses:

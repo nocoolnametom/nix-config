@@ -57,7 +57,7 @@
     "hosts/common/optional/stylix.nix" # System-wide styling
 
     #################### Users to Create ####################
-    "home/${configVars.username}/persistence/melian.nix"
+    "home/${configVars.username}/archived/melian/persistence.nix"
     "hosts/common/users/${configVars.username}"
   ]);
 

@@ -18,7 +18,7 @@
   ...
 }:
 let
-  socialUrl = configVars.networking.external.glorfindel.mainUrl;
+  socialUrl = configVars.networking.archived.external.glorfindel.mainUrl;
 in
 {
   imports = [
@@ -49,9 +49,14 @@ in
     "hosts/common/optional/linode.nix"
 
     #################### Users to Create ####################
-    "home/${configVars.username}/persistence/glorfindel.nix"
+    "home/${configVars.username}/archived/glorfindel/persistence.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Override the default home-manager config loading for archived machines
+  home-manager.users.${configVars.username} = lib.mkForce (import (
+    configLib.relativeToRoot "home/${configVars.username}/archived/glorfindel/default.nix"
+  ));
 
   # Mark this system as deprecated
   system.deprecation = {
@@ -67,8 +72,8 @@ in
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
-  networking.hostName = configVars.networking.external.glorfindel.name;
-  networking.hosts."${configVars.networking.external.glorfindel.ip}" = [
+  networking.hostName = configVars.networking.archived.external.glorfindel.name;
+  networking.hosts."${configVars.networking.archived.external.glorfindel.ip}" = [
     socialUrl
     "www.${socialUrl}"
   ];

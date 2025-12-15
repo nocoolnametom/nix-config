@@ -1,7 +1,7 @@
 ###############################################################################
 #
 # User-Level Persistence
-# System-level is handled in hosts/fedibox/persistence.nix
+# System-level is handled in hosts/archived/thinkpadx1/persistence.nix
 #
 # This does NOT use the home-manager modules as I dislike how it loads files
 # after login.
@@ -23,9 +23,29 @@
     lib.optionals (config.environment.persistence."${configVars.persistFolder}".enable)
       {
         directories = [
+          # "Documents"
+          "Downloads"
+          # "Music"
+          # "Pictures"
           "Projects"
+          # "Videos"
+          # "VirtualBox VMs"
+          ".config/google-chrome"
+          ".config/BraveSoftware/Brave-Browser"
+          ".config/Code"
+          ".config/discord"
+          ".config/jellyfin.org"
+          ".config/KADOKAWA"
+          ".config/Proton Mail"
+          ".config/obsidian"
+          ".config/Slack"
+          ".config/waynergy/tls"
+          ".config/vlc"
+          ".config/zed"
           ".local/share/direnv"
+          ".mozilla"
           # ".config/Yubico"
+          ".cache/czkawka"
           ".vscode"
           {
             directory = ".gnupg";
@@ -49,7 +69,10 @@
             mode = "0700";
           }
         ];
-        files = [ ".bash_history" ];
+        files = [
+          ".bash_history"
+          ".davmail.properties"
+        ];
       };
 
   # Don't allow mutation of users outside of the config.

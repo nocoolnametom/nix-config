@@ -50,9 +50,14 @@
     # "hosts/common/optional/services/ytdl-sub.nix"
 
     #################### Users to Create ####################
-    "home/${configVars.username}/persistence/bert.nix"
+    "home/${configVars.username}/archived/bert/persistence.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Override the default home-manager config loading for archived machines
+  home-manager.users.${configVars.username} = lib.mkForce (import (
+    configLib.relativeToRoot "home/${configVars.username}/archived/bert/default.nix"
+  ));
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;

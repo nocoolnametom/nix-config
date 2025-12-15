@@ -97,7 +97,7 @@ in
   services.dnsFailover.enable = true;
   services.dnsFailover.healthUrl = "https://${configVars.healthDomain}";
   services.dnsFailover.failoverDomain = "home.${configVars.domain}";
-  services.dnsFailover.targetServerName = configVars.networking.subnets.bert.name;
+  services.dnsFailover.targetServerName = configVars.networking.subnets.estel.name;
   services.dnsFailover.statusServerUrl = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
   services.dnsFailover.porkbunApiKeyFile = config.sops.secrets."porkbun/dns-failover/key".path;
   services.dnsFailover.porkbunApiSecretFile = config.sops.secrets."porkbun/dns-failover/secret".path;
@@ -108,9 +108,9 @@ in
   services.mastodon.sidekiqThreads = 10; # This seems about right
 
   # Akkoma Setup
-  services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host = configVars.domain;
+  services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host = configVars.networking.personalSocialUrl;
   services.akkoma.config.":pleroma".":instance".name =
-    configVars.networking.external.fedibox.niceName;
+    configVars.handles.niceHandle;
   services.akkoma.config.":pleroma".":instance".description =
     "A single-user instance for ${configVars.handles.mastodon}";
 

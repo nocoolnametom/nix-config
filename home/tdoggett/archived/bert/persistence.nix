@@ -1,7 +1,7 @@
 ###############################################################################
 #
 # User-Level Persistence
-# System-level is handled in hosts/sauron/persistence.nix
+# System-level is handled in hosts/archived/bert/persistence.nix
 #
 # This does NOT use the home-manager modules as I dislike how it loads files
 # after login.
