@@ -77,4 +77,22 @@
       }
     ];
   };
+
+  system.activationScripts."createPersistentStorageDirs".deps = [
+    "var-lib-private-permissions"
+    "users"
+    "groups"
+  ];
+  system.activationScripts = {
+    "var-lib-private-permissions" = {
+      deps = [ "specialfs" ];
+      text = ''
+        mkdir -p /persist/var/lib/private
+        chmod 0700 /persist/var/lib/private
+      '';
+    };
+  };
+  systemd.tmpfiles.rules = [
+    "d /var/lib/private 0700 root root"
+  ];
 }
