@@ -24,8 +24,21 @@
       "/var/lib/bluetooth"
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
+      "/var/lib/deluge/.config/deluge"
       "/var/lib/docker"
       "/var/lib/nixos"
+      "/var/lib/nzbget/queue"
+      "/var/lib/nzbget/scripts"
+      "/var/lib/nzbhydra2"
+      "/var/lib/pinchflat/db"
+      "/var/lib/pinchflat/extras"
+      "/var/lib/private/flood"
+      "/var/lib/radarr/.config/Radarr"
+      "/var/lib/sbctl"
+      "/var/lib/sickgear"
+      "/var/lib/sonarr/.config/NzbDrone"
+      "/var/lib/stashapp/.config/chromium"
+      "/var/lib/stashapp/.stash"
       "/var/lib/systemd/coredump"
     ];
     files = [
@@ -34,6 +47,10 @@
       "/etc/nix/id_rsa"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
       "/var/lib/logrotate.status"
+      "/var/lib/nzbget/nzbget.conf"
+      "/var/lib/stashapp/.stash/config.yml"
+      "/var/lib/systemd/tpm2-srk-public-key.pem"
+      "/var/lib/systemd/tpm2-srk-public-key.tpm2b_public"
       {
         file = "/etc/ssh/ssh_host_ed25519_key";
         parentDirectory = {
