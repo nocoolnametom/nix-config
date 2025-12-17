@@ -6,6 +6,7 @@
 
 {
   inputs,
+  config,
   configVars,
   lib,
   ...
