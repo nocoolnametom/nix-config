@@ -32,4 +32,7 @@
   # Ensure the sickbeard user is in the shared media group
   users.groups.media = { };
   users.users.sickbeard.extraGroups = [ "media" ];
+
+  # Set umask so sickbeard creates group-writable files when moving/renaming
+  systemd.services.sickbeard.serviceConfig.UMask = "0002";
 }

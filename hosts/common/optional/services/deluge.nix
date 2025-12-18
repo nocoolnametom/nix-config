@@ -105,6 +105,9 @@
   users.groups.media = { };
   services.deluge.group = "media";
 
+  # Set umask so deluge creates group-writable files
+  systemd.services.deluged.serviceConfig.UMask = "0002";
+
   # Deluge Web Server - Used by other services to send torrents!
   services.deluge.web.enable = lib.mkDefault config.services.deluge.enable;
 }

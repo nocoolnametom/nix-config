@@ -134,6 +134,20 @@
   # Example storage mounts - adjust to durin's disks
   services.nzbhydra2.dataDir = "/arkenstone/nzbhydra2";
 
+  # Set up media directories with correct permissions for shared access
+  # The 2775 mode sets setgid bit so new files inherit the media group
+  systemd.tmpfiles.rules = [
+    "d /arkenstone/deluge 2775 deluge media -"
+    "d /arkenstone/deluge/torrents 2775 deluge media -"
+    "d /arkenstone/deluge/Downloads 2775 deluge media -"
+    "d /arkenstone/deluge/Finished 2775 deluge media -"
+    "d /arkenstone/nzbget 2775 nzbget media -"
+    "d /arkenstone/nzbget/dest 2775 nzbget media -"
+    "d /arkenstone/nzbget/nzb 2775 nzbget media -"
+    "d /arkenstone/nzbget/scripts 2775 nzbget media -"
+    # Add any other download/media directories that need shared access
+  ];
+
   # Security defaults
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;

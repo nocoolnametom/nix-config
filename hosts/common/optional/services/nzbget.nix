@@ -31,6 +31,11 @@ in
   };
   # NzbGet Server
   services.nzbget.enable = true;
+  services.nzbget.group = "media"; # Use media group instead of nzbget
+  
+  # Set umask so files are group-writable (0002 = rwxrwxr-x for dirs, rw-rw-r-- for files)
+  systemd.services.nzbget.serviceConfig.UMask = "0002";
+  
   systemd.services.nzbget.path = with pkgs; [
     unrar
     unzip
