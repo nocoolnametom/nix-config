@@ -182,6 +182,9 @@
   services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
   services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
   services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
+  # Sync to a separate directory on bombadil to avoid conflicts with its locally-managed certs
+  services.rsyncCertSync.sender.vpsTargetPath = "/var/lib/acme-failover";
+  # No need to exclude domains - they're in a separate directory!
 
   # Security
   security.sudo.wheelNeedsPassword = false;

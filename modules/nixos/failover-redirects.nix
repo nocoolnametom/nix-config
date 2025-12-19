@@ -29,6 +29,12 @@ in
       default = "/etc/nginx/failover-redirects.conf";
       description = "Path to write the generated Nginx failover redirects config";
     };
+
+    certPath = lib.mkOption {
+      type = lib.types.path;
+      default = "/var/lib/acme";
+      description = "Path to the directory containing SSL certificates for failover domains";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -46,8 +52,8 @@ in
                     echo "# Generated failover redirect config - DO NOT EDIT" > $tmpfile
                     echo "" >> $tmpfile
 
-                    # Iterate domains in /var/lib/acme
-                    for dir in /var/lib/acme/*; do
+                    # Iterate domains in certificate directory
+                    for dir in ${cfg.certPath}/*; do
                       domain=$(basename "$dir")
 
                       # Skip excluded domains and acme-challenge
@@ -62,7 +68,7 @@ in
                       if [ "$skip" -eq 1 ]; then continue; fi
 
                       # Check if cert files exist for safety
-                      if [ ! -f "/var/lib/acme/$domain/fullchain.pem" ] || [ ! -f "/var/lib/acme/$domain/key.pem" ]; then
+                      if [ ! -f "${cfg.certPath}/$domain/fullchain.pem" ] || [ ! -f "${cfg.certPath}/$domain/key.pem" ]; then
                         echo "Warning: cert files missing for $domain, skipping" >&2
                         continue
                       fi
@@ -73,8 +79,8 @@ in
               listen 443 ssl;
               listen [::]:443 ssl;
               server_name ${"$"}{domain};
-              ssl_certificate /var/lib/acme/${"$"}{domain}/fullchain.pem;
-              ssl_certificate_key /var/lib/acme/${"$"}{domain}/key.pem;
+              ssl_certificate ${cfg.certPath}/${"$"}{domain}/fullchain.pem;
+              ssl_certificate_key ${cfg.certPath}/${"$"}{domain}/key.pem;
 
               location / {
                   return 302 https://${cfg.statusPageDomain}\$request_uri;
@@ -92,9 +98,9 @@ in
     };
 
     systemd.paths.failover-redirects-watch = {
-      description = "Watch /var/lib/acme for cert changes to regenerate failover config";
+      description = "Watch certificate directory for changes to regenerate failover config";
       pathConfig = {
-        PathModified = "/var/lib/acme";
+        PathModified = cfg.certPath;
       };
       wantedBy = [ "multi-user.target" ];
       unitConfig = {
@@ -129,7 +135,7 @@ in
       (pkgs.writeShellScriptBin "testing-failovers-root" ''
         HOSTNAME=${config.networking.hostName}
 
-        for domain in $(ls /var/lib/acme); do
+        for domain in $(ls ${cfg.certPath}); do
           if [[ "$domain" == "acme-challenge" ]]; then continue; fi;
 
           echo -n "Testing $domain (IPv4) ... "
@@ -150,6 +156,46 @@ in
             | ${pkgs.openssl}/bin/openssl x509 -noout -subject \
             | grep "CN=$domain" && echo "OK" || echo "FAIL";
         done
+      '')
+
+      # Diagnostic script to check certificate sync status
+      (pkgs.writeShellScriptBin "check-cert-sync-status" ''
+        echo "=== Certificate Sync Status Check ==="
+        echo
+        echo "Available certificates in ${cfg.certPath}:"
+        for dir in ${cfg.certPath}/*; do
+          if [[ ! -d "$dir" ]]; then continue; fi;
+          domain=$(basename "$dir")
+          if [[ "$domain" == "acme-challenge" ]]; then continue; fi;
+          
+          echo "  - $domain"
+          
+          # Check if cert files exist
+          if [[ -f "$dir/fullchain.pem" && -f "$dir/key.pem" ]]; then
+            # Get cert expiry
+            expiry=$(${pkgs.openssl}/bin/openssl x509 -in "$dir/fullchain.pem" -noout -enddate 2>/dev/null | cut -d= -f2)
+            echo "    Expiry: $expiry"
+            
+            # Get Subject Alternative Names
+            sans=$(${pkgs.openssl}/bin/openssl x509 -in "$dir/fullchain.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -n1 | sed 's/^[[:space:]]*//')
+            echo "    SANs: $sans"
+          else
+            echo "    ERROR: Missing cert files!"
+          fi
+          echo
+        done
+        
+        echo "=== Failover Redirects Config Status ==="
+        if [[ -f ${cfg.outputConfigPath} ]]; then
+          echo "Config file exists: ${cfg.outputConfigPath}"
+          echo "Server blocks configured:"
+          grep -c "server {" ${cfg.outputConfigPath} || echo "0"
+          echo
+          echo "Domains configured:"
+          grep "server_name" ${cfg.outputConfigPath} | awk '{print "  - " $2}' | sed 's/;//'
+        else
+          echo "ERROR: Config file not found at ${cfg.outputConfigPath}"
+        fi
       '')
     ];
   };

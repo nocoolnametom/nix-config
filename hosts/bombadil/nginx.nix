@@ -8,6 +8,8 @@
 {
   # We're using bombadil for failover-redirects for the Uptime-Kuma status page
   services.failoverRedirects.enable = lib.mkDefault true;
+  # Use a separate directory for failover certificates to avoid conflicts with locally-managed certs
+  services.failoverRedirects.certPath = lib.mkDefault "/var/lib/acme-failover";
   services.failoverRedirects.excludeDomains =
     let
       akkomaDomain = config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;
@@ -58,12 +60,13 @@
   ];
   systemd.tmpfiles.rules = [
     "d /var/lib/acme 2750 acme nginx -"
+    "d ${config.services.failoverRedirects.certPath} 2750 acme nginx -"  # Separate directory for failover certs
     "d /run/nginx 0755 root root -"
   ];
 
   # Rsync certificate receiver - fixes permissions after certs are synced from estel
   services.rsyncCertSync.receiver.enable = true;
-  services.rsyncCertSync.receiver.certPath = "/var/lib/acme";
+  services.rsyncCertSync.receiver.certPath = lib.mkDefault config.services.failoverRedirects.certPath;  # Use separate directory
   services.rsyncCertSync.receiver.certUser = "acme";
   services.rsyncCertSync.receiver.certGroup = "nginx";
   services.rsyncCertSync.receiver.timerSchedule = "*-*-* 03:00:00"; # Match estel's sender schedule
