@@ -95,9 +95,6 @@
     utpex = true;
   };
 
-  # Make the finished files group-writeable
-  systemd.services.deluge.serviceConfig.UMask = "0002";
-
   # Use the above settings at the config
   services.deluge.authFile = config.sops.secrets."deluge-auth".path;
 
