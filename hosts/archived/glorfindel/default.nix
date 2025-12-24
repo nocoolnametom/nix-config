@@ -54,9 +54,9 @@ in
   ]);
 
   # Override the default home-manager config loading for archived machines
-  home-manager.users.${configVars.username} = lib.mkForce (import (
-    configLib.relativeToRoot "home/${configVars.username}/archived/glorfindel/default.nix"
-  ));
+  home-manager.users.${configVars.username} = lib.mkForce (
+    import (configLib.relativeToRoot "home/${configVars.username}/archived/glorfindel/default.nix")
+  );
 
   # Mark this system as deprecated
   system.deprecation = {

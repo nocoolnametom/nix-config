@@ -1,4 +1,10 @@
-{ pkgs, lib, config, ... }: {
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
+{
   sops.secrets."mormonsites/mormoncanon" = { };
   sops.secrets."mormonsites/mormonquotes" = { };
   sops.secrets."mormonsites/journalofdiscourses" = { };
@@ -25,7 +31,9 @@
   services.mormonsites.instances.canon.database.name = lib.mkDefault "mormoncanon";
   services.mormonsites.instances.canon.database.user = lib.mkDefault "mormoncanon";
   services.mormonsites.instances.canon.database.host = lib.mkDefault "127.0.0.1";
-  services.mormonsites.instances.canon.database.passwordFile = lib.mkDefault config.sops.templates."mormoncanon-secrets".path;
+  services.mormonsites.instances.canon.database.passwordFile =
+    lib.mkDefault
+      config.sops.templates."mormoncanon-secrets".path;
 
   services.mormonsites.instances.quotes.enable = lib.mkDefault true;
   services.mormonsites.instances.quotes.package = lib.mkDefault pkgs.mormonquotes;
@@ -35,7 +43,9 @@
   services.mormonsites.instances.quotes.database.name = lib.mkDefault "mormonquotes";
   services.mormonsites.instances.quotes.database.user = lib.mkDefault "mormonquotes";
   services.mormonsites.instances.quotes.database.host = lib.mkDefault "127.0.0.1";
-  services.mormonsites.instances.quotes.database.passwordFile = lib.mkDefault config.sops.templates."mormonquotes-secrets".path;
+  services.mormonsites.instances.quotes.database.passwordFile =
+    lib.mkDefault
+      config.sops.templates."mormonquotes-secrets".path;
 
   services.mormonsites.instances.jod.enable = lib.mkDefault true;
   services.mormonsites.instances.jod.package = lib.mkDefault pkgs.journalofdiscourses;
@@ -45,5 +55,7 @@
   services.mormonsites.instances.jod.database.name = lib.mkDefault "journalofdiscourses";
   services.mormonsites.instances.jod.database.user = lib.mkDefault "journalofdiscourses";
   services.mormonsites.instances.jod.database.host = lib.mkDefault "127.0.0.1";
-  services.mormonsites.instances.jod.database.passwordFile = lib.mkDefault config.sops.templates."journalofdiscourses-secrets".path;
+  services.mormonsites.instances.jod.database.passwordFile =
+    lib.mkDefault
+      config.sops.templates."journalofdiscourses-secrets".path;
 }

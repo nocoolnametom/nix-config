@@ -131,6 +131,19 @@
     ];
   };
 
+  fileSystems."/var/lib/comfyui-docker" = {
+    device = "/dev/disk/by-label/Insignia";
+    fsType = "btrfs";
+    options = [
+      "subvol=comfyui-docker"
+      "users"
+      "auto"
+      "compress=zstd"
+      "nofail"
+      "defaults"
+    ];
+  };
+
   fileSystems."/var/lib/stash-video-conversion" = {
     device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";

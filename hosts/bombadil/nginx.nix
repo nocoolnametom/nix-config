@@ -101,33 +101,39 @@
   ];
 
   # Mormon Sites reverse proxies
-  services.nginx.virtualHosts."${configVars.networking.hosting.canon.domain}" = lib.mkIf config.services.mormonsites.enable {
-    enableACME = true;
-    http2 = true;
-    forceSSL = true;
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.canon.port}";
-      proxyWebsockets = true;
-    };
-  };
-  services.nginx.virtualHosts."${configVars.networking.hosting.quotes.domain}" = lib.mkIf config.services.mormonsites.enable {
-    enableACME = true;
-    http2 = true;
-    forceSSL = true;
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.quotes.port}";
-      proxyWebsockets = true;
-    };
-  };
-  services.nginx.virtualHosts."${configVars.networking.hosting.jod.domain}" = lib.mkIf config.services.mormonsites.enable {
-    enableACME = true;
-    http2 = true;
-    forceSSL = true;
-    locations."/" = {
-      proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.jod.port}";
-      proxyWebsockets = true;
-    };
-  };
+  services.nginx.virtualHosts."${configVars.networking.hosting.canon.domain}" =
+    lib.mkIf config.services.mormonsites.enable
+      {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.canon.port}";
+          proxyWebsockets = true;
+        };
+      };
+  services.nginx.virtualHosts."${configVars.networking.hosting.quotes.domain}" =
+    lib.mkIf config.services.mormonsites.enable
+      {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.quotes.port}";
+          proxyWebsockets = true;
+        };
+      };
+  services.nginx.virtualHosts."${configVars.networking.hosting.jod.domain}" =
+    lib.mkIf config.services.mormonsites.enable
+      {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString config.services.mormonsites.instances.jod.port}";
+          proxyWebsockets = true;
+        };
+      };
 
   # UptimeKuma
   services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}" =

@@ -1,23 +1,25 @@
-{ lib
-, stdenv
-, fetchFromGitLab
+{
+  lib,
+  stdenv,
+  fetchFromGitLab,
 }:
 
 # Builder function for simple read-only PHP/MySQL sites
-{ pname
-, version ? "2020-11-06"
-, rev
-, hash
-, sqlRev
-, sqlHash
-, envPrefix
-, phpNamespace
-, dbNameDefault ? "ab22334_db2"
-, dbUserDefault ? "root"
-, dbPassDefault ? ""
-, dbHostDefault ? "localhost"
-, homepage
-, description ? "Read-only scripture browser backed by MySQL"
+{
+  pname,
+  version ? "2020-11-06",
+  rev,
+  hash,
+  sqlRev,
+  sqlHash,
+  envPrefix,
+  phpNamespace,
+  dbNameDefault ? "ab22334_db2",
+  dbUserDefault ? "root",
+  dbPassDefault ? "",
+  dbHostDefault ? "localhost",
+  homepage,
+  description ? "Read-only scripture browser backed by MySQL",
 }:
 
 let

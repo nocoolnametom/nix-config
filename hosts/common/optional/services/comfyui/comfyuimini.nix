@@ -10,6 +10,20 @@ with lib;
 let
   comfyuiCfg = config.services.comfyui;
   cfg = comfyuiCfg.comfyuimini;
+
+  # Determine output directory based on backend
+  comfyuiOutputDir =
+    if comfyuiCfg.useDocker then
+      "${comfyuiCfg.docker.workingDir}/outputs"
+    else
+      "${comfyuiCfg.home}/.local/share/comfyui/output";
+
+  # Default working directory
+  defaultWorkingDir =
+    if comfyuiCfg.useDocker then
+      "/var/lib/comfyui-mini"
+    else
+      "${comfyuiCfg.home}/.local/share/comfyui-mini";
 in
 {
   options.services.comfyui.comfyuimini = {
@@ -33,7 +47,7 @@ in
 
     workingDir = lib.mkOption {
       type = lib.types.str;
-      default = "${comfyuiCfg.home}/.local/share/comfyui-mini";
+      default = defaultWorkingDir;
       description = "Working directory for ComfyUIMini installation and data.";
     };
   };
@@ -87,7 +101,7 @@ in
         if [ ! -f ./config/default.json ]; then
           echo "Creating config/default.json..."
           cp ./config/default.example.json ./config/default.json
-          sed -i 's~"output_dir": ".*"~"output_dir": "${comfyuiCfg.home}/.local/share/comfyui/output"~' ./config/default.json
+          sed -i 's~"output_dir": ".*"~"output_dir": "${comfyuiOutputDir}"~' ./config/default.json
         fi
       '';
 

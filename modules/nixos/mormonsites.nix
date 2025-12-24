@@ -1,16 +1,27 @@
-{ lib, pkgs, config, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   cfg = config.services.mormonsites;
   phpEnv = pkgs.php.buildEnv {
-    extensions = { enabled, all }:
-      enabled ++ (with pkgs.php.extensions; [ mysqli pdo_mysql ]);
+    extensions =
+      { enabled, all }:
+      enabled
+      ++ (with pkgs.php.extensions; [
+        mysqli
+        pdo_mysql
+      ]);
     extraConfig = ''
       mysqli.default_socket = /run/mysqld/mysqld.sock
       pdo_mysql.default_socket = /run/mysqld/mysqld.sock
     '';
   };
 
-  mkSeedService = name: inst:
+  mkSeedService =
+    name: inst:
     let
       prefix = inst.envPrefix;
       sharePath = "${inst.package}/share/${inst.shareName}";
@@ -37,7 +48,8 @@ let
           mysql --protocol=socket "$db" < ${sharePath}/data.sql
         fi
       '';
-    in {
+    in
+    {
       description = "Seed MySQL data for Mormon site (${name})";
       after = [ "mysql.service" ];
       requires = [ "mysql.service" ];
@@ -55,14 +67,23 @@ let
       };
     };
 
-  mkAppService = name: inst:
+  mkAppService =
+    name: inst:
     let
       prefix = inst.envPrefix;
       sharePath = "${inst.package}/share/${inst.shareName}";
-    in {
+    in
+    {
       description = "Mormon site PHP server (${name})";
-      after = [ "mysql.service" "mormonsite-${name}-seed.service" "network.target" ];
-      wants = [ "mysql.service" "mormonsite-${name}-seed.service" ];
+      after = [
+        "mysql.service"
+        "mormonsite-${name}-seed.service"
+        "network.target"
+      ];
+      wants = [
+        "mysql.service"
+        "mormonsite-${name}-seed.service"
+      ];
       wantedBy = [ "multi-user.target" ];
       serviceConfig = {
         User = cfg.user;
@@ -120,75 +141,84 @@ in
     };
 
     instances = lib.mkOption {
-      type = lib.types.attrsOf (lib.types.submodule ({ name, ... }: {
-        options = {
-          enable = lib.mkOption {
-            type = lib.types.bool;
-            default = true;
-            description = "Enable this instance.";
-          };
-          port = lib.mkOption {
-            type = lib.types.port;
-            description = "TCP port the PHP built-in server should listen on.";
-          };
+      type = lib.types.attrsOf (
+        lib.types.submodule (
+          { name, ... }:
+          {
+            options = {
+              enable = lib.mkOption {
+                type = lib.types.bool;
+                default = true;
+                description = "Enable this instance.";
+              };
+              port = lib.mkOption {
+                type = lib.types.port;
+                description = "TCP port the PHP built-in server should listen on.";
+              };
 
-          listenAddress = lib.mkOption {
-            type = lib.types.str;
-            default = cfg.defaultListenAddress;
-            description = "Listen address for the PHP built-in server.";
-          };
+              listenAddress = lib.mkOption {
+                type = lib.types.str;
+                default = cfg.defaultListenAddress;
+                description = "Listen address for the PHP built-in server.";
+              };
 
-          envPrefix = lib.mkOption {
-            type = lib.types.str;
-            default = lib.mkDefault (if cfg.defaultEnvPrefix != null then cfg.defaultEnvPrefix else "MORMONCANON");
-            description = "Environment variable prefix used for DB settings (e.g., MORMONCANON -> MORMONCANON_DB_NAME).";
-          };
+              envPrefix = lib.mkOption {
+                type = lib.types.str;
+                default = lib.mkDefault (
+                  if cfg.defaultEnvPrefix != null then cfg.defaultEnvPrefix else "MORMONCANON"
+                );
+                description = "Environment variable prefix used for DB settings (e.g., MORMONCANON -> MORMONCANON_DB_NAME).";
+              };
 
-          openFirewall = lib.mkOption {
-            type = lib.types.bool;
-            default = cfg.defaultOpenFirewall;
-            description = "Whether to open the firewall for the service port.";
-          };
+              openFirewall = lib.mkOption {
+                type = lib.types.bool;
+                default = cfg.defaultOpenFirewall;
+                description = "Whether to open the firewall for the service port.";
+              };
 
-          database = lib.mkOption {
-            type = lib.types.submodule {
-              options = {
-                name = lib.mkOption {
-                  type = lib.types.str;
-                  description = "MySQL database name.";
+              database = lib.mkOption {
+                type = lib.types.submodule {
+                  options = {
+                    name = lib.mkOption {
+                      type = lib.types.str;
+                      description = "MySQL database name.";
+                    };
+                    user = lib.mkOption {
+                      type = lib.types.str;
+                      default = "${name}";
+                      description = "MySQL user used by the application.";
+                    };
+                    host = lib.mkOption {
+                      type = lib.types.str;
+                      default = "127.0.0.1";
+                      description = "MySQL host.";
+                    };
+                    passwordFile = lib.mkOption {
+                      type = lib.types.nullOr lib.types.path;
+                      default = null;
+                      description = "Optional file containing MORMONCANON_DB_PASSWORD=... for the application user.";
+                    };
+                  };
                 };
-                user = lib.mkOption {
-                  type = lib.types.str;
-                  default = "${name}";
-                  description = "MySQL user used by the application.";
-                };
-                host = lib.mkOption {
-                  type = lib.types.str;
-                  default = "127.0.0.1";
-                  description = "MySQL host.";
-                };
-                passwordFile = lib.mkOption {
-                  type = lib.types.nullOr lib.types.path;
-                  default = null;
-                  description = "Optional file containing MORMONCANON_DB_PASSWORD=... for the application user.";
-                };
+                description = "Database configuration.";
+              };
+
+              package = lib.mkOption {
+                type = lib.types.package;
+                description = "Package to run for this instance (use mormoncanon/mormonquotes/journalofdiscourses).";
+              };
+
+              shareName = lib.mkOption {
+                type = lib.types.str;
+                default = lib.mkDefault (
+                  if cfg.defaultShareName != null then cfg.defaultShareName else "mormoncanon"
+                );
+                description = "Subdirectory under the package's share/ containing the app (e.g., mormoncanon, mormonquotes, journalofdiscourses).";
               };
             };
-            description = "Database configuration.";
-          };
-
-          package = lib.mkOption {
-            type = lib.types.package;
-            description = "Package to run for this instance (use mormoncanon/mormonquotes/journalofdiscourses).";
-          };
-
-          shareName = lib.mkOption {
-            type = lib.types.str;
-            default = lib.mkDefault (if cfg.defaultShareName != null then cfg.defaultShareName else "mormoncanon");
-            description = "Subdirectory under the package's share/ containing the app (e.g., mormoncanon, mormonquotes, journalofdiscourses).";
-          };
-        };
-      }));
+          }
+        )
+      );
       default = { };
       description = "Instances of Mormon sites to run (supports multiple DBs/sites with different packages).";
     };
@@ -197,7 +227,9 @@ in
   config = lib.mkIf cfg.enable {
     assertions = [
       {
-        assertion = (cfg.instances != { }) && (lib.length (lib.filter (inst: inst.enable) (lib.attrValues cfg.instances)) > 0);
+        assertion =
+          (cfg.instances != { })
+          && (lib.length (lib.filter (inst: inst.enable) (lib.attrValues cfg.instances)) > 0);
         message = "services.mormonsites.instances must define at least one enabled site.";
       }
     ];
@@ -211,16 +243,18 @@ in
     services.mysql.enable = lib.mkDefault true;
 
     systemd.services =
-      (lib.mapAttrs'
-        (n: inst: lib.optionalAttrs inst.enable (lib.nameValuePair "mormonsite-${n}-seed" (mkSeedService n inst)))
-        cfg.instances)
-      //
-      (lib.mapAttrs'
-        (n: inst: lib.optionalAttrs inst.enable (lib.nameValuePair "mormonsite-${n}" (mkAppService n inst)))
-        cfg.instances);
+      (lib.mapAttrs' (
+        n: inst:
+        lib.optionalAttrs inst.enable (lib.nameValuePair "mormonsite-${n}-seed" (mkSeedService n inst))
+      ) cfg.instances)
+      // (lib.mapAttrs' (
+        n: inst: lib.optionalAttrs inst.enable (lib.nameValuePair "mormonsite-${n}" (mkAppService n inst))
+      ) cfg.instances);
 
     networking.firewall.allowedTCPPorts = lib.mkIf (cfg.instances != { }) (
-      lib.concatMap (inst: if inst.enable then lib.optional inst.openFirewall inst.port else [ ]) (lib.attrValues cfg.instances)
+      lib.concatMap (inst: if inst.enable then lib.optional inst.openFirewall inst.port else [ ]) (
+        lib.attrValues cfg.instances
+      )
     );
   };
 }

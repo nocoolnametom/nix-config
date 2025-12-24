@@ -39,6 +39,7 @@
     "hosts/common/optional/services/docker/invokeai.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
+    "hosts/common/optional/services/open-webui.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
@@ -136,15 +137,130 @@
   services.stash-video-conversion.environmentFile =
     config.sops.templates."stash-video-conversion.env".path;
 
-  # Comfy Models
-  # You must on the initial usage of the comfyui optional module NOT load any remote models
-  # so that the tokens are injected into the nix-daemon systemd job
-  # services.comfyui.models = lib.mkForce []; # Use this before the sops-nix secrets are loaded
-  services.comfyui.symlinkPaths = {
-    checkpoints = "/var/lib/stable-diffusion/models/linked/checkpoints";
-    loras = "/var/lib/stable-diffusion/models/linked/loras";
-  };
+  # ComfyUI Configuration
+  # Use Docker backend instead of native
+  services.comfyui.useDocker = true;
   services.comfyui.comfyuimini.enable = true;
+
+  # Docker-specific configuration
+  services.comfyui.docker.workingDir = "/var/lib/comfyui-docker";
+  services.comfyui.docker.environment = {
+    CLI_ARGS = "--preview-method auto";
+    DIRECT_ADDRESS = "${configVars.networking.subnets.smeagol.ip}:${builtins.toString config.services.comfyui.docker.port}";
+    DIRECT_ADDRESS_GET_WAN = "false";
+    WEB_ENABLE_AUTH = "false";
+  };
+
+  # Declaratively install custom nodes
+  # These will be automatically installed on boot if not present
+  # You can still manually install more via ComfyUI Manager!
+  services.comfyui.docker.customNodes = [
+    # Essential manager and video nodes
+    "https://github.com/ltdrdata/ComfyUI-Manager"
+    "https://github.com/kijai/ComfyUI-HunyuanVideoWrapper" # Wanx 2.1 / Hunyuan Video
+    "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite"
+
+    # Nodes from my-sd-models (previously managed via Nix, now Docker auto-install)
+    "https://github.com/Acly/comfyui-inpaint-nodes" # Inpainting nodes
+    "https://github.com/agilly1989/ComfyUI_agilly1989_motorway" # Motorway nodes
+    "https://github.com/audioscavenger/save-image-extended-comfyui" # Extended save options
+    "https://github.com/chrisfreilich/virtuoso-nodes" # Virtuoso nodes
+    "https://github.com/city96/ComfyUI-GGUF" # GGUF model support
+    "https://github.com/cubiq/ComfyUI_essentials" # Essential utilities
+    "https://github.com/EllangoK/ComfyUI-post-processing-nodes" # Post-processing
+    "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation" # Frame interpolation
+    "https://github.com/kijai/ComfyUI-KJNodes" # KJ Nodes
+    "https://github.com/kijai/ComfyUI-segment-anything-2" # Segment Anything 2
+    "https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch" # Crop and stitch
+    "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # Impact Pack
+    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts" # Custom scripts
+    "https://github.com/rgthree/rgthree-comfy" # rgthree utilities
+    "https://github.com/sipherxyz/comfyui-art-venture" # Art Venture
+    "https://github.com/space-nuko/ComfyUI-OpenPose-Editor" # OpenPose editor
+    "https://github.com/Tropfchen/ComfyUI-yaResolutionSelector" # Resolution selector
+    "https://github.com/WASasquatch/was-node-suite-comfyui" # WAS Node Suite
+
+    # Optional animation nodes:
+    "https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved"
+  ];
+
+  # Declaratively download workflow files
+  # Key = filename to save as, Value = URL to download from
+  # You can still manually create/import workflows via ComfyUI UI!
+  services.comfyui.docker.workflows = {
+    # Hunyuan Video workflows (uncomment to enable):
+    # Note: These require the Hunyuan models to be installed first!
+
+    # Example workflows from various sources:
+    # "hunyuan-text2video-basic.json" = "https://civitai.com/api/download/models/1375389";  # CivitAI: ComfyTinker's basic T2V
+    # "hunyuan-image2video-fast.json" = "https://civitai.com/api/download/models/1328592";  # CivitAI: Fast I2V workflow
+
+    # Alternative sources for workflows:
+    # - OpenArt.ai: Search "hunyuan video" and export workflow as JSON
+    # - GitHub: Check kijai/ComfyUI-HunyuanVideoWrapper for example workflows
+    # - ComfyUI Wiki: docs.comfy.org has tutorial workflows
+    # - Your own: Create in UI and export via "Save (API Format)"
+
+    # To add custom workflows:
+    # 1. Find or create a workflow
+    # 2. If from web, get direct download URL or API endpoint
+    # 3. Add here with descriptive filename
+    # 4. Your CivitAI and HuggingFace keys will be used automatically
+  };
+
+  # Declaratively download model files (happens after boot, doesn't block)
+  # Models are downloaded by a separate systemd service and ComfyUI restarts when done
+  # Only downloads if model doesn't already exist - safe to rebuild!
+  # Your HuggingFace and CivitAI API keys are automatically used for authentication!
+  services.comfyui.docker.models = [
+    # Hunyuan Video models (WARNING: Very large files, 20GB+ total!)
+    # Uncomment to enable automatic download:
+
+    # Main transformer model (~13GB) - FP8 quantized version for better performance
+    # {
+    #   url = "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors";
+    #   destination = "diffusion_models/hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors";
+    # }
+
+    # Text encoder - LLAMA model (~5GB)
+    # {
+    #   url = "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/llava_llama3_fp8_scaled.safetensors";
+    #   destination = "text_encoders/llava_llama3_fp8_scaled.safetensors";
+    # }
+
+    # CLIP text encoder (~1.4GB)
+    # {
+    #   url = "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/clip_l.safetensors";
+    #   destination = "text_encoders/clip_l.safetensors";
+    # }
+
+    # VAE decoder (~1GB)
+    # {
+    #   url = "https://huggingface.co/Kijai/HunyuanVideo_comfy/resolve/main/hunyuan_video_vae_bf16.safetensors";
+    #   destination = "vae/hunyuan_video_vae_bf16.safetensors";
+    # }
+
+    # Your API keys from sops-nix are automatically used:
+    # - HuggingFace: For gated/private models from huggingface.co
+    # - CivitAI: For premium/early-access models from civitai.com
+
+    # You can also add models from CivitAI:
+    # {
+    #   url = "https://civitai.com/api/download/models/MODEL_ID";
+    #   destination = "checkpoints/model_name.safetensors";
+    # }
+
+    # Note: First boot after uncommenting these will take a LONG time
+    # Watch progress with: journalctl -fu comfyui-download-models.service
+    # Models persist across reboots, so this only happens once!
+  ];
+
+  # If using native instead: set useDocker = false and configure:
+  # services.comfyui.symlinkPaths = {
+  #   checkpoints = "/var/lib/stable-diffusion/models/linked/checkpoints";
+  #   loras = "/var/lib/stable-diffusion/models/linked/loras";
+  # };
+  # services.comfyui.models = lib.mkForce []; # Use before sops-nix secrets are loaded
 
   # Bluetooth
   hardware.bluetooth.enable = true; # enables support for Bluetooth

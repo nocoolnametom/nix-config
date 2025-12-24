@@ -55,9 +55,9 @@
   ]);
 
   # Override the default home-manager config loading for archived machines
-  home-manager.users.${configVars.username} = lib.mkForce (import (
-    configLib.relativeToRoot "home/${configVars.username}/archived/bert/default.nix"
-  ));
+  home-manager.users.${configVars.username} = lib.mkForce (
+    import (configLib.relativeToRoot "home/${configVars.username}/archived/bert/default.nix")
+  );
 
   # I'm not currently running persistence on the RasPi! RAM is too limited.
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;

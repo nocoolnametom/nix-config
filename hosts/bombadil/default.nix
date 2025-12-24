@@ -114,9 +114,9 @@ in
   services.mastodon.sidekiqThreads = 10; # This seems about right
 
   # Akkoma Setup
-  services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host = configVars.networking.personalSocialUrl;
-  services.akkoma.config.":pleroma".":instance".name =
-    configVars.handles.niceHandle;
+  services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host =
+    configVars.networking.personalSocialUrl;
+  services.akkoma.config.":pleroma".":instance".name = configVars.handles.niceHandle;
   services.akkoma.config.":pleroma".":instance".description =
     "A single-user instance for ${configVars.handles.mastodon}";
 
