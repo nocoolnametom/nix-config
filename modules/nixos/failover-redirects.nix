@@ -184,7 +184,7 @@ in
           fi
           echo
         done
-        
+
         echo "=== Failover Redirects Config Status ==="
         if [[ -f ${cfg.outputConfigPath} ]]; then
           echo "Config file exists: ${cfg.outputConfigPath}"

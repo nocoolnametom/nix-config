@@ -105,7 +105,7 @@ in
           echo "=== Certificate Sync Source Check (estel) ==="
           echo "Certificates available to sync from ${cfg.sender.localCertPath}:"
           echo
-          
+
           for dir in ${cfg.sender.localCertPath}/*; do
             if [[ ! -d "$dir" ]]; then continue; fi;
             domain=$(basename "$dir")
@@ -127,12 +127,12 @@ in
             fi
             echo
           done
-          
+
           echo "Total cert directories: $(find ${cfg.sender.localCertPath} -mindepth 1 -maxdepth 1 -type d ! -name acme-challenge | wc -l)"
           echo
           echo "To manually trigger sync, run: sudo systemctl start rsync-cert-sync"
         '')
-        
+
         (pkgs.writeShellScriptBin "test-cert-sync-dry-run" ''
           echo "=== Dry-run: What WOULD be synced ==="
           echo "From: ${cfg.sender.localCertPath}/"
@@ -160,10 +160,10 @@ in
           Type = "oneshot";
           ExecStart = "${pkgs.writeShellScriptBin "failover-cert-sync" ''
             set -e
-            
+
             echo "[rsync-cert-sync] Starting certificate sync to ${cfg.sender.vpsHost}"
             echo "[rsync-cert-sync] Syncing from ${cfg.sender.localCertPath}/ to ${cfg.sender.vpsUser}@${cfg.sender.vpsHost}:${cfg.sender.vpsTargetPath}/"
-            
+
             # Strategy: Sync to a separate directory on the VPS (e.g., /var/lib/acme-failover)
             # This allows:
             # - All estel certs to be synced without exclusions
@@ -176,7 +176,7 @@ in
               --chmod=D750,F640 \
               -e "${pkgs.openssh}/bin/ssh -p ${builtins.toString cfg.sender.vpsSshPort} -i ${cfg.sender.sshKeyPath}" \
               ${cfg.sender.localCertPath}/ ${cfg.sender.vpsUser}@${cfg.sender.vpsHost}:${cfg.sender.vpsTargetPath}/
-            
+
             echo "[rsync-cert-sync] Sync completed successfully"
           ''}/bin/failover-cert-sync";
           User = "root";
@@ -295,7 +295,7 @@ in
             ${pkgs.findutils}/bin/find ${cfg.receiver.certPath} -type d -exec ${pkgs.coreutils}/bin/chmod 750 {} \;
             ${pkgs.findutils}/bin/find ${cfg.receiver.certPath} -type f -exec ${pkgs.coreutils}/bin/chmod 640 {} \;
             ${pkgs.coreutils}/bin/chown -R ${cfg.receiver.certUser}:${cfg.receiver.certGroup} ${cfg.receiver.certPath}
-            
+
             # Trigger failover-redirects regeneration if it exists
             if ${pkgs.systemd}/bin/systemctl list-units --type=service | grep -q failover-redirects-generate; then
               echo "Triggering failover-redirects regeneration..."
@@ -312,7 +312,7 @@ in
           echo "=== Certificate Sync Receiver Check (bombadil) ==="
           echo "Certificates received in ${cfg.receiver.certPath}:"
           echo
-          
+
           for dir in ${cfg.receiver.certPath}/*; do
             if [[ ! -d "$dir" ]]; then continue; fi;
             domain=$(basename "$dir")
@@ -339,7 +339,7 @@ in
             fi
             echo
           done
-          
+
           echo "Total cert directories: $(find ${cfg.receiver.certPath} -mindepth 1 -maxdepth 1 -type d ! -name acme-challenge | wc -l)"
           echo
           echo "Last rsync-cert-sync run:"

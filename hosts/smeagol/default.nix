@@ -79,6 +79,7 @@
   ];
   users.users."${configVars.username}".extraGroups = [
     config.services.stashapp.group
+    "ai-services"
   ];
   users.users.nzbget.extraGroups = [
     config.services.stashapp.group

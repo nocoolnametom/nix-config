@@ -130,7 +130,7 @@ in
         # Health check failed - increment failure count
         FAILURE_COUNT=$((FAILURE_COUNT + 1))
         echo "$FAILURE_COUNT" > "$STATE_FILE"
-        
+
         echo "[Failover] ${cfg.targetServerName} is DOWN. Consecutive failures: $FAILURE_COUNT/$REQUIRED_FAILURES"
 
         # Only trigger DNS failover if we've reached the threshold
@@ -196,7 +196,7 @@ in
         echo "Current status:"
         cat ${cfg.stateFile}
       '')
-      
+
       (pkgs.writeShellScriptBin "check-dns-failover-status" ''
         if [ -f ${cfg.stateFile} ]; then
           FAILURES=$(cat ${cfg.stateFile})

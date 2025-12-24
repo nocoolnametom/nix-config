@@ -80,27 +80,27 @@
   };
 
   # Only create/modify activation scripts if persistence is enabled
-  system.activationScripts = lib.mkIf (
-    config.environment.persistence."${configVars.persistFolder}".enable
-  ) {
-    # Create our custom script to set up /var/lib/private
-    "var-lib-private-permissions" = {
-      deps = [ "specialfs" ];
-      text = ''
-        mkdir -p ${configVars.persistFolder}/var/lib/private
-        chmod 0700 ${configVars.persistFolder}/var/lib/private
-      '';
-    };
+  system.activationScripts =
+    lib.mkIf (config.environment.persistence."${configVars.persistFolder}".enable)
+      {
+        # Create our custom script to set up /var/lib/private
+        "var-lib-private-permissions" = {
+          deps = [ "specialfs" ];
+          text = ''
+            mkdir -p ${configVars.persistFolder}/var/lib/private
+            chmod 0700 ${configVars.persistFolder}/var/lib/private
+          '';
+        };
 
-    # Extend the impermanence createPersistentStorageDirs script to depend on our script
-    "createPersistentStorageDirs" = {
-      deps = [
-        "var-lib-private-permissions"
-        "users"
-        "groups"
-      ];
-    };
-  };
+        # Extend the impermanence createPersistentStorageDirs script to depend on our script
+        "createPersistentStorageDirs" = {
+          deps = [
+            "var-lib-private-permissions"
+            "users"
+            "groups"
+          ];
+        };
+      };
 
   # Always ensure /var/lib/private has correct permissions (even without persistence)
   systemd.tmpfiles.rules = [
