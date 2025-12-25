@@ -261,12 +261,20 @@ in
           # 2. Add 'user' to the symlinked directories (originally only models/output/input)
           # 3. Add --base-directory and --listen flags for proper remote access
           # 4. Skip automatic installation of recommended custom nodes
+          # 5. Make Python packages ephemeral by removing .local and .cache on each boot
           echo "$ENTRYPOINT" | \
             sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
             sed 's/for dir in models output input;/for dir in models output input user;/' | \
             sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
-            sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' | \
-            sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' \
+            sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
+            sed '/^# Main execution$/a\
+# PATCHED: Make Python user packages ephemeral to prevent corruption\
+# Remove ALL user-installed packages on each boot to avoid corrupted shared objects\
+# ComfyUI-Manager will reinstall them automatically, but they will be fresh\
+echo "Resetting ephemeral Python packages..."\
+rm -rf /data/user/.local /data/user/.cache 2>/dev/null || true\
+echo "Python packages will be reinstalled fresh on this boot"' | \
+            sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
             > /etc/comfyui/custom-entrypoint.sh
 
           chmod +x /etc/comfyui/custom-entrypoint.sh
@@ -296,8 +304,17 @@ in
             "${cfg.docker.workingDir}/inputs:/data/input"
             "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
             "${cfg.docker.workingDir}/user:/data/user"
+            # Mount declaratively managed models from Nix store (via symlinker)
             "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
             "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
+            "${cfg.docker.sharedModelsPath}/vae:/data/models/vae:ro"
+            "${cfg.docker.sharedModelsPath}/clip_vision:/data/models/clip_vision:ro"
+            "${cfg.docker.sharedModelsPath}/text_encoders:/data/models/text_encoders:ro"
+            "${cfg.docker.sharedModelsPath}/diffusion_models:/data/models/diffusion_models:ro"
+            "${cfg.docker.sharedModelsPath}/unet:/data/models/unet:ro"
+            "${cfg.docker.sharedModelsPath}/controlnet:/data/models/controlnet:ro"
+            "${cfg.docker.sharedModelsPath}/embeddings:/data/models/embeddings:ro"
+            "${cfg.docker.sharedModelsPath}/upscale_models:/data/models/upscale_models:ro"
           ];
           restart = "unless-stopped";
           devices = [ "nvidia.com/gpu=all" ];

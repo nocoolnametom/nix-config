@@ -115,11 +115,16 @@ let
         VIDEO_ID=$(echo "$FOUND_VIDEO" | cut -d: -f1)
         VIDEO_PATH=$(echo "$FOUND_VIDEO" | cut -d: -f2-)
 
+        # Normalize path: if it doesn't start with /, prepend it
+        if [[ "$VIDEO_PATH" != /* ]]; then
+          VIDEO_PATH="/$VIDEO_PATH"
+        fi
+
         echo "[INFO] Downloading video ID $VIDEO_ID from $VIDEO_PATH"
 
         # Rsync the video file
         ${pkgs.rsync}/bin/rsync -avz --progress \
-          -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" \
+          -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
           "${cfg.remoteUser}@${cfg.remoteHost}:$VIDEO_PATH" \
           "$INCOMING_DIR/"
 
@@ -234,7 +239,7 @@ let
 
       # Rsync all finished files back
       ${pkgs.rsync}/bin/rsync -avz --progress --remove-source-files \
-        -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no" \
+        -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
         "$FINISHED_DIR/" \
         "${cfg.remoteUser}@${cfg.remoteHost}:${cfg.remoteUploadDir}/"
 

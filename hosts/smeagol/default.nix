@@ -130,7 +130,7 @@
   services.stash-video-conversion.perPageLimit = 50;
 
   # Secrets configuration
-  sops.secrets."bert-stashapp-api-key" = { };
+  sops.secrets."durin-stashapp-api-key" = { };
   sops.secrets."stash-video-rsync-key" = {
     key = "ssh/personal/root_only/stash-conversion"; # Passwordless key for automation
     mode = "0600";
@@ -138,7 +138,7 @@
     group = config.services.stash-video-conversion.group;
   };
   sops.templates."stash-video-conversion.env".content = ''
-    API_KEY=${config.sops.placeholder."bert-stashapp-api-key"}
+    API_KEY=${config.sops.placeholder."durin-stashapp-api-key"}
     SSH_KEY_PATH=${config.sops.secrets."stash-video-rsync-key".path}
   '';
   services.stash-video-conversion.environmentFile =
@@ -270,7 +270,15 @@
   # Symlink paths for declarative model management (works with both native and Docker)
   services.comfyui.symlinkPaths = {
     checkpoints = "/var/lib/stable-diffusion/models/linked/checkpoints";
+    clip_vision = "/var/lib/stable-diffusion/models/linked/clip_vision";
+    controlnet = "/var/lib/stable-diffusion/models/linked/controlnet";
+    diffusion_models = "/var/lib/stable-diffusion/models/linked/diffusion_models";
+    embeddings = "/var/lib/stable-diffusion/models/linked/embeddings";
     loras = "/var/lib/stable-diffusion/models/linked/loras";
+    text_encoders = "/var/lib/stable-diffusion/models/linked/text_encoders";
+    unet = "/var/lib/stable-diffusion/models/linked/unet";
+    upscale_models = "/var/lib/stable-diffusion/models/linked/upscale_models";
+    vae = "/var/lib/stable-diffusion/models/linked/vae";
   };
   # services.comfyui.models = lib.mkForce []; # Use before sops-nix secrets are loaded
 

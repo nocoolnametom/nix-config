@@ -668,10 +668,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1766634517,
-        "narHash": "sha256-ADCWmh3ZxNhzJIq7amvTQLuPdjc6qFoEHiHW4lL07vw=",
+        "lastModified": 1766680625,
+        "narHash": "sha256-M7ZOVlDM3xckgE45muH9mOznfcc+f9+5wNmhW6Ttw08=",
         "ref": "main",
-        "rev": "449d82648716b3b2be69f554f8e8d9fb1e544455",
+        "rev": "22832a03988174a5feb97c6fca0f80d27e92b189",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/my-sd-models.git"
@@ -766,10 +766,10 @@
     },
     "nix-secrets": {
       "locked": {
-        "lastModified": 1765824079,
-        "narHash": "sha256-GgZkV98wX2XcLoyj0K5UeyC7WNrIyOd+ql5OxJet3eU=",
+        "lastModified": 1766691830,
+        "narHash": "sha256-PYUQaiZCpyKcEiRAoiDxlzKZtBXgVsIolzLvqbfYkaI=",
         "ref": "main",
-        "rev": "e1153e3b5a985befd8806ddd244b480825ecbc47",
+        "rev": "59874e5749667ae3b48e75a975efa670b920364c",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"

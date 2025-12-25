@@ -26,7 +26,7 @@ let
   #   - Both regular and punch domains go directly to service
   #   - Punch domain adds basic auth for monitoring
   simpleServices = [
-    # Services on homeDomain (doggett.family)
+    # Services on homeDomain
     {
       host = "estel";
       service = "audiobookshelf";
@@ -43,6 +43,11 @@ let
       domain = "homeDomain";
     }
     {
+      host = "estel";
+      service = "hedgedoc";
+      domain = "homeDomain";
+    }
+    {
       host = "cirdan";
       service = "immich";
       domain = "homeDomain";
@@ -50,11 +55,6 @@ let
     {
       host = "estel";
       service = "immich-share";
-      domain = "homeDomain";
-    }
-    {
-      host = "estel";
-      service = "hedgedoc";
       domain = "homeDomain";
     }
     {
@@ -110,16 +110,10 @@ let
       domain = "homeDomain";
     }
 
-    # Services on domain (nocoolnametom.com)
+    # Services on domain
     {
       host = "smeagol";
       service = "comfyui";
-      domain = "domain";
-      proxy = "authentik";
-    }
-    {
-      host = "smeagol";
-      service = "comfyuimini";
       domain = "domain";
       proxy = "authentik";
     }
@@ -136,8 +130,8 @@ let
       proxy = "authentik";
     }
     {
-      host = "durin";
-      service = "nzbhydra";
+      host = "smeagol";
+      service = "invokeai";
       domain = "domain";
       proxy = "authentik";
     }
@@ -147,6 +141,12 @@ let
       domain = "domain";
     }
     {
+      host = "smeagol";
+      service = "comfyuimini";
+      domain = "domain";
+      proxy = "authentik";
+    }
+    {
       host = "cirdan";
       service = "mylar";
       domain = "domain";
@@ -154,6 +154,12 @@ let
     {
       host = "durin";
       service = "nzbget";
+      domain = "domain";
+      proxy = "authentik";
+    }
+    {
+      host = "durin";
+      service = "nzbhydra";
       domain = "domain";
       proxy = "authentik";
     }
