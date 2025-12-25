@@ -59,6 +59,12 @@
     "hosts/smeagol/logindhelper.nix"
   ]);
 
+  # Limit systemd journal size to prevent disk space issues
+  services.journald.extraConfig = ''
+    SystemMaxUse=500M
+    SystemMaxFileSize=50M
+  '';
+
   # NzbGet Server - Current module is very bert-centric
   services.nzbget.enable = true;
   systemd.services.nzbget.path = with pkgs; [
@@ -79,7 +85,7 @@
   ];
   users.users."${configVars.username}".extraGroups = [
     config.services.stashapp.group
-    "ai-services"
+    "comfyui-docker"
   ];
   users.users.nzbget.extraGroups = [
     config.services.stashapp.group
@@ -155,34 +161,38 @@
   # Declaratively install custom nodes
   # These will be automatically installed on boot if not present
   # You can still manually install more via ComfyUI Manager!
+  # NOTE: Temporarily disabled to get ComfyUI running quickly
+  # Some nodes (esp. ComfyUI-Impact-Pack) take 15+ minutes to build dependencies
   services.comfyui.docker.customNodes = [
-    # Essential manager and video nodes
-    "https://github.com/ltdrdata/ComfyUI-Manager"
-    "https://github.com/kijai/ComfyUI-HunyuanVideoWrapper" # Wanx 2.1 / Hunyuan Video
-    "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite"
+    # Essential manager - ComfyUI-Manager is recommended for managing nodes via UI
+    # "https://github.com/ltdrdata/ComfyUI-Manager"
 
-    # Nodes from my-sd-models (previously managed via Nix, now Docker auto-install)
-    "https://github.com/Acly/comfyui-inpaint-nodes" # Inpainting nodes
-    "https://github.com/agilly1989/ComfyUI_agilly1989_motorway" # Motorway nodes
-    "https://github.com/audioscavenger/save-image-extended-comfyui" # Extended save options
-    "https://github.com/chrisfreilich/virtuoso-nodes" # Virtuoso nodes
-    "https://github.com/city96/ComfyUI-GGUF" # GGUF model support
-    "https://github.com/cubiq/ComfyUI_essentials" # Essential utilities
-    "https://github.com/EllangoK/ComfyUI-post-processing-nodes" # Post-processing
-    "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation" # Frame interpolation
-    "https://github.com/kijai/ComfyUI-KJNodes" # KJ Nodes
-    "https://github.com/kijai/ComfyUI-segment-anything-2" # Segment Anything 2
-    "https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch" # Crop and stitch
-    "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # Impact Pack
-    "https://github.com/pythongosssss/ComfyUI-Custom-Scripts" # Custom scripts
-    "https://github.com/rgthree/rgthree-comfy" # rgthree utilities
-    "https://github.com/sipherxyz/comfyui-art-venture" # Art Venture
-    "https://github.com/space-nuko/ComfyUI-OpenPose-Editor" # OpenPose editor
-    "https://github.com/Tropfchen/ComfyUI-yaResolutionSelector" # Resolution selector
-    "https://github.com/WASasquatch/was-node-suite-comfyui" # WAS Node Suite
+    # # Video nodes
+    # "https://github.com/kijai/ComfyUI-HunyuanVideoWrapper" # Wanx 2.1 / Hunyuan Video
+    # "https://github.com/Kosinkadink/ComfyUI-VideoHelperSuite"
 
-    # Optional animation nodes:
-    "https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved"
+    # # Utility nodes
+    # "https://github.com/Acly/comfyui-inpaint-nodes" # Inpainting nodes
+    # "https://github.com/agilly1989/ComfyUI_agilly1989_motorway" # Motorway nodes
+    # "https://github.com/audioscavenger/save-image-extended-comfyui" # Extended save options
+    # "https://github.com/chrisfreilich/virtuoso-nodes" # Virtuoso nodes
+    # "https://github.com/city96/ComfyUI-GGUF" # GGUF model support
+    # "https://github.com/cubiq/ComfyUI_essentials" # Essential utilities
+    # "https://github.com/EllangoK/ComfyUI-post-processing-nodes" # Post-processing
+    # "https://github.com/Fannovel16/ComfyUI-Frame-Interpolation" # Frame interpolation
+    # "https://github.com/kijai/ComfyUI-KJNodes" # KJ Nodes
+    # "https://github.com/pythongosssss/ComfyUI-Custom-Scripts" # Custom scripts
+    # "https://github.com/rgthree/rgthree-comfy" # rgthree utilities
+    # "https://github.com/sipherxyz/comfyui-art-venture" # Art Venture
+    # "https://github.com/space-nuko/ComfyUI-OpenPose-Editor" # OpenPose editor
+    # "https://github.com/Tropfchen/ComfyUI-yaResolutionSelector" # Resolution selector
+    # "https://github.com/WASasquatch/was-node-suite-comfyui" # WAS Node Suite
+    # "https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved"
+
+    # # Heavy nodes (VERY slow to install - 15+ minutes each):
+    # "https://github.com/kijai/ComfyUI-segment-anything-2" # Segment Anything 2 (requires sam2)
+    # "https://github.com/ltdrdata/ComfyUI-Impact-Pack" # Impact Pack (requires sam2)
+    # "https://github.com/lquesada/ComfyUI-Inpaint-CropAndStitch" # Crop and stitch
   ];
 
   # Declaratively download workflow files
@@ -207,6 +217,7 @@
     # 2. If from web, get direct download URL or API endpoint
     # 3. Add here with descriptive filename
     # 4. Your CivitAI and HuggingFace keys will be used automatically
+    # "wanx-2.1-i2v-720P.json" = "URL_HERE";
   };
 
   # Declaratively download model files (happens after boot, doesn't block)
@@ -256,11 +267,11 @@
     # Models persist across reboots, so this only happens once!
   ];
 
-  # If using native instead: set useDocker = false and configure:
-  # services.comfyui.symlinkPaths = {
-  #   checkpoints = "/var/lib/stable-diffusion/models/linked/checkpoints";
-  #   loras = "/var/lib/stable-diffusion/models/linked/loras";
-  # };
+  # Symlink paths for declarative model management (works with both native and Docker)
+  services.comfyui.symlinkPaths = {
+    checkpoints = "/var/lib/stable-diffusion/models/linked/checkpoints";
+    loras = "/var/lib/stable-diffusion/models/linked/loras";
+  };
   # services.comfyui.models = lib.mkForce []; # Use before sops-nix secrets are loaded
 
   # Bluetooth

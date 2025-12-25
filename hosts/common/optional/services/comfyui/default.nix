@@ -31,13 +31,13 @@ in
         options = {
           image = mkOption {
             type = types.str;
-            default = "ghcr.io/ai-dock/comfyui";
+            default = "jamesbrink/comfyui";
             description = "Docker image to use for ComfyUI";
           };
 
           version = mkOption {
             type = types.str;
-            default = "latest-cuda";
+            default = "latest";
             description = "Version/tag of the ComfyUI container";
           };
 
@@ -112,7 +112,7 @@ in
                   };
                   destination = mkOption {
                     type = types.str;
-                    description = "Destination path relative to /opt/ComfyUI inside container";
+                    description = "Destination path relative to /data inside container";
                     example = "models/diffusion_models/hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors";
                   };
                   sha256 = mkOption {
@@ -176,23 +176,28 @@ in
       ];
     }
 
-    # Native ComfyUI configuration
-    (mkIf (!cfg.useDocker) {
+    # Model configuration (used by both native and Docker via symlinker)
+    {
       services.comfyui.enable = mkDefault true;
       services.comfyui.host = mkDefault "0.0.0.0";
-      networking.firewall.allowedTCPPorts = [ 8188 ];
       services.comfyui.models = mkDefault (
         pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineModels
       );
       services.comfyui.customNodes = mkDefault (
         pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineNodes
       );
+    }
+
+    # Native ComfyUI-only configuration
+    (mkIf (!cfg.useDocker) {
+      networking.firewall.allowedTCPPorts = [ 8188 ];
     })
 
     # Docker ComfyUI configuration
     (mkIf cfg.useDocker {
-      # Disable native service
-      services.comfyui.enable = mkForce false;
+      # Keep comfyui.enable true for model management (symlinker), but prevent service from starting
+      services.comfyui.enable = mkDefault true;
+      systemd.services.comfyui.enable = mkForce false; # Disable the actual native service
 
       # Enable Docker backend
       virtualisation.arion.backend = mkForce "docker";
@@ -201,16 +206,22 @@ in
 
       networking.firewall.allowedTCPPorts = mkIf (cfg.docker.port != null) [ cfg.docker.port ];
 
-      # Define ai-services group for Docker AI containers (ai-dock images use GID 1111)
-      users.groups.ai-services.gid = 1111;
+      # Define comfyui-docker group for jamesbrink/comfyui image (uses UID/GID 10001)
+      users.groups.comfyui-docker.gid = 10001;
+      users.users.comfyui-docker = {
+        isSystemUser = true;
+        uid = 10001;
+        group = "comfyui-docker";
+        home = cfg.docker.workingDir;
+      };
 
       # Create necessary directories with proper permissions
-      # Use the configured user's UID and ai-services group GID
-      # Container expects UID 1000 and GID 1111 (ai-dock group)
+      # jamesbrink/comfyui container runs as user "comfyui" with UID/GID 10001
       systemd.tmpfiles.rules =
         let
-          uid = toString config.users.users.${configVars.username}.uid;
-          gid = toString config.users.groups.ai-services.gid;
+          # Use GID for both UID and GID to match container's comfyui user (10001:10001)
+          uid = toString config.users.users.comfyui-docker.uid;
+          gid = toString config.users.groups.comfyui-docker.gid;
         in
         [
           "d ${cfg.docker.workingDir} 0775 ${uid} ${gid} - -"
@@ -224,6 +235,46 @@ in
           "d ${cfg.docker.workingDir}/user/default/temp 0775 ${uid} ${gid} - -"
         ];
 
+      # Patch the original entrypoint from jamesbrink/comfyui Docker image
+      # Extract at runtime and patch to skip automatic pip installs while preserving all other setup
+      systemd.services.comfyui-patch-entrypoint = {
+        description = "Extract and patch ComfyUI entrypoint to skip auto pip install";
+        before = [ "arion-comfyui-docker.service" ];
+        wantedBy = [ "multi-user.target" ];
+
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = true;
+        };
+
+        script = ''
+          # Ensure directory exists and clean up any old file/directory
+          mkdir -p /etc/comfyui
+          rm -rf /etc/comfyui/custom-entrypoint.sh
+
+          # Extract entrypoint from the Docker image (override entrypoint to use sh for file extraction)
+          echo "Extracting entrypoint from ${cfg.docker.image}:${cfg.docker.version}..."
+          ENTRYPOINT=$(${pkgs.docker}/bin/docker run --rm --entrypoint cat ${cfg.docker.image}:${cfg.docker.version} /usr/local/bin/entrypoint.sh)
+
+          # Apply minimal patch:
+          # 1. Comment out setup_custom_nodes call to skip pip installs  
+          # 2. Add 'user' to the symlinked directories (originally only models/output/input)
+          # 3. Add --base-directory and --listen flags for proper remote access
+          # 4. Skip automatic installation of recommended custom nodes
+          echo "$ENTRYPOINT" | \
+            sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
+            sed 's/for dir in models output input;/for dir in models output input user;/' | \
+            sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
+            sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' | \
+            sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' \
+            > /etc/comfyui/custom-entrypoint.sh
+
+          chmod +x /etc/comfyui/custom-entrypoint.sh
+
+          echo "✓ Patched entrypoint created successfully at /etc/comfyui/custom-entrypoint.sh"
+        '';
+      };
+
       # Arion project for Docker ComfyUI
       virtualisation.arion.projects."comfyui-docker".settings = {
         services."comfyui-docker".service = {
@@ -233,16 +284,20 @@ in
           env_file = lib.optionals (cfg.docker.additionalEnvironmentFile != null) [
             "${cfg.docker.additionalEnvironmentFile}"
           ];
+          # Override entrypoint to use our custom script that skips pip install
+          entrypoint = "/etc/comfyui/custom-entrypoint.sh";
+          command = lib.optionalString (cfg.docker.environment ? CLI_ARGS) cfg.docker.environment.CLI_ARGS;
           ports = [ "${builtins.toString cfg.docker.port}:8188" ];
           volumes = [
             "/nix/store:/nix/store:ro"
-            "${cfg.docker.workingDir}/models:/opt/ComfyUI/models"
-            "${cfg.docker.workingDir}/outputs:/opt/ComfyUI/output"
-            "${cfg.docker.workingDir}/inputs:/opt/ComfyUI/input"
-            "${cfg.docker.workingDir}/custom_nodes:/opt/ComfyUI/custom_nodes"
-            "${cfg.docker.workingDir}/user:/opt/ComfyUI/user"
-            "${cfg.docker.sharedModelsPath}/checkpoints:/opt/ComfyUI/models/checkpoints:ro"
-            "${cfg.docker.sharedModelsPath}/loras:/opt/ComfyUI/models/loras:ro"
+            "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
+            "${cfg.docker.workingDir}/models:/data/models"
+            "${cfg.docker.workingDir}/outputs:/data/output"
+            "${cfg.docker.workingDir}/inputs:/data/input"
+            "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
+            "${cfg.docker.workingDir}/user:/data/user"
+            "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
+            "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
           ];
           restart = "unless-stopped";
           devices = [ "nvidia.com/gpu=all" ];
@@ -269,43 +324,35 @@ in
 
             script =
               let
-                # Clone nodes that don't exist yet
-                nodeCloneScript = concatStringsSep "\n" (
+                # Clone and update nodes declaratively (git operations only)
+                nodeManagementScript = concatStringsSep "\n" (
                   map (
                     nodeUrl:
                     let
                       nodeName = builtins.baseNameOf nodeUrl;
                     in
                     ''
-                      echo "Checking custom node: ${nodeName}..."
-                      if ! ${pkgs.docker}/bin/docker exec -u user comfyui-docker [ -d /opt/ComfyUI/custom_nodes/${nodeName}/.git ]; then
-                        echo "Cloning ${nodeName} from ${nodeUrl}..."
-                        NODES_INSTALLED=true
-                        ${pkgs.docker}/bin/docker exec -u user comfyui-docker bash -c "
-                          cd /opt/ComfyUI/custom_nodes && \
+                      echo "Managing custom node: ${nodeName}..."
+                      if ! ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -d /data/custom_nodes/${nodeName}/.git ]; then
+                        echo "  → Cloning ${nodeName} from ${nodeUrl}..."
+                        ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker bash -c "
+                          cd /data/custom_nodes && \
                           git clone ${nodeUrl}
-                        " || echo "Warning: Failed to clone ${nodeName}"
+                        " && echo "  ✓ Successfully cloned ${nodeName}" || echo "  ✗ Failed to clone ${nodeName}"
                       else
-                        echo "${nodeName} already exists, skipping clone..."
-                      fi
-                    ''
-                  ) cfg.docker.customNodes
-                );
-
-                # Always install/update dependencies for all configured nodes
-                nodeDepsInstallScript = concatStringsSep "\n" (
-                  map (
-                    nodeUrl:
-                    let
-                      nodeName = builtins.baseNameOf nodeUrl;
-                    in
-                    ''
-                      if ${pkgs.docker}/bin/docker exec -u user comfyui-docker [ -f /opt/ComfyUI/custom_nodes/${nodeName}/requirements.txt ]; then
-                        echo "Installing Python dependencies for ${nodeName}..."
-                        ${pkgs.docker}/bin/docker exec -u user comfyui-docker bash -c "
-                          cd /opt/ComfyUI/custom_nodes/${nodeName} && \
-                          pip install -r requirements.txt
-                        " || echo "Warning: Some dependencies failed to install for ${nodeName}"
+                        echo "  → Updating ${nodeName}..."
+                        ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker bash -c "
+                          cd /data/custom_nodes/${nodeName} && \
+                          git fetch origin && \
+                          if ! git diff --quiet HEAD origin/HEAD 2>/dev/null; then
+                            echo '  → Changes detected, updating...' && \
+                            git stash && \
+                            git pull --rebase && \
+                            git stash pop || true
+                          else
+                            echo '  ✓ Already up to date'
+                          fi
+                        " || echo "  ✗ Failed to update ${nodeName}"
                       fi
                     ''
                   ) cfg.docker.customNodes
@@ -314,9 +361,8 @@ in
                 workflowInstallScript = concatStringsSep "\n" (
                   mapAttrsToList (filename: url: ''
                     echo "Checking workflow: ${filename}..."
-                    if ! ${pkgs.docker}/bin/docker exec -u user comfyui-docker [ -f /opt/ComfyUI/user/default/workflows/${filename} ]; then
-                      echo "Downloading ${filename} from ${url}..."
-                      WORKFLOWS_DOWNLOADED=true
+                    if ! ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -f /data/user/default/workflows/${filename} ]; then
+                      echo "  → Downloading ${filename}..."
                       
                       # Build curl command with authentication if needed
                       CURL_CMD="${pkgs.curl}/bin/curl -fsSL"
@@ -333,59 +379,50 @@ in
                       
                       # Download workflow
                       eval "$CURL_CMD \"${url}\" -o /tmp/${filename}" && \
-                      ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/opt/ComfyUI/user/default/workflows/${filename} && \
+                      ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/data/user/default/workflows/${filename} && \
                       rm /tmp/${filename} && \
-                      echo "Successfully downloaded ${filename}" || \
-                      echo "Warning: Failed to download ${filename}"
+                      echo "  ✓ Successfully downloaded ${filename}" || \
+                      echo "  ✗ Failed to download ${filename}"
                     else
-                      echo "${filename} already exists, skipping..."
+                      echo "  ✓ ${filename} already exists"
                     fi
                   '') cfg.docker.workflows
                 );
               in
               ''
-                # Track whether anything new was installed
-                NODES_INSTALLED=false
-                WORKFLOWS_DOWNLOADED=false
-
                 # Wait for container to be fully ready
-                echo "Waiting for ComfyUI container to be ready..."
+                echo "========================================"
+                echo "ComfyUI Custom Node Manager"
+                echo "========================================"
+                echo "Waiting for container..."
                 for i in {1..30}; do
-                  if ${pkgs.docker}/bin/docker exec -u user comfyui-docker test -d /opt/ComfyUI/custom_nodes; then
-                    echo "Container is ready!"
+                  if ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker test -d /data/custom_nodes; then
+                    echo "✓ Container is ready!"
                     break
                   fi
-                  echo "Waiting... ($i/30)"
                   sleep 2
                 done
 
-                # Clone any missing custom nodes
-                echo "========================================"
-                echo "Checking for missing custom nodes..."
-                echo "========================================"
-                ${nodeCloneScript}
-
-                # Install/update dependencies for ALL custom nodes (ensures fresh venvs work)
-                echo "========================================"
-                echo "Installing Python dependencies..."
-                echo "========================================"
-                ${nodeDepsInstallScript}
+                # Clone and update all declared custom nodes
+                echo ""
+                echo "Managing custom nodes (git operations only)..."
+                echo "Python dependencies will be installed by the container entrypoint."
+                echo "----------------------------------------"
+                ${nodeManagementScript}
 
                 # Download each declared workflow
-                ${workflowInstallScript}
-
-                # Restart ComfyUI to load new nodes (only if something new was installed)
-                if [ "$NODES_INSTALLED" = "true" ]; then
-                  echo "========================================"
-                  echo "New nodes were installed!"
-                  echo "Restarting ComfyUI to load new nodes..."
-                  echo "========================================"
-                  systemctl restart arion-comfyui-docker.service || true
-                else
-                  echo "All nodes already installed, no restart needed."
+                if [ -n "${workflowInstallScript}" ]; then
+                  echo ""
+                  echo "Managing workflows..."
+                  echo "----------------------------------------"
+                  ${workflowInstallScript}
                 fi
 
-                echo "Custom node and workflow installation complete!"
+                echo ""
+                echo "========================================"
+                echo "✓ Custom node management complete!"
+                echo "The container will install Python dependencies on next restart."
+                echo "========================================"
               '';
           };
 
@@ -437,12 +474,12 @@ in
                   echo "Checking model: ${filename}"
                   echo "Destination: ${model.destination}"
 
-                  if ${pkgs.docker}/bin/docker exec -u user comfyui-docker [ -f /opt/ComfyUI/${model.destination} ]; then
+                  if ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -f /data/${model.destination} ]; then
                     echo "${filename} already exists, skipping..."
                   else
                     MODELS_DOWNLOADED=true
                     echo "Creating destination directory if needed..."
-                    ${pkgs.docker}/bin/docker exec -u user comfyui-docker mkdir -p /opt/ComfyUI/${dirname}
+                    ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker mkdir -p /data/${dirname}
                     
                     echo "Downloading ${filename} from ${model.url}"
                     echo "This may take a while for large models..."
@@ -476,7 +513,7 @@ in
                     ${sha256Check}
                     
                     echo "Copying ${filename} to container..."
-                    ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/opt/ComfyUI/${model.destination} && \
+                    ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/data/${model.destination} && \
                     rm /tmp/${filename} && \
                     echo "Successfully installed ${filename}" || {
                       echo "ERROR: Failed to copy ${filename} to container"
@@ -499,7 +536,7 @@ in
             # Wait for container to be fully ready
             echo "Waiting for ComfyUI container to be ready..."
             for i in {1..30}; do
-              if ${pkgs.docker}/bin/docker exec -u user comfyui-docker test -d /opt/ComfyUI/models; then
+              if ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker test -d /data/models; then
                 echo "Container is ready!"
                 break
               fi
