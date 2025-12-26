@@ -238,12 +238,31 @@ let
       echo "[INFO] Uploading ''${#FILES[@]} converted files to ${cfg.remoteHost}"
 
       # Rsync all finished files back
+      # Don't exit on rsync errors - we'll check if files were actually removed
+      set +e
       ${pkgs.rsync}/bin/rsync -avz --progress --remove-source-files \
         -e "${pkgs.openssh}/bin/ssh -i $SSH_KEY_PATH -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null" \
         "$FINISHED_DIR/" \
         "${cfg.remoteUser}@${cfg.remoteHost}:${cfg.remoteUploadDir}/"
+      RSYNC_EXIT=$?
+      set -e
 
-      echo "[INFO] Upload complete, files removed from local system"
+      # Check if files were actually removed (the real success indicator)
+      shopt -s nullglob
+      REMAINING_FILES=("$FINISHED_DIR"/*.webm)
+      shopt -u nullglob
+
+      if [[ ''${#REMAINING_FILES[@]} -eq 0 ]]; then
+        # All files removed = successful upload (even if rsync returned non-zero for non-critical errors)
+        echo "[INFO] Upload complete, all files removed from local system"
+      elif [[ $RSYNC_EXIT -ne 0 ]]; then
+        # Files remain AND rsync failed = actual failure
+        echo "[ERROR] Upload failed with exit code $RSYNC_EXIT, ''${#REMAINING_FILES[@]} files remain"
+        exit $RSYNC_EXIT
+      else
+        # This shouldn't happen (rsync succeeded but files remain?) but handle it
+        echo "[WARN] Rsync succeeded but ''${#REMAINING_FILES[@]} files remain - continuing anyway"
+      fi
     else
       echo "[INFO] No files to upload"
     fi

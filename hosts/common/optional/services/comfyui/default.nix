@@ -138,6 +138,22 @@ in
               Models are only downloaded if they don't already exist.
             '';
           };
+
+          autoUpdate = mkOption {
+            type = types.bool;
+            default = false;
+            description = ''
+              Automatically check for ComfyUI updates daily.
+              When enabled, a systemd timer will check for updates once per day.
+              Updates are applied automatically with automatic rollback on failure.
+              Backups are kept in /var/lib/comfyui-backups (last 3 backups retained).
+
+              Manual commands:
+              - Update now: sudo systemctl start comfyui-update.service
+              - Rollback: sudo systemctl start comfyui-rollback.service
+              - Check timer: systemctl status comfyui-update.timer
+            '';
+          };
         };
       };
       default = { };
@@ -233,7 +249,227 @@ in
           "d ${cfg.docker.workingDir}/user/default 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/user/default/workflows 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/user/default/temp 0775 ${uid} ${gid} - -"
+          "d /var/lib/comfyui-backups 0755 root root - -"
         ];
+
+      # Systemd service to update ComfyUI to latest version
+      systemd.services.comfyui-update = {
+        description = "Update ComfyUI Docker container to latest version";
+
+        serviceConfig = {
+          Type = "oneshot";
+        };
+
+        script = ''
+          BACKUP_DIR="/var/lib/comfyui-backups"
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+
+          # Create backup directory if it doesn't exist
+          mkdir -p "$BACKUP_DIR"
+
+          # Function to create backup
+          create_backup() {
+            echo "Creating backup of current ComfyUI version..."
+            ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+              tar -czf /tmp/comfyui-backup-$TIMESTAMP.tar.gz -C /data work
+            "
+            ${pkgs.docker}/bin/docker cp comfyui-docker:/tmp/comfyui-backup-$TIMESTAMP.tar.gz "$BACKUP_DIR/"
+            ${pkgs.docker}/bin/docker exec comfyui-docker rm /tmp/comfyui-backup-$TIMESTAMP.tar.gz
+            echo "✓ Backup created: comfyui-backup-$TIMESTAMP.tar.gz"
+            
+            # Keep only the last 3 backups
+            cd "$BACKUP_DIR"
+            ls -t comfyui-backup-*.tar.gz | tail -n +4 | xargs -r rm
+            echo "✓ Old backups cleaned (keeping last 3)"
+          }
+
+          # Function to restore from backup
+          restore_backup() {
+            local backup_file="$1"
+            echo "⚠️  Update failed! Restoring from backup: $backup_file"
+            
+            ${pkgs.docker}/bin/docker cp "$backup_file" comfyui-docker:/tmp/restore.tar.gz
+            ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+              cd /data
+              rm -rf work
+              tar -xzf /tmp/restore.tar.gz -C /data
+              rm /tmp/restore.tar.gz
+            "
+            
+            echo "✓ Restored from backup"
+            systemctl restart arion-comfyui-docker.service
+            echo "✓ ComfyUI restarted with previous version"
+          }
+
+          # Function to test if ComfyUI starts successfully
+          test_comfyui() {
+            echo "Testing if ComfyUI starts successfully..."
+            for i in {1..30}; do
+              if curl -s http://localhost:8188/object_info >/dev/null 2>&1; then
+                echo "✓ ComfyUI is responding!"
+                return 0
+              fi
+              sleep 2
+            done
+            echo "✗ ComfyUI failed to start within 60 seconds"
+            return 1
+          }
+        ''
+        + ''
+          echo "========================================"
+          echo "ComfyUI Update Service"
+          echo "========================================"
+
+          # Wait for container to be fully started
+          echo "Waiting for ComfyUI container to be ready..."
+          for i in {1..30}; do
+            if ${pkgs.docker}/bin/docker exec comfyui-docker test -d /data/work 2>/dev/null; then
+              echo "Container is ready!"
+              break
+            fi
+            echo "Waiting... ($i/30)"
+            sleep 2
+          done
+
+          # Check current version
+          CURRENT_VERSION=$(${pkgs.docker}/bin/docker exec comfyui-docker cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "Unable to determine")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Check latest version on GitHub
+          echo "Checking for updates..."
+          LATEST_COMMIT=$(${pkgs.docker}/bin/docker exec comfyui-docker bash -c "git ls-remote https://github.com/comfyanonymous/ComfyUI.git refs/heads/master | cut -f1 | head -c7" 2>/dev/null || echo "unknown")
+          echo "Latest commit on GitHub: $LATEST_COMMIT"
+
+          # Create backup before updating
+          create_backup
+          BACKUP_FILE="$BACKUP_DIR/comfyui-backup-$TIMESTAMP.tar.gz"
+
+          # Stop ComfyUI process
+          echo "Stopping ComfyUI..."
+          ${pkgs.docker}/bin/docker exec comfyui-docker pkill -f "python3 main.py" || true
+          sleep 2
+
+          # Clone latest ComfyUI to temp location
+          echo "Downloading latest ComfyUI from GitHub..."
+          if ! ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+            rm -rf /tmp/comfyui-update
+            git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /tmp/comfyui-update
+          "; then
+            echo "✗ Failed to download latest ComfyUI"
+            restore_backup "$BACKUP_FILE"
+            exit 1
+          fi
+
+          # Update the working directory (preserve custom_nodes, models, etc.)
+          echo "Updating ComfyUI files..."
+          if ! ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+            cd /data/work
+            # Remove old symlinks and copy new files
+            # Only exclude TOP-LEVEL directories, not nested ones (ldm/models/ contains Python code!)
+            find . -maxdepth 1 -type l -delete
+            rsync -av --exclude='/custom_nodes' --exclude='/models' --exclude='/input' --exclude='/output' --exclude='/user' /tmp/comfyui-update/ /data/work/
+            rm -rf /tmp/comfyui-update
+          "; then
+            echo "✗ Failed to update files"
+            restore_backup "$BACKUP_FILE"
+            exit 1
+          fi
+
+          # Restart ComfyUI container
+          echo "Restarting ComfyUI container..."
+          systemctl restart arion-comfyui-docker.service
+
+          sleep 15
+
+          # Test if ComfyUI starts successfully
+          if ! test_comfyui; then
+            echo "✗ ComfyUI failed to start after update"
+            restore_backup "$BACKUP_FILE"
+            exit 1
+          fi
+
+          # Verify update
+          NEW_VERSION=$(${pkgs.docker}/bin/docker exec comfyui-docker cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "unknown")
+          echo "========================================"
+          echo "✓ ComfyUI updated successfully!"
+          echo "New version: $NEW_VERSION"
+          echo "Backup saved: $BACKUP_FILE"
+          echo "Access ComfyUI at: http://smeagol:8188"
+          echo "========================================"
+        '';
+      };
+
+      # Systemd timer for automatic daily update checks
+      systemd.timers.comfyui-update = mkIf (cfg.docker.autoUpdate or false) {
+        description = "Daily check for ComfyUI updates";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "daily";
+          Persistent = true;
+          RandomizedDelaySec = "1h";
+        };
+      };
+
+      # Manual rollback service
+      systemd.services.comfyui-rollback = {
+        description = "Rollback ComfyUI to previous backup";
+
+        serviceConfig = {
+          Type = "oneshot";
+        };
+
+        script = ''
+          BACKUP_DIR="/var/lib/comfyui-backups"
+
+          # Find the most recent backup
+          LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/comfyui-backup-*.tar.gz 2>/dev/null | head -1)
+
+          if [ -z "$LATEST_BACKUP" ]; then
+            echo "✗ No backups found in $BACKUP_DIR"
+            exit 1
+          fi
+
+          echo "========================================"
+          echo "ComfyUI Rollback Service"
+          echo "========================================"
+          echo "Rolling back to: $(basename "$LATEST_BACKUP")"
+
+          # Stop ComfyUI
+          ${pkgs.docker}/bin/docker exec comfyui-docker pkill -f "python3 main.py" || true
+          sleep 2
+
+          # Restore backup
+          ${pkgs.docker}/bin/docker cp "$LATEST_BACKUP" comfyui-docker:/tmp/restore.tar.gz
+          ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+            cd /data
+            rm -rf work
+            tar -xzf /tmp/restore.tar.gz -C /data
+            rm /tmp/restore.tar.gz
+          "
+
+          echo "✓ Backup restored"
+
+          # Restart ComfyUI
+          systemctl restart arion-comfyui-docker.service
+
+          sleep 15
+
+          # Test if it works
+          for i in {1..30}; do
+            if curl -s http://localhost:8188/object_info >/dev/null 2>&1; then
+              echo "========================================"
+              echo "✓ Rollback successful!"
+              echo "ComfyUI is running"
+              echo "========================================"
+              exit 0
+            fi
+            sleep 2
+          done
+
+          echo "⚠️  Rollback completed but ComfyUI may not be responding"
+          echo "Check logs: journalctl -u arion-comfyui-docker.service -f"
+        '';
+      };
 
       # Patch the original entrypoint from jamesbrink/comfyui Docker image
       # Extract at runtime and patch to skip automatic pip installs while preserving all other setup
@@ -248,38 +484,38 @@ in
         };
 
         script = ''
-          # Ensure directory exists and clean up any old file/directory
-          mkdir -p /etc/comfyui
-          rm -rf /etc/comfyui/custom-entrypoint.sh
+                    # Ensure directory exists and clean up any old file/directory
+                    mkdir -p /etc/comfyui
+                    rm -rf /etc/comfyui/custom-entrypoint.sh
 
-          # Extract entrypoint from the Docker image (override entrypoint to use sh for file extraction)
-          echo "Extracting entrypoint from ${cfg.docker.image}:${cfg.docker.version}..."
-          ENTRYPOINT=$(${pkgs.docker}/bin/docker run --rm --entrypoint cat ${cfg.docker.image}:${cfg.docker.version} /usr/local/bin/entrypoint.sh)
+                    # Extract entrypoint from the Docker image (override entrypoint to use sh for file extraction)
+                    echo "Extracting entrypoint from ${cfg.docker.image}:${cfg.docker.version}..."
+                    ENTRYPOINT=$(${pkgs.docker}/bin/docker run --rm --entrypoint cat ${cfg.docker.image}:${cfg.docker.version} /usr/local/bin/entrypoint.sh)
 
-          # Apply minimal patch:
-          # 1. Comment out setup_custom_nodes call to skip pip installs  
-          # 2. Add 'user' to the symlinked directories (originally only models/output/input)
-          # 3. Add --base-directory and --listen flags for proper remote access
-          # 4. Skip automatic installation of recommended custom nodes
-          # 5. Make Python packages ephemeral by removing .local and .cache on each boot
-          echo "$ENTRYPOINT" | \
-            sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
-            sed 's/for dir in models output input;/for dir in models output input user;/' | \
-            sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
-            sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
-            sed '/^# Main execution$/a\
-# PATCHED: Make Python user packages ephemeral to prevent corruption\
-# Remove ALL user-installed packages on each boot to avoid corrupted shared objects\
-# ComfyUI-Manager will reinstall them automatically, but they will be fresh\
-echo "Resetting ephemeral Python packages..."\
-rm -rf /data/user/.local /data/user/.cache 2>/dev/null || true\
-echo "Python packages will be reinstalled fresh on this boot"' | \
-            sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
-            > /etc/comfyui/custom-entrypoint.sh
+                    # Apply minimal patch:
+                    # 1. Comment out setup_custom_nodes call to skip pip installs  
+                    # 2. Add 'user' to the symlinked directories (originally only models/output/input)
+                    # 3. Add --base-directory and --listen flags for proper remote access
+                    # 4. Skip automatic installation of recommended custom nodes
+                    # 5. Make Python packages ephemeral by removing .local and .cache on each boot
+                    echo "$ENTRYPOINT" | \
+                      sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
+                      sed 's/for dir in models output input;/for dir in models output input user;/' | \
+                      sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
+                      sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
+                      sed '/^# Main execution$/a\
+          # PATCHED: Make Python user packages ephemeral to prevent corruption\
+          # Remove ALL user-installed packages on each boot to avoid corrupted shared objects\
+          # ComfyUI-Manager will reinstall them automatically, but they will be fresh\
+          echo "Resetting ephemeral Python packages..."\
+          rm -rf /data/user/.local /data/user/.cache 2>/dev/null || true\
+          echo "Python packages will be reinstalled fresh on this boot"' | \
+                      sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
+                      > /etc/comfyui/custom-entrypoint.sh
 
-          chmod +x /etc/comfyui/custom-entrypoint.sh
+                    chmod +x /etc/comfyui/custom-entrypoint.sh
 
-          echo "✓ Patched entrypoint created successfully at /etc/comfyui/custom-entrypoint.sh"
+                    echo "✓ Patched entrypoint created successfully at /etc/comfyui/custom-entrypoint.sh"
         '';
       };
 
