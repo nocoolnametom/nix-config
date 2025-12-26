@@ -154,6 +154,25 @@ in
               - Check timer: systemctl status comfyui-update.timer
             '';
           };
+
+          gpuType = mkOption {
+            type = types.enum [
+              "nvidia"
+              "amd-rocm"
+            ];
+            description = ''
+              GPU type to use for hardware acceleration.
+              - "nvidia": Uses NVIDIA GPU with CUDA via nvidia-container-toolkit
+              - "amd-rocm": Uses AMD GPU with ROCm (/dev/kfd and /dev/dri devices)
+
+              By default, this is auto-detected from nixpkgs.config:
+              - If rocmSupport is enabled → "amd-rocm"
+              - If cudaSupport is enabled → "nvidia" (default)
+
+              You can explicitly override this if needed.
+              Note: For ROCm, ensure your user is in the 'render' and 'video' groups.
+            '';
+          };
         };
       };
       default = { };
@@ -162,35 +181,55 @@ in
   };
 
   config = mkMerge [
-    # Common configuration for both backends
-    {
-      hardware.nvidia-container-toolkit.enable = mkDefault true;
-      nixpkgs.config.cudaSupport = mkDefault true;
-      nixpkgs.config.cudnnSupport = mkDefault true;
+    # Auto-detect GPU type from nixpkgs config (like Ollama does)
+    (mkIf cfg.useDocker {
+      services.comfyui.docker.gpuType = mkDefault (
+        if config.nixpkgs.config.rocmSupport or false then "amd-rocm" else "nvidia"
+      );
+    })
 
-      nix.settings.trusted-substituters = [
-        "https://ai.cachix.org"
-        "https://cuda-maintainers.cachix.org"
-      ];
-      nix.settings.trusted-public-keys = [
-        "ai.cachix.org-1:N9dzRK+alWwoKXQlnn0H6aUx0lU/mspIoz8hMvGvbbc="
-        "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
-      ];
+    # GPU-specific and common configuration
+    (mkMerge [
+      # NVIDIA-specific configuration
+      (mkIf (!cfg.useDocker || (cfg.useDocker && cfg.docker.gpuType == "nvidia")) {
+        hardware.nvidia-container-toolkit.enable = mkDefault true;
 
-      # Ensure secrets are available for model downloads
-      sops.secrets."huggingface_key" = mkDefault { };
-      sops.secrets."civitai_key" = mkDefault { };
-      sops.templates."ai_site_env_keys" = {
-        content = ''
-          CIVITAI_API_TOKEN=${config.sops.placeholder."civitai_key"}
-          HF_TOKEN=${config.sops.placeholder."huggingface_key"}
-        '';
-        mode = "0755";
-      };
-      systemd.services.nix-daemon.serviceConfig.EnvironmentFile = [
-        config.sops.templates."ai_site_env_keys".path
-      ];
-    }
+        nix.settings.trusted-substituters = mkDefault [
+          "https://ai.cachix.org"
+          "https://cuda-maintainers.cachix.org"
+        ];
+        nix.settings.trusted-public-keys = mkDefault [
+          "ai.cachix.org-1:N9dzRK+alWwoKXQlnn0H6aUx0lU/mspIoz8hMvGvbbc="
+          "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
+        ];
+      })
+
+      # AMD ROCm-specific configuration
+      (mkIf (cfg.useDocker && cfg.docker.gpuType == "amd-rocm") {
+        # Add ROCm cache if available
+        nix.settings.trusted-substituters = mkDefault [ "https://ai.cachix.org" ];
+        nix.settings.trusted-public-keys = mkDefault [
+          "ai.cachix.org-1:N9dzRK+alWwoKXQlnn0H6aUx0lU/mspIoz8hMvGvbbc="
+        ];
+      })
+
+      # Common configuration (secrets, etc.)
+      {
+        # Ensure secrets are available for model downloads
+        sops.secrets."huggingface_key" = mkDefault { };
+        sops.secrets."civitai_key" = mkDefault { };
+        sops.templates."ai_site_env_keys" = {
+          content = ''
+            CIVITAI_API_TOKEN=${config.sops.placeholder."civitai_key"}
+            HF_TOKEN=${config.sops.placeholder."huggingface_key"}
+          '';
+          mode = "0755";
+        };
+        systemd.services.nix-daemon.serviceConfig.EnvironmentFile = [
+          config.sops.templates."ai_site_env_keys".path
+        ];
+      }
+    ])
 
     # Model configuration (used by both native and Docker via symlinker)
     {
@@ -229,6 +268,11 @@ in
         uid = 10001;
         group = "comfyui-docker";
         home = cfg.docker.workingDir;
+        # Add to render/video groups for ROCm GPU access
+        extraGroups = mkIf (cfg.docker.gpuType == "amd-rocm") [
+          "render"
+          "video"
+        ];
       };
 
       # Create necessary directories with proper permissions
@@ -553,7 +597,16 @@ in
             "${cfg.docker.sharedModelsPath}/upscale_models:/data/models/upscale_models:ro"
           ];
           restart = "unless-stopped";
-          devices = [ "nvidia.com/gpu=all" ];
+          devices =
+            if cfg.docker.gpuType == "nvidia" then
+              [ "nvidia.com/gpu=all" ]
+            else if cfg.docker.gpuType == "amd-rocm" then
+              [
+                "/dev/kfd:/dev/kfd"
+                "/dev/dri:/dev/dri"
+              ]
+            else
+              [ ];
         };
       };
 
