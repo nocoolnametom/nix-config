@@ -14,6 +14,10 @@
   configVars,
   ...
 }:
+let
+  stashDir = config.services.stash.dataDir;
+  stashPath = "${stashDir}/data/data.dat";
+in
 {
   imports = [
     ######################## Every Host Needs This ############################
@@ -43,7 +47,7 @@
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
-    "hosts/common/optional/services/stashapp.nix"
+    "hosts/common/optional/services/stash.nix"
     "hosts/common/optional/services/wivrn.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/direnv.nix"
@@ -83,37 +87,71 @@
     ))
     ffmpeg
   ];
+  users.groups.media = { };
   users.users."${configVars.username}".extraGroups = [
     config.services.stashapp.group
     "comfyui-docker"
   ];
   users.users.nzbget.extraGroups = [
     config.services.stashapp.group
+    "media"
   ];
-  users.users.stashapp.extraGroups = [
-    config.services.nzbget.group
-  ];
+  users.users.${config.services.stash.user}.extraGroups =
+    lib.optionals config.services.nzbget.enable
+      [
+        config.services.nzbget.group
+        "media"
+      ];
   systemd.tmpfiles.rules = [
-    "d ${config.users.users.stashapp.home} 775 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
-    "d ${config.users.users.stashapp.home}/data/data.dat/av1 777 ${config.services.stashapp.user} ${config.services.stashapp.group} - -"
+    "d ${config.users.users.stash.home} 775 ${config.services.stashapp.user} media - -"
+    "d ${stashPath}/av1 777 ${config.services.stashapp.user} media - -"
   ];
-  services.stashapp.vr-helper.enable = true;
-  services.stashapp.vr-helper.stash-host = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.stash}";
-  sops.secrets = {
-    "smeagol-stashapp-api-key" = { };
-  };
-  sops.templates."stash-vr.conf".content = ''
-    STASH_API_KEY=${config.sops.placeholder."smeagol-stashapp-api-key"}
-  '';
-  services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
+  services.stash.vr-helper.enable = true;
+  services.stash.vr-helper.external.stashUrl =
+    "https://${configVars.networking.subdomains.archerstash}.${configVars.domain}";
+  services.stash.vr-helper.external.port = configVars.networking.ports.tcp.stashvr;
+
+  # Stash library paths configuration
+  services.stash.dataDir = "/var/lib/stash";
+  services.stash.user = "stashapp";
+  services.stash.group = "stashapp";
+  services.stash.settings.stash =
+    let
+      regularPaths = paths: map (path: { inherit path; }) paths;
+      imageOnlyPaths =
+        paths:
+        map (path: {
+          inherit path;
+          excludevideo = true;
+        }) paths;
+      videoOnlyPaths =
+        paths:
+        map (path: {
+          inherit path;
+          excludeimage = true;
+        }) paths;
+    in
+    (regularPaths [
+      "${stashPath}/av1"
+      "${stashPath}/software"
+      "${stashPath}/vr"
+    ])
+    ++ (imageOnlyPaths [ ])
+    ++ (videoOnlyPaths [ ]);
+  services.stash.settings.blobs_path = "${stashDir}/.stash/blobs";
+  services.stash.settings.cache = "${stashDir}/.stash/cache";
+  services.stash.settings.database = "${stashDir}/.stash/stash-go.sqlite";
+  services.stash.settings.generated = "${stashPath}/.stash/generated";
+  services.stash.settings.plugins_path = "${stashPath}/.stash/plugins";
+  services.stash.settings.scrapers_path = "${stashPath}/.stash/scrapers";
 
   # Automatically transcode VR files
   services.nzbget-to-management.enable = true;
-  services.nzbget-to-management.downloadedDestDir = "/var/lib/stashapp/data/data.dat/vr";
+  services.nzbget-to-management.downloadedDestDir = "${stashPath}/vr";
   services.nzbget-to-management.unpackingDirName = "_unpack";
-  services.nzbget-to-management.transcodingTempDir = "/var/lib/stashapp/data/data.dat/transcoding";
-  services.nzbget-to-management.finishedVideoDir = "/var/lib/stashapp/data/data.dat/av1";
-  services.nzbget-to-management.handbrakePresetJsonFilePath = "/var/lib/stashapp/data/data.dat/MyVRAV1s.json";
+  services.nzbget-to-management.transcodingTempDir = "${stashPath}/transcoding";
+  services.nzbget-to-management.finishedVideoDir = "${stashPath}/av1";
+  services.nzbget-to-management.handbrakePresetJsonFilePath = "${stashPath}/MyVRAV1s.json";
   services.nzbget-to-management.handbrakePreset = "MyVRAV1s";
 
   # Remote video conversion from stash server

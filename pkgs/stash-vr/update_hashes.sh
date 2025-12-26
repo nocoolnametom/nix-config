@@ -18,7 +18,7 @@ cp "$input_file" "${input_file}.bak"
 # Declare an associative array of platform names
 declare -A platforms
 platforms=(
-  ["aarch64-darwin"]="darwin_arm64"
+  ["aarch64-darwin"]="darwin_all"
   ["aarch64-linux"]="linux_arm64"
   ["x86_64-linux"]="linux_amd64"
 )

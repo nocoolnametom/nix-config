@@ -13,6 +13,7 @@
   rsync-cert-sync = import ./rsync-cert-sync.nix;
   sauronsync = import ./sauronsync.nix;
   stash-video-conversion = import ./stash-video-conversion.nix;
+  stash-vr-helper = import ./stash-vr-helper.nix;
   stashapp = import ./stashapp.nix;
   # mormoncanon module was renamed to mormonsites; keep only the new name
   mormonsites = import ./mormonsites.nix;

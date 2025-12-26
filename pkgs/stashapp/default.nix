@@ -13,28 +13,28 @@
 }:
 
 let
-  pkgVersion = "0.29.3";
+  pkgVersion = "0.30.1";
 
   platforms = {
     aarch64-darwin = {
       name = "macos";
-      sha256 = "034w7n9sphdphgh1fh3sm2b9inag3g82lsq6230rsks3cni4axnq";
+      sha256 = "045pz66527fcjzyh9b1xq738wd2k0ql408wy695crnb5qmqf0jf6";
     };
     aarch64-linux = {
       name = "linux-arm64v8";
-      sha256 = "1bbfynxkidjr9brbz8zj0fh40f457q89hijhhhv28fbl75frcwax";
+      sha256 = "1281w6dx3a0ljwikmyml76bir28q50lr9xn5y56drpb1sbbvk2cx";
     };
     armv6l-linux = {
       name = "linux-arm32v6";
-      sha256 = "1hmrlldlcb6nyqa5rdl4q12kgplv6vyxrm3r04r6mbmx9ndmv8y5";
+      sha256 = "1kph1jybdnc4s2rjm91kv0p2vprbshgi8y55k7csprjg39frk19v";
     };
     armv7l-linux = {
       name = "linux-arm32v7";
-      sha256 = "0vwync5f9f2i6ch81mhv9jwlxxdn3qpa99va5k6yd8plgqgkq3bs";
+      sha256 = "1nbfq08q7k0dacayd9l0vyqr4ddn19is6ma4bxpw4lw91v969mdw";
     };
     x86_64-linux = {
       name = "linux";
-      sha256 = "1n4yp7fdl0sknac4l4y8463hbcqrv85xg8mf5zc6fk21my1vjczx";
+      sha256 = "00gnk2m8j8kcscwdphckrjmaif9c2ffymj9amv96pcnzh391f05m";
     };
   };
 
@@ -83,6 +83,7 @@ stdenv.mkDerivation rec {
     homepage = "https://stashapp.cc";
     description = "Accounting Organizer";
     license = lib.licenses.agpl3Only;
+    mainProgram = "stashapp";
     platforms = [
       "aarch64-darwin"
       "aarch64-linux"

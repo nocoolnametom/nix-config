@@ -14,6 +14,9 @@
   configVars,
   ...
 }:
+let
+  stashPath = "/arkenstone/stash";
+in
 {
   imports = [
     # Hardware config: replace with a copy of the correct hardware-configuration.nix
@@ -42,7 +45,7 @@
     "hosts/common/optional/services/radarr.nix"
     "hosts/common/optional/services/sickrage.nix"
     "hosts/common/optional/services/sonarr.nix"
-    "hosts/common/optional/services/stashapp.nix"
+    "hosts/common/optional/services/stash.nix"
 
     # Create per-user persistence entry for durin
     "home/${configVars.username}/persistence/durin.nix"
@@ -52,15 +55,55 @@
   # Keep persistence off by default; enable if this machine will hold data
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;
 
-  # Stash VR helper: update secret names and hostnames as needed
-  users.users.stashapp.extraGroups = lib.optionals config.services.nzbget.enable [ "nzbget" ];
-  services.stashapp.vr-helper.enable = false;
-  services.stashapp.vr-helper.stash-host = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
-  sops.secrets."durin-stashapp-api-key" = { };
-  sops.templates."stash-vr.conf".content = ''
-    STASH_API_KEY=${config.sops.placeholder."durin-stashapp-api-key"}
-  '';
-  services.stashapp.vr-helper.apiEnvironmentVariableFile = config.sops.templates."stash-vr.conf".path;
+  # Stash service configuration
+  users.users.${config.services.stash.user}.extraGroups =
+    lib.optionals config.services.nzbget.enable
+      [
+        config.services.nzbget.group
+        "media"
+      ];
+
+  # Stash VR helper configuration - multiple instances
+  services.stash.vr-helper.enable = true;
+  services.stash.vr-helper.hosts.external.stashUrl =
+    "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
+  services.stash.vr-helper.hosts.external.port = configVars.networking.ports.tcp.stashvr;
+
+  # Stash library paths configuration
+  services.stash.settings.stash =
+    let
+      regularPaths = paths: map (path: { inherit path; }) paths;
+      imageOnlyPaths =
+        paths:
+        map (path: {
+          inherit path;
+          excludevideo = true;
+        }) paths;
+      videoOnlyPaths =
+        paths:
+        map (path: {
+          inherit path;
+          excludeimage = true;
+        }) paths;
+    in
+    (regularPaths [
+      "${stashPath}/library/needswork"
+    ])
+    ++ (imageOnlyPaths [
+      "${stashPath}/library/images"
+    ])
+    ++ (videoOnlyPaths [
+      "${stashPath}/library/anime"
+      "${stashPath}/library/unorganized"
+      "${stashPath}/library/videos"
+      "${stashPath}/library/vr"
+    ]);
+  services.stash.settings.blobs_path = "${stashPath}/blobs";
+  services.stash.settings.cache = "${stashPath}/cache";
+  services.stash.settings.database = "${stashPath}/db/stash-go.sqlite";
+  services.stash.settings.generated = "${stashPath}/generated";
+  services.stash.settings.plugins_path = "${stashPath}/plugins";
+  services.stash.settings.scrapers_path = "${stashPath}/scrapers";
 
   # Authorized keys: copy/replace the pubkey file if needed
   users.users.${configVars.username}.openssh.authorizedKeys.keyFiles = [
