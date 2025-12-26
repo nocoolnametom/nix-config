@@ -103,16 +103,16 @@ in
         "media"
       ];
   systemd.tmpfiles.rules = [
-    "d ${config.users.users.stash.home} 775 ${config.services.stashapp.user} media - -"
+    "d ${config.services.stash.dataDir} 775 ${config.services.stashapp.user} media - -"
     "d ${stashPath}/av1 777 ${config.services.stashapp.user} media - -"
   ];
   services.stash.vr-helper.enable = true;
-  services.stash.vr-helper.external.stashUrl =
+  services.stash.vr-helper.hosts.external.stashUrl =
     "https://${configVars.networking.subdomains.archerstash}.${configVars.domain}";
-  services.stash.vr-helper.external.port = configVars.networking.ports.tcp.stashvr;
+  services.stash.vr-helper.hosts.external.port = configVars.networking.ports.tcp.stashvr;
 
   # Stash library paths configuration
-  services.stash.dataDir = "/var/lib/stash";
+  services.stash.dataDir = "/var/lib/stashapp";
   services.stash.user = "stashapp";
   services.stash.group = "stashapp";
   services.stash.settings.stash =
