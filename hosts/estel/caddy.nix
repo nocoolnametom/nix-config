@@ -56,6 +56,8 @@ let
       host = "estel";
       service = "immich-share";
       domain = "homeDomain";
+      certName = "wild-immich";
+      punchCertName = "wild-immich-punch";
     }
     {
       host = "cirdan";
@@ -115,12 +117,16 @@ let
       host = "smeagol";
       service = "archerstash";
       domain = "domain";
+      certName = "wild-stash";
+      punchCertName = "wild-stash-punch";
     }
     {
       host = "smeagol";
       service = "archerstashvr";
       domain = "domain";
       proxy = "authentik";
+      certName = "wild-stash-vr";
+      punchCertName = "wild-stash-vr-punch";
     }
     {
       host = "sdurin";
@@ -220,6 +226,12 @@ let
       domain = "domain";
     }
     {
+      host = "durin";
+      service = "stashvr";
+      domain = "domain";
+      proxy = "authentik";
+    }
+    {
       host = "cirdan";
       service = "tubearchivist";
       domain = "domain";
@@ -235,6 +247,8 @@ let
           host,
           service,
           domain,
+          certName ? null,
+          punchCertName ? null,
           proxy ? null,
         }:
         let
@@ -254,7 +268,7 @@ let
           # If proxy = "authentik", route through Authentik; otherwise go direct to service
           regularHost = {
             "${subdomain}.${baseDomain}" = {
-              useACMEHost = "wild-${baseDomain}";
+              useACMEHost = if certName == null then "wild-${baseDomain}" else certName;
               extraConfig =
                 if useAuthentik then
                   ''
@@ -271,7 +285,11 @@ let
           # Always goes directly to the service (bypassing Authentik) with basic auth
           punchHost = {
             "${subdomain}.${configVars.networking.subdomains.punch}.${baseDomain}" = {
-              useACMEHost = "wild-${configVars.networking.subdomains.punch}.${baseDomain}";
+              useACMEHost =
+                if punchCertName == null then
+                  "wild-${configVars.networking.subdomains.punch}.${baseDomain}"
+                else
+                  punchCertName;
               extraConfig = ''
                 basic_auth {
                   ${configVars.networking.caddy.basic_auth.punch}
@@ -375,6 +393,42 @@ in
     };
     "wild-${configVars.domain}" = {
       domain = "*.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-immich" = {
+      domain = "*.${configVars.networking.subdomains.immich}.${configVars.homeDomain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-immich-punch" = {
+      domain = "*.${configVars.networking.subdomains.immich}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-stash" = {
+      domain = "*.${configVars.networking.subdomains.stash}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-stash-punch" = {
+      domain = "*.${configVars.networking.subdomains.stash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-stash-vr" = {
+      domain = "*.${configVars.networking.subdomains.stashvr}.${configVars.domain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "wild-stash-vr-punch" = {
+      domain = "*.${configVars.networking.subdomains.stashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
