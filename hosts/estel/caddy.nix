@@ -113,6 +113,28 @@ let
     # Services on domain
     {
       host = "smeagol";
+      service = "archerstash";
+      domain = "domain";
+    }
+    {
+      host = "smeagol";
+      service = "archerstashvr";
+      domain = "domain";
+      proxy = "authentik";
+    }
+    {
+      host = "sdurin";
+      service = "stash";
+      domain = "domain";
+    }
+    {
+      host = "durin";
+      service = "stashvr";
+      domain = "domain";
+      proxy = "authentik";
+    }
+    {
+      host = "smeagol";
       service = "comfyui";
       domain = "domain";
       proxy = "authentik";
@@ -331,68 +353,6 @@ in
           }
         '';
       };
-
-    # Complex: Custom SSL certs (not wildcard)
-    "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
-      useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.domain}";
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
-      '';
-    };
-    "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
-      {
-        useACMEHost = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-        extraConfig = ''
-          basic_auth {
-            ${configVars.networking.caddy.basic_auth.punch}
-          }
-          reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.archerstash}
-        '';
-      };
-
-    # Complex: archerstashvr with its own basic auth (regular domain)
-    "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
-      useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
-      extraConfig = ''
-        basic_auth {
-          ${configVars.networking.caddy.basic_auth.archer-stashvr}
-        }
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
-      '';
-    };
-    # Punch-through version uses standard punch basic auth for monitoring
-    "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
-      {
-        useACMEHost = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-        extraConfig = ''
-          basic_auth {
-            ${configVars.networking.caddy.basic_auth.punch}
-          }
-          reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.archerstashvr}
-        '';
-      };
-
-    # Complex: stashvr with its own basic auth (regular domain)
-    "${configVars.networking.subdomains.stashvr}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
-      extraConfig = ''
-        basic_auth {
-          ${configVars.networking.caddy.basic_auth.stashvr}
-        }
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
-      '';
-    };
-    # Punch-through version uses standard punch basic auth for monitoring
-    "${configVars.networking.subdomains.stashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
-      {
-        useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.domain}";
-        extraConfig = ''
-          basic_auth {
-            ${configVars.networking.caddy.basic_auth.punch}
-          }
-          reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.stashvr}
-        '';
-      };
   };
 
   security.acme.acceptTerms = true;
@@ -437,31 +397,5 @@ in
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
-    "${configVars.networking.subdomains.archerstash}.${configVars.domain}" = {
-      domain = "${configVars.networking.subdomains.archerstash}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
-      {
-        domain = "${configVars.networking.subdomains.archerstash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-        group = "caddy";
-        dnsProvider = "porkbun";
-        environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-      };
-    "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}" = {
-      domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}" =
-      {
-        domain = "${configVars.networking.subdomains.archerstashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-        group = "caddy";
-        dnsProvider = "porkbun";
-        environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-      };
   };
 }
