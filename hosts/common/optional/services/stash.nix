@@ -55,7 +55,7 @@
 
   # Allow mutable settings to use existing config.yml
   # When true, the settings below only initialize config if it doesn't exist
-  services.stash.mutableSettings = lib.mkDefault false;
+  services.stash.mutableSettings = lib.mkDefault true;
 
   # Allow mutable plugins and scrapers (don't want to list them in source code)
   services.stash.mutablePlugins = lib.mkDefault true;
