@@ -18,8 +18,7 @@
     common/optional/flatpak.nix
     common/optional/git.nix
     common/optional/immersed.nix
-    common/optional/desktops/brave.nix
-    common/optional/desktops/kitty.nix
+    common/optional/desktops  # Includes brave, kitty, cliphist, trash, etc.
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/ssh-agent.nix

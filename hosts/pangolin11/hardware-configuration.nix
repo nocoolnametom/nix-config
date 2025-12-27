@@ -41,6 +41,7 @@
     "usbhid"
   ];
   hardware.system76.enableAll = true;
+  services.system76-scheduler.enable = true;
   hardware.graphics.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];

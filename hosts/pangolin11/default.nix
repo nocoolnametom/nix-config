@@ -65,11 +65,6 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
-  # Somepackage requires this, not sure which
-  nixpkgs.config.permittedInsecurePackages = [
-    "qtwebengine-5.15.19"
-  ];
-
   # services.gotosocial.settings.landing-page-user = "tom";
 
   # Once synergy is actually working on Comsic we can re-enable this, but until then it

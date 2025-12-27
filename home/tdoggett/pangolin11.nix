@@ -28,7 +28,6 @@
   services.gpg-agent.enable = true;
   services.playerctld.enable = true;
   services.blueman-applet.enable = true;
-  services.waynergy.host = "192.168.0.10";
   programs.git.settings.user.email = configVars.gitHubEmail;
 
   home.packages = with pkgs; [
