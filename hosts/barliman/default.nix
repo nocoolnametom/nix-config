@@ -42,6 +42,7 @@
     "hosts/common/optional/services/open-webui.nix"
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
+    "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/steam.nix"
@@ -127,6 +128,7 @@
     brave
     glibcLocales
     cmake
+    libdrm
     steam-rom-manager
     gnumake
     nodejs

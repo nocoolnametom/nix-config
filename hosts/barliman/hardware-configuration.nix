@@ -18,13 +18,22 @@
   services.fwupd.enable = true;
 
   # Video Hardware
+  hardware.amdgpu.initrd.enable = true;
   hardware.graphics.extraPackages = with pkgs.rocmPackages; [
     clr
     clr.icd
     rocblas
+    rocrand
+    rocsolver
+    rocminfo
+    rocm-runtime
+    rocm-smi
+    rocm-toolchain
     rpp
+    pkgs.libdrm
     pkgs.nvtopPackages.amd
   ];
+  environment.variables.ROCM_PATH = "${pkgs.rocmPackages.clr}";
 
   boot.initrd.enable = true;
   boot.supportedFilesystems = [ "btrfs" ];

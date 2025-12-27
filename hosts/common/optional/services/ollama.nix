@@ -52,6 +52,8 @@
     # 13.0 GB  2024-09-01  YC  NA
     "mistral-small"
   ];
+  services.ollama.environmentVariables.OLLAMA_KEEP_ALIVE = "900";
+  services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
   services.ollama.acceleration = lib.mkDefault "cuda";
   # The existing systemd job is SO tightened down that it can't read the WSL drivers AT ALL
   systemd.services.ollama.serviceConfig = lib.mkForce {

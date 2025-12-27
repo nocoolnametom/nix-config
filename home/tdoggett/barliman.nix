@@ -43,6 +43,10 @@
       appId = "io.github.tntwise.REAL-Video-Enhancer";
       origin = "flathub";
     }
+    {
+      appId = "com.github.iwalton3.jellyfin-media-player";
+      origin = "flathub";
+    }
   ];
 
   home = {

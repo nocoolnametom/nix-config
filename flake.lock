@@ -664,7 +664,7 @@
           "nixified-ai"
         ],
         "nixpkgs": [
-          "nixpkgs-old"
+          "nixpkgs"
         ]
       },
       "locked": {
