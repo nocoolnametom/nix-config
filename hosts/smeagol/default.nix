@@ -110,7 +110,7 @@ in
   services.stash.vr-helper.enable = true;
   services.stash.vr-helper.hosts.external.stashUrl =
     "https://${configVars.networking.subdomains.archerstash}.${configVars.domain}";
-  services.stash.vr-helper.hosts.external.port = configVars.networking.ports.tcp.stashvr;
+  services.stash.vr-helper.hosts.external.port = configVars.networking.ports.tcp.archerstashvr;
 
   # Stash library paths configuration
   services.stash.dataDir = "/var/lib/stashapp";

@@ -129,7 +129,7 @@ let
       punchCertName = "wild-stash-vr-punch";
     }
     {
-      host = "sdurin";
+      host = "durin";
       service = "stash";
       domain = "domain";
     }
