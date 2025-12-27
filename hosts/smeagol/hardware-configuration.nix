@@ -157,7 +157,7 @@
     ];
   };
 
-  fileSystems."/var/lib/stashapp/data" = {
+  fileSystems."/var/lib/stash/data" = {
     device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";
     options = [

@@ -61,6 +61,12 @@
   services.stash.mutablePlugins = lib.mkDefault true;
   services.stash.mutableScrapers = lib.mkDefault true;
 
+  # Make library paths writable to allow file management through UI
+  # By default, nixpkgs stash binds library paths as read-only for security
+  # We override this to allow deletion/modification of files
+  # All other systemd security hardening (ProtectSystem, PrivateDevices, etc.) remains active
+  systemd.services.stash.serviceConfig.BindReadOnlyPaths = lib.mkForce [ ];
+
   # Basic settings (used for initialization if config doesn't exist)
   services.stash.settings.host = lib.mkDefault "0.0.0.0";
   services.stash.settings.port = lib.mkDefault configVars.networking.ports.tcp.stash;

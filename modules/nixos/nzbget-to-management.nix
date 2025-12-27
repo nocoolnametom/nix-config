@@ -165,9 +165,9 @@ in
           StateDirectory = "nzbget-to-management";
           Restart = "on-failure";
 
-          # Fix stashapp dir permissions before we run
+          # Fix stash dir permissions before we run
           ExecStartPre = [
-            "${pkgs.coreutils}/bin/chmod 755 /var/lib/stashapp"
+            "${pkgs.coreutils}/bin/chmod 755 ${config.services.stash.dataDir}"
           ];
         };
         script = "${transcodeScript}/bin/transcodeVideoFiles.sh";

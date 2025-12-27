@@ -90,13 +90,15 @@ in
   ];
   users.groups.media = { };
   users.users."${configVars.username}".extraGroups = [
-    config.services.stashapp.group
+    config.services.stash.group
     "comfyui-docker"
   ];
-  users.users.nzbget.extraGroups = [
-    config.services.stashapp.group
-    "media"
-  ];
+  users.users.${config.services.nzbget.user}.extraGroups =
+    lib.optionals config.services.stash.enable
+      [
+        config.services.stash.group
+        "media"
+      ];
   users.users.${config.services.stash.user}.extraGroups =
     lib.optionals config.services.nzbget.enable
       [
@@ -104,8 +106,9 @@ in
         "media"
       ];
   systemd.tmpfiles.rules = [
-    "d ${config.services.stash.dataDir} 775 ${config.services.stashapp.user} media - -"
-    "d ${stashPath}/av1 777 ${config.services.stashapp.user} media - -"
+    "d ${config.services.stash.dataDir}/data 775 ${config.services.stash.user} media - -"
+    "d ${stashPath} 775 ${config.services.stash.user} media - -"
+    "d ${stashPath}/av1 777 ${config.services.stash.user} media - -"
   ];
   services.stash.vr-helper.enable = true;
   services.stash.vr-helper.hosts.external.stashUrl =
@@ -113,9 +116,6 @@ in
   services.stash.vr-helper.hosts.external.port = configVars.networking.ports.tcp.archerstashvr;
 
   # Stash library paths configuration
-  services.stash.dataDir = "/var/lib/stashapp";
-  services.stash.user = "stashapp";
-  services.stash.group = "stashapp";
   services.stash.settings.stash =
     let
       regularPaths = paths: map (path: { inherit path; }) paths;
@@ -139,13 +139,6 @@ in
     ])
     ++ (imageOnlyPaths [ ])
     ++ (videoOnlyPaths [ ]);
-  services.stash.settings.blobs_path = "${stashDir}/.stash/blobs";
-  services.stash.settings.cache = "${stashDir}/.stash/cache";
-  services.stash.settings.database = "${stashDir}/.stash/stash-go.sqlite";
-  services.stash.settings.generated = "${stashPath}/.stash/generated";
-  services.stash.settings.plugins_path = "${stashPath}/.stash/plugins";
-  services.stash.settings.scrapers_path = "${stashPath}/.stash/scrapers";
-
   # Automatically transcode VR files
   services.nzbget-to-management.enable = true;
   services.nzbget-to-management.downloadedDestDir = "${stashPath}/vr";
