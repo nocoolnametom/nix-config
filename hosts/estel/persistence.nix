@@ -7,12 +7,16 @@
 {
   inputs,
   configVars,
+  configLib,
   lib,
   ...
 }:
 
 {
-  imports = [ inputs.impermanence.nixosModules.impermanence ];
+  imports = [
+    inputs.impermanence.nixosModules.impermanence
+    (configLib.relativeToRoot "hosts/common/optional/auto-persist-dirs.nix")
+  ];
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
@@ -76,21 +80,5 @@
     ];
   };
 
-  system.activationScripts."createPersistentStorageDirs".deps = [
-    "var-lib-private-permissions"
-    "users"
-    "groups"
-  ];
-  system.activationScripts = {
-    "var-lib-private-permissions" = {
-      deps = [ "specialfs" ];
-      text = ''
-        mkdir -p /persist/var/lib/private
-        chmod 0700 /persist/var/lib/private
-      '';
-    };
-  };
-  systemd.tmpfiles.rules = [
-    "d /var/lib/private 0700 root root"
-  ];
+  # /var/lib/private handling is now automatic via auto-persist-dirs.nix
 }

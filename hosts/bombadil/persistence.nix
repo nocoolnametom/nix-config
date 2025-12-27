@@ -8,12 +8,16 @@
   inputs,
   configVars,
   config,
+  configLib,
   lib,
   ...
 }:
 
 {
-  imports = [ inputs.impermanence.nixosModules.impermanence ];
+  imports = [
+    inputs.impermanence.nixosModules.impermanence
+    (configLib.relativeToRoot "hosts/common/optional/auto-persist-dirs.nix")
+  ];
 
   # this folder is where the files will be stored (don't put it in tmpfs)
   environment.persistence."${configVars.persistFolder}" = {
@@ -72,21 +76,5 @@
     ];
   };
 
-  # Because we're persisting a /var/lib/private directory impermanence will create /var/lib/private for mounting
-  #`This is bad, though, because it's made with the wrong permissions for private systemd services to use
-  # So we need to change the permissions BACK to what they should be after starting up.
-  system.activationScripts."createPersistentStorageDirs".deps = [
-    "var-lib-private-permissions"
-    "users"
-    "groups"
-  ];
-  system.activationScripts = {
-    "var-lib-private-permissions" = {
-      deps = [ "specialfs" ];
-      text = ''
-        mkdir -p /persist/var/lib/private
-        chmod 0700 /persist/var/lib/private
-      '';
-    };
-  };
+  # /var/lib/private handling is now automatic via auto-persist-dirs.nix
 }

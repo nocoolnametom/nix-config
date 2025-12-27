@@ -11,12 +11,17 @@
 {
   inputs,
   configVars,
+  configLib,
   config,
   lib,
   ...
 }:
 
 {
+  imports = [
+    (configLib.relativeToRoot "hosts/common/optional/auto-persist-dirs.nix")
+  ];
+
   # this folder is where the files will be stored (don't put it in tmpfs)
   # The directive for if persistence is enabled is in the system-level file, if used
   environment.persistence."${configVars.persistFolder}".users."${configVars.username}" =
