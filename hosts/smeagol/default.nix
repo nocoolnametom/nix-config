@@ -139,6 +139,7 @@ in
     ])
     ++ (imageOnlyPaths [ ])
     ++ (videoOnlyPaths [ ]);
+
   # Automatically transcode VR files
   services.nzbget-to-management.enable = true;
   services.nzbget-to-management.downloadedDestDir = "${stashPath}/vr";
