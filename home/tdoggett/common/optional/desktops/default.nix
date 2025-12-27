@@ -1,30 +1,43 @@
 { pkgs, lib, ... }:
 {
   imports = [
-    # Program configurations (if needing enabling that is below)
+    # Browsers
     ./brave.nix
+    ./firefox.nix
+    ./google-chrome.nix
+
+    # Editors & IDEs
     ./kitty.nix
     ./vscode.nix
+    ./zed.nix
 
-    # Desktop-related Services (enable below)
+    # Communication
+    ./discord.nix
+    ./slack.nix
+
+    # Productivity
+    ./obsidian.nix
+
+    # Media
+    ./vlc.nix
+
+    # Desktop-related Services
     ./services/waynergy.nix
+
+    # Desktop utilities (clipboard history, trash)
+    ./cliphist.nix
+    ./trash.nix
   ];
 
-  # User-level GUI packages to have installed
+  # User-level GUI packages to have installed (not modularized yet)
   home.packages = with pkgs; [
     unstable.protonmail-desktop
     czkawka
-    discord
-    firefox
     foliate
     kdePackages.kdeconnect-kde
     networkmanagerapplet # having it installed allows the icon to show up correctly in system bars
-    obsidian
-    slack
-    vlc
     xfce.thunar
     # todoist-electron
-    unstable.zed-editor
 
     # Fonts
     cascadia-code
@@ -44,9 +57,5 @@
   gtk.enable = lib.mkDefault true;
 
   #fonts.fontconfig.enable = lib.mkDefault true;
-  programs.brave.enable = lib.mkDefault true;
-  programs.vscode.enable = lib.mkDefault true;
-  programs.google-chrome.enable = lib.mkDefault true;
-
   services.gnome-keyring.enable = lib.mkDefault true;
 }

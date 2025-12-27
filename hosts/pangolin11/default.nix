@@ -46,6 +46,7 @@
     "hosts/common/optional/services/synergy.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/adb.nix" # Android Debugging
+    "hosts/common/optional/auto-persist-dirs.nix" # Auto-create persistence directories
     "hosts/common/optional/blinkstick.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/cosmic.nix"

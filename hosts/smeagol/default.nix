@@ -37,6 +37,7 @@ in
     "hosts/common/core"
 
     #################### Host-specific Optional Configs ####################
+    "hosts/common/optional/auto-persist-dirs.nix" # Auto-create persistence directories
     "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
     "hosts/common/optional/services/comfyui/default.nix"
     "hosts/common/optional/services/docker.nix"

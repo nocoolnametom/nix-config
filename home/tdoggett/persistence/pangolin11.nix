@@ -23,6 +23,7 @@
     lib.optionals (config.environment.persistence."${configVars.persistFolder}".enable)
       {
         directories = [
+          # User directories
           "Arduino"
           "DataGripProjects"
           "Desktop"
@@ -32,40 +33,51 @@
           "Music"
           "Pictures"
           "Projects"
-          "Sync"
+          "Sync" # syncthing
           "Videos"
           "VirtualBox VMs"
           "bin"
+
+          # Machine-specific app configs
           ".claude"
-          ".config/google-chrome"
-          ".config/BraveSoftware/Brave-Browser"
           ".config/calibre"
-          ".config/Code"
           ".config/cosmic"
-          ".config/discord"
           ".config/jellyfin.org"
           ".config/KADOKAWA"
           ".config/net.imput.helium"
           ".config/Proton Mail"
-          ".config/obsidian"
-          ".config/Slack"
           ".config/ticktick"
-          ".config/vlc"
           ".config/waynergy/tls"
-          ".config/Yubico"
-          ".config/zed"
-          ".Immersed"
+
+          # Machine-specific app data
           ".local/share/bottles"
           ".local/share/calibre-ebook.com"
-          ".local/share/direnv"
+          ".local/share/direnv" # devenv/direnv
           ".local/share/flatpak"
           ".local/share/Steam"
-          ".local/state/syncthing"
+          ".local/share/syncthing" # syncthing
+          ".local/share/Trash" # desktop trash
+          ".local/state/cliphist" # clipboard history
+          ".local/state/cosmic" # Cosmic desktop state
+          ".local/state/cosmic-comp" # Cosmic compositor state
+          ".local/state/syncthing" # syncthing
           ".mozilla"
           ".cache/czkawka"
           ".steam"
-          ".vscode"
           ".zen"
+
+          # Desktop app configs (from feature modules)
+          ".config/BraveSoftware/Brave-Browser" # brave
+          ".config/discord" # discord
+          ".config/obsidian" # obsidian
+          ".config/Slack" # slack
+          ".config/vlc" # vlc
+          ".config/zed" # zed
+          ".vscode" # vscode
+          ".config/Code" # vscode/cursor
+          ".Immersed" # immersed
+
+          # Foundational infrastructure (used system-wide)
           {
             directory = ".gnupg";
             mode = "0700";
@@ -74,7 +86,6 @@
             directory = ".local/share/keyrings";
             mode = "0700";
           }
-          # { directory = ".nixops"; mode = "0700"; }
           {
             directory = ".pki";
             mode = "0700";
@@ -87,13 +98,15 @@
             directory = ".yubico";
             mode = "0700";
           }
+          ".config/Yubico"
         ];
         files = [
           ".bash_history"
           ".claude.json"
           ".claude.json.backup"
+          ".config/cosmic-initial-setup-done" # Cosmic welcome screen completion
           ".davmail.properties"
-          ".ImmersedConf"
+          ".ImmersedConf" # immersed
           "intelephense/license.txt"
         ];
       };

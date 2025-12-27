@@ -1,6 +1,7 @@
 { pkgs, lib, ... }:
 {
   programs.vscode = {
+    enable = lib.mkDefault true;
     mutableExtensionsDir = lib.mkDefault true;
     profiles.default = {
       enableUpdateCheck = lib.mkDefault false;
@@ -88,4 +89,6 @@
       };
     };
   };
+
+  # Persistence: .vscode, .config/Code (declare in system-level persistence files)
 }
