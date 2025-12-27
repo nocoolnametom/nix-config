@@ -138,6 +138,8 @@ let
       service = "stashvr";
       domain = "domain";
       proxy = "authentik";
+      certName = "wild-${configVars.domain}";
+      punchCertName = "wild-${configVars.networking.subdomains.punch}.${configVars.domain}";
     }
     {
       host = "smeagol";
@@ -217,17 +219,6 @@ let
     {
       host = "durin";
       service = "sonarr";
-      domain = "domain";
-      proxy = "authentik";
-    }
-    {
-      host = "durin";
-      service = "stash";
-      domain = "domain";
-    }
-    {
-      host = "durin";
-      service = "stashvr";
       domain = "domain";
       proxy = "authentik";
     }
