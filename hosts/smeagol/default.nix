@@ -181,6 +181,11 @@ in
   # Use Docker backend instead of native
   services.comfyui.useDocker = true;
   services.comfyui.comfyuimini.enable = true;
+  
+  # Disable native customNodes since we're using Docker
+  # (avoids Python 3.13 incompatibility with codeformer/basicsr in nixified-ai custom nodes)
+  # Models are still needed for the symlinker to work
+  services.comfyui.customNodes = lib.mkForce [ ];
 
   # Docker-specific configuration
   services.comfyui.docker.workingDir = "/var/lib/comfyui-docker";

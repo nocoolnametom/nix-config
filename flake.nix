@@ -59,7 +59,6 @@
 
     # Nixified.AI
     nixified-ai.url = "github:nixified-ai/flake";
-    nixified-ai.inputs.nixpkgs.follows = "nixpkgs";
 
     # Declarative Flatpak management (like homebrew on nix-darwin)
     # "latest" should be the most recent released version
