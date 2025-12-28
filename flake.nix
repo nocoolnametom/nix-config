@@ -13,7 +13,8 @@
     impermanence.url = "github:nix-community/impermanence";
 
     # Rasbpi Helping Stuff
-    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi";
+    # Currently not used, but may be in the future
+    # nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi";
 
     # Lanzaboote Secure Bootloader for NixOS
     lanzaboote.url = "github:nix-community/lanzaboote/v0.4.3";
@@ -32,7 +33,9 @@
     arion.url = "github:hercules-ci/arion";
     arion.inputs.nixpkgs.follows = "nixpkgs";
 
-    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+    # Windows Subsystem for Linux (WSL)
+    # Currently not used, but may be in the future
+    # nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
     #################### Utilities ####################
 
@@ -94,14 +97,14 @@
     {
       self,
       nixpkgs,
-      nixos-raspberrypi,
+      # nixos-raspberrypi,
       impermanence,
       lanzaboote,
       hardware,
       home-manager,
       nix-darwin,
       arion,
-      nixos-wsl,
+      # nixos-wsl,
       stylix,
       apple-fonts,
       sops-nix,
@@ -134,7 +137,7 @@
           configLib
           nixpkgs
           configurationRevision
-          nixos-raspberrypi
+          # nixos-raspberrypi
           ;
       };
     in
@@ -277,14 +280,16 @@
           ];
         };
         # Raspberry Pi 5 (ARCHIVED)
-        william = nixos-raspberrypi.lib.nixosSystem {
-          inherit specialArgs;
-          modules = [
-            home-manager.nixosModules.home-manager
-            { home-manager.extraSpecialArgs = specialArgs; }
-            ./hosts/archived/william
-          ];
-        };
+        # Commented out because the nixos-raspberrypi input is currently not used
+        # Uncomment the input above and the block below before using it!
+        # william = nixos-raspberrypi.lib.nixosSystem {
+        #   inherit specialArgs;
+        #   modules = [
+        #     home-manager.nixosModules.home-manager
+        #     { home-manager.extraSpecialArgs = specialArgs; }
+        #     ./hosts/archived/william
+        #   ];
+        # };
         # Windows WSL2 NixOS (ARCHIVED)
         sauron = lib.nixosSystem {
           inherit specialArgs;
@@ -304,6 +309,7 @@
           ];
         };
         # Raspberry Pi 4 (ARCHIVED)
+        # Did not use the nixos-raspberrypi input, so not commented out
         bert = lib.nixosSystem {
           inherit specialArgs;
           modules = [

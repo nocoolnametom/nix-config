@@ -8,8 +8,8 @@
 
 {
   imports = [
-    # include NixOS-WSL modules
-    inputs.nixos-wsl.nixosModules.default
+    # include NixOS-WSL modules, currently commented out in main flake.nix
+    # inputs.nixos-wsl.nixosModules.default
   ];
 
   wsl.enable = true;

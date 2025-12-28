@@ -35,23 +35,24 @@
       ];
 
       # Use the Community Caches
+      # Uncomment the nixos-raspberrypi cache if you are using the nixos-raspberrypi input in the main flake.nix
       substituters = [
         "https://ai.cachix.org"
         "https://cuda-maintainers.cachix.org"
         "https://nix-community.cachix.org"
-        "https://nixos-raspberrypi.cachix.org"
+        # "https://nixos-raspberrypi.cachix.org"
       ];
       trusted-substituters = [
         "https://ai.cachix.org"
         "https://cuda-maintainers.cachix.org"
         "https://nix-community.cachix.org"
-        "https://nixos-raspberrypi.cachix.org"
+        # "https://nixos-raspberrypi.cachix.org"
       ];
       trusted-public-keys = [
         "ai.cachix.org-1:N9dzRK+alWwoKXQlnn0H6aUx0lU/mspIoz8hMvGvbbc="
         "cuda-maintainers.cachix.org-1:0dq3bujKpuEPMCX6U4WylrUDZ9JyUG0VpVZa7CNfq5E="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+        # "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
       ];
       trusted-users = [
         "root"
