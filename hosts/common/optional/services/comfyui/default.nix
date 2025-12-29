@@ -14,6 +14,8 @@ let
 in
 {
   imports = [
+    # This module depends on arion for Docker Compose management
+    inputs.arion.nixosModules.arion
     inputs.nixified-ai.nixosModules.comfyui
     ./comfyuimini.nix
     ./symlinker.nix
@@ -24,6 +26,22 @@ in
       type = types.bool;
       default = false;
       description = "Use Docker-based ComfyUI instead of native installation";
+    };
+
+    enableNativeAlongside = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Enable native ComfyUI alongside Docker version.
+        Native runs on port 8189, Docker on port 8188.
+        Useful for comparing performance or testing.
+      '';
+    };
+
+    nativePort = mkOption {
+      type = types.int;
+      default = 8189;
+      description = "Port for native ComfyUI when running alongside Docker";
     };
 
     docker = mkOption {
@@ -173,6 +191,18 @@ in
               Note: For ROCm, ensure your user is in the 'render' and 'video' groups.
             '';
           };
+
+          buildFromSource = mkOption {
+            type = types.bool;
+            default = false;
+            description = ''
+              Build ComfyUI Docker image with ROCm-compatible PyTorch instead of using the base image directly.
+              This is automatically enabled when gpuType is "amd-rocm" since the base image uses CUDA PyTorch.
+
+              The build process extends the official image and replaces PyTorch CUDA with PyTorch ROCm,
+              ensuring compatibility with AMD GPUs while preserving all other functionality.
+            '';
+          };
         };
       };
       default = { };
@@ -186,6 +216,8 @@ in
       services.comfyui.docker.gpuType = mkDefault (
         if config.nixpkgs.config.rocmSupport or false then "amd-rocm" else "nvidia"
       );
+      # Disable custom build for now - use base image with environment overrides
+      services.comfyui.docker.buildFromSource = mkDefault false;
     })
 
     # GPU-specific and common configuration
@@ -243,16 +275,28 @@ in
       );
     }
 
-    # Native ComfyUI-only configuration
-    (mkIf (!cfg.useDocker) {
-      networking.firewall.allowedTCPPorts = [ 8188 ];
+    # Native ComfyUI configuration
+    (mkIf (!cfg.useDocker || cfg.enableNativeAlongside) {
+      networking.firewall.allowedTCPPorts = [
+        (if cfg.enableNativeAlongside then cfg.nativePort else 8188)
+      ];
+
+      # If running alongside Docker, use different port
+      services.comfyui.port = mkIf cfg.enableNativeAlongside cfg.nativePort;
+
+      # Disable cuDNN for better AMD/ROCm performance
+      systemd.services.comfyui.environment = mkIf (config.nixpkgs.config.rocmSupport or false) {
+        PYTORCH_CUDNN_ENABLED = "0";
+      };
     })
 
     # Docker ComfyUI configuration
     (mkIf cfg.useDocker {
-      # Keep comfyui.enable true for model management (symlinker), but prevent service from starting
+      # Keep comfyui.enable true for model management (symlinker)
       services.comfyui.enable = mkDefault true;
-      systemd.services.comfyui.enable = mkForce false; # Disable the actual native service
+
+      # Only disable native service if not running alongside
+      systemd.services.comfyui.enable = mkIf (!cfg.enableNativeAlongside) (mkForce false);
 
       # Enable Docker backend
       virtualisation.arion.backend = mkForce "docker";
@@ -565,49 +609,95 @@ in
 
       # Arion project for Docker ComfyUI
       virtualisation.arion.projects."comfyui-docker".settings = {
-        services."comfyui-docker".service = {
-          image = "${cfg.docker.image}:${cfg.docker.version}";
-          container_name = "comfyui-docker";
-          environment = cfg.docker.environment;
-          env_file = lib.optionals (cfg.docker.additionalEnvironmentFile != null) [
-            "${cfg.docker.additionalEnvironmentFile}"
-          ];
-          # Override entrypoint to use our custom script that skips pip install
-          entrypoint = "/etc/comfyui/custom-entrypoint.sh";
-          command = lib.optionalString (cfg.docker.environment ? CLI_ARGS) cfg.docker.environment.CLI_ARGS;
-          ports = [ "${builtins.toString cfg.docker.port}:8188" ];
-          volumes = [
-            "/nix/store:/nix/store:ro"
-            "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
-            "${cfg.docker.workingDir}/models:/data/models"
-            "${cfg.docker.workingDir}/outputs:/data/output"
-            "${cfg.docker.workingDir}/inputs:/data/input"
-            "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
-            "${cfg.docker.workingDir}/user:/data/user"
-            # Mount declaratively managed models from Nix store (via symlinker)
-            "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
-            "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
-            "${cfg.docker.sharedModelsPath}/vae:/data/models/vae:ro"
-            "${cfg.docker.sharedModelsPath}/clip_vision:/data/models/clip_vision:ro"
-            "${cfg.docker.sharedModelsPath}/text_encoders:/data/models/text_encoders:ro"
-            "${cfg.docker.sharedModelsPath}/diffusion_models:/data/models/diffusion_models:ro"
-            "${cfg.docker.sharedModelsPath}/unet:/data/models/unet:ro"
-            "${cfg.docker.sharedModelsPath}/controlnet:/data/models/controlnet:ro"
-            "${cfg.docker.sharedModelsPath}/embeddings:/data/models/embeddings:ro"
-            "${cfg.docker.sharedModelsPath}/upscale_models:/data/models/upscale_models:ro"
-          ];
-          restart = "unless-stopped";
-          devices =
-            if cfg.docker.gpuType == "nvidia" then
-              [ "nvidia.com/gpu=all" ]
-            else if cfg.docker.gpuType == "amd-rocm" then
-              [
-                "/dev/kfd:/dev/kfd"
-                "/dev/dri:/dev/dri"
-              ]
-            else
-              [ ];
-        };
+        services."comfyui-docker".service = mkMerge [
+          # Base configuration
+          {
+            container_name = "comfyui-docker";
+            environment = cfg.docker.environment;
+            env_file = lib.optionals (cfg.docker.additionalEnvironmentFile != null) [
+              "${cfg.docker.additionalEnvironmentFile}"
+            ];
+            # Override entrypoint to use our custom script that skips pip install
+            entrypoint = "/etc/comfyui/custom-entrypoint.sh";
+            command = lib.optionalString (cfg.docker.environment ? CLI_ARGS) cfg.docker.environment.CLI_ARGS;
+            ports = [ "${builtins.toString cfg.docker.port}:8188" ];
+            volumes = [
+              "/nix/store:/nix/store:ro"
+              "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
+              "${cfg.docker.workingDir}/models:/data/models"
+              "${cfg.docker.workingDir}/outputs:/data/output"
+              "${cfg.docker.workingDir}/inputs:/data/input"
+              "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
+              "${cfg.docker.workingDir}/user:/data/user"
+              # Mount declaratively managed models from Nix store (via symlinker)
+              "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
+              "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
+              "${cfg.docker.sharedModelsPath}/vae:/data/models/vae:ro"
+              "${cfg.docker.sharedModelsPath}/clip_vision:/data/models/clip_vision:ro"
+              "${cfg.docker.sharedModelsPath}/text_encoders:/data/models/text_encoders:ro"
+              "${cfg.docker.sharedModelsPath}/diffusion_models:/data/models/diffusion_models:ro"
+              "${cfg.docker.sharedModelsPath}/unet:/data/models/unet:ro"
+              "${cfg.docker.sharedModelsPath}/controlnet:/data/models/controlnet:ro"
+              "${cfg.docker.sharedModelsPath}/embeddings:/data/models/embeddings:ro"
+              "${cfg.docker.sharedModelsPath}/upscale_models:/data/models/upscale_models:ro"
+            ];
+            restart = "unless-stopped";
+            devices =
+              if cfg.docker.gpuType == "nvidia" then
+                [ "nvidia.com/gpu=all" ]
+              else if cfg.docker.gpuType == "amd-rocm" then
+                [
+                  "/dev/kfd:/dev/kfd"
+                  "/dev/dri:/dev/dri"
+                ]
+              else
+                [ ];
+          }
+
+          # Use pre-built image (default for NVIDIA)
+          (mkIf (!cfg.docker.buildFromSource) {
+            image = "${cfg.docker.image}:${cfg.docker.version}";
+          })
+
+          # Build from Dockerfile with ROCm support (default for AMD)
+          (mkIf cfg.docker.buildFromSource (
+            let
+              # Create a Dockerfile that extends the official image with ROCm support
+              # Using official ComfyUI instructions for RDNA 3.5 (Strix Halo / gfx1151)
+              # Source: https://github.com/comfyanonymous/ComfyUI#amd-gpus-experimental-windows-and-linux-rdna-3-35-and-4-only
+              rocmDockerfile = pkgs.writeText "Dockerfile.comfyui-rocm" ''
+                FROM ${cfg.docker.image}:${cfg.docker.version}
+
+                # Install ROCm-compatible PyTorch for RDNA 3.5 (Strix Halo / Ryzen AI Max+ 365)
+                # This replaces the CUDA PyTorch with the correct ROCm version for gfx1151
+                USER root
+                RUN pip uninstall -y torch torchvision torchaudio && \
+                    pip install --pre torch torchvision torchaudio \
+                      --index-url https://rocm.nightlies.amd.com/v2/gfx1151/
+
+                # Set environment for Strix Halo (gfx1151)
+                ENV HSA_OVERRIDE_GFX_VERSION=11.5.1
+                ENV ROCM_HOME=/opt/rocm
+
+                # Disable cuDNN for better AMD/ROCm performance
+                ENV PYTORCH_CUDNN_ENABLED=0
+
+                USER comfyui
+              '';
+
+              buildContext = pkgs.runCommand "comfyui-rocm-context" { } ''
+                mkdir -p $out
+                cp ${rocmDockerfile} $out/Dockerfile
+              '';
+            in
+            {
+              build = {
+                context = "${buildContext}";
+                dockerfile = "Dockerfile";
+              };
+            }
+          ))
+        ];
       };
 
       # Systemd service to install declared custom nodes and workflows

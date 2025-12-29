@@ -36,6 +36,8 @@
     "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/comfyui/default.nix"
+    "hosts/common/optional/services/docker.nix"
+    "hosts/common/optional/services/docker/invokeai.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
@@ -64,17 +66,70 @@
   nixpkgs.config.cudaSupport = lib.mkForce false;
   nixpkgs.config.cudnnSupport = lib.mkForce false;
   nixpkgs.config.rocmSupport = true;
-  services.ollama.acceleration = "rocm";
 
-  # Comfy Models
-  # You must on the initial usage of the comfyui optional module NOT load any remote models
-  # so that the tokens are injected into the nix-daemon systemd job
-  # services.comfyui.models = lib.mkForce []; # Use this before the sops-nix secrets are loaded
+  # Disable Podman's dockerCompat since we need real Docker for arion
+  virtualisation.podman.dockerCompat = lib.mkForce false;
+
+  # Limit concurrent downloads to prevent network saturation
+  # This prevents 64 models from downloading simultaneously
+  nix.settings.max-jobs = 4; # Limit parallel builds/downloads
+  # nix.settings.cores = 2; # Limit cores per build
+
+  # Open-WebUI is a web-frontend for chatting with ollama
+  services.ollama.acceleration = "rocm";
+  services.ollama.models = "/var/lib/ai-models/ollama";
+  services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
+  services.ollama.environmentVariables.OLLAMA_GPU_OVERHEAD = "1";
+  services.ollama.environmentVariables.HCC_AMDGPU_TARGET = "gfx1151";
+  services.ollama.environmentVariables.LD_LIBRARY_PATH = "/run/current-system/sw/lib";
+  services.ollama.rocmOverrideGfx = "11.5.1";
+  systemd.services.ollama.serviceConfig.UnsetEnvironment = "HIP_VISIBLE_DEVICES ROCR_VISIBLE_DEVICES";
+
+  # ComfyUI
+  services.comfyui.useDocker = true;
+  services.comfyui.enableNativeAlongside = false; # Run native ComfyUI on port 8189 for comparison
+  services.comfyui.comfyuimini.enable = true;
+  services.comfyui.customNodes = lib.mkForce [ ];
+  #services.comfyui.models = lib.mkForce [ ]; # Disable models temporarily to prevent network saturation
+  services.comfyui.docker.workingDir = "/var/lib/comfyui-docker";
+  services.comfyui.docker.environment = {
+    CLI_ARGS = "--preview-method auto";
+    DIRECT_ADDRESS = "${configVars.networking.subnets.smeagol.ip}:${builtins.toString config.services.comfyui.docker.port}";
+    DIRECT_ADDRESS_GET_WAN = "false";
+    WEB_ENABLE_AUTH = "false";
+    # Disable cuDNN for better AMD/ROCm performance
+    PYTORCH_CUDNN_ENABLED = "0";
+  };
   services.comfyui.symlinkPaths = {
     checkpoints = "/var/lib/ai-models/stable-diffusion/linked/checkpoints";
+    clip_vision = "/var/lib/ai-models/stable-diffusion/linked/clip_vision";
+    controlnet = "/var/lib/ai-models/stable-diffusion/linked/controlnet";
+    diffusion_models = "/var/lib/ai-models/stable-diffusion/linked/diffusion_models";
+    embeddings = "/var/lib/ai-models/stable-diffusion/linked/embeddings";
     loras = "/var/lib/ai-models/stable-diffusion/linked/loras";
+    text_encoders = "/var/lib/ai-models/stable-diffusion/linked/text_encoders";
+    unet = "/var/lib/ai-models/stable-diffusion/linked/unet";
+    upscale_models = "/var/lib/ai-models/stable-diffusion/linked/upscale_models";
+    vae = "/var/lib/ai-models/stable-diffusion/linked/vae";
   };
-  services.comfyui.comfyuimini.enable = true;
+
+  # InvokeAI - Configured for AMD ROCm
+  services.invokeai.enable = true;
+  services.invokeai.active = true;
+  services.invokeai.workingDir = "/var/lib/invokeai";
+  services.invokeai.modelsDir = "/var/lib/invokeai/models"; # Override to use shared models location
+  services.invokeai.settings = {
+    max_cache_ram_gb = 10.0; # Reduced to encourage VRAM usage
+    device_working_mem_gb = 12.0; # Increased for Strix Halo's large shared memory
+    enable_partial_loading = false; # Keep models fully in VRAM for speed
+    precision = "float16";
+    # Use "auto" for ROCm compatibility
+    pytorch_cuda_alloc_conf = null; # Disable CUDA-specific settings for ROCm
+
+    # Tell InvokeAI about the shared model directories
+    # These paths are inside the container after mounting
+    models_dir = "/invokeai/models";
+  };
 
   # Bluetooth
   services.blueman.enable = true;
@@ -89,11 +144,6 @@
     AllowHybridSleep=no
     AllowSuspendThenHibernate=no
   '';
-
-  # Open-WebUI is a web-frontend for chatting with ollama
-  services.ollama.models = "/var/lib/ai-models/ollama";
-  services.ollama.environmentVariables.HCC_AMDGPU_TARGET = "gfx1151";
-  services.ollama.rocmOverrideGfx = "11.5.1";
 
   # While this is a Jovian machine, it's NOT a SteamDeck
   jovian.devices.steamdeck.enable = lib.mkForce false;
@@ -122,6 +172,10 @@
     firewall.enable = true;
     firewall.allowPing = true;
   };
+
+  # Prevent network disruption during system rebuilds
+  systemd.services.NetworkManager.restartIfChanged = false;
+  systemd.services.iwd.restartIfChanged = false;
 
   environment.systemPackages = with pkgs; [
     appimage-run

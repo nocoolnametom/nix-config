@@ -137,7 +137,6 @@
           configLib
           nixpkgs
           configurationRevision
-          # nixos-raspberrypi
           ;
       };
     in
@@ -220,9 +219,6 @@
         smeagol = lib.nixosSystem {
           inherit specialArgs;
           modules = [
-            # cosmicCacheModule
-            # nixos-cosmic.nixosModules.default
-            arion.nixosModules.arion
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/smeagol
@@ -232,8 +228,6 @@
         barliman = lib.nixosSystem {
           inherit specialArgs;
           modules = [
-            # cosmicCacheModule
-            # nixos-cosmic.nixosModules.default
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/barliman
@@ -243,8 +237,6 @@
         durin = lib.nixosSystem {
           inherit specialArgs;
           modules = [
-            # cosmicCacheModule
-            # nixos-cosmic.nixosModules.default
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/durin

@@ -161,6 +161,17 @@
     ];
   };
 
+  fileSystems."/var/lib/docker" = {
+    device = "/dev/disk/by-label/pony";
+    fsType = "btrfs";
+    options = [
+      "subvol=docker"
+      "compress=zstd"
+      "noatime"
+      "defaults"
+    ];
+  };
+
   swapDevices = [
     { device = "/dev/disk/by-label/swap"; }
   ];
