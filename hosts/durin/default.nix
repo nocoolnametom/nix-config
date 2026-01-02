@@ -196,6 +196,9 @@ in
   security.apparmor.enable = true;
   services.fail2ban.enable = false;
 
+  # Enable nix-ld for VSCode remote
+  programs.nix-ld.enable = true;
+
   system.stateVersion = "25.05";
 
   # Root password placeholder (keep, remove, or replace as you prefer)
