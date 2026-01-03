@@ -2,6 +2,7 @@
   lib,
   configVars,
   config,
+  pkgs,
   ...
 }:
 {

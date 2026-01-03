@@ -34,8 +34,9 @@
       "/var/lib/immich"
       "/var/lib/iwd"
       "/var/lib/karakeep"
-      "/var/lib/kavita" # Once we move from docker!
-      "/var/lib/kavitan" # Once we move from docker!
+      "/var/lib/kavita"
+      "/var/lib/kavitan"
+      "/var/lib/kavitan-library"
       "/var/lib/navidrome"
       "/var/lib/nixos"
       "/var/lib/ombi"
