@@ -46,6 +46,7 @@ in
     "hosts/common/optional/services/sickrage.nix"
     "hosts/common/optional/services/sonarr.nix"
     "hosts/common/optional/services/stash.nix"
+    "hosts/common/optional/direnv.nix"
 
     # Create per-user persistence entry for durin
     "home/${configVars.username}/persistence/durin.nix"
