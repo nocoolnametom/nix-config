@@ -69,7 +69,6 @@
   ];
 
   ## Imports overrides
-  services.audiobookshelf.package = lib.mkForce pkgs.unstable.audiobookshelf;
   services.actual.package = lib.mkForce pkgs.unstable.actual-server;
   services.karakeep.package = lib.mkForce pkgs.unstable.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.unstable.chromium}/bin/chromium";
