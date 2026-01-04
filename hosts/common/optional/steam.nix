@@ -10,9 +10,8 @@
 
   programs.steam.enable = lib.mkDefault true;
   programs.steam.extraCompatPackages = [
-    # @TODO using the overlay until version 15 is added to unstable
-    # pkgs.unstable.proton-ge-bin
-    pkgs.proton-ge-bin-15
+    # pkgs.bleeding.proton-ge-bin # For using master branch
+    pkgs.unstable.proton-ge-bin # For using unstable branch
   ];
   programs.steam.localNetworkGameTransfers.openFirewall = true;
 }
