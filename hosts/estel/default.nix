@@ -69,7 +69,6 @@
   ];
 
   ## Imports overrides
-  services.actual.package = lib.mkForce pkgs.unstable.actual-server;
   services.karakeep.package = lib.mkForce pkgs.unstable.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.unstable.chromium}/bin/chromium";
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
