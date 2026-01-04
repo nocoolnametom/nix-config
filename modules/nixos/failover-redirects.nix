@@ -112,7 +112,7 @@ in
       description = "Reload Nginx when failover-redirects.conf changes";
       serviceConfig = {
         ExecStart = "${pkgs.writeShellScriptBin "nginx-reload-on-failover-change" ''
-          inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
+          ${pkgs.inotify-tools}/bin/inotifywait -m -e modify ${cfg.outputConfigPath} | while read; do
             systemctl reload nginx
           done
         ''}/bin/nginx-reload-on-failover-change";
