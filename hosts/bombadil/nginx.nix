@@ -104,8 +104,8 @@
   services.nginx.virtualHosts."_default" = {
     default = true;
     listen = [
-      { port = 443; ssl = true; default = true; }
-      { port = 80; default = true; }
+      { addr = "0.0.0.0"; port = 443; ssl = true; }
+      { addr = "0.0.0.0"; port = 80; }
     ];
     forceSSL = true;
     sslCertificate = "${config.services.failoverRedirects.certPath}/${configVars.domain}/fullchain.pem";
