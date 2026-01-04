@@ -177,8 +177,22 @@ let
 
       filename="$(basename "$input_file")"
       base_name="''${filename%.*}"
-      output_file="$TRANSCODING_DIR/$base_name.webm"
-      final_file="$FINISHED_DIR/$base_name.webm"
+
+      # Detect if the source file has subtitle streams
+      SUBTITLE_COUNT=$(${pkgs.ffmpeg}/bin/ffprobe -v error -select_streams s -show_entries stream=index -of csv=p=0 "$input_file" | wc -l)
+
+      # Choose output format based on subtitle presence
+      if [[ "$SUBTITLE_COUNT" -gt 0 ]]; then
+        echo "[INFO] Detected $SUBTITLE_COUNT subtitle stream(s), using MKV format"
+        output_file="$TRANSCODING_DIR/$base_name.av1.mkv"
+        final_file="$FINISHED_DIR/$base_name.av1.mkv"
+        FORMAT_ARG="--format av_mkv"
+      else
+        echo "[INFO] No subtitles detected, using WebM format"
+        output_file="$TRANSCODING_DIR/$base_name.webm"
+        final_file="$FINISHED_DIR/$base_name.webm"
+        FORMAT_ARG="--format av_webm"
+      fi
 
       # Get video ID if available
       VIDEO_ID=""
@@ -190,6 +204,7 @@ let
 
       if ${pkgs.handbrake}/bin/HandBrakeCLI --preset-import-file "$PRESET_FILE" \
           --preset "$PRESET_NAME" \
+          $FORMAT_ARG \
           -i "$input_file" \
           -o "$output_file"; then
 
@@ -229,9 +244,9 @@ let
     FINISHED_DIR="${cfg.finishedDir}"
     EMPTY_FLAG="$STATE_DIR/empty-incoming-flag"
 
-    # Check for files to upload
+    # Check for files to upload (both webm and mkv)
     shopt -s nullglob
-    FILES=("$FINISHED_DIR"/*.webm)
+    FILES=("$FINISHED_DIR"/*.webm "$FINISHED_DIR"/*.mkv)
     shopt -u nullglob
 
     if [[ ''${#FILES[@]} -gt 0 ]]; then
@@ -249,7 +264,7 @@ let
 
       # Check if files were actually removed (the real success indicator)
       shopt -s nullglob
-      REMAINING_FILES=("$FINISHED_DIR"/*.webm)
+      REMAINING_FILES=("$FINISHED_DIR"/*.webm "$FINISHED_DIR"/*.mkv)
       shopt -u nullglob
 
       if [[ ''${#REMAINING_FILES[@]} -eq 0 ]]; then
