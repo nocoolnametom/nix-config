@@ -384,6 +384,7 @@ in
     };
     "wild-${configVars.domain}" = {
       domain = "*.${configVars.domain}";
+      extraDomainNames = [ configVars.domain ];
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
@@ -426,6 +427,7 @@ in
     };
     "wild-${configVars.homeDomain}" = {
       domain = "*.${configVars.homeDomain}";
+      extraDomainNames = [ configVars.homeDomain ];
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;

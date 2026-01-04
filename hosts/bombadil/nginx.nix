@@ -100,6 +100,19 @@
     "[::1]"
   ];
 
+  # Default catch-all: present wildcard cert instead of the first failover cert
+  services.nginx.virtualHosts."_default" = {
+    default = true;
+    listen = [
+      { port = 443; ssl = true; default = true; }
+      { port = 80; default = true; }
+    ];
+    forceSSL = true;
+    sslCertificate = "${config.services.failoverRedirects.certPath}/${configVars.domain}/fullchain.pem";
+    sslCertificateKey = "${config.services.failoverRedirects.certPath}/${configVars.domain}/key.pem";
+    locations."/".return = "444";
+  };
+
   # Mormon Sites reverse proxies
   services.nginx.virtualHosts."${configVars.networking.hosting.canon.domain}" =
     lib.mkIf config.services.mormonsites.enable
