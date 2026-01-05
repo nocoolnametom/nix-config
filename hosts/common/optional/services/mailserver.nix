@@ -6,7 +6,8 @@
 }:
 {
   services.systemd-failure-alert.enable = lib.mkDefault true;
-  services.systemd-failure-alert.emailAddress = lib.mkDefault configVars.email.alerts;
+  services.systemd-failure-alert.email.enable = lib.mkDefault true;
+  services.systemd-failure-alert.email.address = lib.mkDefault configVars.email.alerts;
   sops.secrets."postfix-sasl-passwd".owner = config.services.postfix.user;
   services.postfix.enable = true;
   services.postfix.settings.main.relayhost = [
