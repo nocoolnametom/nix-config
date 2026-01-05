@@ -182,7 +182,7 @@ let
 
   # Get unique service names
   uniqueServiceNames = unique (map (s: s.name) enabledServices);
-  
+
   # Service names with .service suffix for systemd directives
   uniqueServiceNamesWithSuffix = map (name: "${name}.service") uniqueServiceNames;
 
@@ -487,18 +487,12 @@ in
         # ExecCondition exits 0 = proceed, non-zero = skip (but not fail)
         ExecCondition = mkIf ((length cfg.holidays) > 0) "${holidayCheckScript}";
 
-        # Stop the blocked services before starting the server
-        ExecStartPre = map (
-          service: "${pkgs.systemd}/bin/systemctl stop ${service} || true"
-        ) uniqueServiceNames;
-
         # Run Python HTTP server to serve placeholder pages
         ExecStart = "${serverScript}";
 
-        # Restart blocked services when work-block stops
-        ExecStopPost = map (
-          service: "${pkgs.systemd}/bin/systemctl start ${service} || true"
-        ) uniqueServiceNames;
+        # When work-block stops (either manually or via timer), restart the blocked services
+        # The '+' prefix runs this command with full privileges, bypassing service restrictions
+        ExecStopPost = "-+${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
 
         # Security hardening
         DynamicUser = true;
@@ -551,11 +545,32 @@ in
 
     # Oneshot service that the stop timer activates
     systemd.services.work-block-stop = {
-      description = "Stop work-block service";
+      description = "Stop work-block service and restart blocked services";
 
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${pkgs.systemd}/bin/systemctl stop work-block.service";
+        # First stop work-block, then restart the services
+        ExecStart = [
+          "${pkgs.systemd}/bin/systemctl stop work-block.service"
+          "${pkgs.systemd}/bin/systemctl start work-block-restart-services.service"
+        ];
+      };
+    };
+
+    # Helper service to restart blocked services when work-block stops
+    # This is a path unit that triggers when work-block.service becomes inactive
+    systemd.services.work-block-restart-services = {
+      description = "Restart services blocked by work-block";
+
+      # Triggered manually when work-block stops
+      # We'll use this from work-block-stop service
+
+      serviceConfig = {
+        Type = "oneshot";
+        # Restart all blocked services
+        ExecStart = map (
+          service: "${pkgs.systemd}/bin/systemctl start ${service}.service || true"
+        ) uniqueServiceNames;
       };
     };
   };
