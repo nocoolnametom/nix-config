@@ -251,24 +251,24 @@ let
 
         // Map abbreviated day names to full names
         const dayMap = {
-          'Mon': 'Monday',
-          'Tue': 'Tuesday',
-          'Wed': 'Wednesday',
-          'Thu': 'Thursday',
-          'Fri': 'Friday',
-          'Sat': 'Saturday',
-          'Sun': 'Sunday'
+          "Mon": "Monday",
+          "Tue": "Tuesday",
+          "Wed": "Wednesday",
+          "Thu": "Thursday",
+          "Fri": "Friday",
+          "Sat": "Saturday",
+          "Sun": "Sunday"
         };
 
         // Map days to their numeric order in the week
         const dayOrder = {
-          'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3,
-          'Thu': 4, 'Fri': 5, 'Sat': 6
+          "Sun": 0, "Mon": 1, "Tue": 2, "Wed": 3,
+          "Thu": 4, "Fri": 5, "Sat": 6
         };
 
         // Format consecutive days into ranges
         function formatDayRanges(days) {
-          if (days.length === 0) return '';
+          if (days.length === 0) return "";
           if (days.length === 1) return dayMap[days[0]] || days[0];
 
           // Sort days by their week order
@@ -302,14 +302,14 @@ let
             }
           }
 
-          return ranges.join(', ');
+          return ranges.join(", ");
         }
 
         // Function to format time in 12-hour format
         function formatTime12Hour(date) {
-          return date.toLocaleTimeString('en-US', {
-            hour: 'numeric',
-            minute: '2-digit',
+          return date.toLocaleTimeString("en-US", {
+            hour: "numeric",
+            minute: "2-digit",
             hour12: true
           });
         }
@@ -318,17 +318,17 @@ let
         function convertToLocalTime(timeString, serverTimezone) {
           // Get today's date in the server's timezone
           const now = new Date();
-          const serverDateStr = now.toLocaleDateString('en-CA', { timeZone: serverTimezone }); // YYYY-MM-DD format
+          const serverDateStr = now.toLocaleDateString("en-CA", { timeZone: serverTimezone }); // YYYY-MM-DD format
 
           // Parse the time string (HH:MM:SS)
-          const [hours, minutes] = timeString.split(':').map(Number);
+          const [hours, minutes] = timeString.split(":").map(Number);
 
           // Create a date object in the server's timezone
           const serverDateTime = new Date(`''${serverDateStr}T''${timeString}Z`);
 
           // Get the offset for the server timezone
-          const serverDateInTZ = new Date(serverDateTime.toLocaleString('en-US', { timeZone: serverTimezone }));
-          const serverDateInUTC = new Date(serverDateTime.toLocaleString('en-US', { timeZone: 'UTC' }));
+          const serverDateInTZ = new Date(serverDateTime.toLocaleString("en-US", { timeZone: serverTimezone }));
+          const serverDateInUTC = new Date(serverDateTime.toLocaleString("en-US", { timeZone: "UTC" }));
           const tzOffset = serverDateInUTC - serverDateInTZ;
 
           // Adjust for timezone offset
@@ -356,13 +356,13 @@ let
           // Get local timezone name
           const localTzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-          document.getElementById('work-hours').textContent = 
+          document.getElementById("work-hours").textContent = 
             `Work hours: ''${dayRangeText}, ''${timeRangeText} (your local time: ''${localTzName})`;
         } catch (e) {
-          console.error('Error converting timezone:', e);
+          console.error("Error converting timezone:", e);
           // Fallback to showing server timezone name with day ranges
           const dayRangeText = formatDayRanges(WORK_DAYS);
-          document.getElementById('work-hours').textContent = 
+          document.getElementById("work-hours").textContent = 
             `Work hours: ''${dayRangeText}, ''${START_TIME.substring(0,5)} - ''${END_TIME.substring(0,5)} (''${SERVER_TZ})`;
         }
       </script>
