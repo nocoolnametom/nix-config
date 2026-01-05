@@ -239,9 +239,133 @@ let
         <div class="emoji">🚫</div>
         <h1>Service Blocked</h1>
         <p>This service is unavailable during work hours.</p>
-        <p>Work hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
+        <p id="work-hours">Work hours: Monday-Friday, 8:00 AM - 5:00 PM</p>
         <p class="time">Please try again outside of work hours, or contact your administrator to temporarily disable work-block mode.</p>
       </div>
+      <script>
+        // Server timezone configuration
+        const SERVER_TZ = '${cfg.timezone}';
+        const START_TIME = '${cfg.startTime}';
+        const END_TIME = '${cfg.endTime}';
+        const WORK_DAYS = [${concatMapStringsSep ", " (day: "'${day}'") cfg.workDays}];
+
+        // Map abbreviated day names to full names
+        const dayMap = {
+          'Mon': 'Monday',
+          'Tue': 'Tuesday',
+          'Wed': 'Wednesday',
+          'Thu': 'Thursday',
+          'Fri': 'Friday',
+          'Sat': 'Saturday',
+          'Sun': 'Sunday'
+        };
+
+        // Map days to their numeric order in the week
+        const dayOrder = {
+          'Sun': 0, 'Mon': 1, 'Tue': 2, 'Wed': 3,
+          'Thu': 4, 'Fri': 5, 'Sat': 6
+        };
+
+        // Format consecutive days into ranges
+        function formatDayRanges(days) {
+          if (days.length === 0) return '';
+          if (days.length === 1) return dayMap[days[0]] || days[0];
+
+          // Sort days by their week order
+          const sortedDays = [...days].sort((a, b) => dayOrder[a] - dayOrder[b]);
+
+          // Group consecutive days
+          const ranges = [];
+          let rangeStart = 0;
+
+          for (let i = 1; i <= sortedDays.length; i++) {
+            const isLastDay = i === sortedDays.length;
+            const isConsecutive = !isLastDay && 
+              dayOrder[sortedDays[i]] === dayOrder[sortedDays[i-1]] + 1;
+
+            if (!isConsecutive) {
+              const rangeEnd = i - 1;
+              const rangeLength = rangeEnd - rangeStart + 1;
+
+              if (rangeLength === 1) {
+                // Single day
+                ranges.push(dayMap[sortedDays[rangeStart]]);
+              } else if (rangeLength === 2) {
+                // Two consecutive days - show both
+                ranges.push(`''${dayMap[sortedDays[rangeStart]]}, ''${dayMap[sortedDays[rangeEnd]]}`);
+              } else {
+                // Three or more consecutive days - show as range
+                ranges.push(`''${dayMap[sortedDays[rangeStart]]}-''${dayMap[sortedDays[rangeEnd]]}`);
+              }
+
+              rangeStart = i;
+            }
+          }
+
+          return ranges.join(', ');
+        }
+
+        // Function to format time in 12-hour format
+        function formatTime12Hour(date) {
+          return date.toLocaleTimeString('en-US', {
+            hour: 'numeric',
+            minute: '2-digit',
+            hour12: true
+          });
+        }
+
+        // Convert server time to user's local time
+        function convertToLocalTime(timeString, serverTimezone) {
+          // Get today's date in the server's timezone
+          const now = new Date();
+          const serverDateStr = now.toLocaleDateString('en-CA', { timeZone: serverTimezone }); // YYYY-MM-DD format
+
+          // Parse the time string (HH:MM:SS)
+          const [hours, minutes] = timeString.split(':').map(Number);
+
+          // Create a date object in the server's timezone
+          const serverDateTime = new Date(`''${serverDateStr}T''${timeString}Z`);
+
+          // Get the offset for the server timezone
+          const serverDateInTZ = new Date(serverDateTime.toLocaleString('en-US', { timeZone: serverTimezone }));
+          const serverDateInUTC = new Date(serverDateTime.toLocaleString('en-US', { timeZone: 'UTC' }));
+          const tzOffset = serverDateInUTC - serverDateInTZ;
+
+          // Adjust for timezone offset
+          const localDate = new Date(serverDateTime.getTime() - tzOffset);
+
+          return localDate;
+        }
+
+        try {
+          const startTimeLocal = convertToLocalTime(START_TIME, SERVER_TZ);
+          const endTimeLocal = convertToLocalTime(END_TIME, SERVER_TZ);
+
+          const startFormatted = formatTime12Hour(startTimeLocal);
+          const endFormatted = formatTime12Hour(endTimeLocal);
+
+          // Check if the time range crosses midnight in local timezone
+          const crossesMidnight = endTimeLocal.getTime() < startTimeLocal.getTime();
+          const timeRangeText = crossesMidnight 
+            ? `''${startFormatted} - ''${endFormatted} (next day)`
+            : `''${startFormatted} - ''${endFormatted}`;
+
+          // Format days as ranges
+          const dayRangeText = formatDayRanges(WORK_DAYS);
+
+          // Get local timezone name
+          const localTzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+          document.getElementById('work-hours').textContent = 
+            `Work hours: ''${dayRangeText}, ''${timeRangeText} (your local time: ''${localTzName})`;
+        } catch (e) {
+          console.error('Error converting timezone:', e);
+          // Fallback to showing server timezone name with day ranges
+          const dayRangeText = formatDayRanges(WORK_DAYS);
+          document.getElementById('work-hours').textContent = 
+            `Work hours: ''${dayRangeText}, ''${START_TIME.substring(0,5)} - ''${END_TIME.substring(0,5)} (''${SERVER_TZ})`;
+        }
+      </script>
     </body>
     </html>
   '';
@@ -302,12 +426,12 @@ let
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
             self.wfile.write(HTML_CONTENT.encode('utf-8'))
-        
+
         def do_HEAD(self):
             self.send_response(200)
             self.send_header('Content-Type', 'text/html; charset=utf-8')
             self.end_headers()
-        
+
         def log_message(self, format, *args):
             # Log to stdout
             sys.stdout.write("%s - - [%s] %s\n" %
@@ -335,22 +459,22 @@ let
     if __name__ == '__main__':
         signal.signal(signal.SIGINT, signal_handler)
         signal.signal(signal.SIGTERM, signal_handler)
-        
+
         ports = [${concatMapStringsSep ", " toString ports}]
-        
+
         if not ports:
             print("Error: No ports specified", file=sys.stderr, flush=True)
             sys.exit(1)
-        
+
         print(f"Starting work-block servers on ports: {ports}", flush=True)
-        
+
         # Start a thread for each port
         threads = []
         for port in ports:
             thread = threading.Thread(target=start_server, args=(port,), daemon=True)
             thread.start()
             threads.append(thread)
-        
+
         # Wait for all threads
         try:
             for thread in threads:
