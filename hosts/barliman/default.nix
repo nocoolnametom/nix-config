@@ -42,6 +42,7 @@
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/services/podman.nix"
+    "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
@@ -55,6 +56,12 @@
     # Temporary empty modules to help pass rebuild errors
     "hosts/barliman/logindhelper.nix"
   ]);
+
+  # Send alerts on systemd service failures
+  services.systemd-failure-alert.additional-services = [
+    "ollama"
+    "open-webui"
+  ];
 
   # Stylix theme
   stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";

@@ -46,6 +46,7 @@ in
     "hosts/common/optional/services/sickrage.nix"
     "hosts/common/optional/services/sonarr.nix"
     "hosts/common/optional/services/stash.nix"
+    "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/direnv.nix"
 
@@ -53,6 +54,23 @@ in
     "home/${configVars.username}/persistence/durin.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Send alerts on systemd service failures
+  services.systemd-failure-alert.additional-services = [
+    "deluged"
+    "delugeweb"
+    "flood"
+    "nzbget"
+    "nzbhydra2"
+    "pinchflat"
+    "radarr"
+    "sickbeard"
+    "sonarr"
+    "stash"
+    "stash-vr-local"
+    "stash-vr-external"
+    "work-block"
+  ];
 
   # Keep persistence off by default; enable if this machine will hold data
   environment.persistence."${configVars.persistFolder}".enable = lib.mkForce false;

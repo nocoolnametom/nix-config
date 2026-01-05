@@ -28,7 +28,7 @@ in
 {
   options.services.systemd-failure-alert = {
     enable = lib.mkEnableOption "Enable systemd failure alert service";
-    
+
     email = {
       enable = lib.mkOption {
         type = lib.types.bool;
@@ -41,7 +41,7 @@ in
         description = "E-mail address to send alerts to";
       };
     };
-    
+
     additional-services = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -54,7 +54,7 @@ in
         Note that an empty service WILL be created if it is not already defined!
       '';
     };
-    
+
     pushover = {
       enable = lib.mkEnableOption "Enable Pushover notifications";
       userKeyFile = lib.mkOption {
@@ -77,10 +77,10 @@ in
 
   config = lib.mkIf (cfg.enable && (builtins.lessThan 0 (builtins.length systemdServices))) {
     # Warn if neither notification method is enabled
-    warnings = lib.optional 
-      (!cfg.email.enable && !cfg.pushover.enable)
-      "systemd-failure-alert is enabled but neither email nor pushover notifications are enabled";
-    
+    warnings = lib.optional (
+      !cfg.email.enable && !cfg.pushover.enable
+    ) "systemd-failure-alert is enabled but neither email nor pushover notifications are enabled";
+
     # Define systemd template units for reporting service failures
     systemd.services = (
       # Email notification service (only if enabled)
@@ -117,11 +117,11 @@ in
             # Read API credentials from files
             PUSHOVER_USER_KEY=$(cat ${cfg.pushover.userKeyFile})
             PUSHOVER_API_TOKEN=$(cat ${cfg.pushover.apiTokenFile})
-            
+
             # Get hostname and service status
             HOSTNAME=$(hostname)
             SERVICE_STATUS=$(systemctl status "$SERVICE_ID" 2>&1 | head -n 20)
-            
+
             # Send Pushover notification
             ${pkgs.curl}/bin/curl -s \
               --form-string "token=$PUSHOVER_API_TOKEN" \
@@ -138,7 +138,8 @@ in
         name:
         let
           # Build list of notifiers based on what's enabled
-          notifiers = lib.optional cfg.email.enable "notify-email@%i.service"
+          notifiers =
+            lib.optional cfg.email.enable "notify-email@%i.service"
             ++ lib.optional cfg.pushover.enable "notify-pushover@%i.service";
         in
         {

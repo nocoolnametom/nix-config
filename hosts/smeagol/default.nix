@@ -48,6 +48,7 @@ in
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/services/stash.nix"
+    "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/wivrn.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/cross-compiling.nix"
@@ -63,6 +64,19 @@ in
     #
     "hosts/smeagol/logindhelper.nix"
   ]);
+
+  # Send alerts on systemd service failures
+  services.systemd-failure-alert.additional-services = [
+    "comfyui"
+    "arion-comfyui-docker"
+    "arion-invokeai"
+    "nzbget"
+    "nzbget-to-management"
+    "stash"
+    "stash-vr-local"
+    "stash-vr-external"
+    "work-block"
+  ];
 
   # Limit systemd journal size to prevent disk space issues
   services.journald.extraConfig = ''

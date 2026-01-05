@@ -52,6 +52,7 @@
     "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
+    "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/yubikey.nix"
     # tube-archivist via docker?
@@ -60,6 +61,23 @@
     "home/${configVars.username}/persistence/estel.nix"
     "hosts/common/users/${configVars.username}"
   ]);
+
+  # Send alerts on systemd service failures
+  services.systemd-failure-alert.additional-services = [
+    "actual-budget"
+    "audiobookshelf"
+    "caddy"
+    "hedgedoc"
+    "immich-public-proxy"
+    "immich-server"
+    "karakeep-web"
+    "kavita"
+    "kavitan"
+    "mealie"
+    "navidrome"
+    "ombi"
+    "paperless-web"
+  ];
 
   # Get as much set up with the minimal GPU as possible
   hardware.graphics.enable = true;
