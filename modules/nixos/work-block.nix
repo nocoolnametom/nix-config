@@ -690,7 +690,7 @@ in
       wantedBy = [ "timers.target" ];
 
       timerConfig = {
-        OnCalendar = "${cfg.timezone} ${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
+        OnCalendar = "${cfg.timezone}~${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
         Persistent = false;
         Unit = "work-block.service";
       };
@@ -702,7 +702,7 @@ in
       wantedBy = [ "timers.target" ];
 
       timerConfig = {
-        OnCalendar = "${cfg.timezone} ${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
+        OnCalendar = "${cfg.timezone}~${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
         Persistent = false;
         Unit = "work-block-stop.service";
       };
