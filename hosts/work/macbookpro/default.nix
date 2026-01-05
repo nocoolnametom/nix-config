@@ -57,6 +57,25 @@
   # services.synergy.server.enable = false;
 
   environment.systemPackages = [
+    # Graphical Programs
+    pkgs.code-cursor
+    pkgs.firefox
+    pkgs.google-chrome
+    pkgs.iterm2
+    pkgs.obsidian
+    pkgs.podman-desktop
+    pkgs.postman
+    pkgs.protonmail-bridge
+    pkgs.protonmail-desktop
+    pkgs.sequelpro
+    pkgs.slack
+    pkgs.tableplus
+    pkgs.vscode
+    pkgs.zed-editor
+    pkgs.zoom-us
+
+    # Terminal Programs
+    pkgs.claude-code
     pkgs.awscli2
     pkgs.kubectl # same as kubernetes-cli
     pkgs.libaom
