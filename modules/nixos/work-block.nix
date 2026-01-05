@@ -74,19 +74,20 @@ let
     };
 
     stashvr = {
-      services = [
-        {
-          name = "stash-vr-helper";
-          enabled = config.services.stash.vr-helper.enable or false;
-          ports =
-            (optional (config.services.stash.vr-helper.hosts ? local) (
-              config.services.stash.vr-helper.hosts.local.port or null
-            ))
-            ++ (optional (config.services.stash.vr-helper.hosts ? external) (
-              config.services.stash.vr-helper.hosts.external.port or null
-            ));
-        }
-      ];
+      services =
+        let
+          vrHelperEnabled = config.services.stash.vr-helper.enable or false;
+          vrHosts = config.services.stash.vr-helper.hosts or {};
+          enabledHosts = lib.filterAttrs (n: v: v.enable or true) vrHosts;
+          # Sanitize host name for systemd service naming (same as in stash-vr-helper.nix)
+          sanitizeName = name: builtins.replaceStrings [ "." ":" "/" "@" " " ] [ "-" "-" "-" "-" "-" ] name;
+        in
+        if !vrHelperEnabled then []
+        else lib.mapAttrsToList (hostName: hostCfg: {
+          name = "stash-vr-${sanitizeName hostName}";
+          enabled = true;
+          port = hostCfg.port or null;
+        }) enabledHosts;
     };
 
     invokeai = {
@@ -489,10 +490,10 @@ in
 
         # Run Python HTTP server to serve placeholder pages
         ExecStart = "${serverScript}";
-
-        # When work-block stops (either manually or via timer), restart the blocked services
-        # The '+' prefix runs this command with full privileges, bypassing service restrictions
-        ExecStopPost = "-+${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
+        
+        # When work-block stops (manually or via timer), trigger service restart
+        # Schedule it to run after we're fully stopped using --on-active=1s
+        ExecStopPost = "-${pkgs.systemd}/bin/systemd-run --on-active=1s --timer-property=AccuracySec=100ms ${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
 
         # Security hardening
         DynamicUser = true;
@@ -547,29 +548,38 @@ in
     systemd.services.work-block-stop = {
       description = "Stop work-block service and restart blocked services";
 
+      # Make sure work-block stops first
+      before = [ "work-block-restart-services.service" ];
+
       serviceConfig = {
         Type = "oneshot";
-        # First stop work-block, then restart the services
-        ExecStart = [
-          "${pkgs.systemd}/bin/systemctl stop work-block.service"
-          "${pkgs.systemd}/bin/systemctl start work-block-restart-services.service"
-        ];
+        
+        # Stop work-block and wait for it to fully stop
+        ExecStart = "${pkgs.systemd}/bin/systemctl stop work-block.service";
+        
+        # After this service completes, start the restart helper
+        ExecStartPost = "${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
       };
     };
 
-    # Helper service to restart blocked services when work-block stops
-    # This is a path unit that triggers when work-block.service becomes inactive
+    # Helper service to restart blocked services
+    # This should be triggered after work-block has fully stopped
     systemd.services.work-block-restart-services = {
-      description = "Restart services blocked by work-block";
-
-      # Triggered manually when work-block stops
-      # We'll use this from work-block-stop service
-
+      description = "Restart services that were blocked by work-block";
+      
+      # Only start this after work-block is fully stopped
+      after = [ "work-block.service" ];
+      
       serviceConfig = {
         Type = "oneshot";
+        RemainAfterExit = false;
+        
+        # Add a small delay to ensure work-block is fully stopped
+        ExecStartPre = "${pkgs.coreutils}/bin/sleep 1";
+        
         # Restart all blocked services
         ExecStart = map (
-          service: "${pkgs.systemd}/bin/systemctl start ${service}.service || true"
+          service: "-${pkgs.systemd}/bin/systemctl start ${service}.service"
         ) uniqueServiceNames;
       };
     };
