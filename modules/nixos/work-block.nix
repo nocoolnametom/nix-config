@@ -60,10 +60,6 @@ with lib;
 let
   cfg = config.services.work-block;
 
-  # Helper to check if a service is enabled
-  serviceEnabled =
-    name: config.systemd.services ? ${name} && config.systemd.services.${name}.enable or false;
-
   # Complete registry of all available services with their friendly names
   # Each entry maps a friendly name to one or more systemd services
   serviceRegistry = {
@@ -97,7 +93,8 @@ let
       services = [
         {
           name = "arion-invokeai";
-          enabled = serviceEnabled "arion-invokeai";
+          # Check if invokeai service config is enabled AND active
+          enabled = (config.services.invokeai.enable or false) && (config.services.invokeai.active or true);
           port = config.services.invokeai.port or 9090;
         }
       ];
@@ -113,7 +110,8 @@ let
         }
         {
           name = "arion-comfyui-docker";
-          enabled = serviceEnabled "arion-comfyui-docker";
+          # Check if comfyui is enabled AND using Docker
+          enabled = (config.services.comfyui.enable or false) && (config.services.comfyui.useDocker or false);
           port = config.services.comfyui.docker.port or 8188;
         }
       ];
