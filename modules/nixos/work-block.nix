@@ -316,25 +316,50 @@ let
 
         // Convert server time to user's local time
         function convertToLocalTime(timeString, serverTimezone) {
-          // Get today's date in the server's timezone
-          const now = new Date();
-          const serverDateStr = now.toLocaleDateString("en-CA", { timeZone: serverTimezone }); // YYYY-MM-DD format
-
           // Parse the time string (HH:MM:SS)
-          const [hours, minutes] = timeString.split(":").map(Number);
+          const [hours, minutes, seconds = 0] = timeString.split(":").map(Number);
 
-          // Create a date object in the server's timezone
-          const serverDateTime = new Date(`''${serverDateStr}T''${timeString}Z`);
+          // Simple approach: create a date with the time, then adjust for timezone difference
+          const now = new Date();
 
-          // Get the offset for the server timezone
-          const serverDateInTZ = new Date(serverDateTime.toLocaleString("en-US", { timeZone: serverTimezone }));
-          const serverDateInUTC = new Date(serverDateTime.toLocaleString("en-US", { timeZone: "UTC" }));
-          const tzOffset = serverDateInUTC - serverDateInTZ;
+          // Create date with given time in LOCAL timezone first
+          const localDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), hours, minutes, seconds);
 
-          // Adjust for timezone offset
-          const localDate = new Date(serverDateTime.getTime() - tzOffset);
+          // Calculate timezone offset difference
+          // Get what "noon today" would be in both timezones to find the offset
+          const referenceDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
 
-          return localDate;
+          // Format reference date in server timezone and parse it back
+          const serverTZString = referenceDate.toLocaleString("en-US", { 
+            timeZone: serverTimezone,
+            year: "numeric",
+            month: "2-digit",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: false
+          });
+
+          // Parse the formatted string (will be interpreted in local TZ)
+          // Format is like: "01/05/2026, 12:00:00"
+          const parts = serverTZString.match(/(\d+)\/(\d+)\/(\d+),\s+(\d+):(\d+):(\d+)/);
+          if (!parts) return localDate; // Fallback
+
+          const reparsed = new Date(
+            parseInt(parts[3]), // year
+            parseInt(parts[1]) - 1, // month (0-indexed)
+            parseInt(parts[2]), // day
+            parseInt(parts[4]), // hour
+            parseInt(parts[5]), // minute
+            parseInt(parts[6])  // second
+          );
+
+          // The offset between these tells us the TZ difference
+          const offset = referenceDate.getTime() - reparsed.getTime();
+
+          // Apply offset to our target time
+          return new Date(localDate.getTime() + offset);
         }
 
         try {
@@ -356,8 +381,20 @@ let
           // Get local timezone name
           const localTzName = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
+          // Check if timezones are the same or have the same offset
+          const now = new Date();
+          const localOffset = now.getTimezoneOffset();
+          const serverOffset = new Date(now.toLocaleString("en-US", { timeZone: SERVER_TZ })).getTime() - 
+                               new Date(now.toLocaleString("en-US", { timeZone: "UTC" })).getTime();
+          const userOffset = now.getTime() - new Date(now.toLocaleString("en-US", { timeZone: "UTC" })).getTime();
+
+          const sameTimezone = localTzName === SERVER_TZ || Math.abs(serverOffset - userOffset) < 60000; // Within 1 minute
+
+          // Only show timezone info if different
+          const timezoneInfo = sameTimezone ? "" : ` (your local time: ''${localTzName})`;
+
           document.getElementById("work-hours").textContent = 
-            `Work hours: ''${dayRangeText}, ''${timeRangeText} (your local time: ''${localTzName})`;
+            `Work hours: ''${dayRangeText}, ''${timeRangeText}''${timezoneInfo}`;
         } catch (e) {
           console.error("Error converting timezone:", e);
           // Fallback to showing server timezone name with day ranges
