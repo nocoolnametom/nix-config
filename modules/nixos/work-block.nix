@@ -182,6 +182,9 @@ let
 
   # Get unique service names
   uniqueServiceNames = unique (map (s: s.name) enabledServices);
+  
+  # Service names with .service suffix for systemd directives
+  uniqueServiceNamesWithSuffix = map (name: "${name}.service") uniqueServiceNames;
 
   # Generate HTML placeholder page content
   placeholderHtml = ''
@@ -471,8 +474,9 @@ in
       description = "Work Block - Disable distracting services during work hours (Python HTTP server)";
 
       # Stop the blocked services when this starts
-      before = uniqueServiceNames;
-      conflicts = uniqueServiceNames;
+      # Note: systemd requires full unit names with .service suffix
+      before = uniqueServiceNamesWithSuffix;
+      conflicts = uniqueServiceNamesWithSuffix;
 
       serviceConfig = {
         Type = "simple";
