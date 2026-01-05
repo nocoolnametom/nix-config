@@ -492,8 +492,9 @@ in
         ExecStart = "${serverScript}";
         
         # When work-block stops (manually or via timer), trigger service restart
-        # Schedule it to run after we're fully stopped using --on-active=1s
-        ExecStopPost = "-${pkgs.systemd}/bin/systemd-run --on-active=1s --timer-property=AccuracySec=100ms ${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
+        # Use '-+' prefix: '-' ignores failures, '+' runs with full privileges (bypassing sandbox)
+        # Schedule restart to run after we're fully stopped using --on-active=1s
+        ExecStopPost = "-+${pkgs.systemd}/bin/systemd-run --on-active=1s --timer-property=AccuracySec=100ms ${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
 
         # Security hardening
         DynamicUser = true;
