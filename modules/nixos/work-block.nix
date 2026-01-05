@@ -77,17 +77,19 @@ let
       services =
         let
           vrHelperEnabled = config.services.stash.vr-helper.enable or false;
-          vrHosts = config.services.stash.vr-helper.hosts or {};
+          vrHosts = config.services.stash.vr-helper.hosts or { };
           enabledHosts = lib.filterAttrs (n: v: v.enable or true) vrHosts;
           # Sanitize host name for systemd service naming (same as in stash-vr-helper.nix)
           sanitizeName = name: builtins.replaceStrings [ "." ":" "/" "@" " " ] [ "-" "-" "-" "-" "-" ] name;
         in
-        if !vrHelperEnabled then []
-        else lib.mapAttrsToList (hostName: hostCfg: {
-          name = "stash-vr-${sanitizeName hostName}";
-          enabled = true;
-          port = hostCfg.port or null;
-        }) enabledHosts;
+        if !vrHelperEnabled then
+          [ ]
+        else
+          lib.mapAttrsToList (hostName: hostCfg: {
+            name = "stash-vr-${sanitizeName hostName}";
+            enabled = true;
+            port = hostCfg.port or null;
+          }) enabledHosts;
     };
 
     invokeai = {
@@ -490,7 +492,7 @@ in
 
         # Run Python HTTP server to serve placeholder pages
         ExecStart = "${serverScript}";
-        
+
         # When work-block stops (manually or via timer), trigger service restart
         # Use '-+' prefix: '-' ignores failures, '+' runs with full privileges (bypassing sandbox)
         # Schedule restart to run after we're fully stopped using --on-active=1s
@@ -554,10 +556,10 @@ in
 
       serviceConfig = {
         Type = "oneshot";
-        
+
         # Stop work-block and wait for it to fully stop
         ExecStart = "${pkgs.systemd}/bin/systemctl stop work-block.service";
-        
+
         # After this service completes, start the restart helper
         ExecStartPost = "${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
       };
@@ -567,17 +569,17 @@ in
     # This should be triggered after work-block has fully stopped
     systemd.services.work-block-restart-services = {
       description = "Restart services that were blocked by work-block";
-      
+
       # Only start this after work-block is fully stopped
       after = [ "work-block.service" ];
-      
+
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = false;
-        
+
         # Add a small delay to ensure work-block is fully stopped
         ExecStartPre = "${pkgs.coreutils}/bin/sleep 1";
-        
+
         # Restart all blocked services
         ExecStart = map (
           service: "-${pkgs.systemd}/bin/systemctl start ${service}.service"
