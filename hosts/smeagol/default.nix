@@ -49,6 +49,7 @@ in
     "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/services/stash.nix"
     "hosts/common/optional/services/wivrn.nix"
+    "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/direnv.nix"
     "hosts/common/optional/jovian.nix"

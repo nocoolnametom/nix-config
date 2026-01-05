@@ -52,6 +52,7 @@
     "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
+    "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/yubikey.nix"
     # tube-archivist via docker?
 

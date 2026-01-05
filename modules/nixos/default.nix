@@ -16,6 +16,7 @@
   stash-vr-helper = import ./stash-vr-helper.nix;
   mormonsites = import ./mormonsites.nix;
   systemd-failure-alert = import ./systemd-failure-alert.nix;
+  work-block = import ./work-block.nix;
   yubikey = import ./yubikey.nix;
   zsa-udev-rules = import ./zsa-udev-rules.nix;
 }
