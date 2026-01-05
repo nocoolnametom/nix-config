@@ -21,9 +21,11 @@
 # Optional configuration:
 #   services.work-block.startTime = "09:00:00";  # Default: 08:00:00
 #   services.work-block.endTime = "18:00:00";    # Default: 17:00:00
-#   services.work-block.timezone = "America/Los_Angeles";  # Default: America/New_York
 #   services.work-block.workDays = [ "Mon" "Tue" "Wed" "Thu" "Fri" ];  # Default
 #   services.work-block.holidays = [ "2026-01-19" "2026-12-25" ];  # Default: []
+#
+# Note: Work hours use the system timezone (time.timeZone). Make sure your system
+#       timezone is set correctly for your location.
 #
 # Manual override:
 #   To temporarily disable work-block (e.g., on a work holiday):
@@ -243,8 +245,8 @@ let
         <p class="time">Please try again outside of work hours, or contact your administrator to temporarily disable work-block mode.</p>
       </div>
       <script>
-        // Server timezone configuration
-        const SERVER_TZ = '${cfg.timezone}';
+        // Server timezone configuration (uses system timezone)
+        const SERVER_TZ = '${config.time.timeZone}';
         const START_TIME = '${cfg.startTime}';
         const END_TIME = '${cfg.endTime}';
         const WORK_DAYS = [${concatMapStringsSep ", " (day: "'${day}'") cfg.workDays}];
@@ -534,9 +536,11 @@ in
         Enable work-block mode to automatically disable distracting services during work hours.
 
         When enabled, this will:
-        - Stop specified services during work hours (Mon-Fri 8am-5pm)
+        - Stop specified services during work hours (Mon-Fri 8am-5pm by default)
         - Serve placeholder HTTP pages on their ports using a lightweight Python server
         - Automatically restart services when work-block is stopped or outside work hours
+
+        Work hours use the system's configured timezone (`time.timeZone` option).
 
         Uses Python's built-in HTTP server to avoid conflicts with existing web servers like nginx.
         Only services that are both listed in `services.work-block.services` and actually enabled 
@@ -572,26 +576,20 @@ in
     startTime = mkOption {
       type = types.str;
       default = "08:00:00";
-      description = "Time to start blocking services (24-hour format)";
+      description = mdDoc ''
+        Time to start blocking services (24-hour format).
+
+        Uses the system's configured timezone (`time.timeZone` option).
+      '';
     };
 
     endTime = mkOption {
       type = types.str;
       default = "17:00:00";
-      description = "Time to stop blocking services (24-hour format)";
-    };
-
-    timezone = mkOption {
-      type = types.str;
-      default = "America/New_York";
-      example = "America/Los_Angeles";
       description = mdDoc ''
-        Timezone for work hours. This explicitly sets which timezone the start and end times use.
-        Uses IANA timezone database names (e.g., "America/New_York", "America/Chicago", 
-        "America/Denver", "America/Los_Angeles", "UTC").
+        Time to stop blocking services (24-hour format).
 
-        This is particularly useful if you travel or if the system timezone differs from
-        your work timezone.
+        Uses the system's configured timezone (`time.timeZone` option).
       '';
     };
 
@@ -686,11 +684,13 @@ in
 
     # Timer to automatically enable work-block during work hours
     systemd.timers.work-block-start = {
-      description = "Start work-block at beginning of work hours (${cfg.timezone})";
+      description = "Start work-block at beginning of work hours (${config.time.timeZone})";
       wantedBy = [ "timers.target" ];
 
       timerConfig = {
-        OnCalendar = "${cfg.timezone}~${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
+        # Use system timezone (OnCalendar doesn't support timezone specification reliably)
+        # The system timezone should be configured via time.timeZone option
+        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
         Persistent = false;
         Unit = "work-block.service";
       };
@@ -698,11 +698,13 @@ in
 
     # Timer to automatically disable work-block at end of work hours
     systemd.timers.work-block-stop = {
-      description = "Stop work-block at end of work hours (${cfg.timezone})";
+      description = "Stop work-block at end of work hours (${config.time.timeZone})";
       wantedBy = [ "timers.target" ];
 
       timerConfig = {
-        OnCalendar = "${cfg.timezone}~${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
+        # Use system timezone (OnCalendar doesn't support timezone specification reliably)
+        # The system timezone should be configured via time.timeZone option
+        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
         Persistent = false;
         Unit = "work-block-stop.service";
       };

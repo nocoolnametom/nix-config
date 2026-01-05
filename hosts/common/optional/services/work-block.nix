@@ -38,11 +38,13 @@
       # Add your vacation days here as you schedule them
     ];
 
-    # Work hours (default: Mon-Fri 8am-5pm America/New_York time)
-    # Uncomment and adjust if you want different hours or timezone:
+    # Work hours (default: Mon-Fri 8am-5pm in system timezone)
+    # Uncomment and adjust if you want different hours:
     # startTime = "09:00:00";
     # endTime = "18:00:00";
-    # timezone = "America/Los_Angeles";  # Default: "America/New_York"
     # workDays = [ "Mon" "Tue" "Wed" "Thu" "Fri" ];
+    #
+    # Note: Times use the system's configured timezone (time.timeZone).
+    # Make sure your system timezone is set correctly for your location.
   };
 }
