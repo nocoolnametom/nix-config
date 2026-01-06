@@ -7,7 +7,11 @@
 let
   rndb = "rndb.net";
   hdb = "hdb.org";
+  sdb = "sdb.cc";
+  ash = "ash.org";
+  stashApiKeySecretName = "${config.networking.hostName}-stashapp-api-key";
   updateStashScript =
+    apiKeyPath:
     paths:
     pkgs.writeShellScriptBin "updateStash.sh" (
       let
@@ -15,17 +19,18 @@ let
       in
       ''
         ${pkgs.curl}/bin/curl --silent --output /dev/null -X POST \
-          -H "ApiKey: $(cat ${config.sops.secrets."bert-stashapp-api-key".path})" \
+          -H "ApiKey: $(cat ${apiKeyPath})" \
           -H "Content-Type: application/json" \
-          --data-raw $'{ "operationName": "MetadataIdentify", "variables": { "input": { "sources": [{ "source": { "stash_box_endpoint": "https://stas${hdb}/graphql" }}, {"source": { "stash_box_endpoint": "https://thepo${rndb}/graphql" }}, {"source": {"scraper_id": "builtin_autotag" }}], "options": { "fieldOptions": [{ "field": "title", "strategy": "OVERWRITE" }, { "field": "studio", "strategy": "MERGE", "createMissing": true }, { "field": "performers", "strategy": "MERGE", "createMissing": true }, { "field": "tags", "strategy": "MERGE", "createMissing": true }], "setCoverImage": true, "setOrganized": false, "includeMalePerformers": false }, "paths": [${pathsString}] } }, "query": "mutation MetadataIdentify($input: IdentifyMetadataInput\u0021) { metadataIdentify(input: $input) } "}' \
+          --data-raw $'{ "operationName": "MetadataIdentify", "variables": { "input": { "sources": [{"source": { "stash_box_endpoint": "https://fan${sdb}/graphql" }}, {"source": { "stash_box_endpoint": "https://pmvst${ash}/graphql" }}, { "source": { "stash_box_endpoint": "https://stas${hdb}/graphql" }}, {"source": { "stash_box_endpoint": "https://thepo${rndb}/graphql" }}, {"source": {"scraper_id": "builtin_autotag" }}], "options": { "fieldOptions": [{ "field": "title", "strategy": "OVERWRITE" }, { "field": "studio", "strategy": "MERGE", "createMissing": true }, { "field": "performers", "strategy": "MERGE", "createMissing": true }, { "field": "tags", "strategy": "MERGE", "createMissing": true }], "setCoverImage": true, "setOrganized": false, "includeMalePerformers": false }, "paths": [${pathsString}] } }, "query": "mutation MetadataIdentify($input: IdentifyMetadataInput\u0021) { metadataIdentify(input: $input) } "}' \
           $NZBPO_STASHHOST:$NZBPO_STASHPORT/graphql ;
       ''
     );
 in
 {
-  sops.secrets."bert-stashapp-api-key" = { };
-  sops.secrets."bert-stashapp-api-key-for-nzbget" = {
-    key = "bert-stashapp-api-key";
+  # Hostname-specific API key secret
+  sops.secrets.${stashApiKeySecretName} = { };
+  sops.secrets."${stashApiKeySecretName}-for-nzbget" = {
+    key = stashApiKeySecretName;
     owner = config.services.nzbget.user;
     group = config.services.nzbget.group;
   };
@@ -80,7 +85,7 @@ in
         ###########################################
         StashPath="$NZBOP_DESTDIR/$NZBPP_CATEGORY";
         ${pkgs.curl}/bin/curl \
-          -H "ApiKey: $(cat ${config.sops.secrets."bert-stashapp-api-key-for-nzbget".path})" \
+          -H "ApiKey: $(cat ${config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path})" \
           -H "Content-Type: application/json" \
           --data "{\"query\":\"mutation{metadataScan(input:{paths:[\\\"$StashPath\\\"],scanGenerateCovers:true,scanGeneratePreviews:true,scanGenerateSprites:true,scanGeneratePhashes:true,scanGenerateThumbnails:true})}\"}" \
           $NZBPO_STASHHOST:$NZBPO_STASHPORT/graphql && exit 93 || exit 94;
@@ -122,7 +127,9 @@ in
       NZBPO_STASHPORT = "9999";
     };
     script = "${
-      updateStashScript [
+      updateStashScript
+      config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path
+      [
         "/arkenstone/stash/library/unorganized/"
       ]
     }/bin/updateStash.sh";
@@ -136,9 +143,10 @@ in
       NZBPO_STASHPORT = "9999";
     };
     script = "${
-      updateStashScript [
-        "/mnt/bigssd/data.dat/vids/unknown_studio"
-        "/mnt/bigssd/data.dat/vids/needs_work"
+      updateStashScript
+      config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path
+      [
+        "/arkenstone/stash/library/needswork"
       ]
     }/bin/updateStash.sh";
     serviceConfig = {
