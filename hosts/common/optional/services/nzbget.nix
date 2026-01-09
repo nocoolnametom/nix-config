@@ -11,8 +11,7 @@ let
   ash = "ash.org";
   stashApiKeySecretName = "${config.networking.hostName}-stashapp-api-key";
   updateStashScript =
-    apiKeyPath:
-    paths:
+    apiKeyPath: paths:
     pkgs.writeShellScriptBin "updateStash.sh" (
       let
         pathsString = lib.concatMapStringsSep ", " (x: "\"${x}\"") paths;
@@ -127,9 +126,7 @@ in
       NZBPO_STASHPORT = "9999";
     };
     script = "${
-      updateStashScript
-      config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path
-      [
+      updateStashScript config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path [
         "/arkenstone/stash/library/unorganized/"
       ]
     }/bin/updateStash.sh";
@@ -143,9 +140,7 @@ in
       NZBPO_STASHPORT = "9999";
     };
     script = "${
-      updateStashScript
-      config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path
-      [
+      updateStashScript config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path [
         "/arkenstone/stash/library/needswork"
       ]
     }/bin/updateStash.sh";
