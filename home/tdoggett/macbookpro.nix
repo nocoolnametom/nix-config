@@ -16,7 +16,7 @@
     common/optional/ssh-work.nix
     common/optional/git.nix
     common/optional/devenv.nix
-    ommon/optional/claude.nix
+    common/optional/claude.nix
   ];
 
   programs.git.settings.user.email = lib.mkForce configVars.email.work;
