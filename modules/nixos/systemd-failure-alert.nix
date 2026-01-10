@@ -88,9 +88,10 @@ in
         "notify-email@" = {
           environment.EMAIL_ADDRESS = lib.strings.replaceStrings [ "%" ] [ "%%" ] cfg.email.address;
           environment.SERVICE_ID = "%i";
-          path = [
-            "/run/wrappers"
-            "/run/current-system/sw"
+          path = with pkgs; [
+            coreutils
+            systemd
+            mailutils
           ];
           script = ''
             {
@@ -112,6 +113,7 @@ in
           path = with pkgs; [
             curl
             systemd
+            coreutils
           ];
           script = ''
             # Read API credentials from files

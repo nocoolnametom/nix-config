@@ -654,8 +654,11 @@ in
 
         # When work-block stops (manually or via timer), trigger service restart
         # Use '-+' prefix: '-' ignores failures, '+' runs with full privileges (bypassing sandbox)
-        # Schedule restart to run after we're fully stopped using --on-active=1s
-        ExecStopPost = "-+${pkgs.systemd}/bin/systemd-run --on-active=1s --timer-property=AccuracySec=100ms ${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
+        # Directly start the restart service without systemd-run to avoid timeout issues
+        ExecStopPost = "-+${pkgs.systemd}/bin/systemctl --no-block start work-block-restart-services.service";
+
+        # Timeout for stop phase (service has 90s to stop by default)
+        TimeoutStopSec = "30s";
 
         # Security hardening
         DynamicUser = true;
