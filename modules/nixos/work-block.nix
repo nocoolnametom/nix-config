@@ -690,7 +690,10 @@ in
       timerConfig = {
         # Use system timezone (OnCalendar doesn't support timezone specification reliably)
         # The system timezone should be configured via time.timeZone option
-        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
+        # Note: NixOS timerConfig doesn't support multiple OnCalendar entries in the expected way
+        # Instead, create a schedule that respects work days by using DaysOfWeek
+        DaysOfWeek = cfg.workDays;
+        OnCalendar = "*-*-* ${cfg.startTime}";
         Persistent = false;
         Unit = "work-block.service";
       };
@@ -704,7 +707,10 @@ in
       timerConfig = {
         # Use system timezone (OnCalendar doesn't support timezone specification reliably)
         # The system timezone should be configured via time.timeZone option
-        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
+        # Note: NixOS timerConfig doesn't support multiple OnCalendar entries in the expected way
+        # Instead, create a schedule that respects work days by using DaysOfWeek
+        DaysOfWeek = cfg.workDays;
+        OnCalendar = "*-*-* ${cfg.endTime}";
         Persistent = false;
         Unit = "work-block-stop.service";
       };
