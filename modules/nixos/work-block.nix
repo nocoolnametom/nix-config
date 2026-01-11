@@ -575,7 +575,7 @@ in
 
     startTime = mkOption {
       type = types.str;
-      default = "08:00:00";
+      default = "09:00:00";
       description = mdDoc ''
         Time to start blocking services (24-hour format).
 
@@ -693,10 +693,9 @@ in
       timerConfig = {
         # Use system timezone (OnCalendar doesn't support timezone specification reliably)
         # The system timezone should be configured via time.timeZone option
-        # Note: NixOS timerConfig doesn't support multiple OnCalendar entries in the expected way
-        # Instead, create a schedule that respects work days by using DaysOfWeek
-        DaysOfWeek = cfg.workDays;
-        OnCalendar = "*-*-* ${cfg.startTime}";
+        # OnCalendar format: "DayOfWeek *-*-* HH:MM:SS"
+        # Combine work days into a single calendar entry (comma-separated days)
+        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
         Persistent = false;
         Unit = "work-block.service";
       };
@@ -710,10 +709,9 @@ in
       timerConfig = {
         # Use system timezone (OnCalendar doesn't support timezone specification reliably)
         # The system timezone should be configured via time.timeZone option
-        # Note: NixOS timerConfig doesn't support multiple OnCalendar entries in the expected way
-        # Instead, create a schedule that respects work days by using DaysOfWeek
-        DaysOfWeek = cfg.workDays;
-        OnCalendar = "*-*-* ${cfg.endTime}";
+        # OnCalendar format: "DayOfWeek *-*-* HH:MM:SS"
+        # Combine work days into a single calendar entry (comma-separated days)
+        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
         Persistent = false;
         Unit = "work-block-stop.service";
       };
