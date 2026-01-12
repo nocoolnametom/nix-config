@@ -726,12 +726,14 @@ in
 
       serviceConfig = {
         Type = "oneshot";
+        # Avoid hanging forever if post-start waits on work-block to stop
+        TimeoutStartSec = "2min";
 
         # Stop work-block and wait for it to fully stop
         ExecStart = "${pkgs.systemd}/bin/systemctl stop work-block.service";
 
         # After this service completes, start the restart helper
-        ExecStartPost = "${pkgs.systemd}/bin/systemctl start work-block-restart-services.service";
+        ExecStartPost = "-+${pkgs.systemd}/bin/systemctl --no-block start work-block-restart-services.service";
       };
     };
 
