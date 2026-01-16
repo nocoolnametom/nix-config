@@ -59,7 +59,6 @@
   environment.systemPackages = [
     # Graphical Programs
     pkgs.code-cursor
-    pkgs.firefox
     pkgs.google-chrome
     pkgs.iterm2
     pkgs.obsidian
