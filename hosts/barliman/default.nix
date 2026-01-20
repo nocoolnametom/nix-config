@@ -114,6 +114,11 @@
     mpv
   ];
 
+  # Ensure we're using the BLEEDING EDGE version of GE Proton!
+  programs.steam.extraCompatPackages = [
+    pkgs.bleeding.proton-ge-bin
+  ];
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "barliman";

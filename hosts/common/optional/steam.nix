@@ -11,7 +11,7 @@
   programs.steam.enable = lib.mkDefault true;
   programs.steam.extraCompatPackages = [
     # pkgs.bleeding.proton-ge-bin # For using master branch
-    pkgs.unstable.proton-ge-bin # For using unstable branch
+    # pkgs.unstable.proton-ge-bin # For using unstable branch
   ];
   programs.steam.localNetworkGameTransfers.openFirewall = true;
 }
