@@ -101,6 +101,7 @@
   ];
 
   # Default catch-all: present wildcard cert instead of the first failover cert
+  # Uses OnFailure to handle missing certs gracefully - nginx will retry after cert sync
   services.nginx.virtualHosts."_default" = {
     default = true;
     listen = [
@@ -118,6 +119,17 @@
     sslCertificate = "${config.services.failoverRedirects.certPath}/${configVars.domain}/fullchain.pem";
     sslCertificateKey = "${config.services.failoverRedirects.certPath}/${configVars.domain}/key.pem";
     locations."/".return = "444";
+  };
+
+  # Make nginx tolerate missing failover certificates on startup
+  systemd.services.nginx = {
+    serviceConfig = {
+      # Restart nginx automatically if it fails (e.g., due to missing certs)
+      Restart = lib.mkForce "on-failure";
+      RestartSec = "10s";
+    };
+    # Don't fail boot if nginx can't start due to missing certs
+    unitConfig.FailureAction = "none";
   };
 
   # Mormon Sites reverse proxies

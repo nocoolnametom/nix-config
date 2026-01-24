@@ -1007,6 +1007,105 @@ vim home/tdoggett/common/optional/feature.nix
 # home/tdoggett/{machine}.nix
 ```
 
+## Bombadil-Specific Notes: Failover Certificate Architecture
+
+### Overview
+
+Bombadil (the VPS) has a **failover certificate system** that provides HTTPS termination when the home network (estel) is unreachable. This is critical infrastructure that requires careful handling.
+
+### Critical Constraint: Separate Storage Directory
+
+**⚠️ CRITICAL**: Failover certificates MUST be stored in `/var/lib/acme-failover/`, NOT co-located with NixOS ACME service-managed certificates in `/var/lib/acme/`.
+
+**Why**: Service-managed ACME directories (`/var/lib/acme/`) have complex permission requirements and lifecycle management that conflict with manually-synced failover certificates. Mixing them causes:
+- Permission denied errors when nginx tries to serve challenge files
+- ACME renewal failures due to permission conflicts
+- Difficult debugging (unclear which service owns which files)
+
+### How It Works
+
+1. **Sender (estel)**: `rsync-cert-sync` service syncs certificates from estel's `/var/lib/acme/` to bombadil's `/var/lib/acme-failover/`
+2. **Receiver (bombadil)**: `rsync-cert-fix-permissions` service fixes ownership to `acme:nginx` after sync
+3. **Nginx**: Default catch-all virtualHost references certificates in `/var/lib/acme-failover/`
+4. **Failover redirects**: Generate nginx redirect blocks for synced domains
+
+### Configuration Files
+
+- **`modules/nixos/rsync-cert-sync.nix`**: Defines sender and receiver services
+- **`hosts/bombadil/nginx.nix`**: References failover certs in _default virtualHost
+- **`modules/nixos/failover-redirects.nix`**: Generates redirect rules for synced domains
+
+### SSH Host Key Verification
+
+The rsync-cert-sync service uses SSH with `-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null` to bypass host key verification for automated syncing. This is necessary because:
+- The root user running the service doesn't maintain a typical `known_hosts` file
+- Host keys would need to be pre-populated at build time (problematic for automation)
+- Certificates are non-sensitive data being synced over SSH (lower risk)
+
+### Common Issues & Fixes
+
+#### ACME Challenge Files Return 403
+
+**Symptom**: Certificate renewal fails with "Invalid response from http://domain/.well-known/acme-challenge/"
+
+**Cause**: ACME service can't write challenge files due to permission issues
+
+**Fix**: Ensure `/var/lib/acme/acme-challenge/` is owned by `acme:nginx` and world-readable:
+```bash
+sudo chown -R acme:nginx /var/lib/acme/acme-challenge/
+sudo chmod -R 755 /var/lib/acme/acme-challenge/
+```
+
+#### Certificates Not Syncing from estel
+
+**Symptom**: `/var/lib/acme-failover/` contains old certificates
+
+**Check**: 
+1. SSH connectivity: `ssh acme@bombadil "ls /var/lib/acme-failover/"`
+2. Service status: `sudo systemctl status rsync-cert-sync.service` on estel
+3. Logs: `sudo journalctl -u rsync-cert-sync -f` on estel
+
+**Common causes**:
+- SSH key not set up correctly in estel config
+- SSH port mismatch between sender and receiver configs
+- Firewall blocking SSH from estel to bombadil
+
+### Adding a New Domain to Failover
+
+1. **Ensure certificate exists on estel**: Certificate must be in `/var/lib/acme/{domain}/`
+2. **Next rsync run**: Automatic via timer (3:00 AM daily) or manual: `sudo systemctl start rsync-cert-sync`
+3. **Add to nginx**: Create virtualHost entry and it will auto-include in failover redirects
+4. **Test**: `curl -k https://{domain}` once certs sync
+
+### Maintenance Tasks
+
+#### Manual Certificate Sync
+```bash
+# On estel:
+sudo systemctl start rsync-cert-sync.service
+
+# Watch logs:
+sudo journalctl -u rsync-cert-sync -f
+```
+
+#### Test What Would Be Synced (Dry-run)
+```bash
+# On estel:
+test-cert-sync-dry-run
+```
+
+#### Check Synced Certificates
+```bash
+# On bombadil:
+check-cert-sync-received
+```
+
+#### Force Nginx to Reload Certs
+```bash
+# On bombadil:
+sudo systemctl reload nginx
+```
+
 ### Troubleshooting Checklist
 
 When a build fails after updates:

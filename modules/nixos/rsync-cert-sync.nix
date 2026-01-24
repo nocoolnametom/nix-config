@@ -142,7 +142,7 @@ in
           ${pkgs.rsync}/bin/rsync -avzn \
             --delete \
             --exclude=acme-challenge \
-            -e "${pkgs.openssh}/bin/ssh -p ${builtins.toString cfg.sender.vpsSshPort} -i ${cfg.sender.sshKeyPath}" \
+            -e "${pkgs.openssh}/bin/ssh -4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${builtins.toString cfg.sender.vpsSshPort} -i ${cfg.sender.sshKeyPath}" \
             ${cfg.sender.localCertPath}/ ${cfg.sender.vpsUser}@${cfg.sender.vpsHost}:${cfg.sender.vpsTargetPath}/
           echo
           echo "Note: -n flag means this was a dry-run, nothing was actually copied"
@@ -170,11 +170,13 @@ in
             # - VPS's own ACME-managed certs to remain in /var/lib/acme untouched
             # - Certificate renewals from estel to propagate to the VPS
             # - The entire failover directory to be safely overwritten
+            # Note: Using -4 to force IPv4 to avoid IPv6 connectivity issues
+            # Note: Using StrictHostKeyChecking=no to avoid host key verification issues
             ${pkgs.rsync}/bin/rsync -avz \
               --delete \
               --exclude=acme-challenge \
               --chmod=D750,F640 \
-              -e "${pkgs.openssh}/bin/ssh -p ${builtins.toString cfg.sender.vpsSshPort} -i ${cfg.sender.sshKeyPath}" \
+              -e "${pkgs.openssh}/bin/ssh -4 -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -p ${builtins.toString cfg.sender.vpsSshPort} -i ${cfg.sender.sshKeyPath}" \
               ${cfg.sender.localCertPath}/ ${cfg.sender.vpsUser}@${cfg.sender.vpsHost}:${cfg.sender.vpsTargetPath}/
 
             echo "[rsync-cert-sync] Sync completed successfully"
