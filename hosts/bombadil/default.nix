@@ -91,7 +91,7 @@ in
   networking.firewall.allowedTCPPorts = [
     80 # HTTP
     443 # HTTPS
-    22222 # SSH proxy to estel via WireGuard
+    configVars.networking.ports.tcp.estelSshProxy # SSH proxy to estel via WireGuard
     configVars.networking.ports.tcp.remoteSsh
     configVars.networking.ports.tcp.localSsh
   ];
@@ -166,7 +166,7 @@ in
   services.openssh.openFirewall = true;
 
   # SSH proxy to estel via WireGuard
-  # Listen on port 22222 and forward to estel:22 over dedicated WireGuard tunnel
+  # Listen on estelSshProxy port and forward to estel's SSH port over dedicated WireGuard tunnel
   systemd.services.ssh-estel-proxy = {
     description = "SSH proxy to estel via WireGuard";
     after = [ "network.target" "wireguard-wg-homelab.service" ];
@@ -176,7 +176,7 @@ in
       Type = "simple";
       Restart = "always";
       RestartSec = "10s";
-      ExecStart = "${pkgs.socat}/bin/socat TCP-LISTEN:22222,fork,reuseaddr TCP:${configVars.networking.wireguard.estel.ip}:${toString configVars.networking.ports.tcp.localSsh}";
+      ExecStart = "${pkgs.socat}/bin/socat TCP-LISTEN:${toString configVars.networking.ports.tcp.estelSshProxy},fork,reuseaddr TCP:${configVars.networking.wireguard.estel.ip}:${toString configVars.networking.ports.tcp.localSsh}";
     };
   };
 
