@@ -47,56 +47,73 @@ in
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "${configVars.networking.subdomains.estelSshProxy}.${configVars.domain}" = {
+        port = configVars.networking.ports.tcp.estelSshProxy;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "archer" = {
-        host = configVars.networking.subnets.archer.name;
+        host = "${configVars.networking.subnets.archer.name} ${configVars.networking.subnets.archer.name}.${configVars.homeDomain}";
         hostname = configVars.networking.subnets.archer.ip;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "barliman" = {
+        host = "${configVars.networking.subnets.barliman.name} ${configVars.networking.subnets.barliman.name}.${configVars.homeDomain}";
+        hostname = configVars.networking.subnets.barliman.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "cirdan" = {
+        host = "${configVars.networking.subnets.cirdan.name} ${configVars.networking.subnets.cirdan.name}.${configVars.homeDomain}";
+        hostname = configVars.networking.subnets.cirdan.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "durin" = {
-        host = configVars.networking.subnets.durin.name;
+        host = "${configVars.networking.subnets.durin.name} ${configVars.networking.subnets.durin.name}.${configVars.homeDomain}";
         hostname = configVars.networking.subnets.durin.ip;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "estel" = {
-        host = "${configVars.networking.subnets.estel.name} estel-ts";
-        hostname = configVars.networking.subnets.estel.name;
-        port = configVars.networking.ports.tcp.localSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "router" = {
-        host = configVars.networking.subnets.router.name;
-        hostname = configVars.networking.subnets.router.ip;
-        port = configVars.networking.ports.tcp.remoteSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "barliman" = {
-        host = configVars.networking.subnets.barliman.name;
-        hostname = configVars.networking.subnets.barliman.ip;
-        port = configVars.networking.ports.tcp.localSsh;
-        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
-      };
-      "smeagol" = {
-        host = configVars.networking.subnets.smeagol.name;
-        hostname = configVars.networking.subnets.smeagol.ip;
+        host = "${configVars.networking.subnets.estel.name} ${configVars.networking.subnets.estel.name}.${configVars.homeDomain} estel-ts";
+        hostname = configVars.networking.subnets.estel.ip;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
       "framework" = {
-        host = configVars.networking.subnets.framework.name;
+        host = "${configVars.networking.subnets.framework.name} ${configVars.networking.subnets.framework.name}.${configVars.homeDomain}";
         hostname = configVars.networking.subnets.framework.ip;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
-      "home.${configVars.domain}" = {
-        host = "home.${configVars.domain}";
+      "macbookpro" = {
+        host = "${configVars.networking.work.macbookpro.name} macbookpro";
+        hostname = configVars.networking.work.macbookpro.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "pangolin11" = {
+        host = "${configVars.networking.subnets.pangolin11.name} ${configVars.networking.subnets.pangolin11.name}.${configVars.homeDomain}";
+        hostname = configVars.networking.subnets.pangolin11.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
+      "router" = {
+        host = "${configVars.networking.subnets.router.name} ${configVars.networking.subnets.router.name}.${configVars.homeDomain}";
+        hostname = configVars.networking.subnets.router.ip;
         port = configVars.networking.ports.tcp.remoteSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "smeagol" = {
+        host = "${configVars.networking.subnets.smeagol.name} ${configVars.networking.subnets.smeagol.name}.${configVars.homeDomain}";
+        hostname = configVars.networking.subnets.smeagol.ip;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "steamdeck" = {
-        host = configVars.networking.subnets.steamdeck.name;
-        hostname = configVars.networking.subnets.steamdeck.ip; # Local Network
+        host = "${configVars.networking.subnets.steamdeck.name} ${configVars.networking.subnets.steamdeck.name}.${configVars.homeDomain}";
+        hostname = configVars.networking.subnets.steamdeck.ip;
         user = configVars.networking.subnets.steamdeck.username;
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
