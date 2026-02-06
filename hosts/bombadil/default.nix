@@ -174,8 +174,8 @@ in
   # Listen on port 22222 and forward to estel:22 over dedicated WireGuard tunnel
   systemd.services.ssh-estel-proxy = {
     description = "SSH proxy to estel via WireGuard";
-    after = [ "network.target" "wireguard-wg-bombadil-estel.service" ];
-    wants = [ "wireguard-wg-bombadil-estel.service" ];
+    after = [ "network.target" "wireguard-wg-homelab.service" ];
+    wants = [ "wireguard-wg-homelab.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {
       Type = "simple";

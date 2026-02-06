@@ -17,8 +17,8 @@ in
       mode = "0400";
     };
 
-    # WireGuard network interface
-    networking.wireguard.interfaces.wg-bombadil-estel = lib.mkMerge [
+    # WireGuard network interface (name must be ≤15 chars for Linux kernel)
+    networking.wireguard.interfaces.wg-homelab = lib.mkMerge [
       # Common config for both sides
       {
         privateKeyFile = config.sops.secrets."wireguard/homelab/${hostName}/privatekey".path;
@@ -58,7 +58,7 @@ in
       })
       # Both sides trust the WireGuard interface
       {
-        trustedInterfaces = [ "wg-bombadil-estel" ];
+        trustedInterfaces = [ "wg-homelab" ];
       }
     ];
   };
