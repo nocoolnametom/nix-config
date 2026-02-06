@@ -17,9 +17,6 @@ in
       mode = "0400";
     };
 
-    # Enable WireGuard kernel module
-    boot.extraModulePackages = [ config.boot.kernelPackages.wireguard ];
-
     # WireGuard network interface
     networking.wireguard.interfaces.wg-bombadil-estel = lib.mkMerge [
       # Common config for both sides
