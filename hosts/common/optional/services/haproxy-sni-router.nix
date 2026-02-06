@@ -34,6 +34,7 @@ in
         # Frontend for HTTP (port 80)
         frontend http_frontend
           bind *:80
+          bind :::80 v4v6
           mode tcp
           tcp-request inspect-delay 5s
           tcp-request content accept if HTTP
@@ -68,6 +69,7 @@ in
         # Frontend for HTTPS (port 443)
         frontend https_frontend
           bind *:443
+          bind :::443 v4v6
           mode tcp
           tcp-request inspect-delay 5s
           tcp-request content accept if { req_ssl_hello_type 1 }
