@@ -90,6 +90,7 @@ in
   networking.firewall.allowedTCPPorts = [
     80 # HTTP
     443 # HTTPS
+    22222 # SSH proxy to estel via WireGuard
     configVars.networking.ports.tcp.remoteSsh
     configVars.networking.ports.tcp.localSsh
   ];
@@ -183,15 +184,6 @@ in
       ExecStart = "${pkgs.socat}/bin/socat TCP-LISTEN:22222,fork,reuseaddr TCP:${configVars.networking.wireguard.estel.ip}:${toString configVars.networking.ports.tcp.localSsh}";
     };
   };
-
-  # Open firewall for SSH proxy port
-  networking.firewall.allowedTCPPorts = [
-    80 # HTTP
-    443 # HTTPS
-    configVars.networking.ports.tcp.remoteSsh
-    configVars.networking.ports.tcp.localSsh
-    22222 # SSH proxy to estel
-  ];
 
   # Fail2Ban
   services.fail2ban.enable = true;

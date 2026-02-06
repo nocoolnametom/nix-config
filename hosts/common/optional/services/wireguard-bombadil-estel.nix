@@ -12,8 +12,8 @@ in
 {
   config = lib.mkIf (isBombadil || isEstel) {
     # SOPS secrets for WireGuard private keys
-    # Following the pattern from per-user-vpn-setup.nix
-    sops.secrets."wireguard/bombadil-estel/${hostName}/privatekey" = {
+    # Using wireguard/homelab/${hostName}/privatekey structure
+    sops.secrets."wireguard/homelab/${hostName}/privatekey" = {
       mode = "0400";
     };
 
@@ -24,7 +24,7 @@ in
     networking.wireguard.interfaces.wg-bombadil-estel = lib.mkMerge [
       # Common config for both sides
       {
-        privateKeyFile = config.sops.secrets."wireguard/bombadil-estel/${hostName}/privatekey".path;
+        privateKeyFile = config.sops.secrets."wireguard/homelab/${hostName}/privatekey".path;
       }
 
       # Bombadil-specific config (server side)
