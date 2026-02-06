@@ -53,6 +53,8 @@
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/tailscale.nix"
+    "hosts/common/optional/services/wireguard-bombadil-estel.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/yubikey.nix"
     # tube-archivist via docker?

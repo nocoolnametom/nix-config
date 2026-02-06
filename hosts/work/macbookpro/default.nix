@@ -24,6 +24,11 @@ let
     "google-chrome"
     "google-chrome-beta"
     "google-chrome-canary"
+
+    # These require screen recording permissions that, for some reason,
+    # I cannot figure out how to provide to Nix-Darwin-handled apps
+    "slack"
+    "zoom-us"
   ];
 in {
   imports = [
@@ -81,11 +86,9 @@ in {
     pkgs.unstable.protonmail-bridge
     pkgs.unstable.protonmail-desktop
     pkgs.unstable.sequelpro
-    pkgs.unstable.slack
     pkgs.unstable.tableplus
     pkgs.unstable.vscode
     pkgs.unstable.zed-editor
-    pkgs.unstable.zoom-us
 
     # Terminal Programs
     pkgs.unstable.claude-code

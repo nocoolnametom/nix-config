@@ -59,6 +59,12 @@ in
         port = configVars.networking.ports.tcp.localSsh;
         identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
       };
+      "estel" = {
+        host = "${configVars.networking.subnets.estel.name} estel-ts";
+        hostname = configVars.networking.subnets.estel.name;
+        port = configVars.networking.ports.tcp.localSsh;
+        identityFile = lib.lists.forEach identityFiles (file: "${config.home.homeDirectory}/.ssh/${file}");
+      };
       "router" = {
         host = configVars.networking.subnets.router.name;
         hostname = configVars.networking.subnets.router.ip;

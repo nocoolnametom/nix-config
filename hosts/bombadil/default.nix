@@ -46,6 +46,8 @@ in
     "hosts/common/optional/services/elasticsearch.nix"
     "hosts/common/optional/services/mailserver.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/tailscale.nix"
+    "hosts/common/optional/services/wireguard-bombadil-estel.nix"
     "hosts/common/optional/services/uptime-kuma.nix"
     "hosts/common/optional/linode.nix"
     "hosts/common/optional/nostr.nix"
@@ -166,6 +168,30 @@ in
     configVars.networking.ports.tcp.remoteSsh # Only accessible via remote SSH port
   ];
   services.openssh.openFirewall = true;
+
+  # SSH proxy to estel via WireGuard
+  # Listen on port 22222 and forward to estel:22 over dedicated WireGuard tunnel
+  systemd.services.ssh-estel-proxy = {
+    description = "SSH proxy to estel via WireGuard";
+    after = [ "network.target" "wireguard-wg-bombadil-estel.service" ];
+    wants = [ "wireguard-wg-bombadil-estel.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig = {
+      Type = "simple";
+      Restart = "always";
+      RestartSec = "10s";
+      ExecStart = "${pkgs.socat}/bin/socat TCP-LISTEN:22222,fork,reuseaddr TCP:${configVars.networking.wireguard.estel.ip}:${toString configVars.networking.ports.tcp.localSsh}";
+    };
+  };
+
+  # Open firewall for SSH proxy port
+  networking.firewall.allowedTCPPorts = [
+    80 # HTTP
+    443 # HTTPS
+    configVars.networking.ports.tcp.remoteSsh
+    configVars.networking.ports.tcp.localSsh
+    22222 # SSH proxy to estel
+  ];
 
   # Fail2Ban
   services.fail2ban.enable = true;
