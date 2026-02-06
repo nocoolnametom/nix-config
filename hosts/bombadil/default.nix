@@ -39,6 +39,7 @@ in
 
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/services/akkoma.nix"
+    "hosts/common/optional/services/haproxy-sni-router.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/mastodon.nix"
     "hosts/common/optional/services/mormonsites.nix"

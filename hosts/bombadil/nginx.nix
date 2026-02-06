@@ -85,6 +85,9 @@
   services.nginx.sslCiphers = "AES256+EECDH:AES256+EDH:!aNULL";
   services.nginx.serverNamesHashBucketSize = 128;
   services.nginx.serverNamesHashMaxSize = 1024;
+  # Listen on internal ports - HAProxy will forward to these
+  services.nginx.defaultHTTPListenPort = 8080;
+  services.nginx.defaultSSLListenPort = 8443;
   services.nginx.commonHttpConfig = ''
     # limit clients doing too many requests
     # can be tested with ab -n 20 -c 10 <host>
@@ -102,17 +105,18 @@
 
   # Default catch-all: present wildcard cert instead of the first failover cert
   # Uses OnFailure to handle missing certs gracefully - nginx will retry after cert sync
+  # Now listens on internal ports (HAProxy forwards to these)
   services.nginx.virtualHosts."_default" = {
     default = true;
     listen = [
       {
         addr = "0.0.0.0";
-        port = 443;
+        port = 8443;
         ssl = true;
       }
       {
         addr = "0.0.0.0";
-        port = 80;
+        port = 8080;
       }
     ];
     forceSSL = true;
