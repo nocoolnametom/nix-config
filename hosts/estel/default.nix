@@ -40,7 +40,7 @@
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
-    "hosts/common/optional/services/ddclient.nix"
+    # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/hedgedoc.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
@@ -144,18 +144,9 @@
         prefixLength = 64;
       }
     ];
-    # Estel is behind a NAT, so access to ports is already restricted
+    # Firewall disabled - ISP blocks all incoming connections (CGNAT on both IPv4 and IPv6)
+    # estel initiates WireGuard connection to bombadil, so only outbound connections needed
     firewall.enable = false;
-    firewall.allowedTCPPorts = [
-      80 # HTTP
-      443 # HTTPS
-      configVars.networking.ports.tcp.remoteSsh
-      configVars.networking.ports.tcp.localSsh
-    ];
-    firewall.allowedUDPPorts = [
-      443 # HTTPS
-    ];
-    firewall.allowPing = true; # Linode's LISH console requires ping
   };
 
   # Disable IPv6 privacy extensions to prevent temporary address rotation
@@ -192,23 +183,21 @@
     htop
   ];
 
-  # Bombadil Failover Cert Sync
-  sops.secrets."acme-failover-key" = {
-    key = "ssh/personal/root_only/acme-failover-key";
-    mode = "0600";
-  };
-  services.rsyncCertSync.sender.enable = true;
-  services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
-  services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
-  services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
-  # Sync to a separate directory on bombadil to avoid conflicts with its locally-managed certs
-  services.rsyncCertSync.sender.vpsTargetPath = "/var/lib/acme-failover";
-  # No need to exclude domains - they're in a separate directory!
+  # Bombadil Failover Cert Sync - DISABLED (HAProxy now routes traffic, no cert sync needed)
+  # sops.secrets."acme-failover-key" = {
+  #   key = "ssh/personal/root_only/acme-failover-key";
+  #   mode = "0600";
+  # };
+  # services.rsyncCertSync.sender.enable = true;
+  # services.rsyncCertSync.sender.vpsHost = configVars.networking.external.bombadil.mainUrl;
+  # services.rsyncCertSync.sender.vpsSshPort = configVars.networking.ports.tcp.remoteSsh;
+  # services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
+  # services.rsyncCertSync.sender.vpsTargetPath = "/var/lib/acme-failover";
 
   # Security
   security.sudo.wheelNeedsPassword = false;
   security.apparmor.enable = true;
-  # fail2ban wants the firewall enabled first
+  # fail2ban disabled - no direct SSH access (key-only via bombadil proxy), ISP blocks incoming
   services.fail2ban.enable = false;
 
   # Fixes VSCode remote

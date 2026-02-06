@@ -62,13 +62,13 @@
     "d /run/nginx 0755 root root -"
   ];
 
-  # Rsync certificate receiver - fixes permissions after certs are synced from estel
-  services.rsyncCertSync.receiver.enable = true;
-  services.rsyncCertSync.receiver.certPath = lib.mkDefault config.services.failoverRedirects.certPath; # Use separate directory
-  services.rsyncCertSync.receiver.certUser = "acme";
-  services.rsyncCertSync.receiver.certGroup = "nginx";
-  services.rsyncCertSync.receiver.timerSchedule = "*-*-* 03:00:00"; # Match estel's sender schedule
-  services.rsyncCertSync.receiver.delayMinutes = 5; # Run 5 minutes after rsync completes
+  # Rsync certificate receiver - DISABLED (HAProxy routes traffic, no cert sync needed)
+  # services.rsyncCertSync.receiver.enable = true;
+  # services.rsyncCertSync.receiver.certPath = lib.mkDefault config.services.failoverRedirects.certPath;
+  # services.rsyncCertSync.receiver.certUser = "acme";
+  # services.rsyncCertSync.receiver.certGroup = "nginx";
+  # services.rsyncCertSync.receiver.timerSchedule = "*-*-* 03:00:00";
+  # services.rsyncCertSync.receiver.delayMinutes = 5;
 
   # Note that the NGINX setups for Mastodon is actually located in the Mastodon service file!
 

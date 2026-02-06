@@ -43,7 +43,7 @@
       "/var/lib/paperless"
       "/var/lib/postgresql"
       "/var/lib/private/actual"
-      "/var/lib/private/ddclient"
+      # "/var/lib/private/ddclient" # Disabled - no longer using ddclient
       "/var/lib/private/karakeep-browser"
       "/var/lib/private/mealie"
       "/var/lib/redis-immich"

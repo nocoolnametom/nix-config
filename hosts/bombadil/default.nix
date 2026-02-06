@@ -100,22 +100,16 @@ in
   ];
   networking.firewall.allowPing = true; # Linode's LISH console requires ping
 
-  # Bombadil DNS Failover Switcher
-  sops.secrets."porkbun/dns-failover/key" = { };
-  sops.secrets."porkbun/dns-failover/secret" = { };
-  services.dnsFailover.enable = true;
-  services.dnsFailover.healthUrl = "https://${configVars.healthDomain}";
-  services.dnsFailover.failoverDomain = "home.${configVars.domain}";
-  services.dnsFailover.targetServerName = configVars.networking.subnets.estel.name;
-  services.dnsFailover.statusServerUrl = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
-  services.dnsFailover.porkbunApiKeyFile = config.sops.secrets."porkbun/dns-failover/key".path;
-  services.dnsFailover.porkbunApiSecretFile = config.sops.secrets."porkbun/dns-failover/secret".path;
-  # Make failover responsive but robust - health check is just hitting Caddy (lightweight)
-  services.dnsFailover.checkInterval = "1min"; # Check every 1 minute
-  services.dnsFailover.checkTimeout = 15; # 15 second timeout per attempt
-  services.dnsFailover.requiredFailures = 4; # 4 attempts per check, 4 consecutive checks must fail
-  services.dnsFailover.retryDelay = 15; # 15 seconds between retries within a check
-  # Total failover time: 6-9 minutes depending on failure speed
+  # Bombadil DNS Failover Switcher - DISABLED (HAProxy now routes all traffic through WireGuard tunnel)
+  # sops.secrets."porkbun/dns-failover/key" = { };
+  # sops.secrets."porkbun/dns-failover/secret" = { };
+  # services.dnsFailover.enable = true;
+  # services.dnsFailover.healthUrl = "https://${configVars.healthDomain}";
+  # services.dnsFailover.failoverDomain = "home.${configVars.domain}";
+  # services.dnsFailover.targetServerName = configVars.networking.subnets.estel.name;
+  # services.dnsFailover.statusServerUrl = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
+  # services.dnsFailover.porkbunApiKeyFile = config.sops.secrets."porkbun/dns-failover/key".path;
+  # services.dnsFailover.porkbunApiSecretFile = config.sops.secrets."porkbun/dns-failover/secret".path;
 
   # Mastodon setup
   services.mastodon.localDomain = socialUrl;
