@@ -17,6 +17,7 @@
 let
   stashDir = config.services.stash.dataDir;
   stashPath = "${stashDir}/data/data.dat";
+  presetFile = builtins.path { path = ./MyVRAV1s.json; };
 in
 {
   imports = [
@@ -160,7 +161,7 @@ in
   services.nzbget-to-management.unpackingDirName = "_unpack";
   services.nzbget-to-management.transcodingTempDir = "${stashPath}/transcoding";
   services.nzbget-to-management.finishedVideoDir = "${stashPath}/av1";
-  services.nzbget-to-management.handbrakePresetJsonFilePath = "${stashPath}/MyVRAV1s.json";
+  services.nzbget-to-management.handbrakePresetJsonFilePath = "${presetFile}";
   services.nzbget-to-management.handbrakePreset = "MyVRAV1s";
 
   # Remote video conversion from stash server
@@ -172,7 +173,7 @@ in
   services.stash-video-conversion.incomingDir = "/var/lib/stash-video-conversion/incoming";
   services.stash-video-conversion.transcodingDir = "/var/lib/stash-video-conversion/transcoding";
   services.stash-video-conversion.finishedDir = "/var/lib/stash-video-conversion/finished";
-  services.stash-video-conversion.handbrakePresetJsonFilePath = "/var/lib/stash-video-conversion/MyVRAV1s.json";
+  services.stash-video-conversion.handbrakePresetJsonFilePath = "${presetFile}";
   services.stash-video-conversion.handbrakePreset = "MyVRAV1s";
   services.stash-video-conversion.perPageLimit = 50;
 
