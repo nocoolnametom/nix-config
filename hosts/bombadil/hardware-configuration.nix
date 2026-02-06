@@ -53,6 +53,7 @@
       "noatime"
       "subvol=home"
     ];
+    neededForBoot = true;
   };
 
   fileSystems."/nix" = {
