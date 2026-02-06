@@ -6,10 +6,8 @@
   ...
 }:
 {
-  # We're using bombadil for failover-redirects for the Uptime-Kuma status page
-  services.failoverRedirects.enable = lib.mkDefault true;
-  # Use a separate directory for failover certificates to avoid conflicts with locally-managed certs
-  services.failoverRedirects.certPath = lib.mkDefault "/var/lib/acme-failover";
+  # Failover redirects disabled - HAProxy now routes homelab traffic through WireGuard tunnel
+  services.failoverRedirects.enable = false;
   services.failoverRedirects.excludeDomains =
     let
       akkomaDomain = config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;

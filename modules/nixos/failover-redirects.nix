@@ -35,6 +35,12 @@ in
       default = "/var/lib/acme";
       description = "Path to the directory containing SSL certificates for failover domains";
     };
+
+    httpsPort = lib.mkOption {
+      type = lib.types.port;
+      default = 443;
+      description = "Port for failover HTTPS redirects (set to 8443 when using HAProxy)";
+    };
   };
 
   config = lib.mkIf cfg.enable {
@@ -76,8 +82,8 @@ in
                       # Output one server block per domain
                       cat >> $tmpfile <<EOF
           server {
-              listen 443 ssl;
-              listen [::]:443 ssl;
+              listen ${toString cfg.httpsPort} ssl;
+              listen [::]:${toString cfg.httpsPort} ssl;
               server_name ${"$"}{domain};
               ssl_certificate ${cfg.certPath}/${"$"}{domain}/fullchain.pem;
               ssl_certificate_key ${cfg.certPath}/${"$"}{domain}/key.pem;
@@ -139,7 +145,7 @@ in
           if [[ "$domain" == "acme-challenge" ]]; then continue; fi;
 
           echo -n "Testing $domain (IPv4) ... "
-          ${pkgs.openssl}/bin/openssl s_client -connect $HOSTNAME:443 -servername "$domain" -4 < /dev/null 2>/dev/null \
+          ${pkgs.openssl}/bin/openssl s_client -connect $HOSTNAME:${toString cfg.httpsPort} -servername "$domain" -4 < /dev/null 2>/dev/null \
             | ${pkgs.openssl}/bin/openssl x509 -noout -subject \
             | grep "CN=$domain" && echo "OK" || echo "FAIL";
 
@@ -152,7 +158,7 @@ in
             continue
           fi
 
-          ${pkgs.openssl}/bin/openssl s_client -connect "[$IPV6_ADDR]:443" -servername "$domain" < /dev/null 2>/dev/null \
+          ${pkgs.openssl}/bin/openssl s_client -connect "[$IPV6_ADDR]:${toString cfg.httpsPort}" -servername "$domain" < /dev/null 2>/dev/null \
             | ${pkgs.openssl}/bin/openssl x509 -noout -subject \
             | grep "CN=$domain" && echo "OK" || echo "FAIL";
         done
