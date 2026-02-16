@@ -36,6 +36,7 @@
 
       # Time Off / Vacation Days
       # Add your vacation days here as you schedule them
+      "2026-02-16"
     ];
 
     # Work hours (default: Mon-Fri 8am-5pm in system timezone)
