@@ -93,12 +93,13 @@ let
       service = "nas";
       domain = "homeDomain";
     }
-    {
-      host = "estel";
-      service = "navidrome";
-      domain = "homeDomain";
-      proxy = "authentik";
-    }
+    # Disabled 2026-03-04: Navidrome build failure
+    # {
+    #   host = "estel";
+    #   service = "navidrome";
+    #   domain = "homeDomain";
+    #   proxy = "authentik";
+    # }
     {
       host = "estel";
       service = "ombi";
@@ -189,6 +190,12 @@ let
       host = "cirdan";
       service = "mylar";
       domain = "domain";
+    }
+    {
+      host = "durin";
+      service = "miniflux";
+      domain = "homeDomain";
+      proxy = "authentik";
     }
     {
       host = "durin";

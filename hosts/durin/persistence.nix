@@ -37,6 +37,7 @@
       "/var/lib/nzbhydra2"
       "/var/lib/pinchflat/db"
       "/var/lib/pinchflat/extras"
+      "/var/lib/postgresql"
       "/var/lib/private/flood"
       "/var/lib/radarr/.config/Radarr"
       "/var/lib/sbctl"

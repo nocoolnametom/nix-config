@@ -238,6 +238,14 @@ in
           scopeMaps = makeScopeMaps "mealie";
         };
 
+        miniflux = {
+          displayName = "Miniflux RSS Reader";
+          originUrl = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
+          originLanding = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
+          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/miniflux/client-secret".path;
+          scopeMaps = makeScopeMaps "miniflux";
+        };
+
         paperless = {
           displayName = "Paperless-ngx";
           originUrl = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
@@ -314,10 +322,11 @@ in
   sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret" = { };
   sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret" = { };
 
-  # OIDC client secrets for native OIDC services (9 services)
+  # OIDC client secrets for native OIDC services (10 services)
   sops.secrets."homelab/kanidm/oidc/actual/client-secret" = { };
   sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret" = { };
   sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = { };
+  sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = { };
   sops.secrets."homelab/kanidm/oidc/paperless/client-secret" = { };
   sops.secrets."homelab/kanidm/oidc/karakeep/client-secret" = { };
   sops.secrets."homelab/kanidm/oidc/kavita/client-secret" = { };
