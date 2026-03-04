@@ -406,7 +406,11 @@ in
     "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
       useACMEHost = "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
       extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.kanidm}
+        reverse_proxy https://${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.kanidm} {
+          transport http {
+            tls_insecure_skip_verify
+          }
+        }
       '';
     };
   };
