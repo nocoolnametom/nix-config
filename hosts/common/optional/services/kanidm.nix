@@ -384,16 +384,37 @@ in
   };
 
   # OIDC client secrets for native OIDC services (10 services)
-  sops.secrets."homelab/kanidm/oidc/actual/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/paperless/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/karakeep/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/kavita/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/kavitan/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/openwebui/client-secret" = { };
-  sops.secrets."homelab/kanidm/oidc/nas/client-secret" = { };
+  # Must be readable by kanidm for provisioning
+  sops.secrets."homelab/kanidm/oidc/actual/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/paperless/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/karakeep/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/kavita/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/kavitan/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/openwebui/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
+    owner = "kanidm";
+  };
 
   # Note: User passwords must be set via Kanidm web UI at https://sso.doggett.family
   # or via kanidm CLI after initial provisioning. Declarative passwordFile is not supported.
