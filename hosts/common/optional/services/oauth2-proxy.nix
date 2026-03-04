@@ -10,21 +10,67 @@
   services.oauth2-proxy-multi.enable = true;
 
   # Define SOPS secrets for cookie encryption (all 15 services)
-  sops.secrets."homelab/oauth2/navidrome/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/ombi/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/comfyui/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/comfyuimini/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/invokeai/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/archerstashvr/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/delugeweb/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/flood/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/nzbget/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/nzbhydra/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/pinchflat/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/radarr/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/sickgear/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/sonarr/cookie-secret" = { };
-  sops.secrets."homelab/oauth2/stashvr/cookie-secret" = { };
+  # Must be readable by oauth2-proxy user
+  sops.secrets."homelab/oauth2/navidrome/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/ombi/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/comfyui/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/comfyuimini/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/invokeai/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/archerstashvr/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/delugeweb/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/flood/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/nzbget/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/nzbhydra/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/pinchflat/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/radarr/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/sickgear/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/sonarr/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
+  sops.secrets."homelab/oauth2/stashvr/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
 
   # Configure OAuth2-proxy instances
   services.oauth2-proxy-multi.instances = {
