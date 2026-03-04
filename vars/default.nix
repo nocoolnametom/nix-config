@@ -9,6 +9,7 @@
     email
     networking
     work
+    sso
     ;
   friendBlogDomain = inputs.nix-secrets.networking.blog.friends.domain;
 

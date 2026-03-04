@@ -9,9 +9,11 @@
   kavitan = import ./kavitan.nix;
   maestral = import ./maestral.nix;
   nzbget-to-management = import ./nzbget-to-management.nix;
+  oauth2-proxy-multi = import ./oauth2-proxy-multi.nix;
   per-user-vpn = import ./per-user-vpn.nix;
   rsync-cert-sync = import ./rsync-cert-sync.nix;
   sauronsync = import ./sauronsync.nix;
+  sso-provider = import ./sso-provider.nix;
   stash-video-conversion = import ./stash-video-conversion.nix;
   stash-vr-helper = import ./stash-vr-helper.nix;
   mormonsites = import ./mormonsites.nix;

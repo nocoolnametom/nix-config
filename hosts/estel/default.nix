@@ -45,10 +45,12 @@
     "hosts/common/optional/services/hedgedoc.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
     "hosts/common/optional/services/immich.nix"
+    "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/karakeep.nix"
     "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
     "hosts/common/optional/services/mealie.nix"
     "hosts/common/optional/services/navidrome.nix"
+    "hosts/common/optional/services/oauth2-proxy.nix"
     "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
@@ -72,11 +74,14 @@
     "hedgedoc"
     "immich-public-proxy"
     "immich-server"
+    "kanidm"
     "karakeep-web"
     "kavita"
     "kavitan"
     "mealie"
     "navidrome"
+    "oauth2-proxy-navidrome"
+    "oauth2-proxy-ombi"
     "ombi"
     "paperless-web"
   ];
@@ -115,10 +120,23 @@
   users.users.karakeep.home = "/var/lib/karakeep";
 
   # Navidrome Music Server
-  services.navidrome.settings.MusicFolder = "/mnt/cirdan/smb/Music";
-  services.navidrome.settings.BaseUrl = "";
-  services.navidrome.settings.ReverseProxyWhitelist = "${configVars.networking.subnets.cirdan.ip}/32";
-  services.navidrome.settings.ReverseProxyUserHeader = "X-Authentik-Username";
+  # Configuration is conditional based on SSO provider (authentik vs kanidm-oauth2)
+  services.navidrome.settings = {
+    MusicFolder = "/mnt/cirdan/smb/Music";
+    BaseUrl = "";
+    # OAuth2-proxy runs on estel (same host), Authentik runs on cirdan
+    ReverseProxyWhitelist =
+      if config.services.ssoProvider.navidrome or "authentik" == "kanidm-oauth2" then
+        "${configVars.networking.subnets.estel.ip}/32"
+      else
+        "${configVars.networking.subnets.cirdan.ip}/32";
+    # Header name differs between OAuth2-proxy and Authentik
+    ReverseProxyUserHeader =
+      if config.services.ssoProvider.navidrome or "authentik" == "kanidm-oauth2" then
+        "X-Forwarded-User"
+      else
+        "X-Authentik-Username";
+  };
   services.navidrome.environmentFile = pkgs.writeText "stack.env" ''
     ND_AUTH_PROXY_AUTO_CREATE_USERS=true
     ND_AUTH_PROXY_DEFAULT_ROLE=USER

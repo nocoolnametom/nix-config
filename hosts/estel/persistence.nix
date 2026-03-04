@@ -33,6 +33,7 @@
       "/var/lib/hedgedoc"
       "/var/lib/immich"
       "/var/lib/iwd"
+      "/var/lib/kanidm"
       "/var/lib/karakeep"
       "/var/lib/kavita"
       "/var/lib/kavitan"

@@ -16,15 +16,24 @@ let
   #   host: The actual machine hosting the service
   #   service: Service name (used for subdomain and port lookup)
   #   domain: Either "homeDomain" or "domain"
-  #   proxy: (optional) Set to "authentik" if regular domain should route through Authentik
+  #   proxy: (optional) SSO provider type
+  #     - "authentik": Route through Authentik proxy
+  #     - "kanidm-oauth2": Route through Kanidm via OAuth2-proxy (for services without native OIDC)
+  #     - "kanidm-oidc": Direct to service (service has native OIDC integration with Kanidm)
+  #     - null/unset: No SSO, direct to service
   #
   # When proxy = "authentik":
   #   - Regular domain: service.domain → caddy → authentik → host:service (SSO authentication)
   #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses Authentik for monitoring)
   #
-  # When proxy is not set:
+  # When proxy = "kanidm-oauth2":
+  #   - Regular domain: service.domain → caddy → oauth2-proxy → host:service (SSO via OAuth2-proxy)
+  #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses OAuth2-proxy)
+  #
+  # When proxy = "kanidm-oidc" or proxy is not set:
   #   - Both regular and punch domains go directly to service
   #   - Punch domain adds basic auth for monitoring
+  #   - (kanidm-oidc services handle OIDC authentication internally)
   simpleServices = [
     # Services on homeDomain
     {
@@ -252,23 +261,34 @@ let
           authentikIp = configVars.networking.subnets.${authentikHost}.ip;
           authentikPort = builtins.toString configVars.networking.ports.tcp.authentik;
 
+          # Kanidm OAuth2-proxy (if enabled)
+          useKanidmOAuth2 = proxy == "kanidm-oauth2";
+          oauth2ProxyIp = serviceHostIp; # OAuth2-proxy runs on same host as service
+          oauth2ProxyPort = builtins.toString configVars.networking.ports.tcp."oauth2-${service}";
+
+          # Kanidm native OIDC (if enabled)
+          useKanidmOidc = proxy == "kanidm-oidc";
+
           baseDomain = if domain == "homeDomain" then configVars.homeDomain else configVars.domain;
           subdomain = configVars.networking.subdomains.${service};
 
+          # Determine proxy target based on proxy type
+          proxyTarget =
+            if useAuthentik then
+              "${authentikIp}:${authentikPort}"
+            else if useKanidmOAuth2 then
+              "${oauth2ProxyIp}:${oauth2ProxyPort}"
+            else # useKanidmOidc or null - both go directly to service
+              "${serviceHostIp}:${servicePortNum}";
+
           # Regular host configuration
-          # If proxy = "authentik", route through Authentik; otherwise go direct to service
+          # Routes through Authentik, OAuth2-proxy, or direct to service based on proxy setting
           regularHost = {
             "${subdomain}.${baseDomain}" = {
               useACMEHost = if certName == null then "wild-${baseDomain}" else certName;
-              extraConfig =
-                if useAuthentik then
-                  ''
-                    reverse_proxy ${authentikIp}:${authentikPort}
-                  ''
-                else
-                  ''
-                    reverse_proxy ${serviceHostIp}:${servicePortNum}
-                  '';
+              extraConfig = ''
+                reverse_proxy ${proxyTarget}
+              '';
             };
           };
 
@@ -298,6 +318,18 @@ let
   generatedHosts = makeServiceHosts simpleServices;
 in
 {
+  # Export SSO provider configuration from simpleServices
+  services.ssoProvider = lib.listToAttrs (
+    lib.filter (x: x != null) (
+      map (svc:
+        if svc.proxy or null != null then
+          { name = svc.service; value = svc.proxy; }
+        else
+          null
+      ) simpleServices
+    )
+  );
+
   services.caddy.enable = true;
   networking.firewall.allowedTCPPorts = [
     80
@@ -362,6 +394,14 @@ in
           }
         '';
       };
+
+    # Kanidm SSO server
+    "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
+      useACMEHost = "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
+      extraConfig = ''
+        reverse_proxy ${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.kanidm}
+      '';
+    };
   };
 
   security.acme.acceptTerms = true;
@@ -440,6 +480,12 @@ in
     };
     "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}" = {
       domain = "*.${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
+      group = "caddy";
+      dnsProvider = "porkbun";
+      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
+    };
+    "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
+      domain = "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;

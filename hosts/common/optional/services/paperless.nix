@@ -5,6 +5,10 @@
   configVars,
   ...
 }:
+let
+  ssoProvider = config.services.ssoProvider.paperless or "authentik";
+  useKanidm = ssoProvider == "kanidm-oidc";
+in
 {
   sops.secrets."homelab/smtp/host" = { };
   sops.secrets."homelab/smtp/port" = { };
@@ -15,8 +19,13 @@
   sops.secrets."homelab/smtp/tls" = { };
   sops.secrets."paperless-superuser-password".owner =
     if config.services.paperless.enable then config.services.paperless.user else "root";
+
+  # Authentik OIDC secrets
   sops.secrets."homelab/oidc/paperless/authentik/client-id" = { };
   sops.secrets."homelab/oidc/paperless/authentik/client-secret" = { };
+
+  # Kanidm OIDC secrets
+  sops.secrets."homelab/kanidm/oidc/paperless/client-secret" = { };
 
   services.paperless.enable = lib.mkDefault true;
   services.paperless.port = lib.mkDefault configVars.networking.ports.tcp.paperless;
@@ -37,33 +46,60 @@
 
   sops.templates."paperless-secrets.env" = {
     # We have to declare the entire OIDC configuration in the secrets file, unfortunately
-    content = ''
-      PAPERLESS_EMAIL_HOST=${config.sops.placeholder."homelab/smtp/host"}
-      PAPERLESS_EMAIL_PORT=${config.sops.placeholder."homelab/smtp/port"}
-      PAPERLESS_EMAIL_HOST_USER=${config.sops.placeholder."homelab/smtp/username"}
-      PAPERLESS_EMAIL_HOST_PASSWORD=${config.sops.placeholder."homelab/smtp/password"}
-      PAPERLESS_EMAIL_FROM=noreply+papers@${config.sops.placeholder."homelab/smtp/sendingDomain"}
-      PAPERLESS_EMAIL_USE_SSL=${config.sops.placeholder."homelab/smtp/ssl"}
-      PAPERLESS_EMAIL_USE_TLS=${config.sops.placeholder."homelab/smtp/tls"}
-      PAPERLESS_SOCIALACCOUNT_PROVIDERS=${
-        builtins.toJSON {
-          openid_connect = {
-            OAUTH_PKCE_ENABLED = true;
-            APPS = [
-              {
-                provider_id = "authentik";
-                name = "authentik";
-                client_id = config.sops.placeholder."homelab/oidc/paperless/authentik/client-id";
-                secret = config.sops.placeholder."homelab/oidc/paperless/authentik/client-secret";
-                settings = {
-                  server_url = "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/paperless/.well-known/openid-configuration";
+    content =
+      ''
+        PAPERLESS_EMAIL_HOST=${config.sops.placeholder."homelab/smtp/host"}
+        PAPERLESS_EMAIL_PORT=${config.sops.placeholder."homelab/smtp/port"}
+        PAPERLESS_EMAIL_HOST_USER=${config.sops.placeholder."homelab/smtp/username"}
+        PAPERLESS_EMAIL_HOST_PASSWORD=${config.sops.placeholder."homelab/smtp/password"}
+        PAPERLESS_EMAIL_FROM=noreply+papers@${config.sops.placeholder."homelab/smtp/sendingDomain"}
+        PAPERLESS_EMAIL_USE_SSL=${config.sops.placeholder."homelab/smtp/ssl"}
+        PAPERLESS_EMAIL_USE_TLS=${config.sops.placeholder."homelab/smtp/tls"}
+      ''
+      + (
+        if useKanidm then
+          ''
+            PAPERLESS_SOCIALACCOUNT_PROVIDERS=${
+              builtins.toJSON {
+                openid_connect = {
+                  OAUTH_PKCE_ENABLED = true;
+                  APPS = [
+                    {
+                      provider_id = "kanidm";
+                      name = "Kanidm";
+                      client_id = "paperless";
+                      secret = config.sops.placeholder."homelab/kanidm/oidc/paperless/client-secret";
+                      settings = {
+                        server_url = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/paperless/.well-known/openid-configuration";
+                      };
+                    }
+                  ];
                 };
               }
-            ];
-          };
-        }
-      }
-    '';
+            }
+          ''
+        else
+          ''
+            PAPERLESS_SOCIALACCOUNT_PROVIDERS=${
+              builtins.toJSON {
+                openid_connect = {
+                  OAUTH_PKCE_ENABLED = true;
+                  APPS = [
+                    {
+                      provider_id = "authentik";
+                      name = "authentik";
+                      client_id = config.sops.placeholder."homelab/oidc/paperless/authentik/client-id";
+                      secret = config.sops.placeholder."homelab/oidc/paperless/authentik/client-secret";
+                      settings = {
+                        server_url = "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/paperless/.well-known/openid-configuration";
+                      };
+                    }
+                  ];
+                };
+              }
+            }
+          ''
+      );
   };
   services.paperless.environmentFile =
     lib.mkDefault
