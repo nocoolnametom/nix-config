@@ -87,7 +87,8 @@ in
           OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-id"}
           OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
         '';
-      owner = config.systemd.services.miniflux.serviceConfig.User;
+      owner = "miniflux";
+      mode = "0400";
     };
 
   # Pass secrets to Miniflux via environment file
