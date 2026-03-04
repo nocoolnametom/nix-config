@@ -13,11 +13,19 @@ with lib;
   homebrew.brews = [
     # No current nixpkgs
     { name = "reddix"; }
+    # Container runtime for macOS
+    { name = "colima"; }
+    # Colima requires docker
+    { name = "docker"; }
+    # Local LLM-Fit for Colima
+    { name = "llmfit"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS
     { name = "podman-desktop"; }
     # Deskflow - Might need to tap the cask first, if so comment this and rebuild then uncomment and rebuild again
     { name = "deskflow"; }
+    # Handy - Not available on non-Linux via nixpkgs
+    { name = "handy"; }
   ];
 }
