@@ -67,7 +67,7 @@ in
     package = pkgs.kanidmWithSecretProvisioning_1_8;
 
     serverSettings = {
-      bindaddress = "127.0.0.1:${toString configVars.networking.ports.tcp.kanidm}";
+      bindaddress = "0.0.0.0:${toString configVars.networking.ports.tcp.kanidm}";
       origin = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
       domain = configVars.homeDomain;
       log_level = "info";
