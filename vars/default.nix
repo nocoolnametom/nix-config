@@ -19,4 +19,5 @@
   gitLabEmail = "2724098-nocoolnametom@users.noreply.gitlab.com";
   persistFolder = "/persist";
   use-hy3 = true;
+  enableKanidmSSO = false; # Kanidm and OAuth2-proxy services
 }

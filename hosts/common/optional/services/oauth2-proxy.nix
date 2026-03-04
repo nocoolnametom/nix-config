@@ -5,7 +5,7 @@
   configVars,
   ...
 }:
-{
+lib.mkIf configVars.enableKanidmSSO {
   # Enable OAuth2-proxy service
   services.oauth2-proxy-multi.enable = true;
 
