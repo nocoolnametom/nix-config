@@ -88,6 +88,7 @@ in
           OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
         '';
       owner = "miniflux";
+      group = "miniflux";
       mode = "0400";
     };
 
