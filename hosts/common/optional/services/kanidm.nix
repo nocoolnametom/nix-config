@@ -306,66 +306,81 @@ in
   };
 
   # OAuth2 client secrets for OAuth2-proxy services (15 services)
-  # Must be readable by oauth2-proxy user
+  # Must be readable by both kanidm (for provisioning) and oauth2-proxy (for runtime)
   sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/ombi/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/comfyui/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/comfyuimini/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/invokeai/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/archerstashvr/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/delugeweb/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/flood/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/nzbget/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/nzbhydra/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/pinchflat/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/radarr/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/sickgear/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
   };
 
   # OIDC client secrets for native OIDC services (10 services)

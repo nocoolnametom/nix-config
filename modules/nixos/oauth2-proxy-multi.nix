@@ -276,6 +276,7 @@ in
       isSystemUser = true;
       group = cfg.group;
       description = "OAuth2 Proxy service user";
+      extraGroups = [ "keys" ]; # Need access to SOPS secrets
     };
 
     users.groups.${cfg.group} = { };
