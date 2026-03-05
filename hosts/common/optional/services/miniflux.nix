@@ -75,22 +75,16 @@ in
   sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = { };
 
   # Environment file with OIDC credentials
-  sops.templates."miniflux-secrets.env" =
-    {
-      content = if useKanidm then
-        ''
-          OAUTH2_CLIENT_ID=miniflux
-          OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/miniflux/client-secret"}
-        ''
-      else
-        ''
-          OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-id"}
-          OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
-        '';
-      owner = "miniflux";
-      group = "miniflux";
-      mode = "0400";
-    };
+  sops.templates."miniflux-secrets.env".content = if useKanidm then
+    ''
+      OAUTH2_CLIENT_ID=miniflux
+      OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/miniflux/client-secret"}
+    ''
+  else
+    ''
+      OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-id"}
+      OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
+    '';
 
   # Pass secrets to Miniflux via environment file
   systemd.services.miniflux.serviceConfig.EnvironmentFile = [
