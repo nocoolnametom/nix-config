@@ -86,6 +86,18 @@ let
           description = "Password to use for HTTP Basic Auth when passBasicAuth is enabled";
         };
 
+        basicAuthUsernameFile = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = "Path to file containing HTTP Basic Auth username (for custom credentials)";
+        };
+
+        basicAuthPasswordFile = mkOption {
+          type = types.nullOr types.path;
+          default = null;
+          description = "Path to file containing HTTP Basic Auth password (for custom credentials)";
+        };
+
         setAuthorizationHeader = mkOption {
           type = types.bool;
           default = false;
@@ -188,7 +200,32 @@ let
     pkgs.writeText "oauth2-proxy-${name}.cfg" (concatStringsSep "\n" flatConfigLines);
 
   # Create systemd service for an instance
-  mkInstanceService = name: instCfg: {
+  mkInstanceService = name: instCfg:
+    let
+      # Create wrapper script if custom basic auth is needed
+      needsBasicAuthWrapper = instCfg.basicAuthUsernameFile != null && instCfg.basicAuthPasswordFile != null;
+
+      wrapperScript = pkgs.writeShellScript "oauth2-proxy-${name}-wrapper" ''
+        set -e
+        USERNAME=$(cat ${instCfg.basicAuthUsernameFile})
+        PASSWORD=$(cat ${instCfg.basicAuthPasswordFile})
+        CREDENTIALS=$(echo -n "$USERNAME:$PASSWORD" | ${pkgs.coreutils}/bin/base64 -w 0)
+
+        exec ${pkgs.oauth2-proxy}/bin/oauth2-proxy \
+          --config ${mkInstanceConfig name instCfg} \
+          --client-secret-file ${instCfg.clientSecretFile} \
+          --cookie-secret-file ${instCfg.cookieSecretFile} \
+          --inject-request-headers "Authorization=Basic $CREDENTIALS"
+      '';
+
+      standardExecStart = ''
+        ${pkgs.oauth2-proxy}/bin/oauth2-proxy \
+          --config ${mkInstanceConfig name instCfg} \
+          --client-secret-file ${instCfg.clientSecretFile} \
+          --cookie-secret-file ${instCfg.cookieSecretFile}
+      '';
+    in
+    {
     name = "oauth2-proxy-${name}";
     value = {
       description = "OAuth2 Proxy for ${name}";
@@ -202,12 +239,7 @@ let
         User = cfg.user;
         Group = cfg.group;
 
-        ExecStart = ''
-          ${pkgs.oauth2-proxy}/bin/oauth2-proxy \
-            --config ${mkInstanceConfig name instCfg} \
-            --client-secret-file ${instCfg.clientSecretFile} \
-            --cookie-secret-file ${instCfg.cookieSecretFile}
-        '';
+        ExecStart = if needsBasicAuthWrapper then wrapperScript else standardExecStart;
 
         # Security hardening
         ProtectSystem = "strict";

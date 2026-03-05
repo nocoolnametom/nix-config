@@ -16,24 +16,24 @@ let
   #   host: The actual machine hosting the service
   #   service: Service name (used for subdomain and port lookup)
   #   domain: Either "homeDomain" or "domain"
-  #   proxy: (optional) SSO provider type
-  #     - "authentik": Route through Authentik proxy
-  #     - "kanidm-oauth2": Route through Kanidm via OAuth2-proxy (for services without native OIDC)
-  #     - "kanidm-oidc": Direct to service (service has native OIDC integration with Kanidm)
-  #     - null/unset: No SSO, direct to service
+  #   proxy: (optional) SSO provider type - use configVars.proxyTypes constants
+  #     - configVars.proxyTypes.authentik: Route through Authentik's built-in proxy
+  #     - configVars.proxyTypes.oauth2: Route through OAuth2-proxy (works with any OIDC provider)
+  #     - configVars.proxyTypes.oidc: Direct to service (service has native OIDC integration)
+  #     - configVars.proxyTypes.none or null/unset: No SSO, direct to service
   #
-  # When proxy = "authentik":
+  # When proxy = configVars.proxyTypes.authentik:
   #   - Regular domain: service.domain → caddy → authentik → host:service (SSO authentication)
   #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses Authentik for monitoring)
   #
-  # When proxy = "kanidm-oauth2":
+  # When proxy = configVars.proxyTypes.oauth2:
   #   - Regular domain: service.domain → caddy → oauth2-proxy → host:service (SSO via OAuth2-proxy)
   #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses OAuth2-proxy)
   #
-  # When proxy = "kanidm-oidc" or proxy is not set:
+  # When proxy = configVars.proxyTypes.oidc or proxy is not set:
   #   - Both regular and punch domains go directly to service
   #   - Punch domain adds basic auth for monitoring
-  #   - (kanidm-oidc services handle OIDC authentication internally)
+  #   - (OIDC services handle authentication internally)
   simpleServices = [
     # Services on homeDomain
     {
@@ -264,17 +264,17 @@ let
           servicePortNum = builtins.toString configVars.networking.ports.tcp.${service};
 
           # Authentik proxy (if enabled)
-          useAuthentik = proxy == "authentik";
+          useAuthentik = proxy == configVars.proxyTypes.authentik;
           authentikIp = configVars.networking.subnets.${authentikHost}.ip;
           authentikPort = builtins.toString configVars.networking.ports.tcp.authentik;
 
-          # Kanidm OAuth2-proxy (if enabled)
-          useKanidmOAuth2 = proxy == "kanidm-oauth2";
+          # OAuth2-proxy (if enabled) - generic reverse proxy for OIDC providers
+          useOAuth2 = proxy == configVars.proxyTypes.oauth2;
           oauth2ProxyIp = serviceHostIp; # OAuth2-proxy runs on same host as service
           oauth2ProxyPort = builtins.toString configVars.networking.ports.tcp."oauth2-${service}";
 
-          # Kanidm native OIDC (if enabled)
-          useKanidmOidc = proxy == "kanidm-oidc";
+          # Native OIDC (if enabled) - service handles OIDC internally
+          useOidc = proxy == configVars.proxyTypes.oidc;
 
           baseDomain = if domain == "homeDomain" then configVars.homeDomain else configVars.domain;
           subdomain = configVars.networking.subdomains.${service};
@@ -283,9 +283,9 @@ let
           proxyTarget =
             if useAuthentik then
               "${authentikIp}:${authentikPort}"
-            else if useKanidmOAuth2 then
+            else if useOAuth2 then
               "${oauth2ProxyIp}:${oauth2ProxyPort}"
-            else # useKanidmOidc or null - both go directly to service
+            else # useOidc or null - both go directly to service
               "${serviceHostIp}:${servicePortNum}";
 
           # Regular host configuration
@@ -300,7 +300,7 @@ let
           };
 
           # Punch-through host configuration
-          # Always goes directly to the service (bypassing Authentik) with basic auth
+          # Always goes directly to the service (bypassing SSO proxies) with basic auth
           punchHost = {
             "${subdomain}.${configVars.networking.subdomains.punch}.${baseDomain}" = {
               useACMEHost =
