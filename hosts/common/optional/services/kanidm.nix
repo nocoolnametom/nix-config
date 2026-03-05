@@ -60,10 +60,10 @@ let
         value = scopes;
       }) requiredGroups);
 in
-{
+lib.mkIf configVars.enableKanidmSSO {
   # Kanidm SSO Provider with declarative provisioning
   services.kanidm = {
-    enableServer = lib.mkDefault configVars.enableKanidmSSO;
+    enableServer = true;
     package = pkgs.kanidmWithSecretProvisioning_1_8;
 
     serverSettings = {

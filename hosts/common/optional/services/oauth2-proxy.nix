@@ -5,9 +5,9 @@
   configVars,
   ...
 }:
-{
+lib.mkIf configVars.enableKanidmSSO {
   # Enable OAuth2-proxy service
-  services.oauth2-proxy-multi.enable = lib.mkDefault configVars.enableKanidmSSO;
+  services.oauth2-proxy-multi.enable = true;
 
   # Define SOPS secrets for cookie encryption (all 15 services)
   # Must be readable by oauth2-proxy user
