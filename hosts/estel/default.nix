@@ -37,6 +37,7 @@
 
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/cross-compiling.nix"
+    "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"

@@ -34,6 +34,9 @@ in
     # Lanzaboote Secure Bootloader (like estel)
     "hosts/common/optional/lanzaboote.nix"
 
+    # GPG Agent with SSH support
+    "hosts/common/optional/gpg-agent.nix"
+
     # Copy the same optional service modules as bert; enable/disable as you prefer
     "hosts/common/optional/per-user-vpn-setup.nix"
     "hosts/common/optional/services/deluge.nix"

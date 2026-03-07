@@ -64,6 +64,12 @@
     inherit inputs outputs;
   };
 
+  # If impermanence is enabled, force clobber conflicting files (safe since non-persisted files are wiped on boot)
+  # Otherwise, use normal backup behavior
+  # Check if the persist folder path exists in environment.persistence
+  home-manager.backupFileExtension = lib.mkIf (config.environment.persistence ? ${configVars.persistFolder}) "backup";
+  home-manager.backupCommand = lib.mkIf (config.environment.persistence ? ${configVars.persistFolder}) "rm -f \"$1\"";
+
   nixpkgs = {
     overlays =
       # We can add global overlays here
