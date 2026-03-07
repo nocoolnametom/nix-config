@@ -57,4 +57,9 @@
 
   #fonts.fontconfig.enable = lib.mkDefault true;
   services.gnome-keyring.enable = lib.mkDefault true;
+
+  # Force overwrite GTK CSS files (Stylix generates these)
+  # Prevents "would be clobbered" errors during home-manager activation
+  xdg.configFile."gtk-3.0/gtk.css".force = true;
+  xdg.configFile."gtk-4.0/gtk.css".force = true;
 }
