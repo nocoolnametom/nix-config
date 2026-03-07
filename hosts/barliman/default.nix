@@ -24,9 +24,6 @@
 
     ########################### Impermanence ##################################
     # ./persistence.nix
-
-    ############################## Stylix #####################################
-    inputs.stylix.nixosModules.stylix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
@@ -48,7 +45,6 @@
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/steam.nix"
-    "hosts/common/optional/stylix.nix"
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
@@ -63,9 +59,6 @@
     "ollama"
     "open-webui"
   ];
-
-  # Stylix theme
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
 
   # Using Rocm instead of Cuda since AMD APU/GPU
   hardware.nvidia-container-toolkit.enable = lib.mkForce false;

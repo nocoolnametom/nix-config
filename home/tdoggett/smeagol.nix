@@ -18,6 +18,7 @@
     common/optional/git.nix
     common/optional/immersed.nix
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
+    common/optional/stylix.nix # System-wide theming via Home Manager
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/gpg-agent.nix
@@ -43,6 +44,9 @@
       origin = "flathub";
     }
   ];
+
+  # Stylix theme for this host
+  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
 
   home = {
     stateVersion = "25.05";

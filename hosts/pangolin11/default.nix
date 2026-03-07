@@ -27,9 +27,6 @@
 
     ############################ Lanzaboote ###################################
     inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
-
-    ############################## Stylix #####################################
-    inputs.stylix.nixosModules.stylix # Must also use the config below
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
@@ -56,7 +53,6 @@
     "hosts/common/optional/light.nix" # Monitor brightness
     # "hosts/common/optional/niri.nix"
     "hosts/common/optional/steam.nix"
-    "hosts/common/optional/stylix.nix" # System-wide styling
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
     "hosts/common/optional/yubikey.nix"
     "hosts/common/optional/vr.nix"
@@ -108,15 +104,6 @@
     appleFonts.sf-pro-nerd
     appleFonts.sf-mono-nerd
   ];
-
-  # Stylix theme
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
-  stylix.fonts.serif.package = pkgs.appleFonts.sf-pro;
-  stylix.fonts.serif.name = "SFProText Nerd Font";
-  stylix.fonts.sansSerif.package = pkgs.appleFonts.sf-pro;
-  stylix.fonts.sansSerif.name = "SFProDisplay Nerd Font";
-  stylix.fonts.monospace.package = pkgs.appleFonts.sf-mono;
-  stylix.fonts.monospace.name = "SFMono Nerd Font";
 
   environment.systemPackages = [
     pkgs.gparted

@@ -29,9 +29,6 @@ in
 
     ########################### Impermanence ##################################
     # ./persistence.nix
-
-    ############################## Stylix #####################################
-    inputs.stylix.nixosModules.stylix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

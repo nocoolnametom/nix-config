@@ -28,6 +28,10 @@
   nix.gc.automatic = true;
   nix.gc.options = "--delete-older-than 10d";
 
+  # Console font - use Terminus for better readability in VT
+  console.font = lib.mkDefault "ter-v16n";
+  console.packages = lib.mkDefault [ pkgs.terminus_font ];
+
   # Set the nix builder to always use the daemon so that any environment
   # variables on nix-daemon are present for builders
   # If this seems to be causing issues, change it to empty string
