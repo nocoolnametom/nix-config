@@ -9,7 +9,6 @@
     # Editors & IDEs
     ./kitty.nix
     ./vscode.nix
-    ./zed.nix
 
     # Communication
     ./discord.nix
