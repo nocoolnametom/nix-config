@@ -13,7 +13,6 @@
     common/core # required - remember to include a sops config below!
 
     #################### Host-specific Optional Configs ####################
-    common/optional/services/ssh-agent.nix
     common/optional/sops.nix
     common/optional/flatpak.nix
     common/optional/git.nix
@@ -21,7 +20,6 @@
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
 
     ############### Service Configurations (Enable below) #################
-    common/optional/services/ssh-agent.nix
     common/optional/services/gpg-agent.nix
     common/optional/services/syncthing.nix
   ];

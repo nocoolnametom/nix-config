@@ -146,7 +146,8 @@ in
     services.udev.packages = [ pkgs.yubikey-personalization ];
 
     # FIXME(yubikey): Check if this exists on darwin
-    services.yubikey-agent.enable = true;
+    # Disabled: Using gpg-agent for SSH instead, which also supports Yubikey
+    # services.yubikey-agent.enable = true;
 
     # yubikey login / sudo
     security.pam = lib.optionalAttrs pkgs.stdenv.isLinux {

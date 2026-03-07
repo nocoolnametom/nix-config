@@ -35,6 +35,7 @@
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
+    "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
