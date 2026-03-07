@@ -77,7 +77,6 @@
           ".config/obsidian" # obsidian
           ".config/Slack" # slack
           ".config/vlc" # vlc
-          ".config/zed" # zed
           ".vscode" # vscode
           ".config/Code" # vscode/cursor
           ".Immersed" # immersed
