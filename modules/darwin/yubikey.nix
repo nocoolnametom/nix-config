@@ -148,7 +148,7 @@ in
       "theseal/ssh-askpass/ssh-askpass"
     ];
 
-    # Use brew's openssh for ssh-agent
+    # Use brew's openssh for ssh-agent, bound to a stable known path
     launchd.user.agents.ssh-agent = {
       serviceConfig = {
         Label = "com.homebrew.ssh-agent";
@@ -157,8 +157,7 @@ in
         ProgramArguments = [
           "/bin/sh"
           "-c"
-          # We reuse SSH_AUTH_SOCK from com.openssh.ssh-agent
-          "rm -f $SSH_AUTH_SOCK; exec ${config.homebrew.brewPrefix}/ssh-agent -D -a $SSH_AUTH_SOCK"
+          "mkdir -p $(dirname ${agentSocket}); rm -f ${agentSocket}; exec ${config.homebrew.brewPrefix}/ssh-agent -D -a ${agentSocket}"
         ];
         RunAtLoad = true;
       };

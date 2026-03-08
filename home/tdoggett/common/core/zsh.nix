@@ -1,4 +1,14 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
+let
+  # Platform-specific SSH_AUTH_SOCK:
+  #   Darwin: brew ssh-agent at a stable known path (see modules/darwin/yubikey.nix)
+  #   Linux:  gpg-agent SSH socket (needed to override gnome-keyring on COSMIC)
+  sshAuthSockLine =
+    if pkgs.stdenv.isDarwin then
+      "export SSH_AUTH_SOCK=\"$HOME/.ssh/sockets/ssh-agent.sock\""
+    else
+      "export SSH_AUTH_SOCK=\"\${XDG_RUNTIME_DIR:-/run/user/$UID}/gnupg/S.gpg-agent.ssh\"";
+in
 {
   programs.zsh.enable = lib.mkDefault true;
   programs.zsh.enableCompletion = lib.mkDefault true;
@@ -7,15 +17,11 @@
 
   programs.zsh.history.size = 123456;
 
-  # Force SSH_AUTH_SOCK to GPG agent (overrides COSMIC session environment)
-  # This is needed because COSMIC starts gnome-keyring with --login which sets SSH_AUTH_SOCK
-  # before Home Manager's sessionVariables are applied.
-  # Skip this override when SSH agent forwarding is active (i.e. when SSH'd in from another machine)
-  # so that the forwarded agent (e.g. Yubikey on the connecting host) is used instead.
+  # Override SSH_AUTH_SOCK for local sessions only.
+  # Skipped when SSH agent forwarding is active so the forwarded agent is used instead.
   programs.zsh.initContent = ''
-    # Use GPG agent for SSH authentication (local sessions only)
     if [[ -z "$SSH_CLIENT" && -z "$SSH_CONNECTION" ]]; then
-      export SSH_AUTH_SOCK="''${XDG_RUNTIME_DIR:-/run/user/$UID}/gnupg/S.gpg-agent.ssh"
+      ${sshAuthSockLine}
     fi
   '';
 }
