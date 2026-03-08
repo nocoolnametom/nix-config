@@ -4,17 +4,36 @@ This repository contains a comprehensive NixOS/Nix-Darwin configuration managing
 
 ## Quick Start
 
+After cloning this repo, set up the git pre-commit hooks:
+
+```bash
+nix develop
+```
+
+That's it — the dev shell automatically installs a `.git/hooks/pre-commit` script (managed by Nix) that runs formatting and safety checks on every commit. You only need to do this once per clone.
+
 To update only specific inputs (eg, nix-secrets and nixpkgs-unstable):
 
 ```bash
 nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
 ```
 
-To run a full check on any system:
+To evaluate a system's config without building it (catches typos across all systems):
 
 ```bash
-nix flake check --no-build --all-systems
+# Single system
+nix eval .#nixosConfigurations.estel.config.system.build.toplevel --apply 'drv: drv.drvPath'
+
+# All active NixOS systems
+for system in pangolin11 smeagol barliman estel bombadil durin; do
+  printf "%-12s " "$system"
+  nix eval .#nixosConfigurations.$system.config.system.build.toplevel \
+    --apply 'drv: drv.drvPath' 2>&1 | tail -1
+done
 ```
+
+Note: evaluation of x86\_64-linux systems from a macOS host requires at least one remote builder
+to be reachable (see `hosts/common/darwin/optional/nix-remote-builders.nix`).
 
 ## Repository Structure
 
@@ -58,7 +77,7 @@ nix flake check --no-build --all-systems
     "hosts/common/optional/steam.nix"      # Optional: Steam gaming
     "hosts/common/users/${configVars.username}"
   ]);
-  
+
   # Only machine-specific settings here
   networking.hostName = "pangolin11";
   stylix.image = ./wallpaper.jpg;
@@ -69,21 +88,21 @@ nix flake check --no-build --all-systems
 
 ### NixOS Systems (Full System Control)
 - **pangolin11** - System76 Pangolin 11 laptop (primary development)
-- **thinkpadx1** - ThinkPad X1 Carbon laptop
-- **melian** - Asus Zenbook 13 laptop  
-- **smeagol** - AMD desktop (dual boot)
-- **sauron** - Windows WSL2 NixOS
-- **bert** - Raspberry Pi 4 (home server)
-- **glorfindel** - Linode VPS (web services)
-- **bombadil** - Linode VPS (web services) 
-- **fedibox** - AWS EC2 (fediverse services)
+- **barliman** - AMD Framework Desktop (testbed, gaming)
+- **smeagol** - AMD desktop (GPU/AI workloads, Docker)
+- **durin** - KAMRUI E2 Mini PC (lightweight services)
+- **estel** - Beelink SER5 Mini PC (media, 24/7 automation)
+- **bombadil** - Linode 4GB VPS (web services — watch RAM!)
 
 ### Nix-Darwin Systems (macOS with Nix)
 - **macbookpro** - Corporate MacBook Pro (limited by corporate policies)
 
 ### Home Manager Only (Limited System Access)
 - **steamdeck** - Steam Deck (SteamOS with HM overlay)
-- **vm1** - Work Ubuntu VM (HM for user environment only)
+
+### Archived Systems
+NixOS (in `hosts/archived/`): thinkpadx1, melian, sauron, bert, glorfindel, fedibox
+HM-only (in `home/tdoggett/archived/`): vm1
 
 ## Key Features & Technologies
 
@@ -107,7 +126,7 @@ nix flake check --no-build --all-systems
 
 ### High Priority 🔥
  * [ ] **Implement better deployment workflow** - Deploy uncommitted changes to remote machines for testing
- * [ ] **Local remote builds** - Build remote machine configurations locally to verify compatibility before committing  
+ * [ ] **Local remote builds** - Build remote machine configurations locally to verify compatibility before committing
  * [ ] **Clean commit history** - Rebase entire history to remove "Typo" and "Fixes" commits
  * [ ] **Create more `hosts/common` modules** - Move shared configuration out of machine-specific files
  * [ ] **Create more `home/common` modules** - Minimize user-specific declarations in machine files
@@ -129,7 +148,7 @@ nix flake check --no-build --all-systems
 
 ### Infrastructure Improvements 🛠️
  * [ ] Better secrets management workflow
- * [ ] Monitoring and alerting for all managed systems  
+ * [ ] Monitoring and alerting for all managed systems
  * [ ] Backup and disaster recovery procedures
  * [ ] Security hardening implementation across all systems
  * [ ] Performance optimization and resource monitoring

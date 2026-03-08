@@ -139,6 +139,13 @@
           configurationRevision
           ;
       };
+      # System names for per-system pre-push hooks in checks/.
+      # builtins.attrNames is lazy — only forces top-level keys, never the configs themselves.
+      # NOTE: NixOS keys are static strings (safe). Darwin key is dynamic but always present.
+      # HM config keys are omitted: they use dynamic nix-secrets references whose attrs may
+      # not always exist, and would cause `nix develop` to fail if nix-secrets changes.
+      nixosNames = builtins.attrNames outputs.nixosConfigurations;
+      darwinNames = builtins.attrNames outputs.darwinConfigurations;
     in
     {
       # Custom modules to enable special functionality for nixos or home-manager oriented configs.
@@ -163,19 +170,40 @@
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        import ./checks { inherit inputs system pkgs; }
+        import ./checks {
+          inherit
+            inputs
+            system
+            pkgs
+            nixosNames
+            darwinNames
+            ;
+        }
       );
 
       # Nix formatter available through 'nix fmt' https://github.com/NixOS/nixfmt
       formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
 
       # Shell configured with packages that are typically only needed when working on or with nix-config.
+      # Also wires the pre-commit-check shellHook so `nix develop` auto-installs git hooks.
       devShells = forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
+          checksForSystem = import ./checks {
+            inherit
+              inputs
+              system
+              pkgs
+              nixosNames
+              darwinNames
+              ;
+          };
         in
-        import ./shell.nix { inherit pkgs; }
+        import ./shell.nix {
+          inherit pkgs;
+          inherit (checksForSystem) pre-commit-check;
+        }
       );
 
       #################### NixOS Configurations ####################
@@ -343,16 +371,6 @@
       #
       legacyPackages = forAllSystems (system: {
         homeConfigurations = {
-          # Ubuntu VM 1
-          "${configVars.username}@${nix-secrets.networking.work.vm1.name}" =
-            home-manager.lib.homeManagerConfiguration
-              {
-                pkgs = specialArgs.nixpkgs.legacyPackages.${system};
-                extraSpecialArgs = specialArgs;
-                modules = [
-                  ./home/tdoggett/vm1.nix
-                ];
-              };
           # Steam Deck
           "deck@${nix-secrets.networking.subnets.steamdeck.name}" =
             home-manager.lib.homeManagerConfiguration
@@ -365,5 +383,12 @@
               };
         };
       });
+
+      #################### Archived HM-Only Configurations ####################
+      #
+      # No longer built. Config files preserved in home/tdoggett/archived/ for reference.
+      #
+      # vm1 — Ubuntu work VM (ARCHIVED): nix-secrets.networking.work.vm1 removed
+      #   home/tdoggett/archived/vm1.nix
     };
 }

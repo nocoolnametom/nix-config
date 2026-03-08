@@ -12,6 +12,11 @@
       };
     in
     import nixpkgs { overlays = [ ]; },
+  # Pre-commit check derivation from checks/default.nix — provides shellHook to install git hooks.
+  # Defaults to a no-op when shell.nix is used standalone (without the flake).
+  pre-commit-check ? {
+    shellHook = "";
+  },
   ...
 }:
 {
@@ -34,5 +39,8 @@
         sops
         ;
     };
+    # Installs .git/hooks/pre-commit pointing to the Nix-managed hook script.
+    # Running `nix develop` once per clone is all that's needed.
+    shellHook = pre-commit-check.shellHook;
   };
 }
