@@ -85,6 +85,11 @@ in
           }
         '';
       };
+      autoScreenLock = lib.mkOption {
+        default = false;
+        type = lib.types.bool;
+        description = "Lock screen when YubiKey is removed (not supported on macOS, option exists for compatibility)";
+      };
     };
   };
   config = lib.mkIf config.yubikey.enable {

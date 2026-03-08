@@ -28,8 +28,11 @@
   nix.gc.automatic = true;
   nix.gc.options = "--delete-older-than 10d";
 
-  # Console font - use Terminus for better readability in VT
-  console.font = lib.mkDefault "ter-v16n";
+  # Console font - use Terminus for better readability in VT.
+  # Use full store path so NixOS adds it to boot.initrd.systemd.storePaths,
+  # making it available before activation sets up /etc/kbd (which happens ~5s
+  # after systemd-vconsole-setup runs early in boot).
+  console.font = lib.mkDefault "${pkgs.terminus_font}/share/consolefonts/ter-v16n.psf.gz";
   console.packages = lib.mkDefault [ pkgs.terminus_font ];
 
   # Set the nix builder to always use the daemon so that any environment
@@ -71,8 +74,12 @@
   # If impermanence is enabled, force clobber conflicting files (safe since non-persisted files are wiped on boot)
   # Otherwise, use normal backup behavior
   # Check if persistence is enabled and the persist folder path exists
-  home-manager.backupFileExtension = lib.mkIf (config.environment ? persistence && config.environment.persistence ? ${configVars.persistFolder}) "backup";
-  home-manager.backupCommand = lib.mkIf (config.environment ? persistence && config.environment.persistence ? ${configVars.persistFolder}) "rm -f \"$1\"";
+  home-manager.backupFileExtension = lib.mkIf (
+    config.environment ? persistence && config.environment.persistence ? ${configVars.persistFolder}
+  ) "backup";
+  home-manager.backupCommand = lib.mkIf (
+    config.environment ? persistence && config.environment.persistence ? ${configVars.persistFolder}
+  ) "rm -f \"$1\"";
 
   nixpkgs = {
     overlays =

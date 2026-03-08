@@ -42,8 +42,11 @@
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
+    "hosts/common/optional/amdgpu_top.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
+    "hosts/common/optional/nvtop.nix"
+    "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################
@@ -67,6 +70,7 @@
   nixpkgs.config.rocmSupport = true;
 
   # Open-WebUI is a web-frontend for chatting with ollama
+  services.open-webui.package = pkgs.stable.open-webui;
   services.ollama.acceleration = "rocm";
   services.ollama.models = "/var/lib/ai-models/ollama";
   services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
