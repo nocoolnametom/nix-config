@@ -25,7 +25,7 @@ in
     description = "Defines named symlink target directories for comfyui models.";
   };
 
-  config = mkIf config.services.comfyui.enable {
+  config = mkIf (config.services.comfyui.symlinkPaths != { }) {
     systemd.tmpfiles.rules = lib.flatten (
       mapAttrsToList (name: path: [
         # Original directory

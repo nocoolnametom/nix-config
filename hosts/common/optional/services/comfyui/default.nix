@@ -265,7 +265,10 @@ in
 
     # Model configuration (used by both native and Docker via symlinker)
     {
-      services.comfyui.enable = mkDefault true;
+      # When using Docker, disable the native comfyui service to avoid IFD from
+      # nixified-ai's comfyui package evaluating builtins.readDir on its source.
+      # The symlinker uses symlinkPaths != {} as its condition, so it still runs.
+      services.comfyui.enable = if cfg.useDocker then mkForce false else mkDefault true;
       services.comfyui.host = mkDefault "0.0.0.0";
       services.comfyui.models = mkDefault (
         pkgs.lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineModels
