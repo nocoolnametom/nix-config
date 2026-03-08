@@ -42,8 +42,10 @@
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
+    "hosts/common/optional/amdgpu_top.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
+    "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################

@@ -52,6 +52,7 @@
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/light.nix" # Monitor brightness
     # "hosts/common/optional/niri.nix"
+    "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
     "hosts/common/optional/yubikey.nix"
