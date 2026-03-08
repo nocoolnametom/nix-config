@@ -1,74 +1,20 @@
 {
-  pkgs,
   lib,
   config,
   configVars,
   ...
 }:
 {
-  # Failover redirects disabled - HAProxy now routes homelab traffic through WireGuard tunnel
-  services.failoverRedirects.enable = false;
-  services.failoverRedirects.excludeDomains =
-    let
-      akkomaDomain = config.services.akkoma.config.":pleroma"."Pleroma.Web.Endpoint".url.host;
-      akkomaUrls = lib.optionals config.services.akkoma.enable [
-        akkomaDomain
-        "www.${akkomaDomain}"
-        "${configVars.handles.mastodon}.${akkomaDomain}"
-        "private.${akkomaDomain}"
-        "cache.${akkomaDomain}"
-        "media.${akkomaDomain}"
-      ];
-      goToSocialUrls = lib.optionals config.services.gotosocial.enable [
-        config.services.gotosocial.settings.host
-      ];
-      mastodonUrls = lib.optionals config.services.mastodon.enable [
-        config.services.mastodon.localDomain
-        "reddit-feed.${config.services.mastodon.localDomain}"
-        "www.${config.services.mastodon.localDomain}"
-      ];
-      wordpressUrls =
-        (builtins.attrNames config.services.wordpress.sites)
-        ++ (builtins.map (x: "www.${x}") (builtins.attrNames config.services.wordpress.sites))
-        ++ (builtins.map (x: "beta.${x}") (builtins.attrNames config.services.wordpress.sites));
-    in
-    [
-      # Specify any manual urls here not made in the above dynamic lists
-      configVars.networking.hosting.canon.domain
-      configVars.networking.hosting.quotes.domain
-      configVars.networking.hosting.jod.domain
-    ]
-    ++ [ config.services.failoverRedirects.statusPageDomain ]
-    ++ akkomaUrls
-    ++ goToSocialUrls
-    ++ mastodonUrls
-    ++ wordpressUrls;
-  services.failoverRedirects.statusPageDomain = "${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}";
+  # nginx must be in the acme group to serve ACME http-01 challenge files.
+  # The webroot /var/lib/acme/acme-challenge/ is owned acme:acme (750), so nginx
+  # needs acme group membership to traverse it and read challenge tokens.
+  users.users.nginx.extraGroups = [ "acme" ];
   # Ensure that the acme user has permissions to write new certificate in the nginx group
   users.users.acme.extraGroups = [ "nginx" ];
-  users.users.acme.shell = pkgs.bash;
-  services.openssh.settings.AllowUsers = [ "acme" ];
-  # wheel is included here because otherwise it wipes it out, not sure why
-  services.openssh.settings.AllowGroups = [
-    "acme"
-    "wheel"
-  ];
-  users.users.acme.openssh.authorizedKeys.keyFiles = [
-    ./acme-failover-key.pub
-  ];
   systemd.tmpfiles.rules = [
     "d /var/lib/acme 2750 acme nginx -"
-    "d ${config.services.failoverRedirects.certPath} 2750 acme nginx -" # Separate directory for failover certs
     "d /run/nginx 0755 root root -"
   ];
-
-  # Rsync certificate receiver - DISABLED (HAProxy routes traffic, no cert sync needed)
-  # services.rsyncCertSync.receiver.enable = true;
-  # services.rsyncCertSync.receiver.certPath = lib.mkDefault config.services.failoverRedirects.certPath;
-  # services.rsyncCertSync.receiver.certUser = "acme";
-  # services.rsyncCertSync.receiver.certGroup = "nginx";
-  # services.rsyncCertSync.receiver.timerSchedule = "*-*-* 03:00:00";
-  # services.rsyncCertSync.receiver.delayMinutes = 5;
 
   # Note that the NGINX setups for Mastodon is actually located in the Mastodon service file!
 
@@ -96,14 +42,14 @@
   '';
   services.nginx.virtualHosts.localhost.forceSSL = false;
   # services.nginx.virtualHosts.localhost.http2 = true;
-  services.nginx.virtualHosts.localhost.listenAddresses = [
-    "127.0.0.1"
-    "[::1]"
-  ];
+  # NOTE: Do NOT set listenAddresses on localhost. If localhost binds explicitly to
+  # 127.0.0.1:8080, it creates a separate socket that captures ALL connections from
+  # HAProxy (which forwards to 127.0.0.1:8080), causing every domain's HTTP requests
+  # to be served by this vhost instead of their own. Without listenAddresses, all
+  # vhosts share the 0.0.0.0:8080 socket and nginx uses server_name to route correctly.
 
-  # Default catch-all: present wildcard cert instead of the first failover cert
-  # Uses OnFailure to handle missing certs gracefully - nginx will retry after cert sync
-  # Now listens on internal ports (HAProxy forwards to these)
+  # Default catch-all: present main domain cert, drop unknown connections
+  # Listens on internal ports (HAProxy forwards to these)
   services.nginx.virtualHosts."_default" = {
     default = true;
     listen = [
@@ -118,19 +64,17 @@
       }
     ];
     forceSSL = true;
-    sslCertificate = "${config.services.failoverRedirects.certPath}/${configVars.domain}/fullchain.pem";
-    sslCertificateKey = "${config.services.failoverRedirects.certPath}/${configVars.domain}/key.pem";
+    sslCertificate = "/var/lib/acme/${configVars.domain}/fullchain.pem";
+    sslCertificateKey = "/var/lib/acme/${configVars.domain}/key.pem";
     locations."/".return = "444";
   };
 
-  # Make nginx tolerate missing failover certificates on startup
+  # Make nginx tolerate startup failures (e.g., certs not yet issued on first boot)
   systemd.services.nginx = {
     serviceConfig = {
-      # Restart nginx automatically if it fails (e.g., due to missing certs)
       Restart = lib.mkForce "on-failure";
       RestartSec = "10s";
     };
-    # Don't fail boot if nginx can't start due to missing certs
     unitConfig.FailureAction = "none";
   };
 
