@@ -53,6 +53,7 @@
     "hosts/common/optional/light.nix" # Monitor brightness
     # "hosts/common/optional/niri.nix"
     "hosts/common/optional/nvtop.nix"
+    "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
     "hosts/common/optional/yubikey.nix"
@@ -68,6 +69,10 @@
   # Once synergy is actually working on Comsic we can re-enable this, but until then it
   # makes sense to not have a useless service just sitting open
   services.synergy.client.enable = false;
+
+  # Enable YubiKey auto-lock for security when laptop is left unattended
+  # Screen will lock automatically when YubiKey is removed
+  yubikey.autoScreenLock = true;
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {

@@ -46,6 +46,7 @@
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/nvtop.nix"
+    "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################

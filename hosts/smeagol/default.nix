@@ -56,6 +56,7 @@ in
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/nvidia.nix"
     "hosts/common/optional/nvtop.nix"
+    "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################

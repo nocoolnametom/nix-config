@@ -8,5 +8,8 @@
       yklappy = 22373686;
       ykmbp = 22373683;
     };
+    # Auto-lock screen when YubiKey is removed (useful for laptops)
+    # Only works on Linux with systemd (not macOS)
+    autoScreenLock = lib.mkDefault false; # Enable per-machine as needed
   };
 }
