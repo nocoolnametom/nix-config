@@ -4,3 +4,4 @@ result
 .cursor
 .DS_Store
 .pre-commit-config.yaml
+.direnv
