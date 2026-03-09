@@ -70,6 +70,7 @@
   nixpkgs.config.rocmSupport = true;
 
   # Open-WebUI is a web-frontend for chatting with ollama
+  services.open-webui.package = pkgs.stable.open-webui;
   services.ollama.acceleration = "rocm";
   services.ollama.models = "/var/lib/ai-models/ollama";
   services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
