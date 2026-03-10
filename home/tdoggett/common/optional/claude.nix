@@ -2,10 +2,12 @@
   pkgs,
   config,
   lib,
+  osConfig ? null,
   ...
 }:
 let
-  jsonFormat = pkgs.formats.json { };
+  cfg = config.myModules.claude;
+
   claudeMarkdown = ''
     # NixOS/Darwin-Nix Development Environment
 
@@ -40,22 +42,95 @@ let
     Avoid assuming standard system tools like `python`, `node`, `go`, etc. are globally
     available. Always check availability or use `nix run` to provide them.
   '';
+
+  # These env vars are always enforced by Nix regardless of what Claude writes.
+  # All other keys Claude adds (mcpServers, permissions, hooks, etc.) are preserved.
+  baseSettings = {
+    attribution = {
+      commit = "";
+      pr = "";
+    };
+    prefersReducedMotion = cfg.prefersReducedMotion;
+    terminalProgressBarEnabled = cfg.terminalProgressBarEnabled;
+    env = {
+      # Disable nonessential UI features:
+      CLAUDE_CODE_DISABLE_TERMINAL_TITLE = 1;
+      CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = 1;
+      # Disable auto-updates:
+      DISABLE_AUTOUPDATER = 1;
+      # Reduces splash screen size:
+      IS_DEMO = 1;
+      # Use system ripgrep instead of built-in version:
+      USE_BUILTIN_RIPGREP = 0;
+    }
+    // lib.optionalAttrs cfg.disableTelemetry {
+      CLAUDE_CODE_ENABLE_TELEMETRY = 0;
+    }
+    // lib.optionalAttrs cfg.disableNonessentialTraffic {
+      CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
+    }
+    // lib.optionalAttrs cfg.fixAttributionHeaderForLocal {
+      CLAUDE_CODE_ATTRIBUTION_HEADER = 0;
+    };
+  };
+
+  baseSettingsJson = builtins.toJSON baseSettings;
+
+  settingsFile = "${config.home.homeDirectory}/.claude/settings.json";
 in
 {
-  home.file."${config.home.homeDirectory}/.claude/settings.json".source =
-    jsonFormat.generate "claude-settings-${config.home.username}"
-      {
-        # Disable telemetry and nonessential features:
-        env.CLAUDE_CODE_DISABLE_TERMINAL_TITLE = 1;
-        env.CLAUDE_CODE_DISABLE_FEEDBACK_SURVEY = 1;
-        env.CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
-        # Disable auto-updates:
-        env.DISABLE_AUTOUPDATER = 1;
-        # reduces splash screen size:
-        env.IS_DEMO = 1;
-        # Use system ripgrep instead of built-in version:
-        env.USE_BUILTIN_RIPGREP = 0;
-      };
+  options.myModules.claude = {
+    fixAttributionHeaderForLocal = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Set CLAUDE_CODE_ATTRIBUTION_HEADER=0. Disable on work machines where attribution headers are expected.";
+    };
+    disableTelemetry = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Set CLAUDE_CODE_ENABLE_TELEMETRY=0 to disable telemetry reporting.";
+    };
+    disableNonessentialTraffic = lib.mkOption {
+      type = lib.types.bool;
+      default = if osConfig != null then (osConfig.services.ollama.enable or false) else false;
+      description = "Set CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1. Defaults to true when ollama is enabled.";
+    };
+    prefersReducedMotion = lib.mkOption {
+      type = lib.types.bool;
+      default = if osConfig != null then (osConfig.services.ollama.enable or false) else false;
+      description = "Sets motion to be reduced. Defaults to true when ollama is enabled.";
+    };
+    terminalProgressBarEnabled = lib.mkOption {
+      type = lib.types.bool;
+      default = if osConfig != null then (!osConfig.services.ollama.enable or true) else true;
+      description = "Enabled progress bar in terminal. Defaults to false when ollama is enabled.";
+    };
+  };
 
-  home.file."${config.home.homeDirectory}/.claude/CLAUDE.md".text = claudeMarkdown;
+  # settings.json is managed via activation (not home.file) so Claude Code can write to it.
+  # On each switch: Claude's additions are preserved, but the `env` section is always
+  # overwritten with the Nix-defined base (merge strategy: base * existing * {env: base.env}).
+  config = {
+    home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      mkdir -p "${config.home.homeDirectory}/.claude"
+      BASE='${baseSettingsJson}'
+
+      if [ -L "${settingsFile}" ]; then
+        # Remove old Nix-managed symlink from previous config approach
+        rm "${settingsFile}"
+      fi
+
+      if [ -f "${settingsFile}" ]; then
+        MERGED=$(${pkgs.jq}/bin/jq -n \
+          --argjson base "$BASE" \
+          --argjson existing "$(cat "${settingsFile}")" \
+          '$base * $existing * {env: $base.env}')
+        echo "$MERGED" > "${settingsFile}"
+      else
+        echo "$BASE" | ${pkgs.jq}/bin/jq '.' > "${settingsFile}"
+      fi
+    '';
+
+    home.file."${config.home.homeDirectory}/.claude/CLAUDE.md".text = claudeMarkdown;
+  };
 }

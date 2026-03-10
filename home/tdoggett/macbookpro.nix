@@ -19,6 +19,8 @@
     common/optional/claude.nix
   ];
 
+  myModules.claude.fixAttributionHeaderForLocal = false;
+
   programs.git.settings.user.email = lib.mkForce configVars.email.work;
 
   home.sessionVariables = {
@@ -43,7 +45,7 @@
 
   programs.bash.initExtra = ''
     [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion" 
+    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
   '';
 
   programs.zsh.initContent = ''
