@@ -195,7 +195,6 @@ let
       host = "durin";
       service = "miniflux";
       domain = "homeDomain";
-      proxy = "authentik";
     }
     {
       host = "durin";
@@ -285,7 +284,8 @@ let
               "${authentikIp}:${authentikPort}"
             else if useOAuth2 then
               "${oauth2ProxyIp}:${oauth2ProxyPort}"
-            else # useOidc or null - both go directly to service
+            # useOidc or null - both go directly to service
+            else
               "${serviceHostIp}:${servicePortNum}";
 
           # Regular host configuration
@@ -328,9 +328,13 @@ in
   # Export SSO provider configuration from simpleServices
   services.ssoProvider = lib.listToAttrs (
     lib.filter (x: x != null) (
-      map (svc:
+      map (
+        svc:
         if svc.proxy or null != null then
-          { name = svc.service; value = svc.proxy; }
+          {
+            name = svc.service;
+            value = svc.proxy;
+          }
         else
           null
       ) simpleServices
