@@ -19,7 +19,7 @@
     common/optional/claude.nix
   ];
 
-  myModules.claude.fixAttributionHeaderForLocal = false;
+  programs.claude.enable = true;
 
   programs.git.settings.user.email = lib.mkForce configVars.email.work;
 

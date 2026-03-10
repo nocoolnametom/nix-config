@@ -6,7 +6,17 @@
   ...
 }:
 let
-  cfg = config.myModules.claude;
+  cfg = config.programs.claude;
+
+  # Models available on the target ollama machine (from private my-sd-models flake)
+  machineModels = lib.attrByPath [ cfg.ollamaMachine ] [ ] pkgs.my-sd-models.machineLLMs;
+
+  # All three conditions must hold for local Claude to activate:
+  #   1. useLocalClaude = true
+  #   2. localModel is set (non-null)
+  #   3. localModel is present in the target machine's model list
+  localEnabled =
+    cfg.useLocalClaude && cfg.localModel != null && builtins.elem cfg.localModel machineModels;
 
   claudeMarkdown = ''
     # NixOS/Darwin-Nix Development Environment
@@ -52,6 +62,14 @@ let
     };
     prefersReducedMotion = cfg.prefersReducedMotion;
     terminalProgressBarEnabled = cfg.terminalProgressBarEnabled;
+  }
+  // lib.optionalAttrs localEnabled {
+    # Skip the onboarding flow when using local ollama (no real API key needed)
+    hasCompletedOnboarding = true;
+    # Provide a dummy key as a fallback; the merge strategy preserves any real existing key
+    primaryApiKey = "sk-dummy-key";
+  }
+  // {
     env = {
       # Disable nonessential UI features:
       CLAUDE_CODE_DISABLE_TERMINAL_TITLE = 1;
@@ -69,8 +87,12 @@ let
     // lib.optionalAttrs cfg.disableNonessentialTraffic {
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
     }
-    // lib.optionalAttrs cfg.fixAttributionHeaderForLocal {
+    // lib.optionalAttrs (cfg.fixAttributionHeaderForLocal || localEnabled) {
       CLAUDE_CODE_ATTRIBUTION_HEADER = 0;
+    }
+    // lib.optionalAttrs localEnabled {
+      ANTHROPIC_BASE_URL = "http://${cfg.ollamaHost}:${toString cfg.ollamaPort}";
+      ANTHROPIC_API_KEY = "sk-1234";
     };
   };
 
@@ -79,11 +101,12 @@ let
   settingsFile = "${config.home.homeDirectory}/.claude/settings.json";
 in
 {
-  options.myModules.claude = {
+  options.programs.claude = {
+    enable = lib.mkEnableOption "Claude Code settings management";
     fixAttributionHeaderForLocal = lib.mkOption {
       type = lib.types.bool;
-      default = true;
-      description = "Set CLAUDE_CODE_ATTRIBUTION_HEADER=0. Disable on work machines where attribution headers are expected.";
+      default = false;
+      description = "Set CLAUDE_CODE_ATTRIBUTION_HEADER=0. Automatically forced when useLocalClaude is active; set this explicitly only if you want it forced without local Claude.";
     };
     disableTelemetry = lib.mkOption {
       type = lib.types.bool;
@@ -105,12 +128,52 @@ in
       default = if osConfig != null then (!osConfig.services.ollama.enable or true) else true;
       description = "Enabled progress bar in terminal. Defaults to false when ollama is enabled.";
     };
+    useLocalClaude = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = "Use a local ollama instance instead of the Anthropic API. Also requires localModel to be set and available on ollamaMachine.";
+    };
+    localModel = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      description = "Ollama model name (e.g. \"llama3.2:latest\"). Must match an entry in pkgs.my-sd-models.machineLLMs for ollamaMachine. If null, local Claude is disabled regardless of useLocalClaude.";
+    };
+    ollamaHost = lib.mkOption {
+      type = lib.types.str;
+      default = "localhost";
+      description = "Host or IP address of the machine running ollama. Used to build ANTHROPIC_BASE_URL. For remote machines (e.g. estel → barliman), set this to the remote IP/hostname.";
+    };
+    ollamaPort = lib.mkOption {
+      type = lib.types.port;
+      default = 11434;
+      description = "Port ollama is listening on. Used to build ANTHROPIC_BASE_URL.";
+    };
+    ollamaMachine = lib.mkOption {
+      type = lib.types.str;
+      default = if osConfig != null then (osConfig.networking.hostName or "") else "";
+      description = "Hostname key used to look up available models in pkgs.my-sd-models.machineLLMs. Defaults to the current machine. Override when pointing at a remote ollama host (e.g. set to \"barliman\" on estel).";
+    };
   };
 
   # settings.json is managed via activation (not home.file) so Claude Code can write to it.
   # On each switch: Claude's additions are preserved, but the `env` section is always
   # overwritten with the Nix-defined base (merge strategy: base * existing * {env: base.env}).
-  config = {
+  # When localEnabled, hasCompletedOnboarding is also forced from base.
+  # primaryApiKey uses base as a fallback only — any existing key is preserved by the merge.
+  config = lib.mkIf cfg.enable {
+    warnings =
+      lib.optionals
+        (cfg.useLocalClaude && cfg.localModel != null && !(builtins.elem cfg.localModel machineModels))
+        [
+          "programs.claude: localModel '${cfg.localModel}' was not found in pkgs.my-sd-models.machineLLMs for machine '${cfg.ollamaMachine}'. Local Claude will not be configured."
+        ];
+
+    # When local Claude is active, alias `claude` to always pass --model so the user
+    # only needs to write `claude --other-flags` without specifying the model each time.
+    home.shellAliases = lib.mkIf localEnabled {
+      claude = "claude --model ${lib.escapeShellArg cfg.localModel}";
+    };
+
     home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p "${config.home.homeDirectory}/.claude"
       BASE='${baseSettingsJson}'
@@ -124,7 +187,7 @@ in
         MERGED=$(${pkgs.jq}/bin/jq -n \
           --argjson base "$BASE" \
           --argjson existing "$(cat "${settingsFile}")" \
-          '$base * $existing * {env: $base.env}')
+          '$base * $existing * {env: $base.env${lib.optionalString localEnabled ", hasCompletedOnboarding: $base.hasCompletedOnboarding"}}')
         echo "$MERGED" > "${settingsFile}"
       else
         echo "$BASE" | ${pkgs.jq}/bin/jq '.' > "${settingsFile}"
