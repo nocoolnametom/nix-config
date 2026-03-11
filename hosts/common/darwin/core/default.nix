@@ -36,6 +36,22 @@
 
   # Ensure these tools are available for all users, even if it's just root on the system
   environment.systemPackages = [
+    # Wrapper around `darwin-rebuild switch` that:
+    # 1. Uses `path:` protocol so Nix's git ownership check doesn't block root
+    #    (when /etc/nix-darwin is a symlink to a user-owned git repo, nix refuses
+    #    to open it as root via git+file://)
+    # 2. Self-escalates to sudo if not already root
+    (pkgs.writeShellScriptBin "darwin-switch" ''
+      if [[ $(id -u) -ne 0 ]]; then
+        exec sudo "$0" "$@"
+      fi
+      if [[ ! -e /etc/nix-darwin/flake.nix ]]; then
+        echo "darwin-switch: /etc/nix-darwin/flake.nix not found" >&2
+        exit 1
+      fi
+      flake_dir=$(dirname "$(readlink -f /etc/nix-darwin/flake.nix)")
+      exec darwin-rebuild switch --flake "path:''${flake_dir}#$(scutil --get LocalHostName)" "$@"
+    '')
     pkgs.wget
     pkgs.git # Needed for flakes!
     pkgs.git-lfs
