@@ -91,6 +91,7 @@
 
   # Push
   programs.git.settings.push.autoSetupRemote = true;
+  programs.git.settings.push.useForceIfIncludes = true;
 
   # Rebase
   programs.git.settings.rebase.autostash = lib.mkDefault true;
@@ -117,6 +118,7 @@
 
   # Aliases
   programs.git.settings.alias.co = "checkout";
+  programs.git.settings.alias.force = "push --force-with-lease";
   programs.git.settings.alias.graph = "log --all --graph --decorate --oneline";
 
   # Colors
