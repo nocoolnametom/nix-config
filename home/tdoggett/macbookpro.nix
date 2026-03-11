@@ -17,6 +17,7 @@
     common/optional/git.nix
     common/optional/devenv.nix
     common/optional/claude.nix
+    common/optional/docker.nix
   ];
 
   programs.claude.enable = true;

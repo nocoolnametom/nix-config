@@ -13,10 +13,6 @@ with lib;
   homebrew.brews = [
     # No current nixpkgs
     { name = "reddix"; }
-    # Container runtime for macOS
-    { name = "colima"; }
-    # Colima requires docker
-    { name = "docker"; }
     # Local LLM-Fit for Colima
     { name = "llmfit"; }
   ];
