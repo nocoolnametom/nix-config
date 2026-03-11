@@ -30,7 +30,8 @@ let
     "slack"
     "zoom-us"
   ];
-in {
+in
+{
   imports = [
     ######################## Direct Imports for MBP ############################
   ]
@@ -50,6 +51,7 @@ in {
     # This can be re-enabled once nixpkgs gets the new Mac compilation stuff for Tahoe working
     # "hosts/common/darwin/optional/services/jankyborders"
     "hosts/common/darwin/optional/services/sketchybar"
+    "hosts/common/darwin/optional/services/colima"
     "hosts/common/darwin/optional/services/synergy"
     "hosts/common/darwin/optional/services/tailscale"
 
@@ -102,19 +104,25 @@ in {
     pkgs.openjdk11 # Why do I need version 11? What is this for?
     pkgs.uv # Python Env/Pkg Manager
   ];
-  assertions = let
-    forbidden = lib.filter (pkg: lib.elem (lib.getName pkg) externallyManagedPackageNames) config.environment.systemPackages;
-  in [{
-    assertion = forbidden == [];
-    message = ''
-      These packages are managed by work services and kept up to date FAR sooner than
-      nixpkgs-unstable allows, so we cannot install them via Nix so that the security
-      of this system remains appropriate to what its owners demand.  You must remove
-      the following packages from environment.systemPackages:
+  assertions =
+    let
+      forbidden = lib.filter (
+        pkg: lib.elem (lib.getName pkg) externallyManagedPackageNames
+      ) config.environment.systemPackages;
+    in
+    [
+      {
+        assertion = forbidden == [ ];
+        message = ''
+          These packages are managed by work services and kept up to date FAR sooner than
+          nixpkgs-unstable allows, so we cannot install them via Nix so that the security
+          of this system remains appropriate to what its owners demand.  You must remove
+          the following packages from environment.systemPackages:
 
-      ${lib.concatMapStringsSep "\n" lib.getName forbidden}
-    '';
-  }];
+          ${lib.concatMapStringsSep "\n" lib.getName forbidden}
+        '';
+      }
+    ];
 
   # There is no system-level vim management for NixOS, only darwin
   # TODO: See if I can move this into home-manager instead

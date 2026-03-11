@@ -18,6 +18,7 @@
     common/optional/devenv.nix
     common/optional/claude.nix
     common/optional/docker.nix
+    common/optional/docker-darwin.nix
   ];
 
   programs.claude.enable = true;
