@@ -135,37 +135,37 @@ update-all: update-pangolin11 update-barliman update-smeagol update-estel \
 pangolin11:
 	$(NIXOS_REBUILD) switch --flake .#pangolin11 \
 	  --target-host $(PANGOLIN11) \
-	  --use-remote-sudo
+	  --sudo
 
 .PHONY: barliman
 barliman:
 	$(NIXOS_REBUILD) switch --flake .#barliman \
 	  --target-host $(BARLIMAN) \
-	  --use-remote-sudo
+	  --sudo
 
 .PHONY: smeagol
 smeagol:
 	$(NIXOS_REBUILD) switch --flake .#smeagol \
 	  --target-host $(SMEAGOL) \
-	  --use-remote-sudo
+	  --sudo
 
 .PHONY: estel
 estel:
 	$(NIXOS_REBUILD) switch --flake .#estel \
 	  --target-host $(ESTEL) \
-	  --use-remote-sudo
+	  --sudo
 
 .PHONY: bombadil
 bombadil:
 	$(NIXOS_REBUILD) switch --flake .#bombadil \
 	  --target-host $(BOMBADIL) \
-	  --use-remote-sudo
+	  --sudo
 
 .PHONY: durin
 durin:
 	$(NIXOS_REBUILD) switch --flake .#durin \
 	  --target-host $(DURIN) \
-	  --use-remote-sudo
+	  --sudo
 
 ## macOS — run darwin-rebuild locally (this IS the macbookpro).
 ## darwin-rebuild is provided by nix-darwin and should be in PATH.

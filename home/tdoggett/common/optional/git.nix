@@ -18,6 +18,10 @@
   # Per-remote-host email and signing key overrides (requires git 2.36+).
   # Each domain maps to three URL forms: HTTPS, explicit git@, and bare host:
   # (bare host arises when SSH config sets User=git, so git@ is omitted).
+  # NOTE: git uses WM_PATHNAME wildmatch for hasconfig URL patterns, so ** is only
+  # "match across path separators" in the forms /**/ (middle), **/ (start), or /**
+  # (end after /). After a colon, ** behaves like * and won't cross /. Use */** so
+  # that * matches the first path component and /** matches the rest.
   programs.git.includes =
     let
       domainEmailMap = {
@@ -35,8 +39,8 @@
         })
         [
           "https://${domain}/**"
-          "git@${domain}:**"
-          "${domain}:**"
+          "git@${domain}:*/**"
+          "${domain}:*/**"
         ]
     ) (lib.attrNames domainEmailMap);
 
