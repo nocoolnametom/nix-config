@@ -97,6 +97,15 @@
   # Restrict sudo to only the wheel group by default
   security.sudo.execWheelOnly = lib.mkDefault true;
 
+  # Allow wheel members to sudo without a password (can be overridden per-host)
+  security.sudo.wheelNeedsPassword = lib.mkDefault false;
+
+  # Enable AppArmor for mandatory access control (can be disabled per-host if it causes issues)
+  security.apparmor.enable = lib.mkDefault true;
+
+  # Don't build NixOS documentation — saves disk space and build time on all machines
+  documentation.nixos.enable = lib.mkDefault false;
+
   # Only allow sudoers to use nix
   # This is here and not in nix.nix because I don't know if it works with darwin, which autoloads nix.nix
   nix.settings.allowed-users = [ "@wheel" ];

@@ -17,6 +17,7 @@
     common/optional/flatpak.nix
     common/optional/git.nix
     common/optional/desktops/kitty.nix
+    common/optional/desktops/bluetooth-applet.nix
     common/optional/devenv.nix
     common/optional/stylix.nix # System-wide theming via Home Manager
 
@@ -26,8 +27,6 @@
   ];
 
   programs.git.settings.user.email = configVars.gitHubEmail;
-  services.gpg-agent.enable = true;
-  services.blueman-applet.enable = true;
 
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
@@ -47,9 +46,6 @@
       origin = "flathub";
     }
   ];
-
-  # Stylix theme for this host
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
 
   home = {
     stateVersion = "25.05";

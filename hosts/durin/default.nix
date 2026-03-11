@@ -54,6 +54,8 @@ in
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/direnv.nix"
+    "hosts/common/optional/dns-over-tls.nix" # TODO: band-aid for DNS failures — investigate root cause and remove
+    "hosts/common/optional/foreign-binaries.nix"
 
     # Create per-user persistence entry for durin
     "home/${configVars.username}/persistence/durin.nix"
@@ -148,11 +150,6 @@ in
   # Networking basics - update IPs and names for durin
   networking = {
     hostName = "durin";
-    nameservers = [
-      "1.1.1.1#one.one.one.one"
-      "1.0.0.1#one.one.one.one"
-      "8.8.8.8#eight.eight.eight.eight"
-    ];
     networkmanager.enable = true;
     enableIPv6 = true;
     firewall.enable = false;
@@ -164,18 +161,6 @@ in
     ];
     firewall.allowedUDPPorts = [ 443 ];
     firewall.allowPing = true;
-  };
-
-  services.resolved = {
-    enable = true;
-    dnssec = "true";
-    domains = [ "~." ];
-    fallbackDns = [
-      "1.1.1.1#one.one.one.one"
-      "1.0.0.1#one.one.one.one"
-      "8.8.8.8#eight.eight.eight.eight"
-    ];
-    dnsovertls = "true";
   };
 
   boot.tmp.cleanOnBoot = true;
@@ -226,13 +211,7 @@ in
     # Add any other download/media directories that need shared access
   ];
 
-  # Security defaults
-  security.sudo.wheelNeedsPassword = false;
-  security.apparmor.enable = true;
   services.fail2ban.enable = false;
-
-  # Enable nix-ld for VSCode remote
-  programs.nix-ld.enable = true;
 
   system.stateVersion = "25.05";
 

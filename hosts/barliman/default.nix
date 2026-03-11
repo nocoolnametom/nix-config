@@ -47,6 +47,8 @@
     "hosts/common/optional/jovian.nix"
     "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/scanning.nix"
+    "hosts/common/optional/bluetooth.nix"
+    "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################
@@ -80,10 +82,7 @@
   services.ollama.rocmOverrideGfx = "11.5.1";
   systemd.services.ollama.serviceConfig.UnsetEnvironment = "HIP_VISIBLE_DEVICES ROCR_VISIBLE_DEVICES";
 
-  # Bluetooth
-  services.blueman.enable = true;
-  hardware.bluetooth.enable = true; # enables support for Bluetooth
-  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
+  # Bluetooth - Framework Desktop extras (base settings from bluetooth.nix)
   hardware.bluetooth.settings.General.Experimental = true;
   hardware.bluetooth.settings.Policy.AutoEnable = true;
 
@@ -149,20 +148,8 @@
     wget
   ];
 
-  # Run AppImages directly
-  programs.appimage.binfmt = true;
-
-  # Security
-  security.sudo.wheelNeedsPassword = false;
-  security.apparmor.enable = true;
   services.openssh.openFirewall = true;
   services.fail2ban.enable = true;
-
-  # Fixes VSCode remote
-  programs.nix-ld.enable = true;
-
-  # Build documentation
-  documentation.nixos.enable = false;
 
   system.stateVersion = "25.05";
 

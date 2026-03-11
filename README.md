@@ -21,7 +21,7 @@ nix flake lock --update-input nix-secrets --update-input nixpkgs-unstable
 To evaluate a system's config without building it (catches typos across all systems):
 
 ```bash
-# Single system
+# Single NixOS system
 nix eval .#nixosConfigurations.estel.config.system.build.toplevel --apply 'drv: drv.drvPath'
 
 # All active NixOS systems
@@ -30,6 +30,14 @@ for system in pangolin11 smeagol barliman estel bombadil durin; do
   nix eval .#nixosConfigurations.$system.config.system.build.toplevel \
     --apply 'drv: drv.drvPath' 2>&1 | tail -1
 done
+
+# Darwin system
+nix eval .#darwinConfigurations.macbookpro.config.system.build.toplevel \
+  --apply 'drv: drv.drvPath'
+
+# Home Manager only systems
+nix eval ".#legacyPackages.x86_64-linux.homeConfigurations.deck@steamdeck.activationPackage" \
+  --apply 'drv: drv.drvPath'
 ```
 
 Note: evaluation of x86\_64-linux systems from a macOS host requires at least one remote builder
@@ -123,16 +131,16 @@ HM-only (in `home/tdoggett/archived/`): vm1
  * [X] ~~Remove references to diskio~~ - No longer needed for existing systems
  * [X] ~~Figure out email alerts for failed auto-updates~~ - Systems like glorfindel now send failure notifications
  * [X] ~~Look into nix-mineral for security hardening~~ - Using NixOS hardening guides instead
+ * [X] ~~Local remote builds~~ - `nix-remote-builders.nix` in place on macbookpro; eval commands cover NixOS, Darwin, and HM-only systems
+ * [X] ~~Clean up configuration of pangolin11, thinkpadx1, and melian~~ - pangolin11 is lean and import-driven; thinkpadx1 and melian are archived
 
 ### High Priority 🔥
  * [ ] **Implement better deployment workflow** - Deploy uncommitted changes to remote machines for testing
- * [ ] **Local remote builds** - Build remote machine configurations locally to verify compatibility before committing
  * [ ] **Clean commit history** - Rebase entire history to remove "Typo" and "Fixes" commits
- * [ ] **Create more `hosts/common` modules** - Move shared configuration out of machine-specific files
- * [ ] **Create more `home/common` modules** - Minimize user-specific declarations in machine files
+ * [ ] **Create more `hosts/common` modules** - Move shared configuration out of machine-specific files (ongoing)
+ * [ ] **Create more `home/common` modules** - Minimize user-specific declarations in machine files (ongoing)
 
 ### Medium Priority 📋
- * [ ] Clean up configuration of pangolin11, thinkpadx1, and melian to move custom config into imported files
  * [ ] Figure out how to build a VM from configurations for local testing
  * [ ] Investigate `deploy-rs` or similar tools for automated deployment
  * [ ] Implement centralized configuration updates (GitHub Actions + NixOps or similar)

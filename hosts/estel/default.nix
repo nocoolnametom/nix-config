@@ -60,6 +60,8 @@
     "hosts/common/optional/services/tailscale.nix"
     "hosts/common/optional/services/wireguard-bombadil-estel.nix"
     "hosts/common/optional/services/work-block.nix"
+    "hosts/common/optional/dns-over-tls.nix" # TODO: band-aid for DNS failures — investigate root cause and remove
+    "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/yubikey.nix"
     # tube-archivist via docker?
 
@@ -148,11 +150,6 @@
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "estel";
-    nameservers = [
-      "1.1.1.1#one.one.one.one"
-      "1.0.0.1#one.one.one.one"
-      "8.8.8.8#eight.eight.eight.eight"
-    ];
     wireless.enable = false;
     networkmanager.enable = true;
     networkmanager.wifi.backend = "iwd";
@@ -174,18 +171,6 @@
   boot.kernel.sysctl = {
     "net.ipv6.conf.all.use_tempaddr" = lib.mkForce 0;
     "net.ipv6.conf.end0.use_tempaddr" = lib.mkForce 0;
-  };
-
-  services.resolved = {
-    enable = true;
-    dnssec = "true";
-    domains = [ "~." ];
-    fallbackDns = [
-      "1.1.1.1#one.one.one.one"
-      "1.0.0.1#one.one.one.one"
-      "8.8.8.8#eight.eight.eight.eight"
-    ];
-    dnsovertls = "true";
   };
 
   environment.systemPackages = with pkgs; [
@@ -215,17 +200,8 @@
   # services.rsyncCertSync.sender.sshKeyPath = config.sops.secrets.acme-failover-key.path;
   # services.rsyncCertSync.sender.vpsTargetPath = "/var/lib/acme-failover";
 
-  # Security
-  security.sudo.wheelNeedsPassword = false;
-  security.apparmor.enable = true;
   # fail2ban disabled - no direct SSH access (key-only via bombadil proxy), ISP blocks incoming
   services.fail2ban.enable = false;
-
-  # Fixes VSCode remote
-  programs.nix-ld.enable = true;
-
-  # Build documentation
-  documentation.nixos.enable = false;
 
   system.stateVersion = "25.05";
 

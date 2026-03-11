@@ -57,6 +57,8 @@
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
     "hosts/common/optional/yubikey.nix"
+    "hosts/common/optional/bluetooth.nix"
+    "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/vr.nix"
 
     #################### Users to Create ####################
@@ -118,18 +120,9 @@
     pkgs.claude-code
   ];
 
-  # Hardware
-  hardware.bluetooth.enable = true;
-  hardware.bluetooth.powerOnBoot = true;
-  services.blueman.enable = true;
-
   # Enable Powertop
   powerManagement.enable = true;
   powerManagement.powertop.enable = true; # Should work fine with system76-power
-
-  # Security
-  security.apparmor.enable = true;
-  security.sudo.wheelNeedsPassword = false;
 
   # Optional, hint electron apps to use wayland:
   environment.sessionVariables.NIXOS_OZONE_WL = "1";
@@ -139,12 +132,6 @@
   # "gkr-pam: unable to locate daemon control file" errors during boot
   # services.gnome.gnome-keyring.enable = false; # Already false by default
   programs.dconf.enable = true;
-
-  # Fixes VSCode remote
-  programs.nix-ld.enable = true;
-
-  # Build documentation
-  documentation.nixos.enable = false;
 
   system.stateVersion = "25.05";
 

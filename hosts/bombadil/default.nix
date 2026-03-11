@@ -52,6 +52,7 @@ in
     "hosts/common/optional/services/wireguard-bombadil-estel.nix"
     "hosts/common/optional/services/uptime-kuma.nix"
     "hosts/common/optional/linode.nix"
+    "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/nostr.nix"
 
     #################### Users to Create ####################
@@ -145,15 +146,6 @@ in
   # Disable the xserver
   services.xserver.enable = false;
 
-  # Use sudo without a password
-  security.sudo.wheelNeedsPassword = false;
-
-  # Enable AppArmor
-  security.apparmor.enable = true;
-
-  # Fix VSCode remote
-  programs.nix-ld.enable = true;
-
   # Enable the Time Protocol
   # Use Chrony instead of NTP for a virtualized environment
   services.chrony.enable = true;
@@ -170,7 +162,10 @@ in
   # Listen on estelSshProxy port and forward to estel's SSH port over dedicated WireGuard tunnel
   systemd.services.ssh-estel-proxy = {
     description = "SSH proxy to estel via WireGuard";
-    after = [ "network.target" "wireguard-wg-homelab.service" ];
+    after = [
+      "network.target"
+      "wireguard-wg-homelab.service"
+    ];
     wants = [ "wireguard-wg-homelab.service" ];
     wantedBy = [ "multi-user.target" ];
     serviceConfig = {

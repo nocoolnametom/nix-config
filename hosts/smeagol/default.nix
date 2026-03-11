@@ -57,6 +57,8 @@ in
     "hosts/common/optional/nvidia.nix"
     "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/scanning.nix"
+    "hosts/common/optional/bluetooth.nix"
+    "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################
@@ -340,10 +342,6 @@ in
   };
   # services.comfyui.models = lib.mkForce []; # Use before sops-nix secrets are loaded
 
-  # Bluetooth
-  hardware.bluetooth.enable = true; # enables support for Bluetooth
-  hardware.bluetooth.powerOnBoot = true; # powers up the default Bluetooth controller on boot
-
   # InvokeAI stuff
   services.invokeai.workingDir = "/var/lib/stable-diffusion";
   services.invokeai.settings.enable_partial_loading = true;
@@ -402,17 +400,8 @@ in
     google-chrome
   ];
 
-  # Run AppImages directly
-  programs.appimage.binfmt = true;
-
-  # Security
-  security.sudo.wheelNeedsPassword = false;
-
-  # Fixes VSCode remote
-  programs.nix-ld.enable = true;
-
-  # Build documentation
-  documentation.nixos.enable = false;
+  # AppArmor is disabled on smeagol — it conflicts with the Jovian/gaming setup
+  security.apparmor.enable = false;
 
   system.stateVersion = "25.05";
 

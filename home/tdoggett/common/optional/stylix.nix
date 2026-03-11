@@ -5,6 +5,10 @@
   stylix.enable = lib.mkDefault true;
   stylix.polarity = lib.mkDefault "dark";
 
+  # Default color scheme — github-dark is a neutral dark theme that works well everywhere.
+  # Override this in a host's home file to use a different scheme.
+  stylix.base16Scheme = lib.mkDefault "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
+
   # Cursor theme
   stylix.cursor.package = lib.mkDefault pkgs.phinger-cursors;
   stylix.cursor.name = lib.mkDefault "phinger-cursors-light";

@@ -14,6 +14,7 @@
     common/optional/sops.nix
     common/optional/git.nix
     common/optional/desktops
+    common/optional/desktops/bluetooth-applet.nix
     common/optional/devenv.nix
     common/optional/wakatime.nix
     common/optional/stylix.nix # System-wide theming via Home Manager
@@ -25,9 +26,7 @@
 
   services.yubikey-touch-detector.enable = true;
 
-  services.gpg-agent.enable = true;
   services.playerctld.enable = true;
-  services.blueman-applet.enable = true;
   programs.git.settings.user.email = configVars.gitHubEmail;
 
   home.packages = with pkgs; [
@@ -41,8 +40,7 @@
     unzip
   ];
 
-  # Stylix theme for this host
-  stylix.base16Scheme = "${pkgs.base16-schemes}/share/themes/github-dark.yaml";
+  # Stylix fonts for this host (scheme inherits github-dark default from stylix.nix)
   stylix.fonts.serif.package = pkgs.appleFonts.sf-pro;
   stylix.fonts.serif.name = "SFProText Nerd Font";
   stylix.fonts.sansSerif.package = pkgs.appleFonts.sf-pro;

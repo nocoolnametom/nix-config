@@ -41,6 +41,23 @@
     };
     # Installs .git/hooks/pre-commit pointing to the Nix-managed hook script.
     # Running `nix develop` once per clone is all that's needed.
-    shellHook = pre-commit-check.shellHook;
+    shellHook = pre-commit-check.shellHook + ''
+      # nix develop starts a fresh bash subshell that may not have inherited
+      # SSH_AUTH_SOCK from the parent session's login profile (where home-manager
+      # typically sets it to the gpg-agent SSH socket).  Without a working agent,
+      # SSH agent forwarding to remote machines breaks — so we detect a valid
+      # socket here and export it if needed.
+      if [ ! -S "''${SSH_AUTH_SOCK:-}" ]; then
+        for _sock in \
+          "''${XDG_RUNTIME_DIR:-/run/user/$(id -u)}/gnupg/S.gpg-agent.ssh" \
+          "$HOME/.gnupg/S.gpg-agent.ssh"; do
+          if [ -S "$_sock" ]; then
+            export SSH_AUTH_SOCK="$_sock"
+            break
+          fi
+        done
+        unset _sock
+      fi
+    '';
   };
 }
