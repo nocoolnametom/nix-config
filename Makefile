@@ -75,37 +75,42 @@ help:
 
 ##─────────────────────────────────────────────────────────────────────────────
 ## update-* targets: git pull --rebase on the remote machine
-## Agent forwarding is handled by ForwardAgent yes in the "Host *" block in
-## home/tdoggett/common/core/ssh.nix — no -A flag needed here.
+##
+## We use -o ForwardAgent=no so the remote machine uses its OWN SSH agent
+## (with id_personal loaded) rather than the forwarded macbookpro agent.
+## The forwarded agent has a stale YubiKey handle that fails signing when the
+## YubiKey is not physically connected, and id_personal is not in that agent.
+## macbookpro still authenticates TO the remote machine using its own local
+## keys (work_rsa is in authorized_keys on all machines).
 ##─────────────────────────────────────────────────────────────────────────────
 
 .PHONY: update-pangolin11
 update-pangolin11:
-	ssh $(PANGOLIN11) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(PANGOLIN11) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-barliman
 update-barliman:
-	ssh $(BARLIMAN) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(BARLIMAN) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-smeagol
 update-smeagol:
-	ssh $(SMEAGOL) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(SMEAGOL) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-estel
 update-estel:
-	ssh $(ESTEL) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(ESTEL) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-bombadil
 update-bombadil:
-	ssh $(BOMBADIL) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(BOMBADIL) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-durin
 update-durin:
-	ssh $(DURIN) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(DURIN) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-steamdeck
 update-steamdeck:
-	ssh $(STEAMDECK) 'git -C $(REMOTE_REPO) pull --rebase'
+	ssh -o ForwardAgent=no $(STEAMDECK) 'git -C $(REMOTE_REPO) pull --rebase'
 
 .PHONY: update-macbookpro
 update-macbookpro:
