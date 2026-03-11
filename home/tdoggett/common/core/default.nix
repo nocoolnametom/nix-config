@@ -77,4 +77,9 @@
   programs = {
     home-manager.enable = true;
   };
+
+  # Disabling manpage generation avoids a Nix warning about builtins.derivation
+  # creating an 'options.json' file that references store paths without proper
+  # context (upstream home-manager issue).
+  manual.manpages.enable = false;
 }

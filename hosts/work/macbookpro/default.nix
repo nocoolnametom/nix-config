@@ -124,11 +124,6 @@ in
       }
     ];
 
-  # There is no system-level vim management for NixOS, only darwin
-  # TODO: See if I can move this into home-manager instead
-  programs.vim.enable = true;
-  programs.vim.enableSensible = true;
-
   system.defaults.dock.autohide = true;
   system.defaults.dock.orientation = "right";
   system.defaults.dock.showhidden = true;
