@@ -34,24 +34,18 @@
 
   # Note that we do not do user management on our darwin systems!
 
+  # Allow git (and libgit2 used by nix) to access repos regardless of ownership.
+  # This is needed so `sudo darwin-rebuild switch` works when the flake is in a
+  # user-owned git repo. /etc/gitconfig is read unconditionally by libgit2 before
+  # any HOME-based user config, so it takes effect even when darwin-rebuild sets
+  # HOME=/var/root.
+  environment.etc."gitconfig".text = ''
+    [safe]
+      directory = *
+  '';
+
   # Ensure these tools are available for all users, even if it's just root on the system
   environment.systemPackages = [
-    # Wrapper around `darwin-rebuild switch` that:
-    # 1. Uses `path:` protocol so Nix's git ownership check doesn't block root
-    #    (when /etc/nix-darwin is a symlink to a user-owned git repo, nix refuses
-    #    to open it as root via git+file://)
-    # 2. Self-escalates to sudo if not already root
-    (pkgs.writeShellScriptBin "darwin-switch" ''
-      if [[ $(id -u) -ne 0 ]]; then
-        exec sudo "$0" "$@"
-      fi
-      if [[ ! -e /etc/nix-darwin/flake.nix ]]; then
-        echo "darwin-switch: /etc/nix-darwin/flake.nix not found" >&2
-        exit 1
-      fi
-      flake_dir=$(dirname "$(readlink -f /etc/nix-darwin/flake.nix)")
-      exec darwin-rebuild switch --flake "path:''${flake_dir}#$(scutil --get LocalHostName)" "$@"
-    '')
     pkgs.wget
     pkgs.git # Needed for flakes!
     pkgs.git-lfs
