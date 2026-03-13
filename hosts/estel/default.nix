@@ -41,6 +41,8 @@
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
+    "hosts/common/optional/services/netdata-parent.nix" # Netdata monitoring parent
+    "hosts/common/optional/services/netdata-caddy.nix" # Netdata Caddy integration
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
     # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
