@@ -131,17 +131,12 @@ in
       services.caddy.enable = true;
       services.caddy.virtualHosts.${statusPageHostname} = {
         extraConfig = ''
-          # Redirect HTTP to HTTPS
-          @http {
-            protocol http
-          }
-          redir @http https://{host}{uri} permanent
-
           # Serve status page
           root * ${statusPageContent}
           file_server
 
           # TLS configuration with our homelab certificates
+          # Caddy automatically redirects HTTP to HTTPS when TLS is configured
           tls ${config.sops.secrets."homelab-ssl/${config.networking.hostName}/cert".path} ${
             config.sops.secrets."homelab-ssl/${config.networking.hostName}/key".path
           }

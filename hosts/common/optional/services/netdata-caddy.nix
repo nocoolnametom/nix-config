@@ -25,12 +25,6 @@
   # Also serve at monitoring subdomain for easy access
   services.caddy.virtualHosts."monitoring.${configVars.homelabDomain}" = {
     extraConfig = ''
-      # Redirect HTTP to HTTPS
-      @http {
-        protocol http
-      }
-      redir @http https://{host}{uri} permanent
-
       # Proxy to netdata
       reverse_proxy 127.0.0.1:19999 {
         header_up X-Forwarded-Proto {scheme}
@@ -39,6 +33,7 @@
       }
 
       # TLS configuration with our homelab certificates
+      # Caddy automatically redirects HTTP to HTTPS when TLS is configured
       tls ${config.sops.secrets."homelab-ssl/${config.networking.hostName}/cert".path} ${
         config.sops.secrets."homelab-ssl/${config.networking.hostName}/key".path
       }
