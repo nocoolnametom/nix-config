@@ -104,12 +104,13 @@ let
     '';
   };
 
-  # Detect if Caddy or Nginx is already enabled
-  hasCaddy = config.services.caddy.enable or false;
+  # Detect if Nginx is already enabled
+  # We don't check services.caddy.enable here to avoid infinite recursion
+  # (since we might enable Caddy in this module)
   hasNginx = config.services.nginx.enable or false;
 
-  # Use Caddy by default if no HTTP server is configured
-  useCaddy = hasCaddy || !hasNginx;
+  # Use Caddy if Nginx is not enabled
+  useCaddy = !hasNginx;
 in
 {
   config = lib.mkMerge [
