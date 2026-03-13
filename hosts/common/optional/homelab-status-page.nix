@@ -112,17 +112,19 @@ let
   useCaddy = hasCaddy || !hasNginx;
 in
 {
-  # Configure sops secrets for this host's SSL certificates
-  sops.secrets."homelab-ssl/${config.networking.hostName}/key" = {
-    owner = if useCaddy then "caddy" else "nginx";
-    mode = "0600";
-  };
-  sops.secrets."homelab-ssl/${config.networking.hostName}/cert" = {
-    owner = if useCaddy then "caddy" else "nginx";
-    mode = "0644";
-  };
-
   config = lib.mkMerge [
+    # Configure sops secrets for this host's SSL certificates (always enabled)
+    {
+      sops.secrets."homelab-ssl/${config.networking.hostName}/key" = {
+        owner = if useCaddy then "caddy" else "nginx";
+        mode = "0600";
+      };
+      sops.secrets."homelab-ssl/${config.networking.hostName}/cert" = {
+        owner = if useCaddy then "caddy" else "nginx";
+        mode = "0644";
+      };
+    }
+
     # Caddy configuration
     (lib.mkIf useCaddy {
       services.caddy.enable = true;
