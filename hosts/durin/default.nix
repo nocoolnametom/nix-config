@@ -34,6 +34,10 @@ in
     # Lanzaboote Secure Bootloader (like estel)
     "hosts/common/optional/lanzaboote.nix"
 
+    # Homelab SSL and status page
+    "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
+    "hosts/common/optional/homelab-status-page.nix" # Homelab status page
+
     # GPG Agent with SSH support
     "hosts/common/optional/gpg-agent.nix"
 

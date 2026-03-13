@@ -34,8 +34,8 @@
   ...
 }:
 let
-  smeagolHost = "${configVars.networking.subnets.smeagol.name}.${configVars.homeLanDomain}";
-  estelHost = "${configVars.networking.subnets.estel.name}.${configVars.homeLanDomain}";
+  smeagolHost = "${configVars.networking.subnets.smeagol.name}.${configVars.homelabDomain}";
+  estelHost = "${configVars.networking.subnets.estel.name}.${configVars.homelabDomain}";
 in
 {
   # Private key for nix daemon SSH authentication to remote builders

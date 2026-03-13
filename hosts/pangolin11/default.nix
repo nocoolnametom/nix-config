@@ -36,6 +36,8 @@
     "hosts/common/optional/boot/hibernation.nix"
     "hosts/common/optional/boot/plymouth.nix"
     "hosts/common/optional/boot/silent.nix"
+    "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
+    "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     # "hosts/common/optional/services/greetd.nix"
     "hosts/common/optional/services/openssh.nix" # allow remote SSH access
     "hosts/common/optional/services/pipewire.nix" # audio
