@@ -71,15 +71,20 @@ let
   '';
 in
 {
-  # Ensure activation waits for sops-install-secrets to complete before running
-  # This prevents race conditions where activation tries to run before secrets are available
+  # Ensure activation runs with proper dependencies at boot
+  # This prevents multiple race conditions:
   #
-  # Issue: At boot, both org.nixos.activate-system and org.nixos.sops-install-secrets
+  # Issue 1 (nix-store mounting): The activation wrapper is in /nix/store, but /nix
+  # takes ~4s to mount at boot. If launchd tries to exec the wrapper before /nix is
+  # available, it fails with exit code 126 and /run/current-system never gets created.
+  #
+  # Issue 2 (sops timing): Both org.nixos.activate-system and org.nixos.sops-install-secrets
   # run concurrently with RunAtLoad=true. If activation runs before sops completes,
   # any activation scripts that depend on secrets will fail.
   #
-  # Solution: Create a wrapper script that waits for /run/secrets (created by sops)
-  # before proceeding with activation. This ensures proper ordering without circular dependencies.
+  # Solution:
+  # 1. Use KeepAlive.PathState to ensure /nix/store exists before exec'ing the wrapper
+  # 2. Wrapper script waits for /run/secrets (created by sops) before proceeding
 
   # Override the activate-system LaunchDaemon to use our wrapper
   launchd.daemons.activate-system = {
@@ -92,6 +97,13 @@ in
       RunAtLoad = lib.mkForce true;
       StandardOutPath = lib.mkDefault "/var/log/activate-system.log";
       StandardErrorPath = lib.mkDefault "/var/log/activate-system.log";
+
+      # Ensure /nix/store is mounted before trying to run the wrapper
+      # Without this, launchd tries to exec the wrapper before /nix is available,
+      # causing exit code 126 ("Command invoked cannot execute")
+      KeepAlive = lib.mkForce {
+        PathState."/nix/store" = true;
+      };
     };
   };
 

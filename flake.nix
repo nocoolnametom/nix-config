@@ -199,9 +199,12 @@
               darwinNames
               ;
           };
+          # Only provide darwin-rebuild on Darwin systems
+          darwin-rebuild =
+            if pkgs.lib.hasSuffix "-darwin" system then nix-darwin.packages.${system}.darwin-rebuild else null;
         in
         import ./shell.nix {
-          inherit pkgs;
+          inherit pkgs system darwin-rebuild;
           inherit (checksForSystem) pre-commit-check;
         }
       );

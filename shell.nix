@@ -17,28 +17,41 @@
   pre-commit-check ? {
     shellHook = "";
   },
+  # System architecture (used to conditionally include Darwin-specific tools)
+  system ? builtins.currentSystem,
+  # darwin-rebuild from nix-darwin (only available when called from flake)
+  darwin-rebuild ? null,
   ...
 }:
 {
   default = pkgs.mkShell {
     NIX_CONFIG = "extra-experimental-features = nix-command flakes";
-    nativeBuildInputs = builtins.attrValues {
-      inherit (pkgs)
-        # Required for pre-commit hook 'nixpkgs-fmt' only on Darwin
-        # REF: <https://discourse.nixos.org/t/nix-shell-rust-hello-world-ld-linkage-issue/17381/4>
-        libiconv
+    nativeBuildInputs =
+      (builtins.attrValues {
+        inherit (pkgs)
+          # Required for pre-commit hook 'nixpkgs-fmt' only on Darwin
+          # REF: <https://discourse.nixos.org/t/nix-shell-rust-hello-world-ld-linkage-issue/17381/4>
+          libiconv
 
-        nix
-        home-manager
-        git
-        just
-        pre-commit
+          nix
+          home-manager
+          git
+          just
+          pre-commit
 
-        age
-        ssh-to-age
-        sops
-        ;
-    };
+          age
+          ssh-to-age
+          sops
+          ;
+      })
+      # Add darwin-rebuild for Darwin systems (fallback for when /run/current-system is unavailable)
+      ++ pkgs.lib.optionals (pkgs.stdenv.isDarwin && darwin-rebuild != null) [
+        darwin-rebuild
+        # Wrapper script to run darwin-rebuild with sudo while preserving PATH
+        (pkgs.writeShellScriptBin "darwin-rebuild-sudo" ''
+          sudo env PATH="${darwin-rebuild}/bin:$PATH" darwin-rebuild "$@"
+        '')
+      ];
     # Installs .git/hooks/pre-commit pointing to the Nix-managed hook script.
     # Running `nix develop` once per clone is all that's needed.
     shellHook = pre-commit-check.shellHook + ''
