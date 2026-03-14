@@ -86,6 +86,15 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Create static user for the agent (needed for persistence)
+    users.users.beszel-agent = {
+      isSystemUser = true;
+      group = "beszel-agent";
+      home = "/var/lib/beszel-agent";
+      createHome = true;
+    };
+    users.groups.beszel-agent = { };
+
     # Create a systemd service for the agent
     systemd.services.homelab-beszel-agent =
       let
@@ -109,13 +118,14 @@ in
 
         serviceConfig = {
           Type = "simple";
+          User = "beszel-agent";
+          Group = "beszel-agent";
+          WorkingDirectory = "/var/lib/beszel-agent";
           ExecStart = agentScript;
           Restart = "on-failure";
           RestartSec = "10s";
 
           # Security hardening
-          DynamicUser = true;
-          StateDirectory = "beszel-agent"; # Persistent directory at /var/lib/beszel-agent
           ProtectSystem = "strict";
           ProtectHome = true;
           PrivateTmp = true;
