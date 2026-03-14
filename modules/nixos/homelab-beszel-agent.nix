@@ -181,10 +181,31 @@ in
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
 
-        # Ensure mount points are available before starting
-        unitConfig = lib.mkIf (cfg.additionalFilesystems != [ ]) {
-          RequiresMountsFor = lib.filter (fs: lib.hasPrefix "/" fs) cfg.additionalFilesystems;
-        };
+        # Ensure local mount points are available before starting
+        # Only require local filesystems, not network mounts (which may be slow/unavailable)
+        unitConfig =
+          let
+            mountPoints = lib.filter (fs: lib.hasPrefix "/" fs) cfg.additionalFilesystems;
+            # Filter to only local filesystems (exclude network types)
+            localMounts = lib.filter (
+              mountPoint:
+              let
+                fs = config.fileSystems.${mountPoint} or null;
+                isNetworkFs =
+                  fs != null
+                  && lib.elem fs.fsType [
+                    "nfs"
+                    "nfs4"
+                    "cifs"
+                    "smbfs"
+                    "glusterfs"
+                    "9p"
+                  ];
+              in
+              !isNetworkFs
+            ) mountPoints;
+          in
+          lib.mkIf (localMounts != [ ]) { RequiresMountsFor = localMounts; };
 
         serviceConfig = {
           Type = "simple";
