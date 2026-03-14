@@ -7,15 +7,13 @@
 }:
 let
   # Transform nix-secrets users structure to Kanidm persons format
-  personsFromSecrets = lib.mapAttrs (
-    username: userData: {
-      displayName = userData.displayName;
-      mailAddresses = [ userData.email ];
-      groups = userData.groups ++ [ "service_users" ]; # Add service_users to all users
-      # Note: Passwords must be set via Kanidm web UI or CLI after provisioning
-      # Declarative provisioning doesn't support passwordFile
-    }
-  ) configVars.sso.users;
+  personsFromSecrets = lib.mapAttrs (username: userData: {
+    displayName = userData.displayName;
+    mailAddresses = [ userData.email ];
+    groups = userData.groups ++ [ "service_users" ]; # Add service_users to all users
+    # Note: Passwords must be set via Kanidm web UI or CLI after provisioning
+    # Declarative provisioning doesn't support passwordFile
+  }) configVars.sso.users;
 
   # Transform nix-secrets groups structure to Kanidm groups format
   groupsFromSecrets = lib.mapAttrs (groupName: groupData: {
@@ -55,10 +53,12 @@ let
       { service_users = scopes; }
     else
       # Specific groups required - only those groups get access
-      lib.listToAttrs (map (group: {
-        name = group;
-        value = scopes;
-      }) requiredGroups);
+      lib.listToAttrs (
+        map (group: {
+          name = group;
+          value = scopes;
+        }) requiredGroups
+      );
 in
 lib.mkIf configVars.enableKanidmSSO {
   # Kanidm SSO Provider with declarative provisioning
@@ -81,12 +81,11 @@ lib.mkIf configVars.enableKanidmSSO {
       idmAdminPasswordFile = config.sops.secrets."homelab/kanidm/admin-password".path;
 
       # Define groups - combining system groups with groups from nix-secrets
-      groups =
-        {
-          kanidm_admins = { };
-          service_users = { }; # Base group - all users get access to most services
-        }
-        // groupsFromSecrets;
+      groups = {
+        kanidm_admins = { };
+        service_users = { }; # Base group - all users get access to most services
+      }
+      // groupsFromSecrets;
 
       # Define persons (users) - imported from nix-secrets
       persons = personsFromSecrets;
@@ -293,6 +292,14 @@ lib.mkIf configVars.enableKanidmSSO {
           basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/nas/client-secret".path;
           scopeMaps = makeScopeMaps "nas";
         };
+
+        netdata = {
+          displayName = "Netdata Monitoring Dashboard";
+          originUrl = "https://${configVars.networking.subdomains.netdata}.${configVars.homeDomain}";
+          originLanding = "https://${configVars.networking.subdomains.netdata}.${configVars.homeDomain}";
+          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/netdata/client-secret".path;
+          scopeMaps = makeScopeMaps "netdata";
+        };
       };
     };
   };
@@ -383,7 +390,7 @@ lib.mkIf configVars.enableKanidmSSO {
     mode = "0440";
   };
 
-  # OIDC client secrets for native OIDC services (10 services)
+  # OIDC client secrets for native OIDC services (11 services)
   # Must be readable by kanidm for provisioning
   sops.secrets."homelab/kanidm/oidc/actual/client-secret" = {
     owner = "kanidm";
@@ -413,6 +420,9 @@ lib.mkIf configVars.enableKanidmSSO {
     owner = "kanidm";
   };
   sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
+    owner = "kanidm";
+  };
+  sops.secrets."homelab/kanidm/oidc/netdata/client-secret" = {
     owner = "kanidm";
   };
 

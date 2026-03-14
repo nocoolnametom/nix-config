@@ -40,6 +40,7 @@ in
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     "hosts/common/optional/services/netdata-child.nix" # Netdata monitoring child
+    "hosts/common/optional/services/netdata-collectors.nix" # Service monitoring collectors
     "hosts/common/optional/services/comfyui/default.nix"
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/docker/invokeai.nix"

@@ -31,6 +31,7 @@
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/deluge/.config/deluge"
       "/var/lib/docker"
+      "/var/lib/netdata" # Netdata state (node ID, registry, database)
       "/var/lib/nixos"
       "/var/lib/nzbget/queue"
       "/var/lib/nzbget/scripts"

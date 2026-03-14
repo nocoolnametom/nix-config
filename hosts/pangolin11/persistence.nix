@@ -30,6 +30,7 @@
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
       "/var/lib/fprint"
+      "/var/lib/netdata" # Netdata state (node ID, registry, database)
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
       "/var/log"
