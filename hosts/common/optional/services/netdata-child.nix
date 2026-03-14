@@ -50,6 +50,9 @@
 
         # Disable local web interface on child nodes (access via parent)
         "mode" = "normal";
+
+        # Use writable config directory for stream.conf
+        "config directory" = "/var/lib/netdata/conf.d";
       };
 
       web = {

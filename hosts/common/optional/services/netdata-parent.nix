@@ -27,7 +27,8 @@
           enable compression = yes
 
       # Accept connections from all child nodes with valid API key
-      [11111111-2222-3333-4444-555555555555]
+      # The section header must be the actual API key that children use
+      [${config.sops.placeholder."netdata-stream-api-key"}]
           enabled = yes
           default history = 3600
           default memory mode = dbengine
@@ -51,14 +52,19 @@
 
         # History retention
         "history" = "86400"; # 24 hours in seconds
+
+        # Use writable config directory for stream.conf
+        "config directory" = "/var/lib/netdata/conf.d";
       };
 
       web = {
-        # Bind to localhost so we can proxy via Caddy
-        "bind to" = "127.0.0.1:19999";
+        # Bind to all interfaces to accept streaming from child nodes
+        # Web dashboard is still proxied via Caddy
+        "bind to" = "0.0.0.0:19999";
 
-        # Allow connections from localhost (Caddy)
-        "allow connections from" = "localhost 127.0.0.1";
+        # Allow connections from local network for both streaming and web access
+        # Caddy runs on localhost, children connect from 192.168.0.0/24
+        "allow connections from" = "localhost 127.0.0.1 192.168.0.*";
 
         # Enable gzip compression
         "enable gzip compression" = "yes";
