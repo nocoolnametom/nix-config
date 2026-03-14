@@ -2,6 +2,7 @@
   lib,
   config,
   configVars,
+  pkgs,
   ...
 }:
 
@@ -39,6 +40,7 @@
 
   services.netdata = {
     enable = true;
+    package = pkgs.netdata.override { withCloudUi = true; };
 
     config = {
       global = {
