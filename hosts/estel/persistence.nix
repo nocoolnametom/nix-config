@@ -27,6 +27,8 @@
       "/var/db/sudo/lectured"
       "/var/lib/acme"
       "/var/lib/audiobookshelf"
+      "/var/lib/beszel" # Beszel hub data (user accounts, system registrations, metrics)
+      "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/bluetooth"
       "/var/lib/caddy"
       "/var/lib/docker"

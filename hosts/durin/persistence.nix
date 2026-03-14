@@ -26,6 +26,7 @@
     directories = [
       "/etc/NetworkManager/system-connections"
       "/var/db/sudo/lectured"
+      "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/bluetooth"
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options

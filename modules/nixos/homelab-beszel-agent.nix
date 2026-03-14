@@ -71,6 +71,12 @@ in
       description = "Path to SSH public key file for authentication";
     };
 
+    tokenFile = mkOption {
+      type = types.nullOr types.path;
+      default = null;
+      description = "Path to file containing authentication token (e.g., universal token for self-registration)";
+    };
+
     extraArgs = mkOption {
       type = types.listOf types.str;
       default = [ ];
@@ -81,38 +87,54 @@ in
 
   config = mkIf cfg.enable {
     # Create a systemd service for the agent
-    systemd.services.homelab-beszel-agent = {
-      description = "Homelab Beszel Monitoring Agent";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+    systemd.services.homelab-beszel-agent =
+      let
+        # Build the agent command with optional authentication
+        agentScript = pkgs.writeShellScript "beszel-agent-start" ''
+          TOKEN_ARG=""
+          ${lib.optionalString (cfg.tokenFile != null) ''
+            if [ -f "${cfg.tokenFile}" ]; then
+              TOKEN_ARG="--token $(cat ${cfg.tokenFile})"
+            fi
+          ''}
+          exec ${homelab-beszel-agent}/bin/beszel-agent --listen :${toString cfg.port} \
+            ${lib.optionalString (cfg.sshKeyFile != null) "--key ${cfg.sshKeyFile}"} \
+            $TOKEN_ARG
+        '';
+      in
+      {
+        description = "Homelab Beszel Monitoring Agent";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = {
-        Type = "simple";
-        ExecStart = "${homelab-beszel-agent}/bin/beszel-agent --listen :${toString cfg.port}";
-        Restart = "on-failure";
-        RestartSec = "10s";
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = agentScript;
+          Restart = "on-failure";
+          RestartSec = "10s";
 
-        # Security hardening
-        DynamicUser = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-        NoNewPrivileges = true;
+          # Security hardening
+          DynamicUser = true;
+          StateDirectory = "beszel-agent"; # Persistent directory at /var/lib/beszel-agent
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateTmp = true;
+          NoNewPrivileges = true;
 
-        # Need access to system info
-        ProtectProc = "invisible";
-        ProcSubset = "all";
+          # Need access to system info
+          ProtectProc = "invisible";
+          ProcSubset = "all";
 
-        # Need access to /sys for hardware info
-        ProtectKernelTunables = false;
+          # Need access to /sys for hardware info
+          ProtectKernelTunables = false;
 
-        # Network access
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-        ];
+          # Network access
+          RestrictAddressFamilies = [
+            "AF_INET"
+            "AF_INET6"
+          ];
+        };
       };
-    };
 
     # Open firewall for hub to connect to agent
     networking.firewall.allowedTCPPorts = mkIf config.networking.firewall.enable [

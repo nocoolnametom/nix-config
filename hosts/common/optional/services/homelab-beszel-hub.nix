@@ -41,9 +41,4 @@
   networking.firewall.allowedTCPPorts = lib.mkIf config.networking.firewall.enable [
     8090 # Beszel hub
   ];
-
-  # Persistence for beszel data (optional - only active if impermanence is enabled)
-  environment.persistence."${configVars.persistFolder}".directories = [
-    "/var/lib/beszel"
-  ];
 }
