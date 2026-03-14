@@ -426,6 +426,6 @@ lib.mkIf configVars.enableKanidmSSO {
     owner = "kanidm";
   };
 
-  # Note: User passwords must be set via Kanidm web UI at https://sso.doggett.family
+  # Note: User passwords must be set via Kanidm web UI at https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}
   # or via kanidm CLI after initial provisioning. Declarative passwordFile is not supported.
 }

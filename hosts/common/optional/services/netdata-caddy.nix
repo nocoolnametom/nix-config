@@ -6,13 +6,17 @@
 }:
 
 {
-  # Netdata Caddy Configuration - Serves netdata dashboard via HTTPS
+  # Netdata Caddy Configuration - Serves netdata dashboard via HTTPS (internal only)
   # This should be imported on estel (where netdata parent runs)
+  #
+  # Access: https://estel.${configVars.homelabDomain}/netdata (internal network only)
+  # Public access has been removed for security reasons
 
   # Requires: homelab-status-page.nix for SSL certs
 
   services.caddy.virtualHosts."estel.${configVars.homelabDomain}".extraConfig = lib.mkAfter ''
     # Serve netdata dashboard at /netdata path (status page remains at root)
+    # Internal access only - not exposed to the internet
     handle /netdata* {
       uri strip_prefix /netdata
       reverse_proxy 127.0.0.1:19999 {

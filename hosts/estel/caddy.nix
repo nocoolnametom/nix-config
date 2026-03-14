@@ -197,12 +197,6 @@ let
       domain = "homeDomain";
     }
     {
-      host = "estel";
-      service = "netdata";
-      domain = "homeDomain";
-      # No proxy - Netdata handles auth via Cloud UI OIDC
-    }
-    {
       host = "durin";
       service = "nzbget";
       domain = "domain";

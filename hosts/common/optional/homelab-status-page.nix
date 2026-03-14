@@ -8,7 +8,7 @@
 
 let
   # Generate hostname from system hostname and homelab domain
-  # e.g., "estel" + "doggett.home" = "estel.doggett.home"
+  # e.g., "estel" + homelabDomain = "estel.<homelabDomain>"
   statusPageHostname = "${config.networking.hostName}.${configVars.homelabDomain}";
 
   # Simple HTML status page

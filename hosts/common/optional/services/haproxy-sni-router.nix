@@ -1,4 +1,10 @@
-{ config, lib, pkgs, configVars, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  configVars,
+  ...
+}:
 
 # HAProxy SNI-based router for bombadil
 # Routes traffic based on SNI hostname without terminating TLS:
@@ -49,7 +55,7 @@ in
           acl is_www_nct hdr_beg(host) -i www.nocoolnametom.com
           acl is_gts_nct hdr_beg(host) -i gts.nocoolnametom.com
           acl is_bare_nct hdr(host) -i nocoolnametom.com
-          acl is_status_df hdr_beg(host) -i status.doggett.family
+          acl is_status_df hdr_beg(host) -i ${configVars.healthDomain}
 
           # Route friend domains to local nginx
           use_backend bombadil_http if is_exmormon_social
@@ -84,7 +90,7 @@ in
           acl is_www_nct req_ssl_sni -m beg www.nocoolnametom.com
           acl is_gts_nct req_ssl_sni -m beg gts.nocoolnametom.com
           acl is_bare_nct req_ssl_sni -i nocoolnametom.com
-          acl is_status_df req_ssl_sni -m beg status.doggett.family
+          acl is_status_df req_ssl_sni -m beg ${configVars.healthDomain}
 
           # Route friend domains to local nginx
           use_backend bombadil_https if is_exmormon_social

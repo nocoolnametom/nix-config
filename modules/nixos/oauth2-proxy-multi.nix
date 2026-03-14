@@ -31,7 +31,7 @@ let
 
         oidcIssuerUrl = mkOption {
           type = types.str;
-          description = "OIDC issuer URL (e.g., 'https://sso.doggett.family')";
+          description = "OIDC issuer URL (e.g., 'https://sso.example.com')";
         };
 
         clientId = mkOption {
@@ -142,7 +142,10 @@ let
           type = types.listOf types.str;
           default = [ ];
           description = "Bypass OAuth for requests matching these regexes";
-          example = [ "^/public/" "^/health$" ];
+          example = [
+            "^/public/"
+            "^/health$"
+          ];
         };
 
         reverseProxy = mkOption {
@@ -165,7 +168,8 @@ let
   enabledInstances = filterAttrs (n: v: v.enable) cfg.instances;
 
   # Generate configuration file for an instance
-  mkInstanceConfig = name: instCfg:
+  mkInstanceConfig =
+    name: instCfg:
     let
       baseConfig = {
         http_address = "0.0.0.0:${toString instCfg.port}";
@@ -183,7 +187,12 @@ let
         pass_basic_auth = instCfg.passBasicAuth;
         set_authorization_header = instCfg.setAuthorizationHeader;
         reverse_proxy = instCfg.reverseProxy;
-      } // (optionalAttrs (instCfg.basicAuthPassword != null) { basic_auth_password = instCfg.basicAuthPassword; }) // (optionalAttrs (instCfg.skipAuthRegex != [ ]) { skip_auth_regex = instCfg.skipAuthRegex; }) // instCfg.extraConfig;
+      }
+      // (optionalAttrs (instCfg.basicAuthPassword != null) {
+        basic_auth_password = instCfg.basicAuthPassword;
+      })
+      // (optionalAttrs (instCfg.skipAuthRegex != [ ]) { skip_auth_regex = instCfg.skipAuthRegex; })
+      // instCfg.extraConfig;
 
       configLines = mapAttrsToList (
         k: v:
@@ -200,10 +209,12 @@ let
     pkgs.writeText "oauth2-proxy-${name}.cfg" (concatStringsSep "\n" flatConfigLines);
 
   # Create systemd service for an instance
-  mkInstanceService = name: instCfg:
+  mkInstanceService =
+    name: instCfg:
     let
       # Create wrapper script if custom basic auth is needed
-      needsBasicAuthWrapper = instCfg.basicAuthUsernameFile != null && instCfg.basicAuthPasswordFile != null;
+      needsBasicAuthWrapper =
+        instCfg.basicAuthUsernameFile != null && instCfg.basicAuthPasswordFile != null;
 
       wrapperScript = pkgs.writeShellScript "oauth2-proxy-${name}-wrapper" ''
         set -e
@@ -226,45 +237,45 @@ let
       '';
     in
     {
-    name = "oauth2-proxy-${name}";
-    value = {
-      description = "OAuth2 Proxy for ${name}";
-      after = [ "network.target" ];
-      wantedBy = [ "multi-user.target" ];
+      name = "oauth2-proxy-${name}";
+      value = {
+        description = "OAuth2 Proxy for ${name}";
+        after = [ "network.target" ];
+        wantedBy = [ "multi-user.target" ];
 
-      serviceConfig = {
-        Type = "simple";
-        Restart = "on-failure";
-        RestartSec = "5s";
-        User = cfg.user;
-        Group = cfg.group;
+        serviceConfig = {
+          Type = "simple";
+          Restart = "on-failure";
+          RestartSec = "5s";
+          User = cfg.user;
+          Group = cfg.group;
 
-        ExecStart = if needsBasicAuthWrapper then wrapperScript else standardExecStart;
+          ExecStart = if needsBasicAuthWrapper then wrapperScript else standardExecStart;
 
-        # Security hardening
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        PrivateTmp = true;
-        NoNewPrivileges = true;
-        PrivateDevices = true;
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-          "AF_UNIX"
-        ];
-        RestrictNamespaces = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
-        LockPersonality = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectKernelLogs = true;
-        ProtectControlGroups = true;
-        ProtectClock = true;
-        ProtectHostname = true;
+          # Security hardening
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          PrivateTmp = true;
+          NoNewPrivileges = true;
+          PrivateDevices = true;
+          RestrictAddressFamilies = [
+            "AF_INET"
+            "AF_INET6"
+            "AF_UNIX"
+          ];
+          RestrictNamespaces = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
+          LockPersonality = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectKernelLogs = true;
+          ProtectControlGroups = true;
+          ProtectClock = true;
+          ProtectHostname = true;
+        };
       };
     };
-  };
 
 in
 {
