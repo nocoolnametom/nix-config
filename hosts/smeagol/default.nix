@@ -408,6 +408,15 @@ in
   # AppArmor is disabled on smeagol — it conflicts with the Jovian/gaming setup
   security.apparmor.enable = false;
 
+  # Homelab Beszel monitoring - GPU and Docker monitoring
+  services.homelab-beszel-agent = {
+    monitorGpu = true; # NVIDIA GPU for AI workloads
+    additionalFilesystems = [
+      "/home"
+      "/mnt/docker-volumes" # If you have a separate Docker volumes mount
+    ];
+  };
+
   system.stateVersion = "25.05";
 
   users.users.root.initialHashedPassword = "$y$j9T$kJlllzou9ACSf/q6LFgPi.$A49llCkktVbbfOHVvdjSRnPD27.jg4xSYaLlG5p9t5A";

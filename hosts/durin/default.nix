@@ -69,6 +69,33 @@ in
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Homelab Beszel monitoring - monitor /arkenstone mount and media services
+  services.homelab-beszel-agent = {
+    additionalFilesystems = [
+      "/arkenstone"
+      "/persist"
+    ];
+    # Monitor media management services (common services auto-detected via defaults)
+    monitoredServices = [
+      "sshd"
+      "docker"
+      "tailscaled"
+      "stash"
+      "stash-vr-local"
+      "stash-vr-external"
+      "deluged"
+      "delugeweb"
+      "flood"
+      "miniflux"
+      "nzbget"
+      "nzbhydra2"
+      "radarr"
+      "sickbeard"
+      "sonarr"
+      "pinchflat"
+    ];
+  };
+
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
     "deluged"

@@ -83,6 +83,39 @@ in
       description = "Additional arguments to pass to beszel-agent";
       example = [ "-v" ];
     };
+
+    additionalFilesystems = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Additional filesystems/mount points to monitor beyond root";
+      example = [
+        "/mnt/data"
+        "/home"
+      ];
+    };
+
+    monitorGpu = mkOption {
+      type = types.bool;
+      default = false;
+      description = "Enable GPU monitoring (requires nvidia-smi or rocm-smi)";
+    };
+
+    monitoredServices = mkOption {
+      type = types.listOf types.str;
+      default = [ ];
+      description = "Systemd services to monitor status for";
+      example = [
+        "nginx"
+        "postgresql"
+        "docker"
+      ];
+    };
+
+    enableSensors = mkOption {
+      type = types.bool;
+      default = true;
+      description = "Enable hardware sensor monitoring (temperature, fans, etc.)";
+    };
   };
 
   config = mkIf cfg.enable {
@@ -92,6 +125,11 @@ in
       group = "beszel-agent";
       home = "/var/lib/beszel-agent";
       createHome = true;
+      # Add to groups for monitoring capabilities
+      extraGroups = [
+        "disk"
+      ] # S.M.A.R.T. disk monitoring
+      ++ lib.optional config.virtualisation.docker.enable "docker"; # Container monitoring
     };
     users.groups.beszel-agent = { };
 
@@ -100,6 +138,31 @@ in
       let
         # Build the agent command with optional authentication
         agentScript = pkgs.writeShellScript "beszel-agent-start" ''
+          # Set KEY as environment variable (without newlines)
+          ${lib.optionalString (cfg.sshKeyFile != null) ''
+            export KEY="$(cat ${cfg.sshKeyFile} | tr -d '\n')"
+          ''}
+
+          # Additional filesystem monitoring
+          ${lib.optionalString (cfg.additionalFilesystems != [ ]) ''
+            export FILESYSTEM="${lib.concatStringsSep "," cfg.additionalFilesystems}"
+          ''}
+
+          # GPU monitoring
+          ${lib.optionalString cfg.monitorGpu ''
+            export GPU="true"
+          ''}
+
+          # Systemd service monitoring
+          ${lib.optionalString (cfg.monitoredServices != [ ]) ''
+            export SERVICES="${lib.concatStringsSep "," cfg.monitoredServices}"
+          ''}
+
+          # Hardware sensor monitoring
+          ${lib.optionalString (!cfg.enableSensors) ''
+            export SENSORS="false"
+          ''}
+
           TOKEN_ARG=""
           ${lib.optionalString (cfg.tokenFile != null) ''
             if [ -f "${cfg.tokenFile}" ]; then
@@ -108,7 +171,6 @@ in
           ''}
           exec ${homelab-beszel-agent}/bin/beszel-agent --listen :${toString cfg.port} \
             --url ${cfg.hubUrl} \
-            ${lib.optionalString (cfg.sshKeyFile != null) "--key ${cfg.sshKeyFile}"} \
             $TOKEN_ARG
         '';
       in

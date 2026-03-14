@@ -156,6 +156,22 @@
   services.openssh.openFirewall = true;
   services.fail2ban.enable = true;
 
+  # Homelab Beszel monitoring - GPU monitoring for gaming desktop
+  services.homelab-beszel-agent = {
+    monitorGpu = true; # AMD GPU
+    additionalFilesystems = [
+      "/home"
+    ];
+    # Monitor AI services (common services auto-detected via defaults)
+    monitoredServices = [
+      "sshd"
+      "docker"
+      "tailscaled"
+      "ollama"
+      "open-webui"
+    ];
+  };
+
   system.stateVersion = "25.05";
 
   users.users.root.initialHashedPassword = "$y$j9T$kJlllzou9ACSf/q6LFgPi.$A49llCkktVbbfOHVvdjSRnPD27.jg4xSYaLlG5p9t5A";

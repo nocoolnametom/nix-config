@@ -155,7 +155,35 @@
   # '';
 
   # Homelab Beszel monitoring agent - override hubUrl to use local hub
-  services.homelab-beszel-agent.hubUrl = "http://localhost:8090";
+  services.homelab-beszel-agent = {
+    hubUrl = "http://localhost:8090";
+    # Monitor additional filesystems
+    additionalFilesystems = [
+      "/home"
+      "/persist"
+    ];
+    # Monitor application services (in addition to auto-detected ones)
+    monitoredServices = [
+      "sshd"
+      "caddy"
+      "postgresql"
+      "docker"
+      "tailscaled"
+      "immich-server"
+      "immich-machine-learning"
+      "paperless-scheduler"
+      "paperless-web"
+      "actual-budget"
+      "audiobookshelf"
+      "hedgedoc"
+      "kanidm"
+      "karakeep"
+      "kavita"
+      "mealie"
+      "ombi"
+      "podman-homelab-beszel" # Monitor the beszel hub itself
+    ];
+  };
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
