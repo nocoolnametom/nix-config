@@ -154,21 +154,8 @@
   services.openssh.openFirewall = true;
   services.fail2ban.enable = true;
 
-  # Homelab Beszel monitoring - GPU monitoring for gaming desktop
-  services.homelab-beszel-agent = {
-    monitorGpu = true; # AMD GPU
-    additionalFilesystems = [
-      "/home"
-    ];
-    # Monitor AI services (common services auto-detected via defaults)
-    monitoredServices = [
-      "sshd"
-      "docker"
-      "tailscaled"
-      "ollama"
-      "open-webui"
-    ];
-  };
+  # Homelab Beszel monitoring - filesystems and GPU auto-detected
+  # services.homelab-beszel-agent = { };
 
   system.stateVersion = "25.05";
 

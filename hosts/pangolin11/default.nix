@@ -138,14 +138,8 @@
   # services.gnome.gnome-keyring.enable = false; # Already false by default
   programs.dconf.enable = true;
 
-  # Homelab Beszel monitoring - additional filesystems and GPU
-  services.homelab-beszel-agent = {
-    additionalFilesystems = [
-      "/home"
-      "/persist"
-    ];
-    monitorGpu = true; # Framework laptop has integrated GPU
-  };
+  # Homelab Beszel monitoring - filesystems and GPU auto-detected
+  # services.homelab-beszel-agent = { };
 
   system.stateVersion = "25.05";
 

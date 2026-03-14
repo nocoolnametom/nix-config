@@ -87,27 +87,31 @@ in
     additionalFilesystems = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "Additional filesystems/mount points to monitor beyond root";
+      description = ''
+        Additional filesystems/mount points to monitor beyond root.
+        Can be devices (sdb), partitions (sdc1), or mount points (/mnt/data).
+        Supports custom names using double underscores (e.g., "sdc1__Jellyfin Media").
+        Maps to EXTRA_FILESYSTEMS environment variable.
+      '';
       example = [
         "/mnt/data"
         "/home"
+        "sdb1__Media Drive"
       ];
-    };
-
-    monitorGpu = mkOption {
-      type = types.bool;
-      default = false;
-      description = "Enable GPU monitoring (requires nvidia-smi or rocm-smi)";
     };
 
     monitoredServices = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      description = "Systemd services to monitor status for";
+      description = ''
+        Systemd services to monitor status for.
+        Supports glob patterns (e.g., "docker*", "beszel*").
+        Maps to SERVICE_PATTERNS environment variable.
+      '';
       example = [
         "nginx"
         "postgresql"
-        "docker"
+        "docker*"
       ];
     };
 
@@ -119,6 +123,9 @@ in
   };
 
   config = mkIf cfg.enable {
+    # Install smartmontools for SMART disk monitoring
+    environment.systemPackages = [ pkgs.smartmontools ];
+
     # Create static user for the agent (needed for persistence)
     users.users.beszel-agent = {
       isSystemUser = true;
@@ -128,7 +135,7 @@ in
       # Add to groups for monitoring capabilities
       extraGroups = [
         "disk"
-      ] # S.M.A.R.T. disk monitoring
+      ] # S.M.A.R.T. disk monitoring (fallback if capabilities don't work)
       ++ lib.optional config.virtualisation.docker.enable "docker"; # Container monitoring
     };
     users.groups.beszel-agent = { };
@@ -145,17 +152,12 @@ in
 
           # Additional filesystem monitoring
           ${lib.optionalString (cfg.additionalFilesystems != [ ]) ''
-            export FILESYSTEM="${lib.concatStringsSep "," cfg.additionalFilesystems}"
-          ''}
-
-          # GPU monitoring
-          ${lib.optionalString cfg.monitorGpu ''
-            export GPU="true"
+            export EXTRA_FILESYSTEMS="${lib.concatStringsSep "," cfg.additionalFilesystems}"
           ''}
 
           # Systemd service monitoring
           ${lib.optionalString (cfg.monitoredServices != [ ]) ''
-            export SERVICES="${lib.concatStringsSep "," cfg.monitoredServices}"
+            export SERVICE_PATTERNS="${lib.concatStringsSep "," cfg.monitoredServices}"
           ''}
 
           # Hardware sensor monitoring
@@ -179,6 +181,11 @@ in
         after = [ "network.target" ];
         wantedBy = [ "multi-user.target" ];
 
+        # Ensure mount points are available before starting
+        unitConfig = lib.mkIf (cfg.additionalFilesystems != [ ]) {
+          RequiresMountsFor = lib.filter (fs: lib.hasPrefix "/" fs) cfg.additionalFilesystems;
+        };
+
         serviceConfig = {
           Type = "simple";
           User = "beszel-agent";
@@ -188,11 +195,27 @@ in
           Restart = "on-failure";
           RestartSec = "10s";
 
+          # Make smartmontools available in PATH
+          Environment = [ "PATH=${pkgs.smartmontools}/bin:/run/current-system/sw/bin" ];
+
+          # SMART monitoring capabilities
+          # CAP_SYS_RAWIO: Required for SATA/ATA via SG_IO
+          # CAP_SYS_ADMIN: Required for NVMe admin passthrough
+          AmbientCapabilities = [
+            "CAP_SYS_RAWIO"
+            "CAP_SYS_ADMIN"
+          ];
+          CapabilityBoundingSet = [
+            "CAP_SYS_RAWIO"
+            "CAP_SYS_ADMIN"
+          ];
+
           # Security hardening
           ProtectSystem = "strict";
           ProtectHome = true;
           PrivateTmp = true;
           NoNewPrivileges = true;
+          PrivateDevices = false; # Need access to disk devices for SMART monitoring
 
           # Need access to system info
           ProtectProc = "invisible";
@@ -201,10 +224,25 @@ in
           # Need access to /sys for hardware info
           ProtectKernelTunables = false;
 
+          # D-Bus access for systemd service monitoring
+          # Required for agent to communicate with systemd via D-Bus
+          # Device access for SMART monitoring
+          BindReadOnlyPaths = [
+            "/run/dbus/system_bus_socket"
+          ];
+          DeviceAllow = [
+            "/dev/nvme*" # NVMe drives for SMART
+            "/dev/sd*" # SATA/SAS drives for SMART
+            "char-usb_device" # USB devices
+            "/dev/nvidia*" # NVIDIA GPU devices
+            "/dev/dri/*" # AMD/Intel GPU devices (DRI)
+          ];
+
           # Network access
           RestrictAddressFamilies = [
             "AF_INET"
             "AF_INET6"
+            "AF_UNIX" # Required for D-Bus socket communication
           ];
         };
       };

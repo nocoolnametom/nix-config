@@ -407,13 +407,8 @@ in
   security.apparmor.enable = false;
 
   # Homelab Beszel monitoring - GPU and Docker monitoring
-  services.homelab-beszel-agent = {
-    monitorGpu = true; # NVIDIA GPU for AI workloads
-    additionalFilesystems = [
-      "/home"
-      "/mnt/docker-volumes" # If you have a separate Docker volumes mount
-    ];
-  };
+  # Homelab Beszel monitoring - filesystems and GPU auto-detected
+  # services.homelab-beszel-agent = { };
 
   system.stateVersion = "25.05";
 

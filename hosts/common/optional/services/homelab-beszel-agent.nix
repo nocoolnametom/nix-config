@@ -27,21 +27,42 @@
       ''
     );
 
-    # Monitor common critical services (auto-detected based on what's enabled)
-    monitoredServices = lib.mkDefault (
-      lib.optional config.services.openssh.enable "sshd"
-      ++ lib.optional config.services.nginx.enable "nginx"
-      ++ lib.optional config.services.caddy.enable "caddy"
-      ++ lib.optional config.services.postgresql.enable "postgresql"
-      ++ lib.optional config.services.mysql.enable "mysql"
-      ++ lib.optional config.virtualisation.docker.enable "docker"
-      ++ lib.optional config.services.tailscale.enable "tailscaled"
-      ++ lib.optional config.networking.firewall.enable "firewall"
+    # Monitor all systemd services for comprehensive visibility
+    # The wildcard catches any service consuming resources unexpectedly
+    # Individual hosts can still override to add specific services they care about
+    monitoredServices = lib.mkDefault [
+      "*" # Monitor all services
+    ];
+
+    # Auto-detect additional filesystems from NixOS configuration
+    # Monitors all mounted filesystems except root, boot, and virtual filesystems
+    additionalFilesystems = lib.mkDefault (
+      lib.filter (
+        mountPoint:
+        let
+          fs = config.fileSystems.${mountPoint};
+          # Exclude root, boot partitions, and virtual filesystems
+          isVirtual = lib.elem fs.fsType [
+            "tmpfs"
+            "ramfs"
+            "devtmpfs"
+            "proc"
+            "sysfs"
+            "cgroup"
+            "cgroup2"
+          ];
+          isBootOrRoot = lib.elem mountPoint [
+            "/"
+            "/boot"
+            "/efi"
+            "/boot/efi"
+          ];
+        in
+        !isVirtual && !isBootOrRoot
+      ) (lib.attrNames config.fileSystems)
     );
 
-    # Enable GPU monitoring on systems with NVIDIA or AMD GPUs
-    monitorGpu = lib.mkDefault (
-      config.hardware.nvidia.package != null || config.hardware.amdgpu.opencl.enable or false
-    );
+    # GPU monitoring is auto-detected by the agent - no configuration needed
+    # Agent will automatically detect NVIDIA, AMD, and Intel GPUs if present
   };
 }
