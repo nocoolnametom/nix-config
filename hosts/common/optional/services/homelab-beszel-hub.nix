@@ -22,7 +22,7 @@
     image = "henrygd/beszel:latest";
     autoStart = true;
     ports = [
-      "127.0.0.1:8090:8090" # Web UI (bind to localhost, proxy via Caddy)
+      "8090:8090" # Web UI and agent connections (accessible on network)
     ];
     volumes = [
       "/var/lib/beszel:/beszel_data"

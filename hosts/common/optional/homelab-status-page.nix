@@ -96,7 +96,7 @@ let
                   <span class="info-label">NixOS Version:</span> ${config.system.nixos.version or "N/A"}
                 </div>
                 <div class="info-item">
-                  <span class="info-label">System:</span> ${pkgs.system}
+                  <span class="info-label">System:</span> ${pkgs.stdenv.hostPlatform.system}
                 </div>
               </div>
             </div>

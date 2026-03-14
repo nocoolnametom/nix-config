@@ -88,7 +88,7 @@ in
 
       serviceConfig = {
         Type = "simple";
-        ExecStart = "${homelab-beszel-agent}/bin/beszel-agent -p ${toString cfg.port}";
+        ExecStart = "${homelab-beszel-agent}/bin/beszel-agent --listen :${toString cfg.port}";
         Restart = "on-failure";
         RestartSec = "10s";
 
