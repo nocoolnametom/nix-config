@@ -47,6 +47,7 @@
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
     "hosts/common/optional/services/homelab-beszel-hub.nix"
+    "hosts/common/optional/services/homelab-beszel-agent.nix"
     # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/hedgedoc.nix"
@@ -153,11 +154,8 @@
   #   ND_AUTH_PROXY_DEFAULT_ROLE=USER
   # '';
 
-  # Homelab Beszel monitoring agent (custom implementation)
-  services.homelab-beszel-agent = {
-    enable = true;
-    hubUrl = "http://localhost:8090";
-  };
+  # Homelab Beszel monitoring agent - override hubUrl to use local hub
+  services.homelab-beszel-agent.hubUrl = "http://localhost:8090";
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {

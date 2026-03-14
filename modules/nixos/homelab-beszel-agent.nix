@@ -107,6 +107,7 @@ in
             fi
           ''}
           exec ${homelab-beszel-agent}/bin/beszel-agent --listen :${toString cfg.port} \
+            --url ${cfg.hubUrl} \
             ${lib.optionalString (cfg.sshKeyFile != null) "--key ${cfg.sshKeyFile}"} \
             $TOKEN_ARG
         '';

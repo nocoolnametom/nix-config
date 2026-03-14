@@ -11,11 +11,14 @@
   # Namespaced as "homelab-" to avoid conflicts with future official nixpkgs module
 
   # Universal token for agent self-registration
-  sops.secrets."homelab/beszel/universal-token" = { };
+  sops.secrets."homelab/beszel/universal-token" = {
+    owner = "beszel-agent";
+    group = "beszel-agent";
+  };
 
   services.homelab-beszel-agent = {
-    enable = true;
-    hubUrl = "http://${configVars.networking.subnets.estel.ip}:8090";
-    tokenFile = config.sops.secrets."homelab/beszel/universal-token".path;
+    enable = lib.mkDefault true;
+    hubUrl = lib.mkDefault "http://${configVars.networking.subnets.estel.ip}:8090";
+    tokenFile = lib.mkDefault config.sops.secrets."homelab/beszel/universal-token".path;
   };
 }
