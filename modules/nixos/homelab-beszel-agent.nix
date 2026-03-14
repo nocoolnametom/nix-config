@@ -126,6 +126,14 @@ in
     # Install smartmontools for SMART disk monitoring
     environment.systemPackages = [ pkgs.smartmontools ];
 
+    # Udev rules to allow disk group access to NVMe character devices for SMART monitoring
+    # NVMe SMART data requires access to /dev/nvme* character devices (mode 0600 by default)
+    # This rule changes them to 0660 with group=disk so beszel-agent can read SMART data
+    services.udev.extraRules = ''
+      # NVMe character devices - needed for SMART data with CAP_SYS_ADMIN
+      KERNEL=="nvme[0-9]*", SUBSYSTEM=="nvme", MODE="0660", GROUP="disk"
+    '';
+
     # Create static user for the agent (needed for persistence)
     users.users.beszel-agent = {
       isSystemUser = true;
@@ -251,12 +259,16 @@ in
           BindReadOnlyPaths = [
             "/run/dbus/system_bus_socket"
           ];
+          DevicePolicy = "closed"; # Strict device access control
           DeviceAllow = [
-            "/dev/nvme*" # NVMe drives for SMART
-            "/dev/sd*" # SATA/SAS drives for SMART
-            "char-usb_device" # USB devices
-            "/dev/nvidia*" # NVIDIA GPU devices
-            "/dev/dri/*" # AMD/Intel GPU devices (DRI)
+            "char-nvme rw" # NVMe character devices for SMART
+            "block-nvme rw" # NVMe block devices
+            "char-sd rw" # SCSI character devices
+            "block-sd rw" # SATA/SAS block devices
+            "char-usb_device rw" # USB devices
+            "char-nvidia rw" # NVIDIA GPU character devices
+            "block-nvidia rw" # NVIDIA block devices
+            "char-drm rw" # DRM devices (AMD/Intel GPUs)
           ];
 
           # Network access
