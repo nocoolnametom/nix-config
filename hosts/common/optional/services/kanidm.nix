@@ -292,14 +292,6 @@ lib.mkIf configVars.enableKanidmSSO {
           basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/nas/client-secret".path;
           scopeMaps = makeScopeMaps "nas";
         };
-
-        netdata = {
-          displayName = "Netdata Monitoring Dashboard";
-          originUrl = "https://${configVars.networking.subdomains.netdata}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.netdata}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/netdata/client-secret".path;
-          scopeMaps = makeScopeMaps "netdata";
-        };
       };
     };
   };
@@ -420,9 +412,6 @@ lib.mkIf configVars.enableKanidmSSO {
     owner = "kanidm";
   };
   sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/netdata/client-secret" = {
     owner = "kanidm";
   };
 

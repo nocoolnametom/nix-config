@@ -39,8 +39,6 @@
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
-    "hosts/common/optional/services/netdata-child.nix" # Netdata monitoring child
-    "hosts/common/optional/services/netdata-collectors.nix" # Service monitoring collectors
     # "hosts/common/optional/services/greetd.nix"
     "hosts/common/optional/services/openssh.nix" # allow remote SSH access
     "hosts/common/optional/services/pipewire.nix" # audio
@@ -75,8 +73,6 @@
 
   # Mark this node as ephemeral since it's a laptop that goes offline regularly
   # This prevents warnings on the parent node (estel) when it disconnects
-  services.netdata.config.global."is ephemeral node" = "yes";
-
   # Once synergy is actually working on Comsic we can re-enable this, but until then it
   # makes sense to not have a useless service just sitting open
   services.synergy.client.enable = false;

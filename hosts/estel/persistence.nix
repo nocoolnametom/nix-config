@@ -41,7 +41,6 @@
       "/var/lib/kavitan"
       "/var/lib/kavitan-library"
       "/var/lib/navidrome"
-      "/var/lib/netdata"
       "/var/lib/nixos"
       "/var/lib/ombi"
       "/var/lib/paperless"
