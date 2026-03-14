@@ -43,6 +43,11 @@ let
     }
     {
       host = "estel";
+      service = "beszel";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
       service = "budget";
       domain = "homeDomain";
     }

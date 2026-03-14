@@ -33,6 +33,7 @@
     "hosts/common/optional/boot/regular_boot.nix" # Don't use with Lanzaboote!
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
+    "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     "hosts/common/optional/services/netdata-child.nix" # Netdata monitoring child
     "hosts/common/optional/services/netdata-collectors.nix" # Service monitoring collectors
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
