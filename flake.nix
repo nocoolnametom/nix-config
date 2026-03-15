@@ -71,6 +71,10 @@
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS";
     jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
+    # Eden Emulator
+    eden.url = "github:grantimatter/eden-flake";
+    eden.inputs.nixpkgs.follows = "nixpkgs";
+
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
     disposable-email-domains.flake = false;
@@ -112,6 +116,7 @@
       nixified-ai,
       nix-flatpak,
       jovian,
+      eden,
       disposable-email-domains,
       my-wordpress-plugins,
       my-sd-models,

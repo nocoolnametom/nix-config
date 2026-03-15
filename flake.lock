@@ -149,6 +149,27 @@
         "type": "github"
       }
     },
+    "eden": {
+      "inputs": {
+        "flake-utils": "flake-utils",
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1773321953,
+        "narHash": "sha256-/Y5a5/AFyEAqik2jGF55ollH19pUVFFuHxIFrJGDhws=",
+        "owner": "grantimatter",
+        "repo": "eden-flake",
+        "rev": "c9f150ac10eef6fe46f8e007f0fa8b93b3beb4c0",
+        "type": "github"
+      },
+      "original": {
+        "owner": "grantimatter",
+        "repo": "eden-flake",
+        "type": "github"
+      }
+    },
     "firefox-gnome-theme": {
       "flake": false,
       "locked": {
@@ -352,6 +373,24 @@
         "type": "github"
       }
     },
+    "flake-utils_2": {
+      "inputs": {
+        "systems": "systems_2"
+      },
+      "locked": {
+        "lastModified": 1731533236,
+        "narHash": "sha256-l0KFg5HjrsfsO/JpG+r7fRrqm12kzFHyUHqHCVpMMbI=",
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "rev": "11707dc2f618dd54ca8739b309ec4fc024de578b",
+        "type": "github"
+      },
+      "original": {
+        "owner": "numtide",
+        "repo": "flake-utils",
+        "type": "github"
+      }
+    },
     "fromYaml": {
       "flake": false,
       "locked": {
@@ -486,7 +525,7 @@
     "helium": {
       "inputs": {
         "flake-compat": "flake-compat",
-        "flake-utils": "flake-utils",
+        "flake-utils": "flake-utils_2",
         "nixpkgs": [
           "nixpkgs"
         ]
@@ -646,10 +685,10 @@
         ]
       },
       "locked": {
-        "lastModified": 1773154116,
-        "narHash": "sha256-LWOAIWFaGt6oRTZJED8x05/YnoV6FaEAj8FhOMOvX1w=",
+        "lastModified": 1773601058,
+        "narHash": "sha256-KE4nErUIncRwY4+rCenKyYF/tZuxKnO53SkltuKTtqs=",
         "ref": "main",
-        "rev": "45d4c23f979964a08cc7e13e734a201f10e9b4b2",
+        "rev": "c1232c6e195bcbf0c9f619680623d31c27137a51",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/my-sd-models.git"
@@ -1021,6 +1060,7 @@
         "apple-fonts": "apple-fonts",
         "arion": "arion",
         "disposable-email-domains": "disposable-email-domains",
+        "eden": "eden",
         "hardware": "hardware",
         "helium": "helium",
         "home-manager": "home-manager",
@@ -1181,7 +1221,7 @@
           "nixpkgs"
         ],
         "nur": "nur",
-        "systems": "systems_2",
+        "systems": "systems_3",
         "tinted-foot": "tinted-foot",
         "tinted-kitty": "tinted-kitty",
         "tinted-schemes": "tinted-schemes",
@@ -1219,6 +1259,21 @@
       }
     },
     "systems_2": {
+      "locked": {
+        "lastModified": 1681028828,
+        "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
+        "owner": "nix-systems",
+        "repo": "default",
+        "rev": "da67096a3b9bf56a91d16901293e51ba5b49a27e",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-systems",
+        "repo": "default",
+        "type": "github"
+      }
+    },
+    "systems_3": {
       "locked": {
         "lastModified": 1681028828,
         "narHash": "sha256-Vy1rq5AaRuLzOxct8nz4T6wlgyUR7zLU309k9mBC768=",
