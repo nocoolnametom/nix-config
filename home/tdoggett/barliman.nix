@@ -45,6 +45,46 @@
       appId = "com.github.iwalton3.jellyfin-media-player";
       origin = "flathub";
     }
+    # mupen64 frontend for N64 Emulation
+    {
+      appId = "com.github.Rosalie241.RMG";
+      origin = "flathub";
+    }
+    # mGBA emulator
+    {
+      appId = "io.mgba.mGBA";
+      origin = "flathub";
+    }
+    # PSP Emulator
+    {
+      appId = "org.ppsspp.PPSSPP";
+      origin = "flathub";
+    }
+    # Flat seal can help with file permissions
+    {
+      appId = "com.github.tchx84.Flatseal";
+      origin = "flathub";
+    }
+    # Doplhin Wii Emulation
+    {
+      appId = "org.DolphinEmu.dolphin-emu";
+      origin = "flathub";
+    }
+    # Cemu WiiU Emulation
+    {
+      appId = "info.cemu.Cemu";
+      origin = "flathub";
+    }
+    # NES Emulator
+    {
+      appId = "ca._0ldsk00l.Nestopia";
+      origin = "flathub";
+    }
+    # Snes9x Emulator
+    {
+      appId = "com.snes9x.Snes9x";
+      origin = "flathub";
+    }
   ];
 
   home = {
