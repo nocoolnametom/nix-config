@@ -135,7 +135,7 @@ in
     "-Xmx256m"
   ];
 
-  time.timeZone = "America/Chicago";
+  time.timeZone = "America/New_York";
 
   # Prevent systemd from logging too much
   services.journald.extraConfig = ''
