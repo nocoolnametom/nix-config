@@ -21,7 +21,7 @@ in
 
   sops = {
     defaultSopsFile = "${secretsFile}";
-    validateSopsFiles = false;
+    validateSopsFiles = true;
 
     age = {
       # automatically import host SSH keys as age keys
