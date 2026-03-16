@@ -29,9 +29,6 @@
 
   programs.git.settings.user.email = configVars.gitHubEmail;
 
-  # Available via `claude-local`
-  programs.claude.localModel = "maternion/lfm2";
-
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
     bottles

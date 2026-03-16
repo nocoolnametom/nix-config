@@ -2,21 +2,49 @@
   pkgs,
   config,
   lib,
+  configVars,
   osConfig ? null,
   ...
 }:
 let
   cfg = config.programs.claude;
 
-  # Models available on the target ollama machine (from private my-sd-models flake)
-  machineModels = lib.attrByPath [ cfg.ollamaMachine ] [ ] pkgs.my-sd-models.machineLLMs;
+  # The hostname key used for machineLLMs lookup:
+  # - null ollamaMachine → current machine's hostName
+  # - set ollamaMachine  → that machine's name (validated enum)
+  llmsMachineKey =
+    if cfg.ollamaMachine != null then
+      cfg.ollamaMachine
+    else if osConfig != null then
+      (osConfig.networking.hostName or "")
+    else
+      "";
 
-  # All three conditions must hold for local Claude to activate:
+  # Models available on the target ollama machine (from private my-sd-models flake)
+  machineModels = lib.attrByPath [ llmsMachineKey ] [ ] pkgs.my-sd-models.machineLLMs;
+
+  # Effective model: explicit localModel takes priority; otherwise fall back to the
+  # primary coding model declared for the target machine in machinePrimaryLLMs.
+  # This avoids duplicating the model string across every satellite home config.
+  effectiveLocalModel =
+    if cfg.localModel != null then
+      cfg.localModel
+    else
+      let
+        primaryLLMs = lib.attrByPath [ llmsMachineKey ] { } pkgs.my-sd-models.machinePrimaryLLMs;
+      in
+      primaryLLMs.coding or null;
+
+  # When machineModels is non-empty we can validate the model against the known list.
+  # When it's empty (custom endpoint, or a machine with no machineLLMs entry) there's
+  # nothing to validate against, so we trust the explicit model and skip the check.
+  modelIsValid = machineModels == [ ] || builtins.elem effectiveLocalModel machineModels;
+
+  # All conditions must hold for local Claude to activate:
   #   1. useLocalClaude = true
-  #   2. localModel is set (non-null)
-  #   3. localModel is present in the target machine's model list
-  localEnabled =
-    cfg.useLocalClaude && cfg.localModel != null && builtins.elem cfg.localModel machineModels;
+  #   2. effectiveLocalModel is non-null
+  #   3. model is either valid against machineLLMs or unverifiable (custom endpoint)
+  localEnabled = cfg.useLocalClaude && effectiveLocalModel != null && modelIsValid;
 
   claudeMarkdown = ''
     # NixOS/Darwin-Nix Development Environment
@@ -92,11 +120,11 @@ let
     ANTHROPIC_BASE_URL = "http://${cfg.ollamaHost}:${toString cfg.ollamaPort}";
     ANTHROPIC_API_KEY = "sk-1234";
     API_TIMEOUT_MS = "3000000";
-    ANTHROPIC_MODEL = "${cfg.localModel}";
-    ANTHROPIC_SMALL_FAST_MODEL = "${cfg.localModel}";
-    ANTHROPIC_DEFAULT_SONNECT_MODEL = "${cfg.localModel}";
-    ANTHROPIC_DEFAULT_OPUS_MODEL = "${cfg.localModel}";
-    ANTHROPIC_DEFAULT_HAIKU_MODEL = "${cfg.localModel}";
+    ANTHROPIC_MODEL = "${effectiveLocalModel}";
+    ANTHROPIC_SMALL_FAST_MODEL = "${effectiveLocalModel}";
+    ANTHROPIC_DEFAULT_SONNECT_MODEL = "${effectiveLocalModel}";
+    ANTHROPIC_DEFAULT_OPUS_MODEL = "${effectiveLocalModel}";
+    ANTHROPIC_DEFAULT_HAIKU_MODEL = "${effectiveLocalModel}";
   };
 
   # Full local settings (common + local-only)
@@ -148,29 +176,34 @@ in
     };
     useLocalClaude = lib.mkOption {
       type = lib.types.bool;
-      default = cfg.localModel != null;
-      defaultText = lib.literalExpression "localModel != null";
-      description = "Use a local ollama instance instead of the Anthropic API. Defaults to true when localModel is set. Also requires the model to be available on ollamaMachine.";
+      default = effectiveLocalModel != null && modelIsValid;
+      defaultText = lib.literalExpression "effectiveLocalModel != null && (machineModels is empty or effectiveLocalModel is in machineModels)";
+      description = "Use a local ollama instance instead of the Anthropic API. Defaults to true when a model is available and either confirmed against machineLLMs or using a custom endpoint with no list to validate against.";
     };
     localModel = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
       default = null;
       description = "Ollama model name (e.g. \"llama3.2:latest\"). Must match an entry in pkgs.my-sd-models.machineLLMs for ollamaMachine. If null, local Claude is disabled regardless of useLocalClaude.";
     };
+    ollamaMachine = lib.mkOption {
+      type = lib.types.nullOr (lib.types.enum (builtins.attrNames configVars.networking.subnets));
+      default = null;
+      description = "Subnet machine name running ollama. Null means localhost (current machine). When set, ollamaHost defaults to that machine's LAN IP from configVars.networking.subnets.";
+    };
     ollamaHost = lib.mkOption {
       type = lib.types.str;
-      default = "localhost";
-      description = "Host or IP address of the machine running ollama. Used to build ANTHROPIC_BASE_URL. For remote machines (e.g. estel → barliman), set this to the remote IP/hostname.";
+      default =
+        if cfg.ollamaMachine != null then
+          configVars.networking.subnets.${cfg.ollamaMachine}.ip
+        else
+          "localhost";
+      defaultText = lib.literalExpression "configVars.networking.subnets.<ollamaMachine>.ip, or \"localhost\" when ollamaMachine is null";
+      description = "Host or IP address of the machine running ollama. Defaults to the LAN IP of ollamaMachine, or localhost when ollamaMachine is null.";
     };
     ollamaPort = lib.mkOption {
       type = lib.types.port;
-      default = 11434;
-      description = "Port ollama is listening on. Used to build ANTHROPIC_BASE_URL.";
-    };
-    ollamaMachine = lib.mkOption {
-      type = lib.types.str;
-      default = if osConfig != null then (osConfig.networking.hostName or "") else "";
-      description = "Hostname key used to look up available models in pkgs.my-sd-models.machineLLMs. Defaults to the current machine. Override when pointing at a remote ollama host (e.g. set to \"barliman\" on estel).";
+      default = configVars.networking.ports.tcp.ollama;
+      description = "Port ollama is listening on. Defaults to configVars.networking.ports.tcp.ollama.";
     };
   };
 
@@ -184,14 +217,17 @@ in
   config = lib.mkIf cfg.enable {
     warnings =
       lib.optionals
-        (cfg.useLocalClaude && cfg.localModel != null && !(builtins.elem cfg.localModel machineModels))
+        (cfg.localModel != null && machineModels != [ ] && !(builtins.elem cfg.localModel machineModels))
         [
-          "programs.claude: localModel '${cfg.localModel}' was not found in pkgs.my-sd-models.machineLLMs for machine '${cfg.ollamaMachine}'. Local Claude will not be configured."
+          "programs.claude: localModel '${cfg.localModel}' was not found in pkgs.my-sd-models.machineLLMs for machine '${llmsMachineKey}'. Local Claude will not be configured."
         ];
 
-    # When local Claude is active, provide a `claude-local` wrapper command that uses
-    # the local settings file (which already sets the model via env vars)
-    home.packages = lib.mkIf localEnabled [
+    # Install claude-code; when local mode is active also provide a `claude-local` wrapper
+    # that points at the local settings file (which overrides the API endpoint + model).
+    home.packages = [
+      pkgs.claude-code
+    ]
+    ++ lib.optionals localEnabled [
       (pkgs.writeShellScriptBin "claude-local" ''
         exec ${pkgs.claude-code}/bin/claude --settings "${localSettingsFile}" "$@"
       '')

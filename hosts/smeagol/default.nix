@@ -386,7 +386,6 @@ in
   environment.systemPackages = with pkgs; [
     appimage-run
     brave
-    claude-code
     glibcLocales
     gparted
     gnumake

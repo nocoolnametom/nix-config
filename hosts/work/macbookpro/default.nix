@@ -94,7 +94,6 @@ in
     pkgs.unstable.zed-editor
 
     # Terminal Programs
-    pkgs.unstable.claude-code
     pkgs.awscli2
     pkgs.kubectl # same as kubernetes-cli
     pkgs.libaom

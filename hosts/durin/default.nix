@@ -176,7 +176,6 @@ in
   boot.initrd.systemd.enable = true;
 
   environment.systemPackages = with pkgs; [
-    claude-code
     fuse
     glibcLocales
     nodejs

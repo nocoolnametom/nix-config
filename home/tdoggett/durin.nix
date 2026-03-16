@@ -9,6 +9,7 @@
     common/optional/services/ssh-agent.nix # standard ssh-agent for SSH (no pinentry needed on headless)
     common/optional/sops.nix
     common/optional/git.nix
+    common/optional/claude.nix
   ];
 
   # Headless: gpg-agent handles GPG only; standard ssh-agent handles SSH.
@@ -16,6 +17,8 @@
   services.gpg-agent.enableSshSupport = false;
 
   programs.git.settings.user.email = configVars.gitHubEmail;
+
+  programs.claude.ollamaMachine = configVars.networking.subnets.barliman.name;
 
   home = {
     stateVersion = "25.05";

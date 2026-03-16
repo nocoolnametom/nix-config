@@ -18,6 +18,7 @@
     common/optional/git.nix
     common/optional/desktops/kitty.nix
     common/optional/desktops/bluetooth-applet.nix
+    common/optional/claude.nix
     common/optional/devenv.nix
     common/optional/stylix.nix # System-wide theming via Home Manager
 

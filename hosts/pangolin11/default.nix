@@ -122,7 +122,6 @@
     pkgs.gparted
     pkgs.split-my-cbz
     pkgs.update-cbz-tags
-    pkgs.claude-code
   ];
 
   # Enable Powertop
