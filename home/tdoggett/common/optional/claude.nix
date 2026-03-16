@@ -53,23 +53,16 @@ let
     available. Always check availability or use `nix run` to provide them.
   '';
 
+  # Common settings applied to both regular and local claude
   # These env vars are always enforced by Nix regardless of what Claude writes.
   # All other keys Claude adds (mcpServers, permissions, hooks, etc.) are preserved.
-  baseSettings = {
+  commonSettings = {
     attribution = {
       commit = "";
       pr = "";
     };
     prefersReducedMotion = cfg.prefersReducedMotion;
     terminalProgressBarEnabled = cfg.terminalProgressBarEnabled;
-  }
-  // lib.optionalAttrs localEnabled {
-    # Skip the onboarding flow when using local ollama (no real API key needed)
-    hasCompletedOnboarding = true;
-    # Provide a dummy key as a fallback; the merge strategy preserves any real existing key
-    primaryApiKey = "sk-dummy-key";
-  }
-  // {
     env = {
       # Disable nonessential UI features:
       CLAUDE_CODE_DISABLE_TERMINAL_TITLE = 1;
@@ -87,22 +80,47 @@ let
     // lib.optionalAttrs cfg.disableNonessentialTraffic {
       CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = 1;
     }
-    // lib.optionalAttrs (cfg.fixAttributionHeaderForLocal || localEnabled) {
+    // lib.optionalAttrs cfg.fixAttributionHeaderForLocal {
       CLAUDE_CODE_ATTRIBUTION_HEADER = 0;
-    }
-    // lib.optionalAttrs localEnabled {
-      ANTHROPIC_BASE_URL = "http://${cfg.ollamaHost}:${toString cfg.ollamaPort}";
-      ANTHROPIC_API_KEY = "sk-1234";
     };
   };
 
-  baseSettingsJson = builtins.toJSON baseSettings;
+  # Settings specific to local ollama usage
+  # These are merged with commonSettings to create the local settings file
+  localOnlyEnv = {
+    CLAUDE_CODE_ATTRIBUTION_HEADER = 0;
+    ANTHROPIC_BASE_URL = "http://${cfg.ollamaHost}:${toString cfg.ollamaPort}";
+    ANTHROPIC_API_KEY = "sk-1234";
+    API_TIMEOUT_MS = "3000000";
+    ANTHROPIC_MODEL = "${cfg.localModel}";
+    ANTHROPIC_SMALL_FAST_MODEL = "${cfg.localModel}";
+    ANTHROPIC_DEFAULT_SONNECT_MODEL = "${cfg.localModel}";
+    ANTHROPIC_DEFAULT_OPUS_MODEL = "${cfg.localModel}";
+    ANTHROPIC_DEFAULT_HAIKU_MODEL = "${cfg.localModel}";
+  };
+
+  # Full local settings (common + local-only)
+  localSettings = commonSettings // {
+    # Skip the onboarding flow when using local ollama (no real API key needed)
+    hasCompletedOnboarding = true;
+    # Merge common env with local-only env
+    # Note: ANTHROPIC_API_KEY is set in localOnlyEnv, no need for primaryApiKey here
+    env = commonSettings.env // localOnlyEnv;
+  };
+
+  commonSettingsJson = builtins.toJSON commonSettings;
+  localSettingsJson = builtins.toJSON localSettings;
 
   settingsFile = "${config.home.homeDirectory}/.claude/settings.json";
+  localSettingsFile = "${config.home.homeDirectory}/.claude/settings-local.json";
 in
 {
   options.programs.claude = {
-    enable = lib.mkEnableOption "Claude Code settings management";
+    enable = lib.mkOption {
+      type = lib.types.bool;
+      default = true;
+      description = "Claude Code settings management";
+    };
     fixAttributionHeaderForLocal = lib.mkOption {
       type = lib.types.bool;
       default = false;
@@ -130,8 +148,9 @@ in
     };
     useLocalClaude = lib.mkOption {
       type = lib.types.bool;
-      default = false;
-      description = "Use a local ollama instance instead of the Anthropic API. Also requires localModel to be set and available on ollamaMachine.";
+      default = cfg.localModel != null;
+      defaultText = lib.literalExpression "localModel != null";
+      description = "Use a local ollama instance instead of the Anthropic API. Defaults to true when localModel is set. Also requires the model to be available on ollamaMachine.";
     };
     localModel = lib.mkOption {
       type = lib.types.nullOr lib.types.str;
@@ -155,11 +174,13 @@ in
     };
   };
 
-  # settings.json is managed via activation (not home.file) so Claude Code can write to it.
+  # Regular settings.json is managed via activation (not home.file) so Claude Code can write to it.
   # On each switch: Claude's additions are preserved, but the `env` section is always
-  # overwritten with the Nix-defined base (merge strategy: base * existing * {env: base.env}).
-  # When localEnabled, hasCompletedOnboarding is also forced from base.
-  # primaryApiKey uses base as a fallback only — any existing key is preserved by the merge.
+  # overwritten with the Nix-defined common settings (merge strategy: common * existing * {env: common.env}).
+  # The regular settings file is kept clean and never contains local-management keys.
+  #
+  # When local mode is enabled, a separate immutable settings-local.json is created with
+  # all local-specific settings, and a `claude-local` wrapper command is provided.
   config = lib.mkIf cfg.enable {
     warnings =
       lib.optionals
@@ -168,15 +189,18 @@ in
           "programs.claude: localModel '${cfg.localModel}' was not found in pkgs.my-sd-models.machineLLMs for machine '${cfg.ollamaMachine}'. Local Claude will not be configured."
         ];
 
-    # When local Claude is active, alias `claude` to always pass --model so the user
-    # only needs to write `claude --other-flags` without specifying the model each time.
-    home.shellAliases = lib.mkIf localEnabled {
-      claude = "claude --model ${lib.escapeShellArg cfg.localModel}";
-    };
+    # When local Claude is active, provide a `claude-local` wrapper command that uses
+    # the local settings file (which already sets the model via env vars)
+    home.packages = lib.mkIf localEnabled [
+      (pkgs.writeShellScriptBin "claude-local" ''
+        exec ${pkgs.claude-code}/bin/claude --settings "${localSettingsFile}" "$@"
+      '')
+    ];
 
+    # Regular settings file - mutable, contains common settings only
     home.activation.claudeSettings = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
       mkdir -p "${config.home.homeDirectory}/.claude"
-      BASE='${baseSettingsJson}'
+      BASE='${commonSettingsJson}'
 
       if [ -L "${settingsFile}" ]; then
         # Remove old Nix-managed symlink from previous config approach
@@ -187,12 +211,18 @@ in
         MERGED=$(${pkgs.jq}/bin/jq -n \
           --argjson base "$BASE" \
           --argjson existing "$(cat "${settingsFile}")" \
-          '$base * $existing * {env: $base.env${lib.optionalString localEnabled ", hasCompletedOnboarding: $base.hasCompletedOnboarding"}}')
+          '$base * $existing * {env: $base.env}')
         echo "$MERGED" > "${settingsFile}"
       else
         echo "$BASE" | ${pkgs.jq}/bin/jq '.' > "${settingsFile}"
       fi
     '';
+
+    # Local settings file - immutable, contains all settings including local-management keys
+    # Only created when local mode is enabled
+    home.file.".claude/settings-local.json" = lib.mkIf localEnabled {
+      text = localSettingsJson;
+    };
 
     home.file."${config.home.homeDirectory}/.claude/CLAUDE.md".text = claudeMarkdown;
   };

@@ -20,6 +20,7 @@
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
     common/optional/desktops/bluetooth-applet.nix
     common/optional/stylix.nix # System-wide theming via Home Manager
+    common/optional/claude.nix
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/gpg-agent.nix
@@ -27,6 +28,9 @@
   ];
 
   programs.git.settings.user.email = configVars.gitHubEmail;
+
+  # Available via `claude-local`
+  programs.claude.localModel = "maternion/lfm2";
 
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
