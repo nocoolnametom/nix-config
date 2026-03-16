@@ -22,6 +22,9 @@
     common/optional/docker-darwin.nix
   ];
 
+  # Colima has an issue with an old dependency lima-full, so we run the unstable version
+  services.colima.package = pkgs.unstable.colima;
+
   programs.claude.enable = true;
 
   programs.vim = {
