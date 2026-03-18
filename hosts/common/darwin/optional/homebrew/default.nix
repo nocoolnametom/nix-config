@@ -15,6 +15,8 @@ with lib;
     { name = "reddix"; }
     # Local LLM-Fit for Colima
     { name = "llmfit"; }
+    # Crit AI Assistance - Tapped, comment first then uncomment
+    { name = "tomasz-tomczyk/tap/crit"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS
