@@ -107,4 +107,9 @@
 
   # Deluge Web Server - Used by other services to send torrents!
   services.deluge.web.enable = lib.mkDefault config.services.deluge.enable;
+
+  # Automatic state backup and recovery
+  services.deluge-recovery.enable = lib.mkDefault true;
+  services.deluge-recovery.backupInterval = "hourly"; # Backup healthy state every hour
+  services.deluge-recovery.enableAutoRecovery = lib.mkDefault true; # Auto-recover from corruption
 }

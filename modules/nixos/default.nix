@@ -3,6 +3,7 @@
 {
   # List your module files here
   # my-module = import ./my-module.nix;
+  deluge-recovery = import ./deluge-recovery.nix;
   deprecation = import ./deprecation.nix;
   homelab-beszel-agent = import ./homelab-beszel-agent.nix;
   dns-failover = import ./dns-failover.nix;
