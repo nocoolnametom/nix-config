@@ -40,9 +40,9 @@
     #################### Utilities ####################
 
     # Styling for Visual Applications
-    stylix.url = "github:nix-community/stylix/release-25.11";
-    # stylix.url = "github:nix-community/stylix";
-    stylix.inputs.nixpkgs.follows = "nixpkgs";
+    # stylix.url = "github:nix-community/stylix/release-25.11";
+    stylix.url = "github:nix-community/stylix";
+    stylix.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # San Francisco Fonts | Apple Fonts
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";

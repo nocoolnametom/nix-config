@@ -17,9 +17,6 @@ in
 {
   # User-level persistence is loaded in the `home/<username>/persistence/<hostName>.nix` file!
 
-  # Add Stylix Home Manager module to all home-manager configurations
-  home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
-
   # Here is where the Home Manager magic happens!
   home-manager.users.${configVars.username} = import (
     configLib.relativeToRoot "home/${configVars.username}/${machineName}.nix"

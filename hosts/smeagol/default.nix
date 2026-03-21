@@ -60,6 +60,7 @@ in
     "hosts/common/optional/nvidia.nix"
     "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/scanning.nix"
+    "hosts/common/optional/stylix.nix"
     "hosts/common/optional/bluetooth.nix"
     "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/steam.nix"

@@ -27,9 +27,6 @@
 
     ########################### Impermanence ##################################
     ./persistence.nix
-
-    ############################## Stylix #####################################
-    # inputs.stylix.nixosModules.stylix # No GUI on the RasPi
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

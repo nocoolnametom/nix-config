@@ -30,9 +30,6 @@
 
     ############################ Lanzaboote ###################################
     inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
-
-    ############################## Stylix #####################################
-    inputs.stylix.nixosModules.stylix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

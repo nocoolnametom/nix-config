@@ -27,9 +27,6 @@
 
     ############################ Lanzaboote ###################################
     inputs.lanzaboote.nixosModules.lanzaboote # Must also use the config below
-
-    ############################## Stylix #####################################
-    # inputs.stylix.nixosModules.stylix # No GUI
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

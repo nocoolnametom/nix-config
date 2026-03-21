@@ -29,9 +29,6 @@ in
 
     ########################### Impermanence ##################################
     ./persistence.nix
-
-    ############################## Stylix #####################################
-    # inputs.stylix.nixosModules.stylix # No GUI on AWS
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

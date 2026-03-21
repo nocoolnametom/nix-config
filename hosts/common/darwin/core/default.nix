@@ -27,6 +27,9 @@
 
       # Load the sops module
       inputs.sops-nix.darwinModules.sops
+
+      # Load the stylix module
+      inputs.stylix.darwinModules.stylix
     ]
     ++
       # Custom darwinModules as defined in the root flake
@@ -75,6 +78,9 @@
   home-manager.extraSpecialArgs = {
     inherit inputs outputs;
   };
+
+  # Automatically import stylix home-manager module for all users
+  home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
 
   nixpkgs = {
     overlays =

@@ -19,7 +19,6 @@
     common/optional/immersed.nix
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
     common/optional/desktops/bluetooth-applet.nix
-    common/optional/stylix.nix # System-wide theming via Home Manager
     common/optional/claude.nix
 
     ############### Service Configurations (Enable below) #################

@@ -1,4 +1,9 @@
-{ pkgs, lib, ... }:
+{
+  pkgs,
+  lib,
+  config,
+  ...
+}:
 {
   imports = [
     # Browsers
@@ -51,21 +56,15 @@
     nerd-fonts.droid-sans-mono
   ];
 
-  # home.pointerCursor.gtk.enable = true;
-
   gtk.enable = lib.mkDefault true;
-
-  #fonts.fontconfig.enable = lib.mkDefault true;
-
-  # Force overwrite GTK CSS files (Stylix generates these)
-  # Prevents "would be clobbered" errors during home-manager activation
-  xdg.configFile."gtk-3.0/gtk.css".force = true;
-  xdg.configFile."gtk-4.0/gtk.css".force = true;
 
   # GNOME Keyring for app credential storage (VSCode, etc.)
   # Disable SSH component to avoid conflict with GPG agent
   services.gnome-keyring = {
     enable = lib.mkDefault true;
-    components = lib.mkDefault [ "pkcs11" "secrets" ]; # Exclude "ssh" component
+    components = lib.mkDefault [
+      "pkcs11"
+      "secrets"
+    ]; # Exclude "ssh" component
   };
 }

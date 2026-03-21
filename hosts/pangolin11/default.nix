@@ -58,6 +58,7 @@
     "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
+    "hosts/common/optional/stylix.nix"
     "hosts/common/optional/thunar.nix" # Thunar File-Browser
     "hosts/common/optional/yubikey.nix"
     "hosts/common/optional/bluetooth.nix"

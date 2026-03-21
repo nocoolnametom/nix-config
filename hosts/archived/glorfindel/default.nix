@@ -32,9 +32,6 @@ in
     ./persistence.nix
     # There might be an option to reformat the drive with btrfs and delete root
     # on shutdown, but I'm not sure how to do that yet.
-
-    ############################## Stylix #####################################
-    # inputs.stylix.nixosModules.stylix # No GUI on Linode
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

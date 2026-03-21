@@ -16,6 +16,10 @@
     ++ [
       # Ensure we've loaded the Home Manager module
       inputs.home-manager.nixosModules.home-manager
+
+      # Load the stylix module - To use import the
+      # common/optional/stylix.nix in your hosts file.
+      inputs.stylix.nixosModules.stylix
     ]
     ++
       # Custom nixosModules as defined in the root flake
@@ -70,6 +74,9 @@
   home-manager.extraSpecialArgs = {
     inherit inputs outputs;
   };
+
+  # Automatically import stylix home-manager module for all users
+  home-manager.sharedModules = [ inputs.stylix.homeModules.stylix ];
 
   # If impermanence is enabled, force clobber conflicting files (safe since non-persisted files are wiped on boot)
   # Otherwise, use normal backup behavior

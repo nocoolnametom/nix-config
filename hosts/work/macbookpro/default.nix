@@ -43,6 +43,7 @@ in
     # Be very careful, most of these are meant for NixOS, not Darwin!
     "hosts/common/darwin/optional/nix-remote-builders.nix"
     "hosts/common/optional/direnv.nix"
+    "hosts/common/optional/stylix.nix"
     "hosts/common/optional/tmux.nix"
     "hosts/common/optional/yubikey.nix"
     "hosts/common/darwin/optional/homebrew"

@@ -18,7 +18,6 @@
     common/optional/claude.nix
     common/optional/devenv.nix
     common/optional/wakatime.nix
-    common/optional/stylix.nix # System-wide theming via Home Manager
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/gpg-agent.nix
@@ -42,14 +41,6 @@
     ticktick
     unzip
   ];
-
-  # Stylix fonts for this host (scheme inherits github-dark default from stylix.nix)
-  stylix.fonts.serif.package = pkgs.appleFonts.sf-pro;
-  stylix.fonts.serif.name = "SFProText Nerd Font";
-  stylix.fonts.sansSerif.package = pkgs.appleFonts.sf-pro;
-  stylix.fonts.sansSerif.name = "SFProDisplay Nerd Font";
-  stylix.fonts.monospace.package = pkgs.appleFonts.sf-mono;
-  stylix.fonts.monospace.name = "SFMono Nerd Font";
 
   home = {
     stateVersion = "25.05";

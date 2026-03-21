@@ -20,7 +20,6 @@
     common/optional/desktops/bluetooth-applet.nix
     common/optional/claude.nix
     common/optional/devenv.nix
-    common/optional/stylix.nix # System-wide theming via Home Manager
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/gpg-agent.nix
