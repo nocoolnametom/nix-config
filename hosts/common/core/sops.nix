@@ -8,6 +8,7 @@
 
 let
   secretspath = builtins.toString inputs.nix-secrets;
+
   secretsFile = "${secretspath}/secrets.yaml"; # The secrets file from the nix-secrets input
 
   homeDirectory =
