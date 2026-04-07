@@ -53,7 +53,6 @@
     # "hosts/common/optional/cosmic-niri.nix"
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent, works with HM module for it
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
-    "hosts/common/optional/light.nix" # Monitor brightness
     # "hosts/common/optional/niri.nix"
     "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/scanning.nix"

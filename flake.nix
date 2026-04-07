@@ -4,7 +4,7 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
     nixpkgs-master.url = "github:NixOS/nixpkgs/master"; # also see 'bleeding-packages' overlay at 'overlays/default.nix"
@@ -22,12 +22,12 @@
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    home-manager.url = "github:nix-community/home-manager/release-25.11";
-    # home-manager.url = "github:nix-community/home-manager";
+    # home-manager.url = "github:nix-community/home-manager/release-25.11";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
-    # nix-darwin.url = "github:nix-darwin/nix-darwin";
+    # nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     arion.url = "github:hercules-ci/arion";

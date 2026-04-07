@@ -5,7 +5,7 @@
 }:
 {
   # Colima container runtime, managed as a home-manager launchd/systemd service
-  services.colima.enable = true;
+  services.colima.enable = lib.mkDefault true;
 
   # Docker CLI and compose tooling
   home.packages = [

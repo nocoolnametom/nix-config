@@ -1,3 +1,4 @@
+{ lib, ... }:
 {
   # Sonarr TV NZB Server
   services.sonarr.enable = true;
@@ -7,5 +8,5 @@
   users.users.sonarr.extraGroups = [ "media" ];
 
   # Set umask so sonarr creates group-writable files when moving/renaming
-  systemd.services.sonarr.serviceConfig.UMask = "0002";
+  systemd.services.sonarr.serviceConfig.UMask = lib.mkForce "0002";
 }

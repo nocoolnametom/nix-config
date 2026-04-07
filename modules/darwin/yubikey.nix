@@ -157,18 +157,18 @@ in
     launchd.user.agents.ssh-agent = {
       serviceConfig = {
         Label = "com.homebrew.ssh-agent";
-        EnvironmentVariables.SSH_ASKPASS = "${config.homebrew.brewPrefix}/ssh-askpass";
+        EnvironmentVariables.SSH_ASKPASS = "${config.homebrew.prefix}/bin/ssh-askpass";
         EnvironmentVariables.DISPLAY = ":0";
         ProgramArguments = [
           "/bin/sh"
           "-c"
-          "mkdir -p $(dirname ${agentSocket}); rm -f ${agentSocket}; exec ${config.homebrew.brewPrefix}/ssh-agent -D -a ${agentSocket}"
+          "mkdir -p $(dirname ${agentSocket}); rm -f ${agentSocket}; exec ${config.homebrew.prefix}/bin/ssh-agent -D -a ${agentSocket}"
         ];
         RunAtLoad = true;
       };
     };
 
-    environment.variables.SSH_ASKPASS = "${config.homebrew.brewPrefix}/ssh-askpass";
+    environment.variables.SSH_ASKPASS = "${config.homebrew.prefix}/bin/ssh-askpass";
     environment.variables.DISPLAY = ":0";
   };
 }

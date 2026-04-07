@@ -3,11 +3,6 @@
   services.wivrn.enable = lib.mkDefault true;
   services.wivrn.openFirewall = lib.mkDefault true;
 
-  # Write information to /etc/xdg/openxr/1/active_runtime.json, VR applications
-  # will automatically read this and work with WiVRn (Note: This does not currently
-  # apply for games run in Valve's Proton)
-  services.wivrn.defaultRuntime = lib.mkDefault true;
-
   # Run WiVRn as a systemd service on startup
   services.wivrn.autoStart = lib.mkDefault true;
 
@@ -29,7 +24,8 @@
     }
   ];
   # Deliver the screen to the VR headset
-  services.wivrn.config.json.application = [ pkgs.wlx-overlay-s ];
+  # services.wivrn.config.json.application = [ pkgs.wlx-overlay-s ];
+  services.wivrn.config.json.application = [ pkgs.wayvr ];
 
   # Add env varible to steam
   programs.steam.package = lib.mkDefault (

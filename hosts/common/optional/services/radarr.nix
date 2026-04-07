@@ -1,3 +1,4 @@
+{ lib, ... }:
 {
   # Radarr Movie NZB Server
   services.radarr.enable = true;
@@ -7,5 +8,5 @@
   users.users.radarr.extraGroups = [ "media" ];
 
   # Set umask so radarr creates group-writable files when moving/renaming
-  systemd.services.radarr.serviceConfig.UMask = "0002";
+  systemd.services.radarr.serviceConfig.UMask = lib.mkForce "0002";
 }

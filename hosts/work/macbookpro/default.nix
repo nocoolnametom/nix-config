@@ -89,7 +89,6 @@ in
     pkgs.unstable.postman
     pkgs.unstable.protonmail-bridge
     pkgs.unstable.protonmail-desktop
-    pkgs.unstable.sequelpro
     pkgs.unstable.tableplus
     pkgs.unstable.vscode
     pkgs.unstable.zed-editor

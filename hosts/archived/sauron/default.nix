@@ -90,7 +90,7 @@
     # 13.0 GB  2024-09-01  YC  NA
     "mistral-small"
   ];
-  services.ollama.acceleration = "cuda";
+  services.ollama.package = pkgs.unstable.ollama-cuda;
   # The existing systemd job is SO tightened down that it can't read the WSL drivers AT ALL
   systemd.services.ollama.serviceConfig = lib.mkForce {
     Type = "exec";
