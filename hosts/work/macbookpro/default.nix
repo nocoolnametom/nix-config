@@ -29,6 +29,10 @@ let
     # I cannot figure out how to provide to Nix-Darwin-handled apps
     "slack"
     "zoom-us"
+
+    # These packages are NOT kept updated nearly enough to keep up with
+    # their development
+    "tableplus"
   ];
 in
 {
@@ -89,7 +93,6 @@ in
     pkgs.unstable.postman
     pkgs.unstable.protonmail-bridge
     pkgs.unstable.protonmail-desktop
-    pkgs.unstable.tableplus
     pkgs.unstable.vscode
     pkgs.unstable.zed-editor
 
