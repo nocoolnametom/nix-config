@@ -1,4 +1,9 @@
-{ lib, pkgs, ... }:
+{
+  lib,
+  pkgs,
+  config,
+  ...
+}:
 let
   # Platform-specific SSH_AUTH_SOCK:
   #   Darwin: brew ssh-agent at a stable known path (see modules/darwin/yubikey.nix)
@@ -11,6 +16,10 @@ let
 in
 {
   programs.zsh.enable = lib.mkDefault true;
+  # LEGACY BEHAVIOR (26.05): New default will move zsh dotfiles to $XDG_CONFIG_HOME/zsh.
+  # Keeping home dir for now to avoid needing to migrate .zshrc, .zshenv, etc.
+  # To adopt new behavior: set to "${config.xdg.configHome}/zsh" and move existing dotfiles.
+  programs.zsh.dotDir = config.home.homeDirectory;
   programs.zsh.enableCompletion = lib.mkDefault true;
   programs.zsh.autosuggestion.enable = lib.mkDefault true;
   programs.zsh.syntaxHighlighting.enable = lib.mkDefault true;

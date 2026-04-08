@@ -62,7 +62,7 @@
     pkgs.wget
     pkgs.vim
     pkgs.git # Needed for flakes!
-    pkgs.nixfmt-rfc-style
+    pkgs.nixfmt
     pkgs.nil
     pkgs.screen
     pkgs.tmux

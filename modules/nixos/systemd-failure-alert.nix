@@ -32,7 +32,7 @@ in
     email = {
       enable = lib.mkOption {
         type = lib.types.bool;
-        default = true;
+        default = false;
         description = "Enable email notifications (requires sendmail/mailserver)";
       };
       address = lib.mkOption {

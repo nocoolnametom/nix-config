@@ -52,7 +52,7 @@
     pkgs.wget
     pkgs.git # Needed for flakes!
     pkgs.git-lfs
-    pkgs.nixfmt-rfc-style
+    pkgs.nixfmt
     pkgs.dnsmasq
     pkgs.docutils
     pkgs.mkcert

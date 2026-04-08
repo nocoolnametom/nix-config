@@ -105,7 +105,7 @@ in
       };
 
       # ========== nix ==========
-      nixfmt-rfc-style.enable = true;
+      nixfmt.enable = true;
 
       # ========== shellscripts ==========
       shfmt.enable = true;

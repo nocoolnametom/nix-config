@@ -187,7 +187,7 @@
       );
 
       # Nix formatter available through 'nix fmt' https://github.com/NixOS/nixfmt
-      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt-rfc-style);
+      formatter = forAllSystems (system: nixpkgs.legacyPackages.${system}.nixfmt);
 
       # Shell configured with packages that are typically only needed when working on or with nix-config.
       # Also wires the pre-commit-check shellHook so `nix develop` auto-installs git hooks.

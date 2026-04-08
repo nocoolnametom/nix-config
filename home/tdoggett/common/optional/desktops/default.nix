@@ -40,7 +40,7 @@
     foliate
     kdePackages.kdeconnect-kde
     networkmanagerapplet # having it installed allows the icon to show up correctly in system bars
-    xfce.thunar
+    thunar
     # todoist-electron
 
     # Fonts
@@ -57,6 +57,10 @@
   ];
 
   gtk.enable = lib.mkDefault true;
+  # LEGACY BEHAVIOR (26.05): New default sets gtk4 theme to null (unmanaged) rather than
+  # inheriting gtk3 theme. Keeping the gtk3 theme for visual consistency across GTK3/GTK4 apps.
+  # To adopt new behavior: set to null and manage gtk4 theming separately (e.g. via Stylix).
+  gtk.gtk4.theme = config.gtk.theme;
 
   # GNOME Keyring for app credential storage (VSCode, etc.)
   # Disable SSH component to avoid conflict with GPG agent
