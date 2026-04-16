@@ -37,6 +37,7 @@ in
     # Homelab SSL and status page
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
+    "hosts/durin/caddy.nix" # Service links for homelab status page
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
 
     # GPG Agent with SSH support

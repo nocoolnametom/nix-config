@@ -471,7 +471,7 @@ in
 
       # Use systemd-resolved's global DNS servers for all domains, not the per-link DNS servers
       # (unless their search domains are specifically matched).
-      services.resolved.domains = [ "~." ];
+      services.resolved.settings.Resolve.Domains = [ "~." ];
 
       # Create a service that runs on system start, so that the rule to `/dev/null` all marked
       # packets always applies. The same script will be invoked when OpenVPN starts to add a new
