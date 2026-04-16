@@ -465,6 +465,12 @@ in
         file_server
       '';
     };
+    "https://${config.networking.hostName}.${configVars.homeLanDomain}" = {
+      extraConfig = ''
+        root * ${statusPageContent}
+        file_server
+      '';
+    };
 
     # Special: Bare domain redirect
     "${configVars.homeDomain}" = {
