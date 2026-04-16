@@ -26,9 +26,16 @@
 
   # SSO Proxy type constants - use these instead of magic strings
   proxyTypes = {
-    authentik = "authentik";  # Authentik's built-in proxy provider
-    oauth2 = "oauth2";        # Generic OAuth2-proxy (works with any OIDC provider like Kanidm, Keycloak, etc.)
-    oidc = "oidc";            # Direct OIDC integration (service handles auth internally)
-    none = null;              # No SSO/proxy
+    authentik = "authentik"; # Authentik's built-in proxy provider
+    oauth2 = "oauth2"; # Generic OAuth2-proxy (works with any OIDC provider like Kanidm, Keycloak, etc.)
+    oidc = "oidc"; # Direct OIDC integration (service handles auth internally)
+    none = null; # No SSO/proxy
+  };
+
+  homepage = {
+    serviceBlacklist = [
+      "archerstashvr"
+      "stashvr"
+    ];
   };
 }
