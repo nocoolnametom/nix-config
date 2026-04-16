@@ -7,9 +7,28 @@
 }:
 
 let
+  cfg = config.services.homelab-status-page;
+
   # Generate hostname from system hostname and homelab domain
   # e.g., "estel" + homelabDomain = "estel.<homelabDomain>"
   statusPageHostname = "${config.networking.hostName}.${configVars.homelabDomain}";
+
+  serviceLinksHtml =
+    if cfg.serviceLinks == [ ] then
+      ""
+    else
+      ''
+        <div class="info" style="margin-top: 20px;">
+          <h2 style="font-size: 1.3rem; color: #374151; margin-bottom: 12px;">Local Services</h2>
+          <ul style="list-style: none; padding: 0; margin: 0; text-align: left;">
+            ${lib.concatMapStringsSep "\n" (svc: ''
+              <li style="margin: 8px 0;">
+                <a href="${svc.url}" style="color: #2563eb; text-decoration: none; font-weight: 500;">${svc.name}</a>
+              </li>
+            '') cfg.serviceLinks}
+          </ul>
+        </div>
+      '';
 
   # Simple HTML status page
   # Create a directory with index.html for Caddy's file_server
@@ -99,6 +118,7 @@ let
                   <span class="info-label">System:</span> ${pkgs.stdenv.hostPlatform.system}
                 </div>
               </div>
+              ${serviceLinksHtml}
             </div>
           </body>
           </html>
@@ -114,6 +134,27 @@ let
   useCaddy = !hasNginx;
 in
 {
+  options.services.homelab-status-page = {
+    serviceLinks = lib.mkOption {
+      type = lib.types.listOf (
+        lib.types.submodule {
+          options = {
+            name = lib.mkOption {
+              type = lib.types.str;
+              description = "Display name for the service link.";
+            };
+            url = lib.mkOption {
+              type = lib.types.str;
+              description = "URL for the service link.";
+            };
+          };
+        }
+      );
+      default = [ ];
+      description = "Local service links to render on the homelab status page.";
+    };
+  };
+
   config = lib.mkMerge [
     # Configure sops secrets for this host's SSL certificates (always enabled)
     {
