@@ -249,6 +249,107 @@ let
     }
   ];
 
+  serviceBlacklist = configVars.homepage.serviceBlacklist or [ ];
+
+  resolveServicePort =
+    serviceName:
+    let
+      portFromNetworking = lib.attrByPath [ serviceName ] null configVars.networking.ports.tcp;
+      portFromServiceConfig = lib.findFirst (port: port != null) null [
+        (lib.attrByPath [ "services" serviceName "port" ] null config)
+        (lib.attrByPath [ "services" serviceName "listenPort" ] null config)
+        (lib.attrByPath [ "services" serviceName "settings" "Port" ] null config)
+        (lib.attrByPath [ "services" serviceName "settings" "port" ] null config)
+      ];
+      resolvedPort = if portFromNetworking != null then portFromNetworking else portFromServiceConfig;
+    in
+    if resolvedPort == null then null else builtins.toString resolvedPort;
+
+  localHomepageServices =
+    let
+      serviceEntries = lib.filter (svc: svc.host == config.networking.hostName) simpleServices;
+      visibleServices = lib.filter (svc: !(lib.elem svc.service serviceBlacklist)) serviceEntries;
+      withPorts = lib.filter (svc: svc.port != null) (
+        map (svc: svc // { port = resolveServicePort svc.service; }) visibleServices
+      );
+    in
+    lib.sort (a: b: a.service < b.service) withPorts;
+
+  localServiceLinksHtml =
+    if localHomepageServices == [ ] then
+      "<p>No local services found.</p>"
+    else
+      ''
+        <ul class="services">
+          ${lib.concatMapStringsSep "\n" (svc: ''
+            <li><a href="http://${config.networking.hostName}.${configVars.homeLanDomain}:${svc.port}">${svc.service}</a></li>
+          '') localHomepageServices}
+        </ul>
+      '';
+
+  statusPageContent = pkgs.writeTextDir "index.html" ''
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>${config.networking.hostName} Status</title>
+      <style>
+        body {
+          font-family: system-ui, -apple-system, sans-serif;
+          margin: 2rem auto;
+          max-width: 52rem;
+          line-height: 1.5;
+          padding: 0 1rem;
+          color: #111827;
+          background: #f9fafb;
+        }
+        .card {
+          background: white;
+          border-radius: 12px;
+          padding: 1.25rem;
+          box-shadow: 0 1px 4px rgba(0, 0, 0, 0.08);
+        }
+        h1, h2 {
+          margin-top: 0;
+        }
+        .meta {
+          margin-bottom: 1rem;
+        }
+        .meta div {
+          margin: 0.25rem 0;
+        }
+        ul.services {
+          margin: 0.5rem 0 0;
+          padding-left: 1.2rem;
+        }
+        ul.services li {
+          margin: 0.2rem 0;
+        }
+        a {
+          color: #2563eb;
+          text-decoration: none;
+        }
+        a:hover {
+          text-decoration: underline;
+        }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <h1>${config.networking.hostName}</h1>
+        <div class="meta">
+          <div><strong>Status:</strong> System Running</div>
+          <div><strong>NixOS Version:</strong> ${config.system.nixos.version or "N/A"}</div>
+          <div><strong>Hostname:</strong> ${config.networking.hostName}.${configVars.homeLanDomain}</div>
+        </div>
+        <h2>Local Services</h2>
+        ${localServiceLinksHtml}
+      </div>
+    </body>
+    </html>
+  '';
+
   # Function to generate both regular and punch-through virtual hosts from simple service definitions
   makeServiceHosts =
     serviceList:
@@ -357,6 +458,14 @@ in
   # Most services are auto-generated from simpleServices list above
   # Complex configurations (websockets, basic auth, custom certs) are defined manually here
   services.caddy.virtualHosts = generatedHosts // {
+    # Host LAN status page and local service links
+    "http://${config.networking.hostName}.${configVars.homeLanDomain}" = {
+      extraConfig = ''
+        root * ${statusPageContent}
+        file_server
+      '';
+    };
+
     # Special: Bare domain redirect
     "${configVars.homeDomain}" = {
       useACMEHost = configVars.homeDomain;

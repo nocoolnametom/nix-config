@@ -1,8 +1,24 @@
 { pkgs, lib, ... }:
 {
-  # Plymouth boot animation — shows a graphical splash instead of kernel messages.
-  # Uses the classic Nix lambda snowflake logo on a default plymouth theme.
-  # Pair with hosts/common/optional/boot/silent.nix to suppress kernel text output.
-  boot.plymouth.enable = lib.mkDefault true;
-  boot.plymouth.logo = lib.mkDefault "${pkgs.nixos-icons}/share/icons/hicolor/48x48/apps/nix-snowflake-white.png";
+  # Plymouth Boot Animation - Enhanced with animated themes
+  # Shows a polished graphical boot screen instead of raw kernel messages
+
+  environment.systemPackages = [ pkgs.adi1090x-plymouth-themes ];
+
+  boot = {
+    kernelParams = [
+      "quiet" # Suppress kernel output before graphical boot
+    ];
+
+    plymouth = {
+      enable = lib.mkDefault true;
+      logo = lib.mkDefault "${pkgs.nixos-icons}/share/icons/hicolor/48x48/apps/nix-snowflake-white.png";
+      theme = lib.mkForce "hexagon_hud";
+      themePackages = [
+        (pkgs.adi1090x-plymouth-themes.override { selected_themes = [ "hexagon_hud" ]; })
+      ];
+    };
+
+    consoleLogLevel = 0; # Minimal console output
+  };
 }
