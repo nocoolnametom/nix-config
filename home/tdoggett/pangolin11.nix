@@ -36,6 +36,7 @@
     calibre
     gnumake
     helium-browser-flake
+    megasync
     remmina
     standardnotes
     ticktick
