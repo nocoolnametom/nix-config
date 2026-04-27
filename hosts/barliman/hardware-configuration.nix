@@ -28,7 +28,6 @@
     rocminfo
     rocm-runtime
     rocm-smi
-    rocm-toolchain
     rpp
     pkgs.libdrm
     pkgs.nvtopPackages.amd
