@@ -47,6 +47,12 @@ in
     python313 = prev.python313.override { packageOverrides = rapidocrOverrides prev; };
     python314 = prev.python314.override { packageOverrides = rapidocrOverrides prev; };
     python315 = prev.python315.override { packageOverrides = rapidocrOverrides prev; };
+
+    # Adding this fix against openldap to fix issues with bottles and openldap in hydra
+    # See if this is still needed (https://github.com/NixOS/nixpkgs/issues/426717#issuecomment-3120592896)
+    openldap = prev.openldap.overrideAttrs {
+      doCheck = !prev.stdenv.hostPlatform.isi686;
+    };
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
