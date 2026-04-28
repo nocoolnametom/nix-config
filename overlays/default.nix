@@ -53,6 +53,10 @@ in
     openldap = prev.openldap.overrideAttrs {
       doCheck = !prev.stdenv.hostPlatform.isi686;
     };
+    direnv = prev.direnv.overrideAttrs {
+      # Build is hanging on Darwin, for some reason, when I need to build this, checking zsh and never finishing
+      doCheck = false;
+    };
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
