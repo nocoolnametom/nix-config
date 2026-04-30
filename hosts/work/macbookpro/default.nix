@@ -54,7 +54,7 @@ in
     "hosts/common/darwin/optional/services/aerospace"
     "hosts/common/darwin/optional/services/dnsmasq"
     # This can be re-enabled once nixpkgs gets the new Mac compilation stuff for Tahoe working
-    # "hosts/common/darwin/optional/services/jankyborders"
+    "hosts/common/darwin/optional/services/jankyborders"
     "hosts/common/darwin/optional/services/sketchybar"
     "hosts/common/darwin/optional/services/colima"
     "hosts/common/darwin/optional/services/synergy"
