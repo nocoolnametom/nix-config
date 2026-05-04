@@ -29,6 +29,10 @@ in
     path = "${homeDirectory}/.ssh/id_personal";
     mode = "0600";
   };
+  sops.secrets."ssh/yubikey/yknfc" = {
+    path = "${homeDirectory}/.ssh/id_yknfc";
+    mode = "0600";
+  };
   sops.secrets."ssh/yubikey/ykbackup" = {
     path = "${homeDirectory}/.ssh/id_ykbackup";
     mode = "0600";
@@ -43,6 +47,10 @@ in
   };
   sops.secrets."ssh/yubikey/ykmbp" = {
     path = "${homeDirectory}/.ssh/id_ykmbp";
+    mode = "0600";
+  };
+  sops.secrets."ssh/yubikey/ykmacbookc" = {
+    path = "${homeDirectory}/.ssh/id_ykmacbookc";
     mode = "0600";
   };
   sops.secrets."yubico/u2f_keys" = {

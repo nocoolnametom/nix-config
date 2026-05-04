@@ -7,6 +7,8 @@
       ykkeychain = 16961659;
       yklappy = 22373686;
       ykmbp = 22373683;
+      ykmacbookc = 35911238;
+      yknfc = 35821306;
     };
     # Auto-lock screen when YubiKey is removed (useful for laptops)
     # Only works on Linux with systemd (not macOS)

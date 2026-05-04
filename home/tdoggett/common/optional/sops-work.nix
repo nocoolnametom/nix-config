@@ -33,6 +33,10 @@ in
         mode = "0600";
         path = "${homeDirectory}/.ssh/personal_ed25519";
       };
+      "ssh/yubikey/yknfc" = {
+        path = "${homeDirectory}/.ssh/id_yknfc";
+        mode = "0600";
+      };
       "ssh/yubikey/ykbackup" = {
         path = "${homeDirectory}/.ssh/id_ykbackup";
         mode = "0600";
@@ -47,6 +51,10 @@ in
       };
       "ssh/yubikey/ykmbp" = {
         path = "${homeDirectory}/.ssh/id_ykmbp";
+        mode = "0600";
+      };
+      "ssh/yubikey/ykmacbookc" = {
+        path = "${homeDirectory}/.ssh/id_ykmacbookc";
         mode = "0600";
       };
     }
