@@ -36,7 +36,7 @@
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
-    # "hosts/common/optional/services/eden.nix" # Temporarily disabled - tzdb source is down
+    "hosts/common/optional/services/eden.nix" # Temporarily disabled - tzdb source is down
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
@@ -118,7 +118,7 @@
 
   # Ensure we're using the BLEEDING EDGE version of GE Proton!
   programs.steam.extraCompatPackages = [
-    pkgs.bleeding.proton-ge-bin
+    pkgs.stable.proton-ge-bin
   ];
 
   # The networking hostname is used in a lot of places, such as secret retrieval!
