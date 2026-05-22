@@ -41,6 +41,7 @@
     standardnotes
     ticktick
     unzip
+    zoom-us
   ];
 
   home = {
