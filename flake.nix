@@ -37,6 +37,10 @@
     # Currently not used, but may be in the future
     # nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
 
+    # Android Virtualization Framework (avf)
+    nixos-avf.url = "github:nix-community/nixos-avf";
+    nixos-avf.inputs.nixpkgs.follows = "nixpkgs";
+
     #################### Utilities ####################
 
     # Styling for Visual Applications
@@ -127,7 +131,7 @@
       inherit (self) outputs;
       forAllSystems = nixpkgs.lib.genAttrs [
         "x86_64-linux" # Most other systems
-        "aarch64-linux" # Raspberry Pi 4
+        "aarch64-linux" # Raspberry Pi 4 and Pixel Phones
         "aarch64-darwin" # Apple Silicon
       ];
       inherit (nixpkgs) lib;
@@ -276,6 +280,15 @@
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/durin
+          ];
+        };
+        # Pixel 10 Fold
+        droid = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/droid
           ];
         };
       };

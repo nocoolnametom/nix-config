@@ -779,10 +779,10 @@
     },
     "nix-secrets": {
       "locked": {
-        "lastModified": 1779377226,
-        "narHash": "sha256-aM3N3joqdvxexCIUK+V5X7caeeWbfPuUMLiVqxcjCLU=",
+        "lastModified": 1779812936,
+        "narHash": "sha256-2DDo9WoSUhMcNzmvpZ/ucSGHSqmGg90MOBCUWM33vjA=",
         "ref": "main",
-        "rev": "7058c99c6ecdf9cab6c711c40a504626c0d8f427",
+        "rev": "48fe3584296e4b4c13eb5469552f03cbf8d38164",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"
@@ -811,6 +811,26 @@
       "original": {
         "owner": "nixified-ai",
         "repo": "flake",
+        "type": "github"
+      }
+    },
+    "nixos-avf": {
+      "inputs": {
+        "nixpkgs": [
+          "nixpkgs"
+        ]
+      },
+      "locked": {
+        "lastModified": 1769132082,
+        "narHash": "sha256-cJVUBVP3qmRO2HGHqj18ChjOSztyo7eqElQJMRpWXw8=",
+        "owner": "nix-community",
+        "repo": "nixos-avf",
+        "rev": "d0a62c3f64b45a39570fde31a3a490b214bf19ee",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nix-community",
+        "repo": "nixos-avf",
         "type": "github"
       }
     },
@@ -1069,6 +1089,7 @@
         "nix-flatpak": "nix-flatpak",
         "nix-secrets": "nix-secrets",
         "nixified-ai": "nixified-ai",
+        "nixos-avf": "nixos-avf",
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-old": "nixpkgs-old",
