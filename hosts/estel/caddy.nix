@@ -78,6 +78,11 @@ let
       domain = "homeDomain";
     }
     {
+      host = "cirdan";
+      service = "webdav";
+      domain = "homeDomain";
+    }
+    {
       host = "estel";
       service = "karakeep";
       domain = "homeDomain";
