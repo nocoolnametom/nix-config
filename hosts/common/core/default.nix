@@ -61,6 +61,7 @@
     pkgs.rsync
     pkgs.wget
     pkgs.vim
+    pkgs.jujutsu
     pkgs.git # Needed for flakes!
     pkgs.nixfmt
     pkgs.nil

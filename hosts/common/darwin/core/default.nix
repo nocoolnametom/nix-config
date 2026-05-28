@@ -50,6 +50,7 @@
   # Ensure these tools are available for all users, even if it's just root on the system
   environment.systemPackages = [
     pkgs.wget
+    pkgs.jujutsu
     pkgs.git # Needed for flakes!
     pkgs.git-lfs
     pkgs.nixfmt
