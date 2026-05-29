@@ -16,6 +16,7 @@
     common/optional/sops.nix
     common/optional/flatpak.nix
     common/optional/git.nix
+    common/optional/jj.nix
     common/optional/desktops/kitty.nix
     common/optional/desktops/bluetooth-applet.nix
     common/optional/claude.nix

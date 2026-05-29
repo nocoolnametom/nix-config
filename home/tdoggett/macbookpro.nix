@@ -16,6 +16,7 @@
     common/optional/sops-work.nix # used instead of sops.nix!
     common/optional/ssh-work.nix
     common/optional/git.nix
+    common/optional/jj.nix
     common/optional/devenv.nix
     common/optional/claude.nix
     common/optional/docker.nix
@@ -33,6 +34,7 @@
   };
 
   programs.git.settings.user.email = lib.mkForce configVars.email.work;
+  programs.jujutsu.settings.user.email = lib.mkForce configVars.email.work;
 
   home.sessionVariables = {
     TERM = lib.mkForce "xterm-256color";

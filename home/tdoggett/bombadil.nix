@@ -9,6 +9,7 @@
     common/optional/services/ssh-agent.nix # standard ssh-agent for SSH (no pinentry needed on headless)
     common/optional/sops.nix
     common/optional/git.nix
+    common/optional/jj.nix
     common/optional/claude.nix
   ];
 

@@ -15,6 +15,7 @@
     common/optional/only-hm.nix # Extra configs for systems ONLY using HM
     common/optional/sops.nix
     common/optional/git.nix
+    common/optional/jj.nix
     common/optional/devenv.nix
     common/optional/desktops/brave.nix
     common/optional/desktops/kitty.nix

@@ -13,6 +13,7 @@
     #################### Host-specific Optional Configs ####################
     common/optional/sops.nix
     common/optional/git.nix
+    common/optional/jj.nix
     common/optional/desktops
     common/optional/desktops/bluetooth-applet.nix
     common/optional/claude.nix

@@ -16,6 +16,7 @@
     common/optional/sops.nix
     common/optional/flatpak.nix
     common/optional/git.nix
+    common/optional/jj.nix
     common/optional/immersed.nix
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
     common/optional/desktops/bluetooth-applet.nix
