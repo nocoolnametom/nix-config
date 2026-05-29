@@ -47,7 +47,10 @@
       configVars.networking.ports.tcp.remoteSsh
       configVars.networking.ports.tcp.localSsh
     ];
-    firewall.allowedUDPPorts = [ 443 ];
+    firewall.allowedUDPPorts = [
+      443
+      80
+    ];
     firewall.allowPing = true;
   };
 
