@@ -71,8 +71,9 @@ in
 
   fonts.packages = with pkgs; [
     nerd-fonts.hack
-    appleFonts.sf-pro-nerd
-    appleFonts.sf-mono-nerd
+    # apple-fonts.nix no longer builds for darwin!
+    # appleFonts.sf-pro-nerd
+    # appleFonts.sf-mono-nerd
   ];
 
   # Once synergy is actually working on Comsic we can re-enable this, but until then it
