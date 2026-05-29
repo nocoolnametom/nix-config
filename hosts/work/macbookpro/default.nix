@@ -50,6 +50,7 @@ in
     "hosts/common/optional/stylix.nix"
     "hosts/common/optional/tmux.nix"
     "hosts/common/optional/yubikey.nix"
+    "hosts/common/darwin/optional/yknotify.nix"
     "hosts/common/darwin/optional/homebrew"
     "hosts/common/darwin/optional/services/aerospace"
     "hosts/common/darwin/optional/services/dnsmasq"
