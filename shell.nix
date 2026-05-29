@@ -36,6 +36,7 @@
           nix
           home-manager
           git
+          jujutsu
           just
           pre-commit
 
@@ -70,6 +71,16 @@
           fi
         done
         unset _sock
+      fi
+
+      # Per-repo jj fix.tools — kept local to .jj/repo/config.toml so other repos
+      # aren't forced to use this repo's formatter conventions. Re-applied on every
+      # nix develop so the store paths track the flake's nixpkgs.
+      if command -v jj >/dev/null 2>&1 && [ -d .jj ]; then
+        jj config set --repo "fix.tools.nixfmt.command" "[\"${pkgs.nixfmt}/bin/nixfmt\"]" >/dev/null
+        jj config set --repo "fix.tools.nixfmt.patterns" "[\"glob:**/*.nix\"]" >/dev/null
+        jj config set --repo "fix.tools.shfmt.command" "[\"${pkgs.shfmt}/bin/shfmt\", \"-ln\", \"auto\", \"-s\"]" >/dev/null
+        jj config set --repo "fix.tools.shfmt.patterns" "[\"glob:**/*.sh\"]" >/dev/null
       fi
     '';
   };

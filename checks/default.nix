@@ -73,7 +73,13 @@ in
       path = ./.;
       name = "pre-commit-check-source";
     };
-    default_stages = [ "pre-commit" ];
+    # pre-push is included so `jj git push` (which invokes git internally)
+    # runs the same lint/format checks that git users get at commit time —
+    # jj has no pre-commit equivalent, so push is the only mandatory enforcement point.
+    default_stages = [
+      "pre-commit"
+      "pre-push"
+    ];
     hooks = {
       # ========== General ==========
       check-added-large-files.enable = true;
