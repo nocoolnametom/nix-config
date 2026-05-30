@@ -28,12 +28,15 @@
   programs.jujutsu.settings.git.subprocess = true;
 
   # Signing — SSH key signing, sharing git.nix's allowed_signers file.
-  # behavior = "own" signs commits authored by the configured user.email.
+  # behavior = "keep" means jj won't sign during normal work (no YubiKey touches
+  # on every snapshot/rewrite) but preserves existing signatures from coworkers.
+  # Combined with git.sign-on-push, signing happens once per commit at push time.
   programs.jujutsu.settings.signing.backend = "ssh";
   programs.jujutsu.settings.signing.key = lib.mkDefault "~/.ssh/id_yubikey";
-  programs.jujutsu.settings.signing.behavior = lib.mkDefault "own";
+  programs.jujutsu.settings.signing.behavior = lib.mkDefault "keep";
   programs.jujutsu.settings.signing.backends.ssh.allowed-signers =
     "${config.home.homeDirectory}/.config/git/allowed_signers";
+  programs.jujutsu.settings.git.sign-on-push = true;
 
   # Revsets — what `jj log` shows by default
   programs.jujutsu.settings.revsets.log =
