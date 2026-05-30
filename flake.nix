@@ -4,30 +4,26 @@
   inputs = {
     #################### Official NixOS and HM Package Sources ####################
 
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-25.11"; # also see 'stable-packages' overlay at 'overlays/default.nix"
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
+    nixpkgs-stable.url = "github:NixOS/nixpkgs/nixos-26.05"; # also see 'stable-packages' overlay at 'overlays/default.nix"
     nixpkgs-unstable.url = "github:NixOS/nixpkgs/nixos-unstable"; # also see 'unstable-packages' overlay at 'overlays/default.nix"
     nixpkgs-master.url = "github:NixOS/nixpkgs/master"; # also see 'bleeding-packages' overlay at 'overlays/default.nix"
-    nixpkgs-old.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs-old.url = "github:NixOS/nixpkgs/nixos-25.11";
 
     impermanence.url = "github:nix-community/impermanence";
 
-    # Rasbpi Helping Stuff
-    # Currently not used, but may be in the future
-    # nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi";
-
     # Lanzaboote Secure Bootloader for NixOS
-    lanzaboote.url = "github:nix-community/lanzaboote/v0.4.3";
+    lanzaboote.url = "github:nix-community/lanzaboote/v1.0.0";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
 
     hardware.url = "github:nixos/nixos-hardware";
 
-    # home-manager.url = "github:nix-community/home-manager/release-25.11";
-    home-manager.url = "github:nix-community/home-manager";
+    home-manager.url = "github:nix-community/home-manager/release-26.05";
+    # home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
-    # nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
-    nix-darwin.url = "github:nix-darwin/nix-darwin";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
+    # nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     arion.url = "github:hercules-ci/arion";
@@ -44,9 +40,9 @@
     #################### Utilities ####################
 
     # Styling for Visual Applications
-    # stylix.url = "github:nix-community/stylix/release-25.11";
+    # stylix.url = "github:nix-community/stylix/release-26.05";
     stylix.url = "github:nix-community/stylix";
-    stylix.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     # San Francisco Fonts | Apple Fonts
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
@@ -73,7 +69,7 @@
 
     # Jovian SteamOS-like helpers
     jovian.url = "github:Jovian-Experiments/Jovian-NixOS";
-    jovian.inputs.nixpkgs.follows = "nixpkgs-unstable";
+    jovian.inputs.nixpkgs.follows = "nixpkgs";
 
     # Eden Emulator
     eden.url = "github:grantimatter/eden-flake";
@@ -105,14 +101,12 @@
     {
       self,
       nixpkgs,
-      # nixos-raspberrypi,
       impermanence,
       lanzaboote,
       hardware,
       home-manager,
       nix-darwin,
       arion,
-      # nixos-wsl,
       stylix,
       apple-fonts,
       sops-nix,
@@ -230,8 +224,6 @@
         pangolin11 = lib.nixosSystem {
           inherit specialArgs;
           modules = [
-            # cosmicCacheModule
-            # nixos-cosmic.nixosModules.default
             home-manager.nixosModules.home-manager
             { home-manager.extraSpecialArgs = specialArgs; }
             ./hosts/pangolin11

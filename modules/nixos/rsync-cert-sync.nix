@@ -110,14 +110,14 @@ in
             if [[ ! -d "$dir" ]]; then continue; fi;
             domain=$(basename "$dir")
             if [[ "$domain" == "acme-challenge" ]]; then continue; fi;
-            
+
             echo "📁 $domain"
             if [[ -f "$dir/fullchain.pem" && -f "$dir/key.pem" ]]; then
               size_full=$(du -h "$dir/fullchain.pem" | cut -f1)
               size_key=$(du -h "$dir/key.pem" | cut -f1)
               echo "   ✓ fullchain.pem ($size_full)"
               echo "   ✓ key.pem ($size_key)"
-              
+
               # Show cert info
               ${pkgs.openssl}/bin/openssl x509 -in "$dir/fullchain.pem" -noout -subject -dates 2>/dev/null | while read line; do
                 echo "   $line"
@@ -319,10 +319,10 @@ in
             if [[ ! -d "$dir" ]]; then continue; fi;
             domain=$(basename "$dir")
             if [[ "$domain" == "acme-challenge" ]]; then continue; fi;
-            
+
             # Check if this looks like a synced cert (not locally managed)
             owner=$(stat -c '%U:%G' "$dir" 2>/dev/null || stat -f '%Su:%Sg' "$dir" 2>/dev/null)
-            
+
             echo "📁 $domain (owner: $owner)"
             if [[ -f "$dir/fullchain.pem" && -f "$dir/key.pem" ]]; then
               size_full=$(du -h "$dir/fullchain.pem" | cut -f1)
@@ -331,7 +331,7 @@ in
               echo "   ✓ fullchain.pem ($size_full)"
               echo "   ✓ key.pem ($size_key)"
               echo "   Last modified: $mtime"
-              
+
               # Show cert details
               ${pkgs.openssl}/bin/openssl x509 -in "$dir/fullchain.pem" -noout -subject -dates 2>/dev/null | while read line; do
                 echo "   $line"

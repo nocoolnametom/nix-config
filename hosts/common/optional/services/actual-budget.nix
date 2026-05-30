@@ -36,23 +36,22 @@ in
   };
   users.groups."actual" = { };
   sops.templates."actual-oidc-keys.env" = {
-    content =
-      ''
-        ACTUAL_OPENID_DISCOVERY_URL=${discoveryURL}
-        ACTUAL_OPENID_SERVER_HOSTNAME=https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}
-      ''
-      + (
-        if useKanidm then
-          ''
-            ACTUAL_OPENID_CLIENT_ID=actual
-            ACTUAL_OPENID_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/actual/client-secret"}
-          ''
-        else
-          ''
-            ACTUAL_OPENID_CLIENT_ID=${config.sops.placeholder."homelab/oidc/actual/authentik/client-id"}
-            ACTUAL_OPENID_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/actual/authentik/client-secret"}
-          ''
-      );
+    content = ''
+      ACTUAL_OPENID_DISCOVERY_URL=${discoveryURL}
+      ACTUAL_OPENID_SERVER_HOSTNAME=https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}
+    ''
+    + (
+      if useKanidm then
+        ''
+          ACTUAL_OPENID_CLIENT_ID=actual
+          ACTUAL_OPENID_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/actual/client-secret"}
+        ''
+      else
+        ''
+          ACTUAL_OPENID_CLIENT_ID=${config.sops.placeholder."homelab/oidc/actual/authentik/client-id"}
+          ACTUAL_OPENID_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/actual/authentik/client-secret"}
+        ''
+    );
     owner = config.systemd.services.actual.serviceConfig.User;
   };
   systemd.services.actual.serviceConfig.EnvironmentFile =

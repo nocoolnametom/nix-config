@@ -65,7 +65,7 @@ in
       nzbToStashApp = pkgs.writeShellScriptBin "nzbToStashApp.sh" ''
         ###########################################
         ### NZBGET POST-PROCESSING SCRIPT       ###
-         
+
         # Start StashApp Scanning
         #
         # Once a file has finished downloading we

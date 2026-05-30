@@ -367,7 +367,7 @@ in
             ${pkgs.docker}/bin/docker cp comfyui-docker:/tmp/comfyui-backup-$TIMESTAMP.tar.gz "$BACKUP_DIR/"
             ${pkgs.docker}/bin/docker exec comfyui-docker rm /tmp/comfyui-backup-$TIMESTAMP.tar.gz
             echo "✓ Backup created: comfyui-backup-$TIMESTAMP.tar.gz"
-            
+
             # Keep only the last 3 backups
             cd "$BACKUP_DIR"
             ls -t comfyui-backup-*.tar.gz | tail -n +4 | xargs -r rm
@@ -378,7 +378,7 @@ in
           restore_backup() {
             local backup_file="$1"
             echo "⚠️  Update failed! Restoring from backup: $backup_file"
-            
+
             ${pkgs.docker}/bin/docker cp "$backup_file" comfyui-docker:/tmp/restore.tar.gz
             ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
               cd /data
@@ -386,7 +386,7 @@ in
               tar -xzf /tmp/restore.tar.gz -C /data
               rm /tmp/restore.tar.gz
             "
-            
+
             echo "✓ Restored from backup"
             systemctl restart arion-comfyui-docker.service
             echo "✓ ComfyUI restarted with previous version"
@@ -584,7 +584,7 @@ in
                     ENTRYPOINT=$(${pkgs.docker}/bin/docker run --rm --entrypoint cat ${cfg.docker.image}:${cfg.docker.version} /usr/local/bin/entrypoint.sh)
 
                     # Apply minimal patch:
-                    # 1. Comment out setup_custom_nodes call to skip pip installs  
+                    # 1. Comment out setup_custom_nodes call to skip pip installs
                     # 2. Add 'user' to the symlinked directories (originally only models/output/input)
                     # 3. Add --base-directory and --listen flags for proper remote access
                     # 4. Skip automatic installation of recommended custom nodes
@@ -762,20 +762,20 @@ in
                     echo "Checking workflow: ${filename}..."
                     if ! ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -f /data/user/default/workflows/${filename} ]; then
                       echo "  → Downloading ${filename}..."
-                      
+
                       # Build curl command with authentication if needed
                       CURL_CMD="${pkgs.curl}/bin/curl -fsSL"
-                      
+
                       # Add HuggingFace authentication if URL is from HuggingFace
                       if [[ "${url}" == *"huggingface.co"* ]] && [ -n "$HF_TOKEN" ]; then
                         CURL_CMD="$CURL_CMD -H \"Authorization: Bearer $HF_TOKEN\""
                       fi
-                      
+
                       # Add CivitAI authentication if URL is from CivitAI
                       if [[ "${url}" == *"civitai.com"* ]] && [ -n "$CIVITAI_API_TOKEN" ]; then
                         CURL_CMD="$CURL_CMD -H \"Authorization: Bearer $CIVITAI_API_TOKEN\""
                       fi
-                      
+
                       # Download workflow
                       eval "$CURL_CMD \"${url}\" -o /tmp/${filename}" && \
                       ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/data/user/default/workflows/${filename} && \
@@ -879,13 +879,13 @@ in
                     MODELS_DOWNLOADED=true
                     echo "Creating destination directory if needed..."
                     ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker mkdir -p /data/${dirname}
-                    
+
                     echo "Downloading ${filename} from ${model.url}"
                     echo "This may take a while for large models..."
-                    
+
                     # Build curl command with authentication if needed
                     CURL_CMD="${pkgs.curl}/bin/curl -fL --progress-bar"
-                    
+
                     # Add HuggingFace authentication if URL is from HuggingFace
                     if [[ "${model.url}" == *"huggingface.co"* ]]; then
                       if [ -n "$HF_TOKEN" ]; then
@@ -893,7 +893,7 @@ in
                         CURL_CMD="$CURL_CMD -H \"Authorization: Bearer $HF_TOKEN\""
                       fi
                     fi
-                    
+
                     # Add CivitAI authentication if URL is from CivitAI
                     if [[ "${model.url}" == *"civitai.com"* ]]; then
                       if [ -n "$CIVITAI_API_TOKEN" ]; then
@@ -901,16 +901,16 @@ in
                         CURL_CMD="$CURL_CMD -H \"Authorization: Bearer $CIVITAI_API_TOKEN\""
                       fi
                     fi
-                    
+
                     # Download to temp location first
                     eval "$CURL_CMD \"${model.url}\" -o /tmp/${filename}" || {
                       echo "ERROR: Failed to download ${filename}"
                       rm -f /tmp/${filename}
                       exit 1
                     }
-                    
+
                     ${sha256Check}
-                    
+
                     echo "Copying ${filename} to container..."
                     ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/data/${model.destination} && \
                     rm /tmp/${filename} && \

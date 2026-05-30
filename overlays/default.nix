@@ -77,6 +77,13 @@ in
     };
   };
 
+  old-packages = final: _prev: {
+    old = import inputs.nixpkgs-old {
+      system = final.stdenv.hostPlatform.system;
+      config.allowUnfree = true;
+    };
+  };
+
   # When applied, the master nixpkgs set (declared in the flake inputs) will
   # be accessible through 'pkgs.bleeding'
   bleeding-packages = final: _prev: {

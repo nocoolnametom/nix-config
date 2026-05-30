@@ -101,17 +101,17 @@
   ];
 
   ## Imports overrides
-  services.karakeep.package = lib.mkForce pkgs.unstable.karakeep;
-  services.karakeep.browser.exe = lib.mkForce "${pkgs.unstable.chromium}/bin/chromium";
+  services.karakeep.package = pkgs.karakeep;
+  services.karakeep.browser.exe = lib.mkForce "${pkgs.chromium}/bin/chromium";
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
-  services.immich.package = lib.mkForce pkgs.unstable.immich;
+  services.immich.package = pkgs.immich;
   services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
   services.immich.machine-learning.enable = false; # For now this seems too intensive for the little mini pc
 
   # Currently-Docker Stuff
   # Can replase kavita users below with kavita module when 0.8.8 is released!
-  services.kavita.package = lib.mkForce pkgs.bleeding.kavita;
-  services.kavitan.package = lib.mkForce pkgs.bleeding.kavita;
+  services.kavita.package = lib.mkForce pkgs.unstable.kavita;
+  services.kavitan.package = lib.mkForce pkgs.unstable.kavita;
   users.groups.kavita = { };
   users.users.kavita.isSystemUser = true;
   users.users.kavita.group = "kavita";

@@ -1,4 +1,10 @@
-{ config, lib, configVars, pkgs, ... }:
+{
+  config,
+  lib,
+  configVars,
+  pkgs,
+  ...
+}:
 
 # WireGuard tunnel between bombadil and estel
 # This provides a dedicated, always-on VPN tunnel for critical SSH access
@@ -29,24 +35,28 @@ in
         ips = [ "${configVars.networking.wireguard.bombadil.ip}/24" ];
         listenPort = configVars.networking.wireguard.port;
 
-        peers = [{
-          # estel
-          publicKey = configVars.networking.wireguard.estel.publicKey;
-          allowedIPs = [ "${configVars.networking.wireguard.estel.ip}/32" ];
-        }];
+        peers = [
+          {
+            # estel
+            publicKey = configVars.networking.wireguard.estel.publicKey;
+            allowedIPs = [ "${configVars.networking.wireguard.estel.ip}/32" ];
+          }
+        ];
       })
 
       # Estel-specific config (client side)
       (lib.mkIf isEstel {
         ips = [ "${configVars.networking.wireguard.estel.ip}/24" ];
 
-        peers = [{
-          # bombadil
-          publicKey = configVars.networking.wireguard.bombadil.publicKey;
-          endpoint = "${configVars.networking.external.bombadil.ip}:${toString configVars.networking.wireguard.port}";
-          allowedIPs = [ "${configVars.networking.wireguard.bombadil.ip}/32" ];
-          persistentKeepalive = 25; # Keep connection alive through NAT
-        }];
+        peers = [
+          {
+            # bombadil
+            publicKey = configVars.networking.wireguard.bombadil.publicKey;
+            endpoint = "${configVars.networking.external.bombadil.ip}:${toString configVars.networking.wireguard.port}";
+            allowedIPs = [ "${configVars.networking.wireguard.bombadil.ip}/32" ];
+            persistentKeepalive = 25; # Keep connection alive through NAT
+          }
+        ];
       })
     ];
 

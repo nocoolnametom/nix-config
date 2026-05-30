@@ -436,7 +436,7 @@ in
       '';
       description = ''
         InvokeAI configuration options.
-        These are converted into environment variables for the Docker/Arion service. 
+        These are converted into environment variables for the Docker/Arion service.
         See <link xlink:href="https://invoke-ai.github.io/InvokeAI/configuration/#all-settings"/> for the upstream documentation.
       '';
     };

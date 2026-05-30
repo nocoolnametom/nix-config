@@ -54,7 +54,7 @@ let
       while read filename; do
           # Move file from staging
           mv "$local_directory/_unpack/$filename" "$local_directory/"
-          
+
           # Move equal files to the backup directory on the remote machine
           ${pkgs.openssh}/bin/ssh -n $ssh_options $remote_user@$remote_host "mv \"$remote_directory/$filename\" \"$remote_backup_directory/\""
       done < $readyFiles

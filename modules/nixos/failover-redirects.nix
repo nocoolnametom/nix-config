@@ -173,15 +173,15 @@ in
           if [[ ! -d "$dir" ]]; then continue; fi;
           domain=$(basename "$dir")
           if [[ "$domain" == "acme-challenge" ]]; then continue; fi;
-          
+
           echo "  - $domain"
-          
+
           # Check if cert files exist
           if [[ -f "$dir/fullchain.pem" && -f "$dir/key.pem" ]]; then
             # Get cert expiry
             expiry=$(${pkgs.openssl}/bin/openssl x509 -in "$dir/fullchain.pem" -noout -enddate 2>/dev/null | cut -d= -f2)
             echo "    Expiry: $expiry"
-            
+
             # Get Subject Alternative Names
             sans=$(${pkgs.openssl}/bin/openssl x509 -in "$dir/fullchain.pem" -noout -text 2>/dev/null | grep -A1 "Subject Alternative Name" | tail -n1 | sed 's/^[[:space:]]*//')
             echo "    SANs: $sans"

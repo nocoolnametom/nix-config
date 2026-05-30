@@ -2,7 +2,7 @@ diff --git a/src/Display.php b/src/Display.php
 --- a/src/Display.php
 +++ b/src/Display.php
 @@ -67,7 +67,7 @@ class Display
-                   "SELECT * 
+                   "SELECT *
                    FROM quotes
                    INNER JOIN authors ON quotes.quote_author_id = authors.author_id
 -                  WHERE quote_author_id = '${author_id}'
@@ -45,7 +45,7 @@ diff --git a/src/Display.php b/src/Display.php
 --- a/src/Display.php
 +++ b/src/Display.php
 @@ -67,7 +67,7 @@ class Display
-                   "SELECT * 
+                   "SELECT *
                    FROM quotes
                    INNER JOIN authors ON quotes.quote_author_id = authors.author_id
 -                  WHERE quote_author_id = '${author_id}'
@@ -83,7 +83,7 @@ diff --git a/src/Display.php b/src/Display.php
 --- a/src/Display.php
 +++ b/src/Display.php
 @@ -67,7 +67,7 @@ class Display
-                   "SELECT * 
+                   "SELECT *
                    FROM quotes
                    INNER JOIN authors ON quotes.quote_author_id = authors.author_id
 -                  WHERE quote_author_id = '${author_id}'

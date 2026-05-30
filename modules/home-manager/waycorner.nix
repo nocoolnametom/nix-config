@@ -39,7 +39,7 @@ in
     extraArgs = mkOption {
       type = types.listOf types.str;
       default = [ ];
-      defaultText = literalExpression ''[ ]'';
+      defaultText = literalExpression "[ ]";
       description = ''
         Extra arguments to pass to the tool. The arguments are not escaped.
       '';

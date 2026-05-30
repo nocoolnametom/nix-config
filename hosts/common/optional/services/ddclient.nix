@@ -10,7 +10,7 @@ in
 {
   sops.secrets."ddclient-password" = { };
   services.ddclient = {
-    package = pkgs.unstable.ddclient;
+    package = pkgs.ddclient;
     enable = true;
     ssl = true;
     protocol = "porkbun";

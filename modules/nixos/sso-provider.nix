@@ -4,9 +4,18 @@
   configVars,
   ...
 }:
-with lib; {
+with lib;
+{
   options.services.ssoProvider = mkOption {
-    type = types.attrsOf (types.nullOr (types.enum [ "authentik" "kanidm-oauth2" "kanidm-oidc" ]));
+    type = types.attrsOf (
+      types.nullOr (
+        types.enum [
+          "authentik"
+          "kanidm-oauth2"
+          "kanidm-oidc"
+        ]
+      )
+    );
     default = { };
     description = ''
       SSO provider configuration per service.
@@ -38,7 +47,8 @@ with lib; {
       service: provider:
       if provider == "kanidm-oidc" then
         "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/${service}/.well-known/openid-configuration"
-      else # authentik
+      # authentik
+      else
         "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/${service}/.well-known/openid-configuration";
 
     # Get proxy host IP (where the proxy/SSO server runs)
@@ -59,7 +69,6 @@ with lib; {
 
     # Check if service uses a specific provider
     usesProvider =
-      service: providerType:
-      (config.services.ssoProvider.${service} or null) == providerType;
+      service: providerType: (config.services.ssoProvider.${service} or null) == providerType;
   };
 }

@@ -68,22 +68,21 @@ in
   sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret" = { };
   sops.secrets."homelab/sessions/hedgedoc/session-secret" = { };
   sops.templates."hedgedoc-secrets.env" = {
-    content =
-      ''
-        CMD_SESSION_SECRET=${config.sops.placeholder."homelab/sessions/hedgedoc/session-secret"}
-      ''
-      + (
-        if useKanidm then
-          ''
-            CMD_OAUTH2_CLIENT_ID=hedgedoc
-            CMD_OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/hedgedoc/client-secret"}
-          ''
-        else
-          ''
-            CMD_OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/hedgedoc/authentik/client-id"}
-            CMD_OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/hedgedoc/authentik/client-secret"}
-          ''
-      );
+    content = ''
+      CMD_SESSION_SECRET=${config.sops.placeholder."homelab/sessions/hedgedoc/session-secret"}
+    ''
+    + (
+      if useKanidm then
+        ''
+          CMD_OAUTH2_CLIENT_ID=hedgedoc
+          CMD_OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/hedgedoc/client-secret"}
+        ''
+      else
+        ''
+          CMD_OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/hedgedoc/authentik/client-id"}
+          CMD_OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/hedgedoc/authentik/client-secret"}
+        ''
+    );
     owner = config.systemd.services.hedgedoc.serviceConfig.User;
   };
   services.hedgedoc.environmentFile = config.sops.templates."hedgedoc-secrets.env".path;

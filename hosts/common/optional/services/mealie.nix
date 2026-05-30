@@ -59,28 +59,27 @@ in
     )
   );
   sops.templates."mealie-secrets.env" = {
-    content =
-      ''
-        SMTP_HOST=${config.sops.placeholder."homelab/smtp/host"}
-        SMTP_PORT=${config.sops.placeholder."homelab/smtp/port"}
-        SMTP_FROM_NAME=Mealie
-        SMTP_AUTH_STRATEGY=SSL
-        SMTP_FROM_EMAIL=noreply+mealie@${config.sops.placeholder."homelab/smtp/sendingDomain"}
-        SMTP_USER=${config.sops.placeholder."homelab/smtp/username"}
-        SMTP_PASSWORD=${config.sops.placeholder."homelab/smtp/password"}
-      ''
-      + (
-        if useKanidm then
-          ''
-            OIDC_CLIENT_ID=mealie
-            OIDC_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/mealie/client-secret"}
-          ''
-        else
-          ''
-            OIDC_CLIENT_ID=${config.sops.placeholder."homelab/oidc/mealie/authentik/client-id"}
-            OIDC_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/mealie/authentik/client-secret"}
-          ''
-      );
+    content = ''
+      SMTP_HOST=${config.sops.placeholder."homelab/smtp/host"}
+      SMTP_PORT=${config.sops.placeholder."homelab/smtp/port"}
+      SMTP_FROM_NAME=Mealie
+      SMTP_AUTH_STRATEGY=SSL
+      SMTP_FROM_EMAIL=noreply+mealie@${config.sops.placeholder."homelab/smtp/sendingDomain"}
+      SMTP_USER=${config.sops.placeholder."homelab/smtp/username"}
+      SMTP_PASSWORD=${config.sops.placeholder."homelab/smtp/password"}
+    ''
+    + (
+      if useKanidm then
+        ''
+          OIDC_CLIENT_ID=mealie
+          OIDC_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/mealie/client-secret"}
+        ''
+      else
+        ''
+          OIDC_CLIENT_ID=${config.sops.placeholder."homelab/oidc/mealie/authentik/client-id"}
+          OIDC_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/mealie/authentik/client-secret"}
+        ''
+    );
   };
   services.mealie.credentialsFile = lib.mkDefault config.sops.templates."mealie-secrets.env".path;
 }

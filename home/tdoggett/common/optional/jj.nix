@@ -36,11 +36,16 @@
     "${config.home.homeDirectory}/.config/git/allowed_signers";
 
   # Revsets — what `jj log` shows by default
-  programs.jujutsu.settings.revsets.log = "present(@) | ancestors(immutable_heads().., 2) | present(trunk())";
+  programs.jujutsu.settings.revsets.log =
+    "present(@) | ancestors(immutable_heads().., 2) | present(trunk())";
 
   # Aliases
   programs.jujutsu.settings.aliases.l = [ "log" ];
   programs.jujutsu.settings.aliases.s = [ "status" ];
   programs.jujutsu.settings.aliases.d = [ "diff" ];
-  programs.jujutsu.settings.aliases.graph = [ "log" "-r" "all()" ];
+  programs.jujutsu.settings.aliases.graph = [
+    "log"
+    "-r"
+    "all()"
+  ];
 }

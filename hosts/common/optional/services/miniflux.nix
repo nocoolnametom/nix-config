@@ -65,7 +65,8 @@ in
 
   # Admin credentials (required for initial setup)
   sops.secrets."homelab/miniflux/admin-credentials" = { };
-  services.miniflux.adminCredentialsFile = config.sops.secrets."homelab/miniflux/admin-credentials".path;
+  services.miniflux.adminCredentialsFile =
+    config.sops.secrets."homelab/miniflux/admin-credentials".path;
 
   # Authentik OIDC secrets
   sops.secrets."homelab/oidc/miniflux/authentik/client-id" = { };
@@ -75,16 +76,17 @@ in
   sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = { };
 
   # Environment file with OIDC credentials
-  sops.templates."miniflux-secrets.env".content = if useKanidm then
-    ''
-      OAUTH2_CLIENT_ID=miniflux
-      OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/miniflux/client-secret"}
-    ''
-  else
-    ''
-      OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-id"}
-      OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
-    '';
+  sops.templates."miniflux-secrets.env".content =
+    if useKanidm then
+      ''
+        OAUTH2_CLIENT_ID=miniflux
+        OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/miniflux/client-secret"}
+      ''
+    else
+      ''
+        OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-id"}
+        OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
+      '';
 
   # Pass secrets to Miniflux via environment file
   systemd.services.miniflux.serviceConfig.EnvironmentFile = [

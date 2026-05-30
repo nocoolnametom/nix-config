@@ -78,11 +78,11 @@
     # populated at this point with a number of subvolumes,
     # which makes `btrfs subvolume delete` fail.
     # So, we remove them first.
-    # 
+    #
     # /root contains subvolumes:
     # - /root/var/lib/portables
     # - /root/var/lib/machines
-    # 
+    #
     # I suspecte these are related to systemd-nspawn, but
     # since I don't use it I'm not 100% sure.
     # Anyhow, deleting these subvolumes hasn't resulted

@@ -282,7 +282,7 @@ let
 
           for (let i = 1; i <= sortedDays.length; i++) {
             const isLastDay = i === sortedDays.length;
-            const isConsecutive = !isLastDay && 
+            const isConsecutive = !isLastDay &&
               dayOrder[sortedDays[i]] === dayOrder[sortedDays[i-1]] + 1;
 
             if (!isConsecutive) {
@@ -332,7 +332,7 @@ let
           const referenceDate = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 12, 0, 0);
 
           // Format reference date in server timezone and parse it back
-          const serverTZString = referenceDate.toLocaleString("en-US", { 
+          const serverTZString = referenceDate.toLocaleString("en-US", {
             timeZone: serverTimezone,
             year: "numeric",
             month: "2-digit",
@@ -373,7 +373,7 @@ let
 
           // Check if the time range crosses midnight in local timezone
           const crossesMidnight = endTimeLocal.getTime() < startTimeLocal.getTime();
-          const timeRangeText = crossesMidnight 
+          const timeRangeText = crossesMidnight
             ? `''${startFormatted} - ''${endFormatted} (next day)`
             : `''${startFormatted} - ''${endFormatted}`;
 
@@ -386,7 +386,7 @@ let
           // Check if timezones are the same or have the same offset
           const now = new Date();
           const localOffset = now.getTimezoneOffset();
-          const serverOffset = new Date(now.toLocaleString("en-US", { timeZone: SERVER_TZ })).getTime() - 
+          const serverOffset = new Date(now.toLocaleString("en-US", { timeZone: SERVER_TZ })).getTime() -
                                new Date(now.toLocaleString("en-US", { timeZone: "UTC" })).getTime();
           const userOffset = now.getTime() - new Date(now.toLocaleString("en-US", { timeZone: "UTC" })).getTime();
 
@@ -395,13 +395,13 @@ let
           // Only show timezone info if different
           const timezoneInfo = sameTimezone ? "" : ` (your local time: ''${localTzName})`;
 
-          document.getElementById("work-hours").textContent = 
+          document.getElementById("work-hours").textContent =
             `Work hours: ''${dayRangeText}, ''${timeRangeText}''${timezoneInfo}`;
         } catch (e) {
           console.error("Error converting timezone:", e);
           // Fallback to showing server timezone name with day ranges
           const dayRangeText = formatDayRanges(WORK_DAYS);
-          document.getElementById("work-hours").textContent = 
+          document.getElementById("work-hours").textContent =
             `Work hours: ''${dayRangeText}, ''${START_TIME.substring(0,5)} - ''${END_TIME.substring(0,5)} (''${SERVER_TZ})`;
         }
       </script>
@@ -445,7 +445,7 @@ let
   serverScript = pkgs.writeScript "work-block-server.py" ''
     #!${pkgs.python3}/bin/python3
     # Work-block HTTP server
-    # 
+    #
     # This server blocks the following services:
     ${concatMapStringsSep "\n" (s: "#   - ${s.name}") enabledServices}
     #
@@ -543,7 +543,7 @@ in
         Work hours use the system's configured timezone (`time.timeZone` option).
 
         Uses Python's built-in HTTP server to avoid conflicts with existing web servers like nginx.
-        Only services that are both listed in `services.work-block.services` and actually enabled 
+        Only services that are both listed in `services.work-block.services` and actually enabled
         on the system will be affected.
       '';
     };

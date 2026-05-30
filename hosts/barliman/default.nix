@@ -77,8 +77,8 @@
   nixpkgs.config.rocmSupport = true;
 
   # Open-WebUI is a web-frontend for chatting with ollama
-  services.open-webui.package = pkgs.stable.open-webui;
-  services.ollama.package = pkgs.unstable.ollama-rocm;
+  services.open-webui.package = pkgs.open-webui;
+  services.ollama.package = pkgs.ollama-rocm;
   services.ollama.models = "/var/lib/ai-models/ollama";
   services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
   services.ollama.environmentVariables.OLLAMA_GPU_OVERHEAD = "1";
@@ -118,7 +118,7 @@
 
   # Ensure we're using the BLEEDING EDGE version of GE Proton!
   programs.steam.extraCompatPackages = [
-    pkgs.stable.proton-ge-bin
+    pkgs.unstable.proton-ge-bin
   ];
 
   # The networking hostname is used in a lot of places, such as secret retrieval!

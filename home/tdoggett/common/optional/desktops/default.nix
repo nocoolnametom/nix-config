@@ -35,7 +35,7 @@
 
   # User-level GUI packages to have installed (not modularized yet)
   home.packages = with pkgs; [
-    unstable.protonmail-desktop
+    protonmail-desktop
     czkawka
     foliate
     kdePackages.kdeconnect-kde

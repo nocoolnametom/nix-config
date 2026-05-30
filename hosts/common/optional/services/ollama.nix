@@ -9,7 +9,7 @@
   services.ollama.host = "0.0.0.0";
   services.ollama.port = 11434;
   services.ollama.openFirewall = lib.mkDefault true;
-  services.ollama.package = lib.mkDefault pkgs.unstable.ollama-cuda;
+  services.ollama.package = lib.mkDefault pkgs.ollama-cuda;
   services.ollama.loadModels = lib.mkDefault (
     lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineLLMs
   );
@@ -18,7 +18,7 @@
   # The existing systemd job is SO tightened down that it can't read the WSL drivers AT ALL
   systemd.services.ollama.serviceConfig = lib.mkForce {
     Type = "exec";
-    ExecStart = "${pkgs.unstable.ollama}/bin/ollama serve";
+    ExecStart = "${pkgs.ollama}/bin/ollama serve";
     WorkingDirectory = "/var/lib/ollama";
   };
   systemd.tmpfiles.rules = [
