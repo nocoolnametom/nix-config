@@ -3,15 +3,19 @@
 # Custom shell for bootstrapping on new hosts, modifying nix-config, and secrets management
 
 {
-  pkgs ? # If pkgs is not defined, instantiate nixpkgs from locked commit
+  pkgs ?
+    # Fallback for plain `nix-shell shell.nix` (e.g. IDE integrations).
+    # Resolves nixpkgs through the flake itself so it shares the flake's lock
+    # and cache.  Cannot use `fetchTarball` with `lock.narHash` — the flake
+    # hashes the filtered source tree, `fetchTarball` hashes the raw github
+    # tarball, and the two will never agree.
     let
-      lock = (builtins.fromJSON (builtins.readFile ./flake.lock)).nodes.nixpkgs.locked;
-      nixpkgs = fetchTarball {
-        url = "https://github.com/nixos/nixpkgs/archive/${lock.rev}.tar.gz";
-        sha256 = lock.narHash;
-      };
+      flake = builtins.getFlake (toString ./.);
     in
-    import nixpkgs { overlays = [ ]; },
+    import flake.inputs.nixpkgs {
+      overlays = [ ];
+      system = builtins.currentSystem;
+    },
   # Pre-commit check derivation from checks/default.nix — provides shellHook to install git hooks.
   # Defaults to a no-op when shell.nix is used standalone (without the flake).
   pre-commit-check ? {
@@ -34,6 +38,7 @@
           libiconv
 
           nix
+          nixd
           home-manager
           git
           jujutsu
