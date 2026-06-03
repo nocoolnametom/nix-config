@@ -19,11 +19,9 @@
     hardware.url = "github:nixos/nixos-hardware";
 
     home-manager.url = "github:nix-community/home-manager/release-26.05";
-    # home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "nixpkgs";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-26.05";
-    # nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs";
 
     arion.url = "github:hercules-ci/arion";
@@ -40,8 +38,7 @@
     #################### Utilities ####################
 
     # Styling for Visual Applications
-    # stylix.url = "github:nix-community/stylix/release-26.05";
-    stylix.url = "github:nix-community/stylix";
+    stylix.url = "github:nix-community/stylix/release-26.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
     # San Francisco Fonts | Apple Fonts
