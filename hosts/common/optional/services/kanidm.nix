@@ -108,6 +108,14 @@ lib.mkIf configVars.enableKanidmSSO {
           scopeMaps = makeScopeMaps "ombi";
         };
 
+        seerr = {
+          displayName = "Seerr Request System";
+          originUrl = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
+          originLanding = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
+          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/seerr/client-secret".path;
+          scopeMaps = makeScopeMaps "seerr";
+        };
+
         comfyui = {
           displayName = "ComfyUI";
           originUrl = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
@@ -312,6 +320,11 @@ lib.mkIf configVars.enableKanidmSSO {
     mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/ombi/client-secret" = {
+    owner = "kanidm";
+    group = "keys";
+    mode = "0440";
+  };
+  sops.secrets."homelab/kanidm/oauth2/seerr/client-secret" = {
     owner = "kanidm";
     group = "keys";
     mode = "0440";

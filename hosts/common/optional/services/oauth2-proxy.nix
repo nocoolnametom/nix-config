@@ -21,6 +21,10 @@ lib.mkIf configVars.enableKanidmSSO {
     owner = config.services.oauth2-proxy-multi.user;
     group = config.services.oauth2-proxy-multi.group;
   };
+  sops.secrets."homelab/oauth2/seerr/cookie-secret" = {
+    owner = config.services.oauth2-proxy-multi.user;
+    group = config.services.oauth2-proxy-multi.group;
+  };
   sops.secrets."homelab/oauth2/comfyui/cookie-secret" = {
     owner = config.services.oauth2-proxy-multi.user;
     group = config.services.oauth2-proxy-multi.group;
@@ -148,6 +152,17 @@ lib.mkIf configVars.enableKanidmSSO {
       clientId = "ombi";
       clientSecretFile = config.sops.secrets."homelab/kanidm/oauth2/ombi/client-secret".path;
       cookieSecretFile = config.sops.secrets."homelab/oauth2/ombi/cookie-secret".path;
+      # Allow API access for Plex/Jellyfin integration and mobile apps
+      skipAuthRegex = [ "^/api/.*" ];
+    };
+
+    seerr = {
+      port = configVars.networking.ports.tcp.oauth2-seer;
+      upstreamUrl = "http://${configVars.networking.subnets.estel.ip}:${toString configVars.networking.ports.tcp.seerr}";
+      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/seerr";
+      clientId = "seerr";
+      clientSecretFile = config.sops.secrets."homelab/kanidm/oauth2/seerr/client-secret".path;
+      cookieSecretFile = config.sops.secrets."homelab/oauth2/seerr/cookie-secret".path;
       # Allow API access for Plex/Jellyfin integration and mobile apps
       skipAuthRegex = [ "^/api/.*" ];
     };

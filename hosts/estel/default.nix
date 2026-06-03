@@ -57,6 +57,7 @@
     "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
+    "hosts/common/optional/services/seerr.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/tailscale.nix"
     "hosts/common/optional/services/wireguard-bombadil-estel.nix"
@@ -88,8 +89,10 @@
     # "navidrome"
     # "oauth2-proxy-navidrome"
     "oauth2-proxy-ombi"
+    "oauth2-proxy-seerr"
     "ombi"
     "paperless-web"
+    "seerr"
   ];
 
   # Get as much set up with the minimal GPU as possible

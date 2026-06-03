@@ -121,6 +121,12 @@ let
       domain = "homeDomain";
     }
     {
+      host = "estel";
+      service = "seerr";
+      domain = "homeDomain";
+      proxy = "authentik";
+    }
+    {
       host = "cirdan";
       service = "podfetch";
       domain = "homeDomain";
