@@ -35,7 +35,6 @@
       "/var/lib/hedgedoc"
       "/var/lib/immich"
       "/var/lib/iwd"
-      "/var/lib/jellyseerr"
       "/var/lib/kanidm"
       "/var/lib/karakeep"
       "/var/lib/kavita"
@@ -48,12 +47,13 @@
       "/var/lib/postgresql"
       "/var/lib/private/actual"
       # "/var/lib/private/ddclient" # Disabled - no longer using ddclient
+      "/var/lib/private/jellyseerr"
       "/var/lib/private/karakeep-browser"
       "/var/lib/private/mealie"
+      "/var/lib/private/seerr"
       "/var/lib/redis-immich"
       "/var/lib/redis-paperless"
       "/var/lib/sbctl"
-      "/var/lib/seerr"
       "/var/lib/systemd/coredump"
     ];
     files = [
