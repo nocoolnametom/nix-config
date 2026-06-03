@@ -6,6 +6,9 @@ with lib;
   homebrew.onActivation.autoUpdate = mkDefault true;
   homebrew.onActivation.cleanup = mkDefault "uninstall";
   homebrew.onActivation.upgrade = mkDefault true;
+  homebrew.onActivation.extraFlags = [
+    "--force-cleanup"
+  ];
   # Taps should be tapped first, then then dependants can be enabled
   homebrew.taps = [
     { name = "deskflow/tap"; }
