@@ -124,7 +124,7 @@ let
       host = "estel";
       service = "seerr";
       domain = "homeDomain";
-      proxy = "authentik";
+      proxy = "oidc";
     }
     {
       host = "cirdan";
