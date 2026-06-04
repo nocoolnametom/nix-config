@@ -37,7 +37,6 @@
     TERM = lib.mkForce "xterm-256color";
     TERMINAL = lib.mkForce "";
     GPG_TTY = "${"$"}(tty)";
-    NVM_DIR = "${config.home.homeDirectory}/.nvm";
     # Secrets defined in secrets flake file
     GITLAB_WORKFLOW_INSTANCE_URL = "https://$(cat ${config.sops.secrets."work/git-server".path})";
     GITLAB_WORKFLOW_TOKEN = "$(cat ${config.sops.secrets."work/git-server-key".path})";
@@ -53,17 +52,48 @@
     })";
   };
 
-  programs.bash.initExtra = ''
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
+  # Login-shell setup: previously a hand-maintained ~/.zprofile.
+  # brew shellenv exports PATH/MANPATH/INFOPATH/HOMEBREW_* for the Apple Silicon prefix.
+  programs.zsh.profileExtra = ''
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+    export PATH="$HOME/.zpm/bin:$PATH"
   '';
 
   programs.zsh.initContent = ''
-    [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-    [ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"
-
     # Setting this alias here because the HM way doesn't work with the secret lookup
     alias fub="$(cat ${config.sops.secrets."work/shell-tools-aliases/alias1".path})"
+  '';
+
+  # Regenerate ~/.zcompdump in the background so interactive shells can always
+  # use `compinit -C` (~40ms) instead of running a full security-checked compinit
+  # (~2.6s). Fires at login and daily at 06:00; if missed, runs on next wake.
+  launchd.agents.zsh-compinit-refresh = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${pkgs.zsh}/bin/zsh"
+        "-i"
+        "-c"
+        "autoload -Uz compinit && compinit"
+      ];
+      RunAtLoad = true;
+      StartCalendarInterval = [
+        {
+          Hour = 6;
+          Minute = 0;
+        }
+      ];
+      StandardOutPath = "/tmp/zsh-compinit-refresh.log";
+      StandardErrorPath = "/tmp/zsh-compinit-refresh.log";
+    };
+  };
+
+  # After each `darwin-rebuild switch`, force the launchd agent to re-run so any
+  # newly-installed tools' completions land in ~/.zcompdump immediately rather
+  # than waiting for next login or 06:00. Soft-fails if there's no GUI session
+  # (e.g. a headless rebuild) — the daily timer will catch up.
+  home.activation.refreshZcompdump = lib.hm.dag.entryAfter [ "setupLaunchAgents" ] ''
+    /bin/launchctl kickstart -k "gui/$UID/org.nix-community.home.zsh-compinit-refresh" 2>/dev/null || true
   '';
 
   home.stateVersion = "25.05";

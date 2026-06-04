@@ -24,6 +24,21 @@ in
   programs.zsh.autosuggestion.enable = lib.mkDefault true;
   programs.zsh.syntaxHighlighting.enable = lib.mkDefault true;
 
+  # Use `compinit -C` (~40ms) instead of full security-checked compinit (~2.6s)
+  # when the dump is fresh (≤24h). On darwin the dump is kept fresh out-of-band
+  # by the zsh-compinit-refresh launchd agent (login + daily + on darwin-rebuild),
+  # so the else-branch is a safety net. The stat check itself costs ~3µs.
+  programs.zsh.completionInit = ''
+    autoload -Uz compinit
+    _zcompdump="''${ZDOTDIR:-$HOME}/.zcompdump"
+    if [[ -f $_zcompdump && -z $_zcompdump(#qNmh+24) ]]; then
+      compinit -C
+    else
+      compinit
+    fi
+    unset _zcompdump
+  '';
+
   programs.zsh.history.size = 123456;
 
   # Override SSH_AUTH_SOCK for local sessions only.
