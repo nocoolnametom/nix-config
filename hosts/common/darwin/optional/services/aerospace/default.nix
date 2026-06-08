@@ -294,45 +294,27 @@ in
   services.aerospace.settings.mode.main.binding."${hyper}-semicolon" = lib.mkDefault (
     toMode "service"
   );
+  # Plain exit of non-main modes
+  services.aerospace.settings.mode.service.binding.esc = lib.mkDefault toMain;
+  services.aerospace.settings.mode.alter.binding.esc = lib.mkDefault toMain;
 
   # ───────────────────────────────────────────────────────────────────────────
   # "alter" binding mode — window-tree / layout / destructive operations.
   # Visual indicator: amber bar in sketchybar (see plugins/aerospace_mode.nix).
   # ───────────────────────────────────────────────────────────────────────────
-  # Exit without doing anything
-  services.aerospace.settings.mode.alter.binding.esc = lib.mkDefault toMain;
 
   # Reset layout (flatten the workspace tree to a single horizontal row)
-  services.aerospace.settings.mode.alter.binding.r = lib.mkDefault (
-    [ "flatten-workspace-tree" ] ++ toMain
-  );
+  services.aerospace.settings.mode.alter.binding.r = lib.mkDefault ([ "flatten-workspace-tree" ]);
 
   # Toggle between floating and tiling layout for the focused window
-  services.aerospace.settings.mode.alter.binding.f = lib.mkDefault (
-    [ "layout floating tiling" ] ++ toMain
-  );
-
-  # Destructive: close everything in this workspace except the focused window.
-  # In `alter` mode so the amber indicator makes it visible what you're about
-  # to do.
-  services.aerospace.settings.mode.alter.binding.backspace = lib.mkDefault (
-    [ "close-all-windows-but-current" ] ++ toMain
-  );
+  services.aerospace.settings.mode.alter.binding.f = lib.mkDefault ([ "layout floating tiling" ]);
 
   # Combine the focused window into a subgroup with its neighbor on the given
   # side — the primary way to build nested column/row layouts.
-  services.aerospace.settings.mode.alter.binding."${hyper}-h" = lib.mkDefault (
-    [ "join-with left" ] ++ toMain
-  );
-  services.aerospace.settings.mode.alter.binding."${hyper}-j" = lib.mkDefault (
-    [ "join-with down" ] ++ toMain
-  );
-  services.aerospace.settings.mode.alter.binding."${hyper}-k" = lib.mkDefault (
-    [ "join-with up" ] ++ toMain
-  );
-  services.aerospace.settings.mode.alter.binding."${hyper}-l" = lib.mkDefault (
-    [ "join-with right" ] ++ toMain
-  );
+  services.aerospace.settings.mode.alter.binding.h = lib.mkDefault ([ "join-with left" ]);
+  services.aerospace.settings.mode.alter.binding.j = lib.mkDefault ([ "join-with down" ]);
+  services.aerospace.settings.mode.alter.binding.k = lib.mkDefault ([ "join-with up" ]);
+  services.aerospace.settings.mode.alter.binding.l = lib.mkDefault ([ "join-with right" ]);
 
   # Resize the focused window. Bare keys (no modifier) so you can chain
   # presses: enter alter once, then `-----` or `=====` to shrink/grow. Stays
@@ -348,8 +330,6 @@ in
   # Visual indicator: blue bar in sketchybar.
   # Exits: `esc` (no-op exit), `r` (reload + exit), `shift-down` (mute + exit).
   # ───────────────────────────────────────────────────────────────────────────
-  # Plain exit, no side effects — matches `esc` semantics in `alter`.
-  services.aerospace.settings.mode.service.binding.esc = lib.mkDefault toMain;
 
   # Reload the aerospace config (picks up any changes since last load).
   # Exits to main after reloading.
