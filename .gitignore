@@ -5,3 +5,4 @@ result
 .DS_Store
 .pre-commit-config.yaml
 .direnv
+docs/migration-26.05

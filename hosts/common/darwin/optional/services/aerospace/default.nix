@@ -5,6 +5,17 @@ let
     if sketchybarCfg.enable then "${sketchybarCfg.package}/bin/sketchybar" else "sketchybar";
   hyper = "alt-ctrl-shift-cmd";
   meh = "alt-ctrl-shift";
+
+  # Mode transition helpers. Aerospace doesn't fire any built-in event on mode
+  # change, so every `mode X` command must be paired with a sketchybar trigger
+  # to keep the on-screen indicator in sync. See:
+  # hosts/common/darwin/optional/services/sketchybar/plugins/aerospace_mode.nix
+  triggerMode = name: "exec-and-forget ${sketchybar} --trigger aerospace_mode_change MODE=${name}";
+  toMode = name: [
+    "mode ${name}"
+    (triggerMode name)
+  ];
+  toMain = toMode "main";
 in
 {
   services.aerospace.enable = lib.mkDefault true;
@@ -226,9 +237,9 @@ in
   services.aerospace.settings.mode.main.binding."${hyper}-k" = lib.mkDefault "move up";
   services.aerospace.settings.mode.main.binding."${hyper}-l" = lib.mkDefault "move right";
 
-  # See: https://nikitabobko.github.io/AeroSpace/commands#resize
-  services.aerospace.settings.mode.main.binding."${meh}-minus" = lib.mkDefault "resize smart -50";
-  services.aerospace.settings.mode.main.binding."${meh}-equal" = lib.mkDefault "resize smart +50";
+  # Fullscreen toggle stays in main (one-shot action, no need for a mode).
+  # The resize bindings moved into `alter` mode so you can chain repeats with
+  # bare keys (-/=) rather than holding the meh modifier each press.
   services.aerospace.settings.mode.main.binding."${meh}-f" = lib.mkDefault "fullscreen";
 
   # See: https://nikitabobko.github.io/AeroSpace/commands#workspace
@@ -277,53 +288,78 @@ in
     lib.mkDefault "move-workspace-to-monitor --wrap-around next";
 
   # See: https://nikitabobko.github.io/AeroSpace/commands#mode
-  services.aerospace.settings.mode.main.binding."${hyper}-semicolon" = lib.mkDefault "mode service";
+  # Entry points into the non-`main` modes. Both fire the sketchybar mode-change
+  # trigger via `toMode` so the bar widget updates in lockstep with aerospace.
+  services.aerospace.settings.mode.main.binding."${hyper}-a" = lib.mkDefault (toMode "alter");
+  services.aerospace.settings.mode.main.binding."${hyper}-semicolon" = lib.mkDefault (
+    toMode "service"
+  );
 
-  # "service" binding mode declaration.
-  # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
-  services.aerospace.settings.mode.service.binding.esc = lib.mkDefault [
-    "reload-config"
-    "mode main"
-  ];
-  # reset layout
-  services.aerospace.settings.mode.service.binding.r = lib.mkDefault [
-    "flatten-workspace-tree"
-    "mode main"
-  ];
-  # Toggle between floating and tiling layout
-  services.aerospace.settings.mode.service.binding.f = lib.mkDefault [
-    "layout floating tiling"
-    "mode main"
-  ];
-  services.aerospace.settings.mode.service.binding.backspace = lib.mkDefault [
-    "close-all-windows-but-current"
-    "mode main"
-  ];
+  # ───────────────────────────────────────────────────────────────────────────
+  # "alter" binding mode — window-tree / layout / destructive operations.
+  # Visual indicator: amber bar in sketchybar (see plugins/aerospace_mode.nix).
+  # ───────────────────────────────────────────────────────────────────────────
+  # Exit without doing anything
+  services.aerospace.settings.mode.alter.binding.esc = lib.mkDefault toMain;
+
+  # Reset layout (flatten the workspace tree to a single horizontal row)
+  services.aerospace.settings.mode.alter.binding.r = lib.mkDefault (
+    [ "flatten-workspace-tree" ] ++ toMain
+  );
+
+  # Toggle between floating and tiling layout for the focused window
+  services.aerospace.settings.mode.alter.binding.f = lib.mkDefault (
+    [ "layout floating tiling" ] ++ toMain
+  );
+
+  # Destructive: close everything in this workspace except the focused window.
+  # In `alter` mode so the amber indicator makes it visible what you're about
+  # to do.
+  services.aerospace.settings.mode.alter.binding.backspace = lib.mkDefault (
+    [ "close-all-windows-but-current" ] ++ toMain
+  );
+
+  # Combine the focused window into a subgroup with its neighbor on the given
+  # side — the primary way to build nested column/row layouts.
+  services.aerospace.settings.mode.alter.binding."${hyper}-h" = lib.mkDefault (
+    [ "join-with left" ] ++ toMain
+  );
+  services.aerospace.settings.mode.alter.binding."${hyper}-j" = lib.mkDefault (
+    [ "join-with down" ] ++ toMain
+  );
+  services.aerospace.settings.mode.alter.binding."${hyper}-k" = lib.mkDefault (
+    [ "join-with up" ] ++ toMain
+  );
+  services.aerospace.settings.mode.alter.binding."${hyper}-l" = lib.mkDefault (
+    [ "join-with right" ] ++ toMain
+  );
+
+  # Resize the focused window. Bare keys (no modifier) so you can chain
+  # presses: enter alter once, then `-----` or `=====` to shrink/grow. Stays
+  # in alter mode after each press — exit with `esc`.
+  services.aerospace.settings.mode.alter.binding.minus = lib.mkDefault "resize smart -50";
+  services.aerospace.settings.mode.alter.binding.equal = lib.mkDefault "resize smart +50";
 
   # sticky is not yet supported https://github.com/nikitabobko/AeroSpace/issues/2
-  #services.aerospace.settings.mode.service.binding.s = lib.mkDefault ["layout sticky tiling" "mode main"];
+  # services.aerospace.settings.mode.alter.binding.s = lib.mkDefault (["layout sticky tiling"] ++ toMain);
 
-  services.aerospace.settings.mode.service.binding."${hyper}-h" = lib.mkDefault [
-    "join-with left"
-    "mode main"
-  ];
-  services.aerospace.settings.mode.service.binding."${hyper}-j" = lib.mkDefault [
-    "join-with down"
-    "mode main"
-  ];
-  services.aerospace.settings.mode.service.binding."${hyper}-k" = lib.mkDefault [
-    "join-with up"
-    "mode main"
-  ];
-  services.aerospace.settings.mode.service.binding."${hyper}-l" = lib.mkDefault [
-    "join-with right"
-    "mode main"
-  ];
+  # ───────────────────────────────────────────────────────────────────────────
+  # "service" binding mode — admin / system tasks (reload-config + volume).
+  # Visual indicator: blue bar in sketchybar.
+  # Exits: `esc` (no-op exit), `r` (reload + exit), `shift-down` (mute + exit).
+  # ───────────────────────────────────────────────────────────────────────────
+  # Plain exit, no side effects — matches `esc` semantics in `alter`.
+  services.aerospace.settings.mode.service.binding.esc = lib.mkDefault toMain;
 
+  # Reload the aerospace config (picks up any changes since last load).
+  # Exits to main after reloading.
+  services.aerospace.settings.mode.service.binding.r = lib.mkDefault ([ "reload-config" ] ++ toMain);
+
+  # Volume — stay in service mode for up/down so you can hold the key; mute
+  # (shift-down) exits to main.
   services.aerospace.settings.mode.service.binding.down = lib.mkDefault "volume down";
   services.aerospace.settings.mode.service.binding.up = lib.mkDefault "volume up";
-  services.aerospace.settings.mode.service.binding.shift-down = lib.mkDefault [
-    "volume set 0"
-    "mode main"
-  ];
+  services.aerospace.settings.mode.service.binding.shift-down = lib.mkDefault (
+    [ "volume set 0" ] ++ toMain
+  );
 }

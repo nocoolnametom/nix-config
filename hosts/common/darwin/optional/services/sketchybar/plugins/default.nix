@@ -5,6 +5,7 @@
 }:
 rec {
   aerospace = import ./aerospace.nix { inherit pkgs sketchybar; };
+  aerospace_mode = import ./aerospace_mode.nix { inherit pkgs sketchybar; };
   battery = import ./battery.nix { inherit pkgs sketchybar; };
   clock = import ./clock.nix { inherit pkgs sketchybar; };
   cpu = import ./cpu.nix { inherit pkgs sketchybar; };

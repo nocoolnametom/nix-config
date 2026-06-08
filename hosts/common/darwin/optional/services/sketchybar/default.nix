@@ -109,6 +109,27 @@ in
                 script="${plugins.front_app}" \
               --subscribe front_app front_app_switched
 
+    ##### Aerospace Mode Indicator (center) #####
+    # Shows the active Aerospace binding mode with a color-coded label. Hidden
+    # when in `main`. Triggered by aerospace bindings via the
+    # `aerospace_mode_change` event (MODE=<name> payload). See:
+    # plugins/aerospace_mode.nix for the color/label definitions and
+    # hosts/common/darwin/optional/services/aerospace/default.nix for the
+    # binding wire-up.
+    sketchybar --add event aerospace_mode_change
+    sketchybar --add item aerospace_mode center \
+              --set aerospace_mode \
+                drawing=off \
+                background.corner_radius=5 \
+                background.height=25 \
+                background.padding_left=2 \
+                background.padding_right=2 \
+                label.font="SFProDisplay Nerd Font:Heavy:13.0" \
+                label.padding_left=10 \
+                label.padding_right=10 \
+                script="${plugins.aerospace_mode}" \
+              --subscribe aerospace_mode aerospace_mode_change
+
     ##### Adding Right Items #####
     # In the same way as the left items we can add items to the right side.
     # Additional position (e.g. center) are available, see:

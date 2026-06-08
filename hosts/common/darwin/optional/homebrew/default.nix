@@ -12,6 +12,7 @@ with lib;
   # Taps should be tapped first, then then dependants can be enabled
   homebrew.taps = [
     { name = "deskflow/tap"; }
+    { name = "bnjreece/loudcue"; }
   ];
   homebrew.brews = [
     # No current nixpkgs
@@ -28,5 +29,7 @@ with lib;
     { name = "deskflow"; }
     # Handy - Not available on non-Linux via nixpkgs
     { name = "handy"; }
+    # LoudCue - Tapped, comment first then uncomment if tap fails
+    { name = "bnjreece/loudcue/loudcue"; }
   ];
 }
