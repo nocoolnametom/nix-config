@@ -3,6 +3,8 @@
 {
   # List your module files here
   # my-module = import ./my-module.nix;
+  notification-watcher = import ./notification-watcher.nix;
+  repo-path = import ./repo-path.nix;
   yubikey = import ./yubikey.nix;
   yknotify = import ./yknotify.nix;
 }

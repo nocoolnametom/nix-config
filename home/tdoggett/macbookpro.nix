@@ -21,6 +21,7 @@
     common/optional/claude.nix
     common/optional/docker.nix
     common/optional/docker-darwin.nix
+    common/optional/notification-leds.nix
   ];
 
   programs.claude.enable = true;

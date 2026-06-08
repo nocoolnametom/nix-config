@@ -111,11 +111,11 @@ in
         "us.zoom.xos"
         # Proton Mail Bridge
         "com.protonmail.bridge"
-        # Cisco Secure Client
+        # Corporate VPN client (main window)
         "com.cisco.secureclient.gui"
-        # Cisco Secure Client - Socket Filter
+        # Corporate VPN client (socket filter)
         "com.cisco.anyconnect.macos.acsock"
-        # Cisco Secure Client - DART
+        # Corporate VPN client (diagnostic / DART)
         "com.cisco.secureclient.dart"
         # Okta Verify
         "com.okta.mobile"
@@ -143,7 +143,7 @@ in
   services.aerospace.settings.gaps.outer.bottom = lib.mkDefault 4;
   services.aerospace.settings.gaps.outer.top = lib.mkDefault [
     { monitor."built-in" = 0; }
-    40
+    33
   ];
   services.aerospace.settings.gaps.outer.right = lib.mkDefault 4;
 

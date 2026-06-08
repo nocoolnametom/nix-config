@@ -13,6 +13,7 @@
   nzbget-to-management = import ./nzbget-to-management.nix;
   oauth2-proxy-multi = import ./oauth2-proxy-multi.nix;
   per-user-vpn = import ./per-user-vpn.nix;
+  repo-path = import ./repo-path.nix;
   rsync-cert-sync = import ./rsync-cert-sync.nix;
   sauronsync = import ./sauronsync.nix;
   sso-provider = import ./sso-provider.nix;

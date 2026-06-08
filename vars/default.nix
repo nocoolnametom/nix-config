@@ -1,4 +1,8 @@
 { inputs, ... }:
+let
+  username = "tdoggett";
+  handle = "nocoolnametom";
+in
 {
   inherit (inputs.nix-secrets)
     userFullName
@@ -15,8 +19,17 @@
     ;
   friendBlogDomain = inputs.nix-secrets.networking.blog.friends.domain;
 
-  username = "tdoggett";
-  handle = "nocoolnametom";
+  inherit username handle;
+
+  # Conventional location of this nix-config working-tree checkout. Both
+  # variants are provided because the home-directory prefix differs by OS;
+  # consumers pick the right one with e.g. `pkgs.stdenv.isDarwin`. Used by
+  # widgets and tooling that want to link to the editable source file
+  # rather than the read-only /nix/store path.
+  nixConfigPath = {
+    darwin = "/Users/${username}/Projects/${handle}/nix-config";
+    linux = "/home/${username}/Projects/${handle}/nix-config";
+  };
   gitHubEmail = "810877+nocoolnametom@users.noreply.github.com";
   gitLabEmail = "2724098-nocoolnametom@users.noreply.gitlab.com";
   persistFolder = "/persist";

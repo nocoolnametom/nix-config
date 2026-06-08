@@ -21,6 +21,12 @@ with lib;
     { name = "llmfit"; }
     # Crit AI Assistance - Tapped, comment first then uncomment
     { name = "tomasz-tomczyk/tap/crit"; }
+    # macOS calendar query CLI — used by the sketchybar calendar widget.
+    # Not in nixpkgs (macOS-only tool). Requires Calendar permission on first run.
+    { name = "ical-buddy"; }
+    # ThingM blink(1) USB LED control — provides /opt/homebrew/bin/blink1-tool
+    # used by the notification-leds home-manager module. Not in nixpkgs.
+    { name = "blink1"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS

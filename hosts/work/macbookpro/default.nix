@@ -66,6 +66,41 @@ in
     "hosts/common/users/${configVars.username}/darwin.nix"
   ]);
 
+  # Per-host sketchybar customization. UUIDs are repo-safe (no PII);
+  # discover yours with `icalBuddy calendars`. See
+  # hosts/common/darwin/optional/services/sketchybar/default.nix for
+  # the option definitions.
+  services.sketchybar.personalizedOptions = {
+    calendars = [
+      "684D9DAB-74E3-42D4-AA64-BEA3F8165EC9" # Personal
+      "CD6E7A4E-53C2-4A31-88CF-E240FFD36576" # Family
+      "20B53EC0-1CB6-4014-8149-8E46D1757A59" # Work
+    ];
+    # Clicking the clock or calendar widget on this host opens TickTick
+    # instead of Apple Calendar. Bundle ID is more robust than `open -a` if
+    # the app is ever renamed or moved.
+    clockClickCommand = "open -b com.TickTick.task.mac";
+    # repoPath uses the conventional default
+    #   /Users/<configVars.username>/Projects/<configVars.handle>/nix-config
+    # which matches this host. Set explicitly only if the checkout moves.
+  };
+
+  # Watches macOS notification delivery via /usr/bin/log stream and fires the
+  # corresponding `notify-blink <source>` for each matched bundle. Keys must
+  # match `services.notification-leds.sources` (in shared HM config) so the
+  # LED actually has a color/device mapping to use.
+  services.notification-watcher = {
+    enable = true;
+    sources = {
+      slack.bundleIds = [ "com.tinyspeck.slackmacgap" ];
+      email.bundleIds = [ "com.apple.mail" ];
+      calendar.bundleIds = [
+        "com.apple.iCal"
+        "com.TickTick.task.mac"
+      ];
+    };
+  };
+
   networking.hostName = configVars.networking.work.macbookpro.name;
 
   system.primaryUser = configVars.username;
