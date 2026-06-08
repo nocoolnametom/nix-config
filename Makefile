@@ -1,185 +1,39 @@
 ###############################################################################
 #
-#  nix-config deployment Makefile
+#  nix-config — local checks
 #
-#  Builds and deploys NixOS / nix-darwin / Home Manager configurations from
-#  the local checkout to each machine.  All build targets use `nix run` to
-#  pull the required tools on-demand so the Makefile works from any host
-#  (including macOS) without needing them pre-installed.
+#  Run these manually before `jj git push` since jj 0.41 does not invoke
+#  git's pre-push hook (see home/tdoggett/common/optional/jj.nix).
 #
-#  Useful workflows:
-#    make update-estel   # pull latest repo on estel, then
-#    make estel          # build from local repo and switch estel
-#
-#    make update-all     # pull latest on every machine
-#    make all            # build + switch every machine (sequential)
-#    make -j4 all        # build + switch every machine (parallelised, use with care)
+#  Targets shell out via `nix develop -c` so they pick up the correct
+#  pre-commit version and the generated .pre-commit-config.yaml from the
+#  devShell, even when invoked from outside it.
 #
 ###############################################################################
 
-##─────────────────────────────────────────────────────────────────────────────
-## SSH targets
-## Machines on the local LAN are reachable at <hostname>.doggett.home.
-## Adjust BOMBADIL to the actual VPS hostname/IP.
-## If estel needs a ProxyJump through bombadil, add a ~/.ssh/config entry rather
-## than encoding it here, and keep ESTEL as just the hostname.
-##─────────────────────────────────────────────────────────────────────────────
-
-USER        := tdoggett
-LAN_DOMAIN  := doggett.home
-
-PANGOLIN11  := $(USER)@pangolin11.$(LAN_DOMAIN)
-BARLIMAN    := $(USER)@barliman.$(LAN_DOMAIN)
-SMEAGOL     := $(USER)@smeagol.$(LAN_DOMAIN)
-DURIN       := $(USER)@durin.$(LAN_DOMAIN)
-ESTEL       := $(USER)@estel.$(LAN_DOMAIN)   # ProxyJump via bombadil if needed — configure in ~/.ssh/config
-BOMBADIL    := $(USER)@bombadil               # TODO: set to actual VPS address (in nix-secrets)
-STEAMDECK   := deck@steamdeck.$(LAN_DOMAIN)
-
-## Path to this repo on remote machines (used by update-* targets)
-REMOTE_REPO := ~/Projects/nocoolnametom/nix-config
-
-##─────────────────────────────────────────────────────────────────────────────
-## Build tools
-## nixos-rebuild is not available by default on macOS, so we use `nix run`
-## to pull it from nixpkgs on demand.  This also works fine on NixOS.
-## darwin-rebuild is provided by nix-darwin and expected to be in PATH on macOS.
-## home-manager is used for HM-only targets and also pulled via `nix run`.
-##─────────────────────────────────────────────────────────────────────────────
-
-NIXOS_REBUILD   := nix run nixpkgs\#nixos-rebuild --
-HOME_MANAGER    := nix run nixpkgs\#home-manager --
-
-##─────────────────────────────────────────────────────────────────────────────
-## Default goal: show help
-##─────────────────────────────────────────────────────────────────────────────
-
 .DEFAULT_GOAL := help
 
-.PHONY: help
+.PHONY: help check check-fast fmt
+
+# Auto-derive the per-system `eval-*` hook IDs that `check-fast` skips, so
+# adding/removing hosts in checks/default.nix is reflected here automatically.
+# Empty if .pre-commit-config.yaml hasn't been generated yet (run `nix develop`
+# once to create it).
+SLOW_HOOKS := $(shell grep -oE '"eval-[A-Za-z0-9-]+"' .pre-commit-config.yaml 2>/dev/null | tr -d '"' | sort -u | paste -sd, -)
+
 help:
-	@echo "nix-config deployment targets"
+	@echo "nix-config — local checks (run before 'jj git push')"
 	@echo ""
-	@echo "  Update (git pull --rebase on remote):"
-	@echo "    make update-pangolin11   make update-barliman   make update-smeagol"
-	@echo "    make update-estel        make update-bombadil   make update-durin"
-	@echo "    make update-steamdeck    make update-macbookpro (local pull)"
-	@echo "    make update-all          (all of the above)"
-	@echo ""
-	@echo "  Build & switch (from this local repo):"
-	@echo "    make pangolin11   make barliman   make smeagol"
-	@echo "    make estel        make bombadil   make durin"
-	@echo "    make steamdeck    make macbookpro (local darwin-rebuild)"
-	@echo "    make all          (all of the above, sequential)"
-	@echo "    make -j4 all      (parallel — use with care on slow machines)"
+	@echo "  make check       Run all pre-push hooks (format/lint + per-system eval)"
+	@echo "  make check-fast  Format/lint only — skip the slow per-system eval"
+	@echo "  make fmt         Auto-format .nix (nixfmt) and shell (shfmt) files"
 
-##─────────────────────────────────────────────────────────────────────────────
-## update-* targets: git pull --rebase on the remote machine
-##
-## We use -o ForwardAgent=no so the remote machine uses its OWN SSH agent
-## (with id_personal loaded) rather than the forwarded macbookpro agent.
-## The forwarded agent has a stale YubiKey handle that fails signing when the
-## YubiKey is not physically connected, and id_personal is not in that agent.
-## macbookpro still authenticates TO the remote machine using its own local
-## keys (work_rsa is in authorized_keys on all machines).
-##─────────────────────────────────────────────────────────────────────────────
+check:
+	nix develop -c pre-commit run --hook-stage pre-push --all-files
 
-.PHONY: update-pangolin11
-update-pangolin11:
-	ssh -o ForwardAgent=no $(PANGOLIN11) 'git -C $(REMOTE_REPO) pull --rebase'
+check-fast:
+	SKIP="$(SLOW_HOOKS)" nix develop -c pre-commit run --hook-stage pre-push --all-files
 
-.PHONY: update-barliman
-update-barliman:
-	ssh -o ForwardAgent=no $(BARLIMAN) 'git -C $(REMOTE_REPO) pull --rebase'
-
-.PHONY: update-smeagol
-update-smeagol:
-	ssh -o ForwardAgent=no $(SMEAGOL) 'git -C $(REMOTE_REPO) pull --rebase'
-
-.PHONY: update-estel
-update-estel:
-	ssh -o ForwardAgent=no $(ESTEL) 'git -C $(REMOTE_REPO) pull --rebase'
-
-.PHONY: update-bombadil
-update-bombadil:
-	ssh -o ForwardAgent=no $(BOMBADIL) 'git -C $(REMOTE_REPO) pull --rebase'
-
-.PHONY: update-durin
-update-durin:
-	ssh -o ForwardAgent=no $(DURIN) 'git -C $(REMOTE_REPO) pull --rebase'
-
-.PHONY: update-steamdeck
-update-steamdeck:
-	ssh -o ForwardAgent=no $(STEAMDECK) 'git -C $(REMOTE_REPO) pull --rebase'
-
-.PHONY: update-macbookpro
-update-macbookpro:
-	git pull --rebase
-
-.PHONY: update-all
-update-all: update-pangolin11 update-barliman update-smeagol update-estel \
-            update-bombadil update-durin update-steamdeck update-macbookpro
-
-##─────────────────────────────────────────────────────────────────────────────
-## Build & switch targets
-##
-## NixOS targets evaluate the flake locally and copy the built closure to the
-## target host via SSH, then activate it there.  Requires `--use-remote-sudo`
-## since we SSH as $(USER) (wheel, passwordless sudo).
-##
-## When running from aarch64-darwin (macbookpro), cross-architecture builds
-## are offloaded to the remote builders configured in nix-remote-builders.nix.
-##─────────────────────────────────────────────────────────────────────────────
-
-.PHONY: pangolin11
-pangolin11:
-	$(NIXOS_REBUILD) switch --flake .#pangolin11 \
-	  --target-host $(PANGOLIN11) \
-	  --sudo
-
-.PHONY: barliman
-barliman:
-	$(NIXOS_REBUILD) switch --flake .#barliman \
-	  --target-host $(BARLIMAN) \
-	  --sudo
-
-.PHONY: smeagol
-smeagol:
-	$(NIXOS_REBUILD) switch --flake .#smeagol \
-	  --target-host $(SMEAGOL) \
-	  --sudo
-
-.PHONY: estel
-estel:
-	$(NIXOS_REBUILD) switch --flake .#estel \
-	  --target-host $(ESTEL) \
-	  --sudo
-
-.PHONY: bombadil
-bombadil:
-	$(NIXOS_REBUILD) switch --flake .#bombadil \
-	  --target-host $(BOMBADIL) \
-	  --sudo
-
-.PHONY: durin
-durin:
-	$(NIXOS_REBUILD) switch --flake .#durin \
-	  --target-host $(DURIN) \
-	  --sudo
-
-## macOS — run darwin-rebuild locally (this IS the macbookpro).
-## darwin-rebuild is provided by nix-darwin and should be in PATH.
-.PHONY: macbookpro
-macbookpro:
-	darwin-rebuild switch --flake .#macbookpro
-
-## Steam Deck — HM-only, must be built and activated on the deck itself.
-## We SSH in and run home-manager against the remote repo (pull first with
-## update-steamdeck if you need the latest changes there).
-.PHONY: steamdeck
-steamdeck:
-	ssh $(STEAMDECK) \
-	  'nix run nixpkgs\#home-manager -- switch --flake $(REMOTE_REPO)\#deck@steamdeck'
-
-.PHONY: all
-all: pangolin11 barliman smeagol estel bombadil durin macbookpro steamdeck
+fmt:
+	nix fmt -- .
+	-nix develop -c pre-commit run --hook-stage pre-push --all-files shfmt

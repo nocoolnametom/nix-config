@@ -236,38 +236,38 @@ in
   services.aerospace.settings.mode.main.binding."${meh}-right" = lib.mkDefault "workspace next";
   services.aerospace.settings.mode.main.binding."${meh}-up" = lib.mkDefault "focus-monitor prev";
   services.aerospace.settings.mode.main.binding."${meh}-down" = lib.mkDefault "focus-monitor next";
-  services.aerospace.settings.mode.main.binding."${hyper}-1" = lib.mkDefault "workspace 1";
-  services.aerospace.settings.mode.main.binding."${hyper}-2" = lib.mkDefault "workspace 2";
-  services.aerospace.settings.mode.main.binding."${hyper}-3" = lib.mkDefault "workspace 3";
-  services.aerospace.settings.mode.main.binding."${hyper}-4" = lib.mkDefault "workspace 4";
-  services.aerospace.settings.mode.main.binding."${hyper}-5" = lib.mkDefault "workspace 5";
-  services.aerospace.settings.mode.main.binding."${hyper}-6" = lib.mkDefault "workspace 6";
-  services.aerospace.settings.mode.main.binding."${hyper}-7" = lib.mkDefault "workspace 7";
-  services.aerospace.settings.mode.main.binding."${hyper}-8" = lib.mkDefault "workspace 8";
-  services.aerospace.settings.mode.main.binding."${hyper}-9" = lib.mkDefault "workspace 9";
-  services.aerospace.settings.mode.main.binding."${hyper}-0" = lib.mkDefault "workspace A";
+  services.aerospace.settings.mode.main.binding."${meh}-1" = lib.mkDefault "workspace 1";
+  services.aerospace.settings.mode.main.binding."${meh}-2" = lib.mkDefault "workspace 2";
+  services.aerospace.settings.mode.main.binding."${meh}-3" = lib.mkDefault "workspace 3";
+  services.aerospace.settings.mode.main.binding."${meh}-4" = lib.mkDefault "workspace 4";
+  services.aerospace.settings.mode.main.binding."${meh}-5" = lib.mkDefault "workspace 5";
+  services.aerospace.settings.mode.main.binding."${meh}-6" = lib.mkDefault "workspace 6";
+  services.aerospace.settings.mode.main.binding."${meh}-7" = lib.mkDefault "workspace 7";
+  services.aerospace.settings.mode.main.binding."${meh}-8" = lib.mkDefault "workspace 8";
+  services.aerospace.settings.mode.main.binding."${meh}-9" = lib.mkDefault "workspace 9";
+  services.aerospace.settings.mode.main.binding."${meh}-0" = lib.mkDefault "workspace A";
   # In your config, you can drop workspace bindings that you don't need
 
   # See: https://nikitabobko.github.io/AeroSpace/commands#move-node-to-workspace
-  services.aerospace.settings.mode.main.binding."${meh}-1" =
+  services.aerospace.settings.mode.main.binding."${hyper}-1" =
     lib.mkDefault "move-node-to-workspace 1 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-2" =
+  services.aerospace.settings.mode.main.binding."${hyper}-2" =
     lib.mkDefault "move-node-to-workspace 2 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-3" =
+  services.aerospace.settings.mode.main.binding."${hyper}-3" =
     lib.mkDefault "move-node-to-workspace 3 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-4" =
+  services.aerospace.settings.mode.main.binding."${hyper}-4" =
     lib.mkDefault "move-node-to-workspace 4 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-5" =
+  services.aerospace.settings.mode.main.binding."${hyper}-5" =
     lib.mkDefault "move-node-to-workspace 5 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-6" =
+  services.aerospace.settings.mode.main.binding."${hyper}-6" =
     lib.mkDefault "move-node-to-workspace 6 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-7" =
+  services.aerospace.settings.mode.main.binding."${hyper}-7" =
     lib.mkDefault "move-node-to-workspace 7 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-8" =
+  services.aerospace.settings.mode.main.binding."${hyper}-8" =
     lib.mkDefault "move-node-to-workspace 8 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-9" =
+  services.aerospace.settings.mode.main.binding."${hyper}-9" =
     lib.mkDefault "move-node-to-workspace 9 --focus-follows-window";
-  services.aerospace.settings.mode.main.binding."${meh}-0" =
+  services.aerospace.settings.mode.main.binding."${hyper}-0" =
     lib.mkDefault "move-node-to-workspace A --focus-follows-window";
 
   # See: https://nikitabobko.github.io/AeroSpace/commands#workspace-back-and-forth

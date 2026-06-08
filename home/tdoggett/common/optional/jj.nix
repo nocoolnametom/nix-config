@@ -22,9 +22,10 @@
   # auto-local-bookmark = false keeps `jj git fetch` from creating a local
   # bookmark for every remote branch. Recommended jj default.
   programs.jujutsu.settings.git.auto-local-bookmark = false;
-  # subprocess = true makes jj invoke the `git` CLI for fetch/push so git hooks
-  # (pre-push etc.) actually fire. Default in jj 0.41 uses libgit2 directly,
-  # which bypasses all hooks.
+  # subprocess = true makes jj shell out to the `git` CLI for fetch (better
+  # protocol compatibility than libgit2). NOTE: does NOT enable pre-push hooks —
+  # jj 0.41's push path bypasses .git/hooks entirely regardless of this setting.
+  # Use `make check` before `jj git push` instead. (Tracked: jj-vcs/jj#405.)
   programs.jujutsu.settings.git.subprocess = true;
 
   # Signing — SSH key signing, sharing git.nix's allowed_signers file.
