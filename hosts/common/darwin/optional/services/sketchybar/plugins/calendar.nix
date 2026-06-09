@@ -61,6 +61,7 @@ writeShellScript "sketchybar_calendar" ''
   ICAL_BUDDY="${config.homebrew.prefix}/bin/icalBuddy"
   if [ -z "$ICAL_BUDDY" ]; then
     sketchybar --set "$NAME" drawing=off
+    sketchybar --set calendar_dismiss drawing=off
     exit 0
   fi
 
@@ -79,6 +80,30 @@ writeShellScript "sketchybar_calendar" ''
     return 1
   }
 
+  # Dismissal state — used by the adjacent [X] button widget to let the user
+  # mark a NOW event as effectively-over (meeting ended early, etc.) and roll
+  # the widget over to the next event. See plugins/calendar_dismiss.nix.
+  DISMISS_FILE="/tmp/sketchybar-calendar-dismissed.txt"
+  CURRENT_FILE="/tmp/sketchybar-calendar-current.txt"
+  TODAY="$(/bin/date +%Y-%m-%d)"
+
+  # Auto-prune yesterday's dismissals on every tick — entries are keyed by
+  # "YYYY-MM-DD|HH:MM|Title", so a date-prefix grep keeps only today's.
+  if [ -f "$DISMISS_FILE" ]; then
+    /usr/bin/grep "^''${TODAY}|" "$DISMISS_FILE" > "''${DISMISS_FILE}.tmp" 2>/dev/null || true
+    /bin/mv "''${DISMISS_FILE}.tmp" "$DISMISS_FILE" 2>/dev/null || true
+  fi
+
+  is_dismissed() {
+    [ ! -s "$DISMISS_FILE" ] && return 1
+    /usr/bin/grep -qxF "$1" "$DISMISS_FILE"
+  }
+
+  # Tracks whether the most recent render_event call drew a NOW event.
+  # The dismiss button only appears in that state.
+  RENDERED_AS_NOW=0
+  CURRENT_EVENT_ID=""
+
   # Query up to 10 future events today. -ic filters to allowed calendars (if set).
   # -b "•" puts a bullet before each event title so we can split the output.
   RAW=$("$ICAL_BUDDY" \
@@ -92,6 +117,7 @@ writeShellScript "sketchybar_calendar" ''
 
   if [ -z "$RAW" ] || printf '%s' "$RAW" | grep -qi "no events"; then
     sketchybar --set "$NAME" drawing=off
+    sketchybar --set calendar_dismiss drawing=off
     exit 0
   fi
 
@@ -142,6 +168,7 @@ writeShellScript "sketchybar_calendar" ''
           background.color=0xffcc4444 \
           background.corner_radius=5 \
           background.height=23
+        RENDERED_AS_NOW=1
         return 0
       fi
       return 1  # ended; try next candidate
@@ -174,6 +201,16 @@ writeShellScript "sketchybar_calendar" ''
     if should_skip "$current_title"; then
       return 1
     fi
+    # Compute the event ID for the dismiss check + state file.
+    local st sd
+    st=$(printf '%s' "$current_dt_line" | grep -oE '[0-9]{2}:[0-9]{2}' | sed -n '1p')
+    sd=$(printf '%s' "$current_dt_line" | grep -oE '[0-9]{4}-[0-9]{2}-[0-9]{2}' | head -1)
+    [ -z "$sd" ] && sd="$TODAY"
+    local eid="''${sd}|''${st}|''${current_title}"
+    if is_dismissed "$eid"; then
+      return 1
+    fi
+    CURRENT_EVENT_ID="$eid"
     render_event "$current_title" "$current_dt_line"
   }
 
@@ -207,5 +244,13 @@ writeShellScript "sketchybar_calendar" ''
 
   if [ "$found" -eq 0 ]; then
     sketchybar --set "$NAME" drawing=off
+    sketchybar --set calendar_dismiss drawing=off
+  elif [ "$RENDERED_AS_NOW" = "1" ]; then
+    # Stash the rendered event's ID for the dismiss button click handler.
+    printf '%s\n' "$CURRENT_EVENT_ID" > "$CURRENT_FILE"
+    sketchybar --set calendar_dismiss drawing=on
+  else
+    # Upcoming-only event: no dismiss button.
+    sketchybar --set calendar_dismiss drawing=off
   fi
 ''

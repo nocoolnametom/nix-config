@@ -226,16 +226,26 @@ in
                 --set volume icon=󰕿 script="${plugins.volume}" \
                   click_script='open "x-apple.systempreferences:com.apple.Sound-Settings.extension"' \
                 --subscribe volume volume_change system_woke \
+              --add event calendar_dismissed \
               --add item calendar right \
                 --set calendar update_freq=60 icon=󰃭 script="${plugins.calendar}" \
                   click_script="${config.services.sketchybar.personalizedOptions.clockClickCommand}" \
+                --subscribe calendar calendar_dismissed \
+              --add item calendar_dismiss right \
+                --set calendar_dismiss \
+                  drawing=off \
+                  icon.drawing=off \
+                  label="[X]" \
+                  label.color=0xffcc4444 \
+                  click_script="${plugins.calendar_dismiss}" \
                 --add item now_playing right \
                   --set now_playing update_freq=5 icon=󰎈 script="${plugins.now_playing}"
 
 
       # Right items added in visual right-to-left order. Each --add right pushes
       # the new item to the LEFT of previous right items. Final layout
-      # (right→left): clock, battery, cpu, volume, vpn, calendar, now_playing.
+      # (right→left): clock, vpn, [litra,] weather, battery, cpu, memory, disk,
+      # volume, calendar, calendar_dismiss ([X], only when NOW event), now_playing.
 
       ##### Force all scripts to run the first time (never do this in a script) #####
       sketchybar --update

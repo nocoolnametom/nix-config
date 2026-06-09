@@ -27,6 +27,7 @@ rec {
     # "OOO", "Out of Office", "Birthday", "Holiday".
     skipPatterns = configVars.calendars.skipPatterns or [ ];
   };
+  calendar_dismiss = import ./calendar_dismiss.nix { inherit pkgs config sketchybar; };
   clock = import ./clock.nix { inherit pkgs config sketchybar; };
   cpu = import ./cpu.nix { inherit pkgs config sketchybar; };
   icon_map_fn = import ./icon_map_fn.nix { inherit pkgs config sketchybar; };

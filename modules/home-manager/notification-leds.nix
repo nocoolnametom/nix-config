@@ -198,6 +198,13 @@ let
         exit 1
       fi
 
+      # USB-HID open/startQueue events from our LED devices match yknotify's
+      # tracking + trigger regexes verbatim — yknotify can't tell our hidapi
+      # opens apart from a YubiKey FIDO2 client. Touch a marker so the
+      # yknotify-launcher can suppress its notification during/just after a
+      # notify-blink call. (See modules/darwin/yknotify.nix for the read side.)
+      /usr/bin/touch /tmp/notify-blink-active 2>/dev/null || true
+
       case "$INPUT" in
         ${sourceBranches}
         off)
