@@ -15,6 +15,7 @@ in
     email
     networking
     work
+    calendars
     sso
     ;
   friendBlogDomain = inputs.nix-secrets.networking.blog.friends.domain;
