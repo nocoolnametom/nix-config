@@ -10,16 +10,6 @@ let
   useKanidm = ssoProvider == "kanidm-oidc";
 in
 {
-  # PostgreSQL database for Miniflux
-  services.postgresql.enable = lib.mkDefault true;
-  services.postgresql.ensureDatabases = [ "miniflux" ];
-  services.postgresql.ensureUsers = [
-    {
-      name = "miniflux";
-      ensureDBOwnership = true;
-    }
-  ];
-
   # Miniflux RSS reader service
   services.miniflux.enable = lib.mkDefault true;
   services.miniflux.createDatabaseLocally = true;

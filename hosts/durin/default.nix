@@ -67,6 +67,10 @@ in
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Miniflux has write errors trying to connect to Postgresql
+  # Easiest right now to just turn it off
+  services.miniflux.enable = false;
+
   # Homelab Beszel monitoring - filesystems and GPU auto-detected
   # services.homelab-beszel-agent = { };
 
@@ -75,7 +79,7 @@ in
     "deluged"
     "delugeweb"
     "flood"
-    "miniflux"
+    # "miniflux"
     "nzbget"
     "nzbhydra2"
     "oauth2-proxy-delugeweb"
@@ -218,7 +222,7 @@ in
 
   services.fail2ban.enable = false;
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "26.05";
 
   # Root password placeholder (keep, remove, or replace as you prefer)
   users.users.root.initialHashedPassword = "";

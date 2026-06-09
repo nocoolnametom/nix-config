@@ -98,7 +98,7 @@ in
                echo "Date: $(date -R)"
                echo "From: root (systemd notify-email)"
                echo "To: $EMAIL_ADDRESS"
-               echo "Subject: [$(hostname)] service $SERVICE_ID failed"
+               echo "Subject: [$(${pkgs.hostname}/bin/hostname)] service $SERVICE_ID failed"
                echo "Auto-Submitted: auto-generated"
                echo
                systemctl status "$SERVICE_ID" ||:
@@ -121,7 +121,7 @@ in
             PUSHOVER_API_TOKEN=$(cat ${cfg.pushover.apiTokenFile})
 
             # Get hostname and service status
-            HOSTNAME=$(hostname)
+            HOSTNAME=$(${pkgs.hostname}/bin/hostname)
             SERVICE_STATUS=$(systemctl status "$SERVICE_ID" 2>&1 | head -n 20)
 
             # Send Pushover notification

@@ -22,7 +22,7 @@
   programs.claude.ollamaMachine = configVars.networking.subnets.barliman.name;
 
   home = {
-    stateVersion = "25.05";
+    stateVersion = "26.05";
     username = configVars.username;
     homeDirectory = "/home/${configVars.username}";
   };
