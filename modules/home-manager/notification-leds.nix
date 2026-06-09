@@ -259,25 +259,46 @@ let
         else
           blinkstick-square blink "$COLOR_HEX" --repeats "$REPEATS" --delay "$DELAY" 2>/dev/null &
         fi
+        return 0
       }
 
       drive_blink1() {
-        [ -z "$BLINK1_BIN" ] && return
+        [ -z "$BLINK1_BIN" ] && return 1
         if [ "$COLOR_HEX" = "000000" ]; then
           "$BLINK1_BIN" --off >/dev/null 2>&1 &
         else
           # blink1-tool wants bare hex (no "0x" prefix — that parses as white).
           "$BLINK1_BIN" --rgb "$COLOR_HEX" --blink "$REPEATS" --delay "$DELAY" >/dev/null 2>&1 &
         fi
+        return 0
       }
 
+      DEVICE_PIDS=()
       for dev in "''${DEVICES[@]}"; do
         case "$dev" in
-          square) drive_square ;;
-          blink1) drive_blink1 ;;
+          square) drive_square && DEVICE_PIDS+=("$!") ;;
+          blink1) drive_blink1 && DEVICE_PIDS+=("$!") ;;
         esac
       done
-      wait
+
+      # Keep /tmp/notify-blink-active fresh for the full duration of the blink
+      # animation. The Python BlinkStick driver and blink1-tool both run as
+      # backgrounded children above; a single up-front touch isn't enough
+      # because yknotify keeps emitting startQueue events through every blink
+      # iteration. The refresher dies via trap when the wrapper exits.
+      (
+        while sleep 2; do
+          /usr/bin/touch /tmp/notify-blink-active 2>/dev/null || true
+        done
+      ) &
+      REFRESH_PID=$!
+      trap 'kill $REFRESH_PID 2>/dev/null; /usr/bin/touch /tmp/notify-blink-active 2>/dev/null || true' EXIT
+
+      # Wait only on device PIDs — `wait` (no args) would hang on the
+      # refresher's infinite loop.
+      if [ ''${#DEVICE_PIDS[@]} -gt 0 ]; then
+        wait "''${DEVICE_PIDS[@]}" 2>/dev/null || true
+      fi
     '';
   };
 in
