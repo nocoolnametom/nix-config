@@ -80,17 +80,46 @@ in
     #     loud-failing here would be wrong because the patch removal might
     #     be intentional upstream (e.g. they switched to env-var lookup).
     gamescope = prev.gamescope.overrideAttrs (old: {
+      # gamescope 3.16.24 tests/meson.build pulls in catch2-with-main (Catch2 v3),
+      # which nixpkgs' gamescope buildInputs don't provide. Tests aren't useful
+      # for end-user builds; disable to avoid the dep. Alternative: add catch2_3
+      # to buildInputs, but jovian overrides the src so we'd be adding a runtime
+      # cost for the test suite no one runs.
+      mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Denable_tests=false" ];
+
       patches = builtins.filter (
-        p: !(prev.lib.hasSuffix "shaders-path.patch" (toString p))
+        p:
+        let
+          s = toString p;
+        in
+        # shaders-path.patch (replaced by substituteInPlace in postPatch)
+        !(prev.lib.hasSuffix "shaders-path.patch" s)
+        # nixpkgs backport "wlroots fix for libinput 1.31" — gamescope 3.16.24's
+        # vendored wlroots already includes it; the fetchpatch URL uses a commit
+        # range so we match by the trailing commit SHA.
+        && !(prev.lib.hasInfix "c08d99437ec8bb56a703f04ad1ef199502c62d10" s)
       ) (old.patches or [ ]);
-      postPatch =
-        ''
-          if grep -qF 'return "/usr";' src/reshade_effect_manager.cpp; then
-            substituteInPlace src/reshade_effect_manager.cpp \
-              --replace-fail 'return "/usr";' 'return "@out@";'
-          fi
-        ''
-        + (old.postPatch or "");
+      # In gamescope 3.16.24 the GetUsrDir() helper was moved from
+      # src/reshade_effect_manager.cpp to src/Utils/DirHelpers.cpp. The line
+      # itself is unchanged (`return "/usr";`), just relocated. Substitute it
+      # directly to $out; we don't need the @out@ intermediate since we own
+      # this postPatch.
+      #
+      # nixpkgs' inherited postPatch ALSO does a `--replace-fail "@out@" "$out"`
+      # on the old file path; with shaders-path.patch filtered out, that
+      # marker never gets written, so the inherited substitution would fail
+      # build with "pattern @out@ doesn't match anything". Rewrite that call
+      # to use --replace-quiet so it tolerates the missing marker (which is
+      # the correct behavior once we're doing the substitution at the source).
+      postPatch = ''
+        if grep -qF 'return "/usr";' src/Utils/DirHelpers.cpp; then
+          substituteInPlace src/Utils/DirHelpers.cpp \
+            --replace-fail 'return "/usr";' "return \"$out\";"
+        fi
+      ''
+      +
+        builtins.replaceStrings [ ''--replace-fail "@out@" "$out"'' ] [ ''--replace-quiet "@out@" "$out"'' ]
+          (old.postPatch or "");
     });
   };
 
