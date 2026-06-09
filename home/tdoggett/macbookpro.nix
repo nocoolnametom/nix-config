@@ -97,7 +97,7 @@
     /bin/launchctl kickstart -k "gui/$UID/org.nix-community.home.zsh-compinit-refresh" 2>/dev/null || true
   '';
 
-  home.stateVersion = "25.05";
+  home.stateVersion = "26.05";
   home.username = configVars.username;
   home.homeDirectory = lib.mkForce "/Users/${configVars.username}";
 }
