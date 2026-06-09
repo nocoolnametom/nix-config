@@ -20,7 +20,7 @@
   programs.git.settings.user.email = configVars.gitHubEmail;
 
   home = {
-    stateVersion = "25.05";
+    stateVersion = "26.05";
     username = configVars.username;
     homeDirectory = "/home/${configVars.username}";
   };

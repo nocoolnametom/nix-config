@@ -73,6 +73,9 @@ in
     "redis-mastodon"
   ];
 
+  # Pinning postgresql as part of migrating state vesion
+  services.postgresql.package = pkgs.postgresql_16;
+
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking.hostName = hostName;
   networking.hosts."${configVars.networking.external.bombadil.ip}" = [
@@ -194,7 +197,7 @@ in
     "-L" # print build logs
   ];
 
-  system.stateVersion = "25.05";
+  system.stateVersion = "26.05";
 
   users.users.root.initialHashedPassword = "$y$j9T$kJlllzou9ACSf/q6LFgPi.$A49llCkktVbbfOHVvdjSRnPD27.jg4xSYaLlG5p9t5A";
 }
