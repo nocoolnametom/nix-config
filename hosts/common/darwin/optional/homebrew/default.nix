@@ -13,29 +13,32 @@ with lib;
   homebrew.taps = [
     { name = "deskflow/tap"; }
     { name = "bnjreece/loudcue"; }
+    { name = "timrogers/tap"; }
   ];
   homebrew.brews = [
+    # Control Litra Glow light
+    { name = "litra"; }
     # No current nixpkgs
     { name = "reddix"; }
     # Local LLM-Fit for Colima
     { name = "llmfit"; }
-    # Crit AI Assistance - Tapped, comment first then uncomment
+    # Crit AI Assistance
     { name = "tomasz-tomczyk/tap/crit"; }
-    # macOS calendar query CLI — used by the sketchybar calendar widget.
-    # Not in nixpkgs (macOS-only tool). Requires Calendar permission on first run.
+    # macOS calendar query CLI
     { name = "ical-buddy"; }
-    # ThingM blink(1) USB LED control — provides /opt/homebrew/bin/blink1-tool
-    # used by the notification-leds home-manager module. Not in nixpkgs.
+    # ThingM blink(1) USB LED control — provides blink1-tool
     { name = "blink1"; }
+    # Automate Litra with Webcam
+    { name = "litra-autotoggle"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS
     { name = "podman-desktop"; }
-    # Deskflow - Might need to tap the cask first, if so comment this and rebuild then uncomment and rebuild again
+    # Deskflow
     { name = "deskflow"; }
     # Handy - Not available on non-Linux via nixpkgs
     { name = "handy"; }
-    # LoudCue - Tapped, comment first then uncomment if tap fails
+    # LoudCue
     { name = "bnjreece/loudcue/loudcue"; }
   ];
 }

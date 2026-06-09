@@ -1,5 +1,6 @@
 {
   pkgs,
+  config,
   lib ? pkgs.lib,
   writeShellScript ? pkgs.writeShellScript,
   # List of calendar identifiers to include (display names OR UUIDs from
@@ -56,15 +57,8 @@ in
 #       in progress   →  red "NOW: ..."
 #       ended         →  hidden
 writeShellScript "sketchybar_calendar" ''
-  # Locate icalBuddy. Homebrew puts it at /opt/homebrew/bin on Apple Silicon
-  # and /usr/local/bin on Intel. Hide cleanly if not installed yet.
-  ICAL_BUDDY=""
-  for candidate in /opt/homebrew/bin/icalBuddy /usr/local/bin/icalBuddy; do
-    if [ -x "$candidate" ]; then
-      ICAL_BUDDY="$candidate"
-      break
-    fi
-  done
+  # Locate icalBuddy with Homebrew
+  ICAL_BUDDY="${config.homebrew.prefix}/bin/icalBuddy"
   if [ -z "$ICAL_BUDDY" ]; then
     sketchybar --set "$NAME" drawing=off
     exit 0

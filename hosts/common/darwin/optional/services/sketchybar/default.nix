@@ -7,7 +7,7 @@
 }:
 let
   plugins = import ./plugins {
-    inherit pkgs configVars;
+    inherit pkgs config configVars;
     sketchybar = config.services.sketchybar.package;
     # UUIDs/names of calendars to surface in the widget — set per-host below.
     calendars = config.services.sketchybar.personalizedOptions.calendars;
@@ -54,9 +54,6 @@ in
     services.sketchybar.extraPackages = lib.mkDefault [
       config.services.aerospace.package
       pkgs.jq
-      # icalBuddy (calendar widget) is macOS-only and not in nixpkgs — installed
-      # via homebrew. See hosts/common/darwin/optional/homebrew/default.nix.
-      # The plugin probes /opt/homebrew/bin and gracefully hides if missing.
     ];
     fonts.packages = [ pkgs.sketchybar-app-font ];
     services.sketchybar.config = lib.mkDefault ''
@@ -183,9 +180,33 @@ in
       # https://felixkratz.github.io/SketchyBar/config/events
 
       sketchybar --add item clock right \
-                --set clock update_freq=10 icon=  script="${plugins.clock}" \
+                --set clock update_freq=10 icon.drawing=off script="${plugins.clock}" \
                   click_script="${config.services.sketchybar.personalizedOptions.clockClickCommand}" \
-                --add item weather right \
+                --add item vpn right \
+                --set vpn update_freq=10 icon=󰦞 script="${plugins.vpn}" \
+                  click_script='open -b com.cisco.secureclient.gui' \
+              --subscribe vpn mouse.entered mouse.exited
+
+      ##### Litra Auto-Toggle Indicator (conditional) #####
+      # Bright yellow bulb when the litra-autotoggle daemon is running, dim
+      # gray when suspended. Click toggles the launchd agent (and turns the
+      # light off when suspending). Hovering reveals a tooltip-style label
+      # "Auto Camera Light: On/Off". Only added when
+      # services.litra.enable = true on the host.
+      # See: hosts/common/darwin/optional/services/litra/default.nix
+      ${lib.optionalString (config.services.litra.enable or false) ''
+        sketchybar --add event litra_state_changed
+        sketchybar --add item litra right \
+                  --set litra \
+                    update_freq=5 \
+                    icon=󰍵 \
+                    icon.color=0xffe5d04a \
+                    label.drawing=off \
+                    script="${plugins.litra}" \
+                    click_script="${plugins.litra_click}" \
+                  --subscribe litra mouse.entered mouse.exited litra_state_changed
+      ''}
+                sketchybar --add item weather right \
                 --set weather update_freq=600 icon=󰚕 script="${plugins.weather}" \
                   click_script="${plugins.weather_click}" \
                 --add item battery right \
@@ -205,15 +226,12 @@ in
                 --set volume icon=󰕿 script="${plugins.volume}" \
                   click_script='open "x-apple.systempreferences:com.apple.Sound-Settings.extension"' \
                 --subscribe volume volume_change system_woke \
-                --add item vpn right \
-                --set vpn update_freq=10 icon=󰦞 script="${plugins.vpn}" \
-                  click_script='open -b com.cisco.secureclient.gui' \
               --add item calendar right \
                 --set calendar update_freq=60 icon=󰃭 script="${plugins.calendar}" \
                   click_script="${config.services.sketchybar.personalizedOptions.clockClickCommand}" \
                 --add item now_playing right \
-                --set now_playing icon=󰎈 script="${plugins.now_playing}" \
-                --subscribe now_playing media_change
+                  --set now_playing update_freq=5 icon=󰎈 script="${plugins.now_playing}"
+
 
       # Right items added in visual right-to-left order. Each --add right pushes
       # the new item to the LEFT of previous right items. Final layout

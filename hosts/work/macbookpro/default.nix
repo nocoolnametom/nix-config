@@ -58,6 +58,7 @@ in
     "hosts/common/darwin/optional/services/jankyborders"
     "hosts/common/darwin/optional/services/sketchybar"
     "hosts/common/darwin/optional/services/colima"
+    "hosts/common/darwin/optional/services/litra"
     "hosts/common/darwin/optional/services/synergy"
     "hosts/common/darwin/optional/services/tailscale"
 
@@ -84,6 +85,10 @@ in
     #   /Users/<configVars.username>/Projects/<configVars.handle>/nix-config
     # which matches this host. Set explicitly only if the checkout moves.
   };
+
+  # Litra Glow control — auto-start litra-autotoggle on login + sketchybar
+  # widget to suspend/resume. See hosts/common/darwin/optional/services/litra/.
+  services.litra.enable = true;
 
   # Watches macOS notification delivery via /usr/bin/log stream and fires the
   # corresponding `notify-blink <source>` for each matched bundle. Keys must

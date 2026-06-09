@@ -6,10 +6,28 @@
 # Corporate VPN client status. Polled on a timer (update_freq). Hidden when
 # the CLI isn't present at the expected path (see VPN_CLI below).
 #
+# Display: colored shield icon only by default (color = state). Hovering
+# the widget reveals the descriptive label ("VPN" when connected, status
+# name during transient states). Single script handles both polling and
+# hover events; the polling branch always sets the label text so it's
+# accurate the moment the user hovers — only label.drawing is toggled by
+# mouse events.
+#
 # `vpn status` output has MULTIPLE `state:` lines — typically one per tunnel
 # plus a leading "Unknown" for the management subsystem. We treat the host
 # as connected if any state line says "Connected".
 writeShellScript "sketchybar_vpn" ''
+  case "$SENDER" in
+    mouse.entered)
+      sketchybar --set "$NAME" label.drawing=on
+      exit 0
+      ;;
+    mouse.exited)
+      sketchybar --set "$NAME" label.drawing=off
+      exit 0
+      ;;
+  esac
+
   VPN_CLI="/opt/cisco/secureclient/bin/vpn"
 
   if [ ! -x "$VPN_CLI" ]; then

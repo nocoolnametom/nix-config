@@ -56,7 +56,7 @@
   # Login-shell setup: previously a hand-maintained ~/.zprofile.
   # brew shellenv exports PATH/MANPATH/INFOPATH/HOMEBREW_* for the Apple Silicon prefix.
   programs.zsh.profileExtra = ''
-    eval "$(/opt/homebrew/bin/brew shellenv)"
+    eval "$(${osConfig.homebrew.prefix}/bin/brew shellenv)"
     export PATH="$HOME/.zpm/bin:$PATH"
   '';
 

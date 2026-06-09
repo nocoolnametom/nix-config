@@ -138,10 +138,9 @@ let
   # blink1-tool source:
   #   - Linux: pkgs.blink1-tool (nixpkgs); meta.platforms restricts it to linux.
   #   - Darwin: not in nixpkgs at all; installed via `homebrew.brews` (the
-  #     `blink1` formula provides /opt/homebrew/bin/blink1-tool). The macbook
-  #     host already lists it.
+  #     `blink1` formula provides homebrew blink1-tool).
   # Including the package in runtimeInputs on Linux puts it on the wrapper's
-  # PATH; on darwin we probe /opt/homebrew/bin and /usr/local/bin.
+  # PATH; on darwin we probe homebrew bin directory and /usr/local/bin.
   blink1Pkgs = lib.optional pkgs.stdenv.isLinux pkgs.blink1-tool;
 
   notifyBlinkScript = pkgs.writeShellApplication {
@@ -242,20 +241,9 @@ let
         *) echo "Unknown --device: $DEVICE_OVERRIDE (expected square|blink1|both)" >&2; exit 1 ;;
       esac
 
-      # Resolve blink1-tool:
-      #   - Linux: provided by nix (pkgs.blink1-tool in runtimeInputs → PATH)
-      #   - Darwin: provided by homebrew (the blink1 formula); not on PATH
-      #     when invoked from launchd contexts, so probe standard locations.
       BLINK1_BIN=""
       if command -v blink1-tool >/dev/null 2>&1; then
         BLINK1_BIN="$(command -v blink1-tool)"
-      else
-        for candidate in /opt/homebrew/bin/blink1-tool /usr/local/bin/blink1-tool; do
-          if [ -x "$candidate" ]; then
-            BLINK1_BIN="$candidate"
-            break
-          fi
-        done
       fi
 
       drive_square() {
