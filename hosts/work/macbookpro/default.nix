@@ -21,6 +21,7 @@ let
     # These are kept MORE up-to-date than unstable usually allows
     # so we need to defer to using the system services instead of
     # Nix-Darwin to handle them.
+    "code-cursor"
     "google-chrome"
     "google-chrome-beta"
     "google-chrome-canary"
@@ -127,7 +128,6 @@ in
   # list and use the system services to keep it updated for you.
   environment.systemPackages = [
     # Graphical Programs
-    pkgs.unstable.code-cursor
     pkgs.unstable.iterm2
     pkgs.unstable.obsidian
     pkgs.unstable.podman-desktop
