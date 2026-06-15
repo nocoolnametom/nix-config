@@ -16,6 +16,10 @@ rec {
   aerospace_mode = import ./aerospace_mode.nix { inherit pkgs config sketchybar; };
   battery = import ./battery.nix { inherit pkgs config sketchybar; };
   disk = import ./disk.nix { inherit pkgs config sketchybar; };
+  display_router = import ./display_router.nix {
+    inherit pkgs config sketchybar;
+    compactPaddingItems = config.services.sketchybar.personalizedOptions.compactPaddingItems or [ ];
+  };
   memory = import ./memory.nix { inherit pkgs config sketchybar; };
   calendar = import ./calendar.nix {
     inherit pkgs config sketchybar;

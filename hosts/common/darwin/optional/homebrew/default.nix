@@ -14,6 +14,7 @@ with lib;
     { name = "deskflow/tap"; }
     { name = "bnjreece/loudcue"; }
     { name = "timrogers/tap"; }
+    { name = "vishvavariya/notchy"; }
   ];
   homebrew.brews = [
     # Control Litra Glow light
@@ -40,5 +41,7 @@ with lib;
     { name = "handy"; }
     # LoudCue
     { name = "bnjreece/loudcue/loudcue"; }
+    # Notchy
+    { name = "vishvavariya/notchy/notchy"; }
   ];
 }

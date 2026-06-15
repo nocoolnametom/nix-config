@@ -57,6 +57,37 @@ in
 #       in progress   →  red "NOW: ..."
 #       ended         →  hidden
 writeShellScript "sketchybar_calendar" ''
+  # Compact-on-built-in handling. When the built-in display is attached
+  # (flag file non-empty), the label collapses to just the start time
+  # (or "NOW" for in-progress events); hover expands to the full label
+  # with the event title. The labels are cached during the regular
+  # icalBuddy poll so the hover handler can swap them without re-querying
+  # icalBuddy (~200ms).
+  flag_file="/tmp/sketchybar-builtin-display"
+  if [ -s "$flag_file" ]; then
+    COMPACT=1
+  else
+    COMPACT=0
+  fi
+
+  full_label_cache="/tmp/sketchybar-calendar-full-label.txt"
+  compact_label_cache="/tmp/sketchybar-calendar-compact-label.txt"
+
+  case "$SENDER" in
+    mouse.entered)
+      if [ "$COMPACT" = "1" ] && [ -f "$full_label_cache" ]; then
+        sketchybar --set "$NAME" label="$(cat "$full_label_cache")"
+      fi
+      exit 0
+      ;;
+    mouse.exited)
+      if [ "$COMPACT" = "1" ] && [ -f "$compact_label_cache" ]; then
+        sketchybar --set "$NAME" label="$(cat "$compact_label_cache")"
+      fi
+      exit 0
+      ;;
+  esac
+
   # Locate icalBuddy with Homebrew
   ICAL_BUDDY="${config.homebrew.prefix}/bin/icalBuddy"
   if [ -z "$ICAL_BUDDY" ]; then
@@ -117,6 +148,7 @@ writeShellScript "sketchybar_calendar" ''
 
   if [ -z "$RAW" ] || printf '%s' "$RAW" | grep -qi "no events"; then
     sketchybar --set "$NAME" drawing=off
+    /bin/rm -f "$full_label_cache" "$compact_label_cache" 2>/dev/null || true
     sketchybar --set calendar_dismiss drawing=off
     exit 0
   fi
@@ -154,6 +186,16 @@ writeShellScript "sketchybar_calendar" ''
     #   <=15min: amber bg, black text           (matches ALTER mode)
     #   in-now:  red bg, white text             (matches NOW emphasis)
     # Label color is always readable against its background.
+    # Compute both compact and full labels for each branch.
+    local now_full="NOW: $title"
+    local now_compact="NOW"
+    local warn_full="''${start_time} $title (''${delta_min}m)"
+    local warn_compact="''${start_time}"
+    local norm_full="''${start_time} $title"
+    local norm_compact="''${start_time}"
+
+    local full_lbl compact_lbl chosen
+
     if [ "$delta_min" -le 0 ]; then
       # Already started — show as NOW only if still in progress.
       local end_epoch=""
@@ -161,31 +203,46 @@ writeShellScript "sketchybar_calendar" ''
         end_epoch=$(/bin/date -j -f "%Y-%m-%d %H:%M" "$start_date $end_time" +%s 2>/dev/null || echo "")
       fi
       if [ -n "$end_epoch" ] && [ "$end_epoch" -gt "$NOW_EPOCH" ]; then
+        full_lbl="$now_full"
+        compact_lbl="$now_compact"
+        if [ "$COMPACT" = "1" ]; then chosen="$compact_lbl"; else chosen="$full_lbl"; fi
         sketchybar --set "$NAME" drawing=on \
-          icon="󰃭" label="NOW: $title" \
+          icon="󰃭" label="$chosen" \
           icon.color=0xffffffff label.color=0xffffffff \
           background.drawing=on \
           background.color=0xffcc4444 \
           background.corner_radius=5 \
           background.height=23
+        printf '%s' "$full_lbl" > "$full_label_cache"
+        printf '%s' "$compact_lbl" > "$compact_label_cache"
         RENDERED_AS_NOW=1
         return 0
       fi
-      return 1  # ended; try next candidate
+      return 1
     elif [ "$delta_min" -le 15 ]; then
+      full_lbl="$warn_full"
+      compact_lbl="$warn_compact"
+      if [ "$COMPACT" = "1" ]; then chosen="$compact_lbl"; else chosen="$full_lbl"; fi
       sketchybar --set "$NAME" drawing=on \
-        icon="󰃭" label="''${start_time} $title (''${delta_min}m)" \
+        icon="󰃭" label="$chosen" \
         icon.color=0xff000000 label.color=0xff000000 \
         background.drawing=on \
         background.color=0xffe09000 \
         background.corner_radius=5 \
         background.height=23
+      printf '%s' "$full_lbl" > "$full_label_cache"
+      printf '%s' "$compact_lbl" > "$compact_label_cache"
       return 0
     else
+      full_lbl="$norm_full"
+      compact_lbl="$norm_compact"
+      if [ "$COMPACT" = "1" ]; then chosen="$compact_lbl"; else chosen="$full_lbl"; fi
       sketchybar --set "$NAME" drawing=on \
-        icon="󰃭" label="''${start_time} $title" \
+        icon="󰃭" label="$chosen" \
         icon.color=0xffffffff label.color=0xffffffff \
         background.drawing=off
+      printf '%s' "$full_lbl" > "$full_label_cache"
+      printf '%s' "$compact_lbl" > "$compact_label_cache"
       return 0
     fi
   }
@@ -244,6 +301,7 @@ writeShellScript "sketchybar_calendar" ''
 
   if [ "$found" -eq 0 ]; then
     sketchybar --set "$NAME" drawing=off
+    /bin/rm -f "$full_label_cache" "$compact_label_cache" 2>/dev/null || true
     sketchybar --set calendar_dismiss drawing=off
   elif [ "$RENDERED_AS_NOW" = "1" ]; then
     # Stash the rendered event's ID for the dismiss button click handler.

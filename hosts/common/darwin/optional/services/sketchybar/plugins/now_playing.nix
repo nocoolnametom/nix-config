@@ -5,11 +5,12 @@
 }:
 # Now-playing display — polls Apple Music + Spotify via AppleScript.
 #
-# Originally subscribed to sketchybar's built-in `media_change` event,
-# which uses the macOS MediaRemote private framework. As of macOS 26
-# (Tahoe) Apple has hardened MediaRemote and sketchybar can no longer
-# observe playback state through it — events: null even when music is
-# playing. AppleScript automation still works.
+# Background: originally subscribed to sketchybar's built-in
+# `media_change` event, which uses the macOS MediaRemote private
+# framework. As of macOS 26 (Tahoe) Apple has hardened MediaRemote and
+# sketchybar can no longer observe playback state through it — events
+# arrive as null even while music is playing. AppleScript automation
+# still works.
 #
 # First-run permission: macOS will prompt sketchybar for AppleScript
 # automation access to Music.app (and Spotify.app, if installed) the
@@ -19,9 +20,37 @@
 #
 # Polled on a timer (update_freq=5 in the bar config). Each poll spawns
 # at most two osascript subprocesses — one combined query per app.
+#
+# Compact-on-built-in: when /tmp/sketchybar-builtin-display is non-empty
+# (i.e. the built-in is attached), the widget renders the music icon
+# only — the track label is hidden until the user hovers, at which
+# point the full `Artist — Title` label appears.
 writeShellScript "sketchybar_now_playing" ''
-  # Query an app for its currently-playing track via a single osascript
-  # invocation. Returns "playing|<title>|<artist>" on a hit, empty otherwise.
+  flag_file="/tmp/sketchybar-builtin-display"
+  if [ -s "$flag_file" ]; then
+    COMPACT=1
+  else
+    COMPACT=0
+  fi
+
+  # Hover handlers only toggle label.drawing — the label content is set
+  # by the regular poll below. In non-compact mode the label is always
+  # drawn so hover is a no-op.
+  case "$SENDER" in
+    mouse.entered)
+      if [ "$COMPACT" = "1" ]; then
+        sketchybar --set "$NAME" label.drawing=on
+      fi
+      exit 0
+      ;;
+    mouse.exited)
+      if [ "$COMPACT" = "1" ]; then
+        sketchybar --set "$NAME" label.drawing=off
+      fi
+      exit 0
+      ;;
+  esac
+
   query_app() {
     local app="$1"
     /usr/bin/osascript -e "
@@ -63,5 +92,9 @@ writeShellScript "sketchybar_now_playing" ''
     LABEL="''${LABEL:0:32}..."
   fi
 
-  sketchybar --set "$NAME" drawing=on icon="󰎈" label="$LABEL"
+  if [ "$COMPACT" = "1" ]; then
+    sketchybar --set "$NAME" drawing=on icon="󰎈" label="$LABEL" label.drawing=off
+  else
+    sketchybar --set "$NAME" drawing=on icon="󰎈" label="$LABEL" label.drawing=on
+  fi
 ''

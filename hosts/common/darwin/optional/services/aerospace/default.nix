@@ -287,6 +287,47 @@ in
   services.aerospace.settings.mode.main.binding."${hyper}-tab" =
     lib.mkDefault "move-workspace-to-monitor --wrap-around next";
 
+  # ────────────────────────────────────────────────────────────────────
+  # Laptop-friendly bindings — coexist with meh/hyper. ctrl-alt is
+  # reachable on the MBP built-in keyboard whereas meh (alt-ctrl-shift)
+  # and hyper (alt-ctrl-shift-cmd) are not.
+  # ────────────────────────────────────────────────────────────────────
+
+  # Focus
+  services.aerospace.settings.mode.main.binding."ctrl-alt-h" = lib.mkDefault "focus left";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-j" = lib.mkDefault "focus down";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-k" = lib.mkDefault "focus up";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-l" = lib.mkDefault "focus right";
+
+  # Workspace nav
+  services.aerospace.settings.mode.main.binding."ctrl-alt-1" = lib.mkDefault "workspace 1";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-2" = lib.mkDefault "workspace 2";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-3" = lib.mkDefault "workspace 3";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-4" = lib.mkDefault "workspace 4";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-5" = lib.mkDefault "workspace 5";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-6" = lib.mkDefault "workspace 6";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-7" = lib.mkDefault "workspace 7";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-8" = lib.mkDefault "workspace 8";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-9" = lib.mkDefault "workspace 9";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-0" = lib.mkDefault "workspace A";
+
+  services.aerospace.settings.mode.main.binding."ctrl-alt-left" = lib.mkDefault "workspace prev";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-right" = lib.mkDefault "workspace next";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-up" = lib.mkDefault "focus-monitor prev";
+  services.aerospace.settings.mode.main.binding."ctrl-alt-down" = lib.mkDefault "focus-monitor next";
+
+  services.aerospace.settings.mode.main.binding."ctrl-alt-tab" =
+    lib.mkDefault "workspace-back-and-forth";
+
+  # Fullscreen
+  services.aerospace.settings.mode.main.binding."ctrl-alt-f" = lib.mkDefault "fullscreen";
+
+  # Mode entry — `toMode` triggers the sketchybar mode indicator update.
+  services.aerospace.settings.mode.main.binding."ctrl-alt-a" = lib.mkDefault (toMode "alter");
+  services.aerospace.settings.mode.main.binding."ctrl-alt-semicolon" = lib.mkDefault (
+    toMode "service"
+  );
+
   # See: https://nikitabobko.github.io/AeroSpace/commands#mode
   # Entry points into the non-`main` modes. Both fire the sketchybar mode-change
   # trigger via `toMode` so the bar widget updates in lockstep with aerospace.
@@ -315,6 +356,38 @@ in
   services.aerospace.settings.mode.alter.binding.j = lib.mkDefault ([ "join-with down" ]);
   services.aerospace.settings.mode.alter.binding.k = lib.mkDefault ([ "join-with up" ]);
   services.aerospace.settings.mode.alter.binding.l = lib.mkDefault ([ "join-with right" ]);
+
+  # ────────────────────────────────────────────────────────────────────
+  # Move-to-workspace (laptop-friendly equivalent of main-mode hyper-N).
+  # Bare digits to chain quickly: enter alter, press a digit, done.
+  # ────────────────────────────────────────────────────────────────────
+  services.aerospace.settings.mode.alter.binding."1" =
+    lib.mkDefault "move-node-to-workspace 1 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."2" =
+    lib.mkDefault "move-node-to-workspace 2 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."3" =
+    lib.mkDefault "move-node-to-workspace 3 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."4" =
+    lib.mkDefault "move-node-to-workspace 4 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."5" =
+    lib.mkDefault "move-node-to-workspace 5 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."6" =
+    lib.mkDefault "move-node-to-workspace 6 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."7" =
+    lib.mkDefault "move-node-to-workspace 7 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."8" =
+    lib.mkDefault "move-node-to-workspace 8 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."9" =
+    lib.mkDefault "move-node-to-workspace 9 --focus-follows-window";
+  services.aerospace.settings.mode.alter.binding."0" =
+    lib.mkDefault "move-node-to-workspace A --focus-follows-window";
+
+  # Move within workspace — bare arrow keys (matches the bare-key chain
+  # pattern of the existing resize bindings on minus/equal).
+  services.aerospace.settings.mode.alter.binding.left = lib.mkDefault "move left";
+  services.aerospace.settings.mode.alter.binding.down = lib.mkDefault "move down";
+  services.aerospace.settings.mode.alter.binding.up = lib.mkDefault "move up";
+  services.aerospace.settings.mode.alter.binding.right = lib.mkDefault "move right";
 
   # Resize the focused window. Bare keys (no modifier) so you can chain
   # presses: enter alter once, then `-----` or `=====` to shrink/grow. Stays

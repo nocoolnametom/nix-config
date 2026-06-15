@@ -11,6 +11,7 @@ rec {
   #################### Packages with external source ############################
   # These need to all be direct derivations for `nix flake check` to work!
 
+  display-info = pkgs.callPackage ./display-info { };
   split-my-cbz = pkgs.callPackage ./split-my-cbz { };
   stash-vr = pkgs.callPackage ./stash-vr { };
   stashapp = pkgs.callPackage ./stashapp { };

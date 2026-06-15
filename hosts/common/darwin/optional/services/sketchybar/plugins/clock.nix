@@ -3,10 +3,38 @@
   writeShellScript ? pkgs.writeShellScript,
   ...
 }:
+# When the built-in display is attached (flag file non-empty), shows just
+# the time. Hovering expands to the full date+time. When the built-in
+# isn't attached, always shows the full date+time.
 writeShellScript "sketchybar_clock" ''
-  # The $NAME variable is passed from sketchybar and holds the name of
-  # the item invoking this script:
-  # https://felixkratz.github.io/SketchyBar/config/events#events-and-scripting
+  flag_file="/tmp/sketchybar-builtin-display"
+  if [ -s "$flag_file" ]; then
+    COMPACT=1
+  else
+    COMPACT=0
+  fi
 
-  sketchybar --set "$NAME" label="$(date +'%a %d %b %I:%M %p')"
+  full_label="$(date +'%a %d %b %I:%M %p')"
+  compact_label="$(date +'%I:%M %p')"
+
+  case "$SENDER" in
+    mouse.entered)
+      sketchybar --set "$NAME" label="$full_label"
+      exit 0
+      ;;
+    mouse.exited)
+      if [ "$COMPACT" = "1" ]; then
+        sketchybar --set "$NAME" label="$compact_label"
+      else
+        sketchybar --set "$NAME" label="$full_label"
+      fi
+      exit 0
+      ;;
+  esac
+
+  if [ "$COMPACT" = "1" ]; then
+    sketchybar --set "$NAME" label="$compact_label"
+  else
+    sketchybar --set "$NAME" label="$full_label"
+  fi
 ''

@@ -82,7 +82,7 @@ in
 
         ### NZBGET POST-PROCESSING SCRIPT       ###
         ###########################################
-        StashPath="$NZBPP_FINALDIR";
+        StashPath="$NZBOP_DESTDIR/$NZBPP_CATEGORY";
         ${pkgs.curl}/bin/curl \
           -H "ApiKey: $(cat ${config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path})" \
           -H "Content-Type: application/json" \
