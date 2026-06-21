@@ -192,7 +192,7 @@
     screen
     unrar
     unzip
-    vim
+    neovim
     wget
     git
     curl

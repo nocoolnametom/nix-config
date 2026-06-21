@@ -60,7 +60,7 @@
   environment.systemPackages = [
     pkgs.rsync
     pkgs.wget
-    pkgs.vim
+    pkgs.neovim
     pkgs.git # Needed for flakes!
     pkgs.nixfmt
     pkgs.nil

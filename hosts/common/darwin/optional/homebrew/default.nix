@@ -9,14 +9,6 @@ with lib;
   homebrew.onActivation.extraFlags = [
     "--force-cleanup"
   ];
-  # Taps should be tapped first, then then dependants can be enabled
-  homebrew.taps = [
-    { name = "deskflow/tap"; }
-    { name = "bnjreece/loudcue"; }
-    { name = "timrogers/tap"; }
-    { name = "vishvavariya/notchy"; }
-    { name = "mediosz/tap"; }
-  ];
   homebrew.brews = [
     # Control Litra Glow light
     { name = "litra"; }
@@ -31,13 +23,13 @@ with lib;
     # ThingM blink(1) USB LED control — provides blink1-tool
     { name = "blink1"; }
     # Automate Litra with Webcam
-    { name = "litra-autotoggle"; }
+    { name = "timrogers/tap/litra-autotoggle"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS
     { name = "podman-desktop"; }
     # Deskflow
-    { name = "deskflow"; }
+    { name = "deskflow/tap/deskflow"; }
     # Handy - Not available on non-Linux via nixpkgs
     { name = "handy"; }
     # LoudCue
@@ -46,5 +38,7 @@ with lib;
     { name = "vishvavariya/notchy/notchy"; }
     # SwipeAeroSpace
     { name = "mediosz/tap/swipeaerospace"; }
+    # KindaVim
+    { name = "kindavim"; }
   ];
 }

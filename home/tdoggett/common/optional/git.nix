@@ -70,7 +70,7 @@
     lib.concatMapStringsSep "\n" (f: "${principals} ${lib.fileContents "${keyDir}/${f}"}") keyFiles;
 
   # Core
-  programs.git.settings.core.editor = "vim";
+  programs.git.settings.core.editor = "nvim";
   programs.git.settings.core.pager = "diff-so-fancy | less --tabs=4 -RFX";
   programs.git.settings.core.compression = 9;
   programs.git.settings.core.whitespace = "trailing-space,space-before-tab,cr-at-eol";

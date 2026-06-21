@@ -26,11 +26,6 @@
 
   programs.claude.enable = true;
 
-  programs.vim = {
-    enable = true;
-    plugins = [ pkgs.vimPlugins.vim-sensible ];
-  };
-
   programs.git.settings.user.email = lib.mkForce configVars.email.work;
   programs.jujutsu.settings.user.email = lib.mkForce configVars.email.work;
 

@@ -398,7 +398,7 @@ in
     screen
     unrar
     unzip
-    vim
+    neovim
     wget
     libation
     google-chrome

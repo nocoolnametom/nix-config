@@ -67,7 +67,7 @@
     screen
     unrar
     unzip
-    vim
+    neovim
     wget
     chromium
   ];

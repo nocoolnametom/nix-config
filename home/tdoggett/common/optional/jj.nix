@@ -15,7 +15,7 @@
 
   # UI
   programs.jujutsu.settings.ui.default-command = "log";
-  programs.jujutsu.settings.ui.editor = "vim";
+  programs.jujutsu.settings.ui.editor = "nvim";
   programs.jujutsu.settings.ui.diff.format = "color-words";
 
   # Git backend behavior
