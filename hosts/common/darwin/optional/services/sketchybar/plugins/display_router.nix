@@ -19,8 +19,7 @@ pkgs.writeShellScript "sketchybar_display_router" ''
   # Runs once at sketchybar startup and on every `display_change` event.
   # Computes the bar height from display-info's reported notch inset,
   # writes the built-in display index to a flag file consumed by
-  # compact-mode widget scripts, and routes the aerospace mode indicator
-  # items to the correct displays.
+  # compact-mode widget scripts, and routes per-item padding overrides.
 
   set -u
 
@@ -40,38 +39,6 @@ pkgs.writeShellScript "sketchybar_display_router" ''
   # Flag file for compact-mode widget scripts. Empty when no built-in.
   flag_file="/tmp/sketchybar-builtin-display"
   printf '%s' "''${BUILTIN_DISPLAY:-}" > "$flag_file"
-
-  # Mode-indicator routing — set `display=` only. Drawing visibility is
-  # owned by `aerospace_mode.nix` (the mode-change subscriber), which
-  # toggles `drawing` based on the current aerospace mode. Keeping the
-  # two concerns separate prevents stale-label flashes during display
-  # changes while in main mode.
-  #
-  # `display=99` is the "render nowhere" sentinel — sketchybar parses
-  # display as a number list and renders the item on no display when the
-  # list contains only non-existent indices.
-
-  if [ -n "''${BUILTIN_DISPLAY:-}" ]; then
-    # Built-in attached. Center indicator skips the built-in (notch).
-    if [ -n "''${EXTERNAL_DISPLAYS:-}" ]; then
-      ${sketchybarBin} --set aerospace_mode display="$EXTERNAL_DISPLAYS"
-    else
-      # Only the built-in — center indicator renders nowhere.
-      ${sketchybarBin} --set aerospace_mode display=99
-    fi
-    ${sketchybarBin} --set aerospace_mode_compact display="$BUILTIN_DISPLAY"
-  else
-    # No built-in attached. Center indicator on all attached (external)
-    # displays; compact indicator renders nowhere.
-    if [ -n "''${EXTERNAL_DISPLAYS:-}" ]; then
-      ${sketchybarBin} --set aerospace_mode display="$EXTERNAL_DISPLAYS"
-    else
-      # No displays at all (asleep / no monitors) — preserve last-known
-      # state; nothing to do.
-      :
-    fi
-    ${sketchybarBin} --set aerospace_mode_compact display=99
-  fi
 
   # Padding routing — halve horizontal padding bar-wide when the
   # built-in display is attached, restore to defaults otherwise. Per-

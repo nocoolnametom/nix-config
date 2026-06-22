@@ -24,6 +24,8 @@ with lib;
     { name = "blink1"; }
     # Automate Litra with Webcam
     { name = "timrogers/tap/litra-autotoggle"; }
+    # Hunk Diff Viewer
+    { name = "modem-dev/tap/hunk"; }
   ];
   homebrew.casks = [
     # Podman should work better than docker on MacOS

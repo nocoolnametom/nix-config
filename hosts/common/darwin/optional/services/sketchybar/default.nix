@@ -67,7 +67,6 @@ in
       compactPaddingItems = [
         "chevron"
         "front_app"
-        "aerospace_mode_compact"
         "space_separator"
         "aerospace_mode"
         "clock"
@@ -145,6 +144,28 @@ in
                     script="${plugins.display_router}" \
                   --subscribe display_handler display_change
 
+        ##### Aerospace Mode Indicator (leftmost, all displays) #####
+        # Shows the active Aerospace binding mode with a color-coded label.
+        # Hidden when in `main`. Triggered by aerospace bindings via the
+        # `aerospace_mode_change` event (MODE=<name> payload). See:
+        # plugins/aerospace_mode.nix for the color/label definitions and
+        # hosts/common/darwin/optional/services/aerospace/default.nix for the
+        # binding wire-up. Added first among left items so it sits at the
+        # visual left edge of the bar on every display.
+        sketchybar --add event aerospace_mode_change
+        sketchybar --add item aerospace_mode left \
+                  --set aerospace_mode \
+                    drawing=off \
+                    background.corner_radius=5 \
+                    background.height=23 \
+                    background.padding_left=2 \
+                    background.padding_right=2 \
+                    label.font="SFProDisplay Nerd Font:Heavy:12.0" \
+                    label.padding_left=10 \
+                    label.padding_right=10 \
+                    script="${plugins.aerospace_mode}" \
+                  --subscribe aerospace_mode aerospace_mode_change
+
         ##### Adding Aerospace Space Indicators #####
         # Let's add some aerospace spaces:
         # https://felixkratz.github.io/SketchyBar/config/components#space----associate-mission-control-spaces-with-an-item
@@ -206,45 +227,6 @@ in
                   --set front_app icon.font="sketchybar-app-font:Regular:14.0" \
                     script="${plugins.front_app}" \
                   --subscribe front_app front_app_switched
-
-        ##### Aerospace Mode Indicator (left, built-in only) #####
-        # Sister item to the center `aerospace_mode`. Same script, same
-        # subscriptions — but positioned on the left so it doesn't collide
-        # with the notch. display_router toggles which of the two is
-        # visible per attached display.
-        sketchybar --add item aerospace_mode_compact left \
-                  --set aerospace_mode_compact \
-                    drawing=off \
-                    background.corner_radius=5 \
-                    background.height=23 \
-                    background.padding_left=2 \
-                    background.padding_right=2 \
-                    label.font="SFProDisplay Nerd Font:Heavy:12.0" \
-                    label.padding_left=10 \
-                    label.padding_right=10 \
-                    script="${plugins.aerospace_mode}" \
-                  --subscribe aerospace_mode_compact aerospace_mode_change
-
-        ##### Aerospace Mode Indicator (center) #####
-        # Shows the active Aerospace binding mode with a color-coded label. Hidden
-        # when in `main`. Triggered by aerospace bindings via the
-        # `aerospace_mode_change` event (MODE=<name> payload). See:
-        # plugins/aerospace_mode.nix for the color/label definitions and
-        # hosts/common/darwin/optional/services/aerospace/default.nix for the
-        # binding wire-up.
-        sketchybar --add event aerospace_mode_change
-        sketchybar --add item aerospace_mode center \
-                  --set aerospace_mode \
-                    drawing=off \
-                    background.corner_radius=5 \
-                    background.height=23 \
-                    background.padding_left=2 \
-                    background.padding_right=2 \
-                    label.font="SFProDisplay Nerd Font:Heavy:12.0" \
-                    label.padding_left=10 \
-                    label.padding_right=10 \
-                    script="${plugins.aerospace_mode}" \
-                  --subscribe aerospace_mode aerospace_mode_change
 
         ##### Adding Right Items #####
         # In the same way as the left items we can add items to the right side.
