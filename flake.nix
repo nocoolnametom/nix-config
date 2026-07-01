@@ -57,6 +57,10 @@
     helium.url = "github:FKouhai/helium2nix/main";
     helium.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Orion Linux Browser
+    orion.url = "github:dokokitsune/orion-browser-flake";
+    orion.inputs.nixpkgs.follows = "nixpkgs";
+
     # Nixified.AI
     nixified-ai.url = "github:nixified-ai/flake";
 
@@ -108,6 +112,7 @@
       apple-fonts,
       sops-nix,
       helium,
+      orion,
       nixified-ai,
       nix-flatpak,
       jovian,
