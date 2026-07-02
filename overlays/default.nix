@@ -31,7 +31,38 @@ in
   # This one contains whatever you want to overlay
   # You can change versions, add patches, set compilation flags, anything really.
   # https://wiki.nixos.org/wiki/Overlays
-  modifications = final: prev: {
+  modifications =
+    final: prev:
+    let
+      # See the block-level comment near gamescope below.
+      fixShadersPath =
+        drv:
+        drv.overrideAttrs (old: {
+          mesonFlags = (old.mesonFlags or [ ]) ++ [ "-Denable_tests=false" ];
+
+          patches = builtins.filter (
+            p:
+            let
+              s = toString p;
+            in
+            !(prev.lib.hasSuffix "shaders-path.patch" s)
+            && !(prev.lib.hasInfix "c08d99437ec8bb56a703f04ad1ef199502c62d10" s)
+          ) (old.patches or [ ]);
+
+          postPatch = ''
+            if grep -qF 'return "/usr";' src/Utils/DirHelpers.cpp; then
+              substituteInPlace src/Utils/DirHelpers.cpp \
+                --replace-fail 'return "/usr";' "return \"$out\";"
+            fi
+          ''
+          +
+            builtins.replaceStrings
+              [ ''--replace-fail "@out@" "$out"'' ]
+              [ ''--replace-quiet "@out@" "$out"'' ]
+              (old.postPatch or "");
+        });
+    in
+    {
     # example = prev.example.overrideAttrs (oldAttrs: let ... in {
     # ...
     # });
@@ -69,6 +100,35 @@ in
       prev.bottles-unwrapped.override {
         inherit (upstream) gamescope mangohud;
       };
+
+    # gamescope: jovian overrides nixpkgs' gamescope to bump version 3.16.23 → 3.16.24,
+    # but inherits nixpkgs' line-anchored `shaders-path.patch` (anchored at line 34
+    # of src/reshade_effect_manager.cpp). Between point releases the file shifted
+    # and the hunk no longer applies. Replace the fragile patch with an equivalent
+    # `substituteInPlace` that's content-anchored — survives gamescope's upstream
+    # churn without needing nixpkgs (or jovian) to coordinate. Composes safely with
+    # jovian's own overrideAttrs regardless of overlay order.
+    #
+    # nixpkgs exposes two attrs built from the same source (`gamescope` and
+    # `gamescope-wsi` — the WSI-layer-only build used by Steam's 32-bit runtime).
+    # Both hit the same patch failure, so `fixShadersPath` (in the enclosing let)
+    # is applied to both.
+    #
+    # Forward-compatibility: fully idempotent.
+    #   - If nixpkgs updates shaders-path.patch in place (same name): our filter
+    #     still strips it by suffix and our substitution does the work.
+    #   - If nixpkgs renames the patch but keeps the same content fix: the
+    #     renamed patch applies first, then our `grep -qF` guard sees the
+    #     original string is gone and skips our substitution. Build succeeds.
+    #   - If nixpkgs aligns versions and jovian stops overriding: we still
+    #     filter + substitute; identical final source. Build succeeds.
+    #   - If upstream gamescope changes `return "/usr";` to a different
+    #     literal: our guard skips, build succeeds but shader path lookup
+    #     reverts to /usr at runtime. This is the one case to watch for —
+    #     loud-failing here would be wrong because the patch removal might
+    #     be intentional upstream (e.g. they switched to env-var lookup).
+    gamescope = fixShadersPath prev.gamescope;
+    gamescope-wsi = fixShadersPath prev.gamescope-wsi;
   };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
