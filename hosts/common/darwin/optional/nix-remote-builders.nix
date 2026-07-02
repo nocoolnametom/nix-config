@@ -104,4 +104,13 @@ in
       builders-use-substitutes = true
     '';
   };
+
+  # Route ${configVars.homelabDomain} lookups to the home router. Corporate/VPN
+  # DNS resolvers are queried first by macOS and return NXDOMAIN for internal
+  # names, so the home router (later in the nameserver list) never gets asked.
+  # A /etc/resolver/<domain> file pins that domain to a specific nameserver.
+  # Off-home: router unreachable → NXDOMAIN → estel-ext fallback picks up.
+  environment.etc."resolver/${configVars.homelabDomain}" = {
+    text = "nameserver ${configVars.networking.subnets.router.ip}\n";
+  };
 }
