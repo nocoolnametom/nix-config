@@ -86,11 +86,15 @@ in
   # Builder list — nix prefers highest (speed-factor × free-slots):
   #   at home:     smeagol (4×8=32) > estel-lan (2×4=8) > estel-ext (1×4=4)
   #   away:        estel-ext (1×4=4) only (smeagol and estel-lan time out)
+  # Advertise both x86_64-linux and i686-linux. x86_64 machines run i686 natively
+  # via multilib, so no extra config on the builder side — but nix won't dispatch
+  # i686-linux derivations here unless we list the system explicitly. Needed for
+  # 32-bit Steam / gamescope on barliman.
   environment.etc."nix/machines" = {
     text = ''
-      ssh-ng://nix-builder-smeagol    x86_64-linux /etc/nix/nix-builder-key 8 4 benchmark,big-parallel,kvm,nixos-test
-      ssh-ng://nix-builder-estel      x86_64-linux /etc/nix/nix-builder-key 4 2 benchmark,big-parallel,kvm,nixos-test
-      ssh-ng://nix-builder-estel-ext  x86_64-linux /etc/nix/nix-builder-key 4 1 benchmark,big-parallel,kvm,nixos-test
+      ssh-ng://nix-builder-smeagol    x86_64-linux,i686-linux /etc/nix/nix-builder-key 8 4 benchmark,big-parallel,kvm,nixos-test
+      ssh-ng://nix-builder-estel      x86_64-linux,i686-linux /etc/nix/nix-builder-key 4 2 benchmark,big-parallel,kvm,nixos-test
+      ssh-ng://nix-builder-estel-ext  x86_64-linux,i686-linux /etc/nix/nix-builder-key 4 1 benchmark,big-parallel,kvm,nixos-test
     '';
   };
 
