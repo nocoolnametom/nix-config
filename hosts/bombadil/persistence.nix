@@ -38,12 +38,12 @@
       "/var/lib/mastodon"
       "/var/lib/mysql"
       "/var/lib/nixos"
-      "/var/lib/ntfy-sh"
       "/var/lib/pleroma"
       "/var/lib/postfix"
       "/var/lib/postgresql"
       "/var/lib/redis-mastodon"
       "/var/lib/systemd/coredump"
+      "/var/lib/private/ntfy-sh"
       "/var/lib/private/uptime-kuma"
       "/var/lib/wordpress"
     ];
