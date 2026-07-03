@@ -108,36 +108,40 @@ in
   };
 
   config = lib.mkIf cfg.enable {
+    # StateDirectory= is used to provision cfg.dataDir with the correct
+    # ownership. It only accepts paths under /var/lib/, so if dataDir is
+    # customised elsewhere, callers must provision it themselves.
+    assertions = [
+      {
+        assertion = lib.hasPrefix "/var/lib/" cfg.dataDir;
+        message = "services.fmd.dataDir must live under /var/lib/ (got: ${cfg.dataDir}) so systemd's StateDirectory= can manage it.";
+      }
+    ];
+
     systemd.services.fmd = {
       description = "fmd-server (FindMyDevice)";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
       preStart =
-        if hasToken then
-          ''
-            install -m600 -o ${cfg.user} -g ${cfg.group} ${configFile} ${lib.escapeShellArg cfg.dataDir}/config.yml
-            ${pkgs.replace-secret}/bin/replace-secret '@REGISTRATION_TOKEN@' \
-              "$CREDENTIALS_DIRECTORY/registration-token" \
-              '${cfg.dataDir}/config.yml'
-          ''
-        else
-          ''
-            install -m600 -o ${cfg.user} -g ${cfg.group} ${configFile} ${lib.escapeShellArg cfg.dataDir}/config.yml
-          '';
+        ''
+          install -m600 ${configFile} '${cfg.dataDir}/config.yml'
+        ''
+        + lib.optionalString hasToken ''
+          ${pkgs.replace-secret}/bin/replace-secret '@REGISTRATION_TOKEN@' \
+            "$CREDENTIALS_DIRECTORY/registration-token" \
+            '${cfg.dataDir}/config.yml'
+        '';
       serviceConfig = {
         User = cfg.user;
         Group = cfg.group;
+        StateDirectory = lib.removePrefix "/var/lib/" cfg.dataDir;
+        StateDirectoryMode = "0750";
         WorkingDirectory = cfg.dataDir;
         ExecStart = "${lib.getExe cfg.package} serve --config ${cfg.dataDir}/config.yml";
         Restart = "always";
         LoadCredential = lib.optional hasToken "registration-token:${toString cfg.registrationTokenFile}";
       };
     };
-
-    systemd.tmpfiles.rules = [
-      "d '${cfg.dataDir}'    0750 ${cfg.user} ${cfg.group} - -"
-      "d '${cfg.dataDir}/db' 0750 ${cfg.user} ${cfg.group} - -"
-    ];
 
     networking.firewall.allowedTCPPorts = lib.mkIf (
       cfg.openFirewall && cfg.settings.PortInsecure != ""
