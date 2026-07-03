@@ -57,6 +57,11 @@ let
     }
     {
       host = "estel";
+      service = "fmd";
+      domain = "homeDomain";
+    }
+    {
+      host = "estel";
       service = "hedgedoc";
       domain = "homeDomain";
     }

@@ -8,6 +8,7 @@
   homelab-beszel-agent = import ./homelab-beszel-agent.nix;
   dns-failover = import ./dns-failover.nix;
   failover-redirects = import ./failover-redirects.nix;
+  fmd = import ./fmd.nix;
   kavitan = import ./kavitan.nix;
   maestral = import ./maestral.nix;
   nzbget-to-management = import ./nzbget-to-management.nix;

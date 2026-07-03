@@ -40,6 +40,7 @@
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
+    "hosts/common/optional/services/fmd.nix"
     "hosts/common/optional/services/homelab-beszel-hub.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
     # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
@@ -77,6 +78,7 @@
     "actual-budget"
     "audiobookshelf"
     "caddy"
+    "fmd"
     "hedgedoc"
     "immich-public-proxy"
     "immich-server"
