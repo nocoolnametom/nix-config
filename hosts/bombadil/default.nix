@@ -37,7 +37,9 @@ in
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/services/akkoma.nix"
+    "hosts/common/optional/services/fmd.nix"
     "hosts/common/optional/services/haproxy-sni-router.nix"
+    "hosts/common/optional/services/ntfy-sh.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/mastodon.nix"
     "hosts/common/optional/services/mormonsites.nix"
@@ -61,6 +63,7 @@ in
   services.systemd-failure-alert.additional-services = [
     "akkoma"
     "elasticsearch"
+    "fmd"
     "mastodon-web"
     "mormonsites-canon"
     "mormonsites-jod"
@@ -68,6 +71,7 @@ in
     "phpfpm-wordpress-${inputs.nix-secrets.networking.blog.friends.domain}"
     "mysql"
     "nginx"
+    "ntfy-sh"
     "postgresql"
     "reddit-feed-webhook"
     "redis-mastodon"

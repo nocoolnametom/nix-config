@@ -32,7 +32,6 @@
       "/var/lib/bluetooth"
       "/var/lib/caddy"
       "/var/lib/docker"
-      "/var/lib/fmd"
       "/var/lib/hedgedoc"
       "/var/lib/immich"
       "/var/lib/iwd"

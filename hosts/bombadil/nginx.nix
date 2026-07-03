@@ -127,6 +127,30 @@
       };
     };
 
+  # fmd-server (FindMyDevice)
+  services.nginx.virtualHosts."${configVars.networking.subdomains.fmd}.${configVars.homeDomain}" =
+    lib.mkIf config.services.fmd.enable
+      {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations."/".proxyPass =
+          "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.fmd}";
+      };
+
+  # ntfy-sh (UnifiedPush push notifications)
+  services.nginx.virtualHosts."${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}" =
+    lib.mkIf config.services.ntfy-sh.enable
+      {
+        enableACME = true;
+        http2 = true;
+        forceSSL = true;
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.ntfy}";
+          proxyWebsockets = true;
+        };
+      };
+
   security.acme.acceptTerms = true;
   security.acme.defaults.email = "webmaster@${configVars.domain}";
 }

@@ -122,15 +122,14 @@ in
       description = "fmd-server (FindMyDevice)";
       wantedBy = [ "multi-user.target" ];
       after = [ "network.target" ];
-      preStart =
-        ''
-          install -m600 ${configFile} '${cfg.dataDir}/config.yml'
-        ''
-        + lib.optionalString hasToken ''
-          ${pkgs.replace-secret}/bin/replace-secret '@REGISTRATION_TOKEN@' \
-            "$CREDENTIALS_DIRECTORY/registration-token" \
-            '${cfg.dataDir}/config.yml'
-        '';
+      preStart = ''
+        install -m600 ${configFile} '${cfg.dataDir}/config.yml'
+      ''
+      + lib.optionalString hasToken ''
+        ${pkgs.replace-secret}/bin/replace-secret '@REGISTRATION_TOKEN@' \
+          "$CREDENTIALS_DIRECTORY/registration-token" \
+          '${cfg.dataDir}/config.yml'
+      '';
       serviceConfig = {
         User = cfg.user;
         Group = cfg.group;
