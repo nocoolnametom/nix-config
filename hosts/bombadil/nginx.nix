@@ -13,6 +13,9 @@
   users.users.acme.extraGroups = [ "nginx" ];
   systemd.tmpfiles.rules = [
     "d /var/lib/acme 2750 acme nginx -"
+    # acme-challenge must be world-readable (0755) so nginx can serve challenge
+    # files to Let's Encrypt regardless of lego's file creation umask.
+    "d /var/lib/acme/acme-challenge 0755 acme nginx -"
     "d /run/nginx 0755 root root -"
   ];
 

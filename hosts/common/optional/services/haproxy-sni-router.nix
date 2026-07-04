@@ -51,10 +51,8 @@ in
           acl is_morm_quotes hdr_end(host) -i mormonquotes.com
           acl is_morm_canon hdr_end(host) -i mormoncanon.com
           acl is_jod hdr_end(host) -i journalofdiscourses.com
-          acl is_ssh_nct hdr_beg(host) -i ssh.nocoolnametom.com
-          acl is_www_nct hdr_beg(host) -i www.nocoolnametom.com
-          acl is_gts_nct hdr_beg(host) -i gts.nocoolnametom.com
-          acl is_bare_nct hdr(host) -i nocoolnametom.com
+          # All nocoolnametom.com subdomains (covers cache., media., private., tom., www., gts., ssh., bare)
+          acl is_nct hdr_end(host) -i nocoolnametom.com
           acl is_status_df hdr_beg(host) -i ${configVars.healthDomain}
 
           # Locally-hosted subdomains under homeDomain (exact match)
@@ -67,10 +65,7 @@ in
           use_backend bombadil_http if is_morm_quotes
           use_backend bombadil_http if is_morm_canon
           use_backend bombadil_http if is_jod
-          use_backend bombadil_http if is_ssh_nct
-          use_backend bombadil_http if is_www_nct
-          use_backend bombadil_http if is_gts_nct
-          use_backend bombadil_http if is_bare_nct
+          use_backend bombadil_http if is_nct
           use_backend bombadil_http if is_status_df
           use_backend bombadil_http if is_fmd_home
           use_backend bombadil_http if is_ntfy_home
@@ -92,10 +87,8 @@ in
           acl is_morm_quotes req_ssl_sni -m end mormonquotes.com
           acl is_morm_canon req_ssl_sni -m end mormoncanon.com
           acl is_jod req_ssl_sni -m end journalofdiscourses.com
-          acl is_ssh_nct req_ssl_sni -m beg ssh.nocoolnametom.com
-          acl is_www_nct req_ssl_sni -m beg www.nocoolnametom.com
-          acl is_gts_nct req_ssl_sni -m beg gts.nocoolnametom.com
-          acl is_bare_nct req_ssl_sni -i nocoolnametom.com
+          # All nocoolnametom.com subdomains (covers cache., media., private., tom., www., gts., ssh., bare)
+          acl is_nct req_ssl_sni -m end nocoolnametom.com
           acl is_status_df req_ssl_sni -m beg ${configVars.healthDomain}
 
           # Locally-hosted subdomains under homeDomain (exact match)
@@ -108,10 +101,7 @@ in
           use_backend bombadil_https if is_morm_quotes
           use_backend bombadil_https if is_morm_canon
           use_backend bombadil_https if is_jod
-          use_backend bombadil_https if is_ssh_nct
-          use_backend bombadil_https if is_www_nct
-          use_backend bombadil_https if is_gts_nct
-          use_backend bombadil_https if is_bare_nct
+          use_backend bombadil_https if is_nct
           use_backend bombadil_https if is_status_df
           use_backend bombadil_https if is_fmd_home
           use_backend bombadil_https if is_ntfy_home
