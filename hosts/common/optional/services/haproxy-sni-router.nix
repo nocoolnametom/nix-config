@@ -56,8 +56,9 @@ in
           acl is_status_df hdr_beg(host) -i ${configVars.healthDomain}
 
           # Locally-hosted subdomains under homeDomain (exact match)
-          acl is_fmd_home  hdr(host) -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
-          acl is_ntfy_home hdr(host) -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
+          acl is_fmd_home     hdr(host) -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
+          acl is_devices_home hdr(host) -i devices.${configVars.homeDomain}
+          acl is_ntfy_home    hdr(host) -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
 
           # Route friend domains to local nginx
           use_backend bombadil_http if is_exmormon_social
@@ -68,6 +69,7 @@ in
           use_backend bombadil_http if is_nct
           use_backend bombadil_http if is_status_df
           use_backend bombadil_http if is_fmd_home
+          use_backend bombadil_http if is_devices_home
           use_backend bombadil_http if is_ntfy_home
 
           # All other traffic goes to homelab (estel)
@@ -92,8 +94,9 @@ in
           acl is_status_df req_ssl_sni -m beg ${configVars.healthDomain}
 
           # Locally-hosted subdomains under homeDomain (exact match)
-          acl is_fmd_home  req_ssl_sni -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
-          acl is_ntfy_home req_ssl_sni -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
+          acl is_fmd_home     req_ssl_sni -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
+          acl is_devices_home req_ssl_sni -i devices.${configVars.homeDomain}
+          acl is_ntfy_home    req_ssl_sni -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
 
           # Route friend domains to local nginx
           use_backend bombadil_https if is_exmormon_social
@@ -104,6 +107,7 @@ in
           use_backend bombadil_https if is_nct
           use_backend bombadil_https if is_status_df
           use_backend bombadil_https if is_fmd_home
+          use_backend bombadil_https if is_devices_home
           use_backend bombadil_https if is_ntfy_home
 
           # All other traffic goes to homelab (estel)

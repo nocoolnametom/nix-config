@@ -137,8 +137,17 @@
         enableACME = true;
         http2 = true;
         forceSSL = true;
-        locations."/".proxyPass =
-          "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.fmd}";
+        locations."/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.fmd}";
+          proxyWebsockets = true;
+        };
+      };
+  services.nginx.virtualHosts."devices.${configVars.homeDomain}" =
+    lib.mkIf config.services.fmd.enable
+      {
+        enableACME = true;
+        forceSSL = true;
+        globalRedirect = "${configVars.networking.subdomains.fmd}.${configVars.homeDomain}";
       };
 
   # ntfy-sh (UnifiedPush push notifications)
