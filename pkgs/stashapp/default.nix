@@ -13,28 +13,28 @@
 }:
 
 let
-  pkgVersion = "0.30.1";
+  pkgVersion = "0.31.1";
 
   platforms = {
     aarch64-darwin = {
       name = "macos";
-      sha256 = "045pz66527fcjzyh9b1xq738wd2k0ql408wy695crnb5qmqf0jf6";
+      sha256 = "0ab7ll83fqx4ab6gky754gpmrql9nsn6sg674rdrrrw2b0m0w2d4";
     };
     aarch64-linux = {
       name = "linux-arm64v8";
-      sha256 = "1281w6dx3a0ljwikmyml76bir28q50lr9xn5y56drpb1sbbvk2cx";
+      sha256 = "0m15xphpmzccpxlnacgpwd81mphyamb3da7735k9d3vzplmvlj1y";
     };
     armv6l-linux = {
       name = "linux-arm32v6";
-      sha256 = "1kph1jybdnc4s2rjm91kv0p2vprbshgi8y55k7csprjg39frk19v";
+      sha256 = "0r1hm0gfnzki2skfqnilsirp73dgp8nsrn7i5ii4vlszmsg2319c";
     };
     armv7l-linux = {
       name = "linux-arm32v7";
-      sha256 = "1nbfq08q7k0dacayd9l0vyqr4ddn19is6ma4bxpw4lw91v969mdw";
+      sha256 = "1arl7xlwwz4zkc8ivfb2lkl72f9pq8iah6mdyxs8afh2drds9rim";
     };
     x86_64-linux = {
       name = "linux";
-      sha256 = "00gnk2m8j8kcscwdphckrjmaif9c2ffymj9amv96pcnzh391f05m";
+      sha256 = "1bqi94l0gs806hyavzaczx9gk6bgvsg1c315xlrbx1hk4vqsczla";
     };
   };
 

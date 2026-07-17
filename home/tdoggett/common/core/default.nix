@@ -116,10 +116,8 @@
           yaml = { "prettier" },
           markdown = { "prettier" },
         },
-        format_on_save = {
-          lsp_fallback = true,
-          timeout_ms = 800,
-        },
+        -- Disable format on save for now, since it can be a bit disruptive
+        format_on_save = false,
       })
 
       require("gitsigns").setup({})
