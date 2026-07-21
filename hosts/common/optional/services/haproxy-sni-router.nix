@@ -51,9 +51,15 @@ in
           acl is_morm_quotes hdr_end(host) -i mormonquotes.com
           acl is_morm_canon hdr_end(host) -i mormoncanon.com
           acl is_jod hdr_end(host) -i journalofdiscourses.com
-          # All nocoolnametom.com subdomains (covers cache., media., private., tom., www., gts., ssh., bare)
-          acl is_nct hdr_end(host) -i nocoolnametom.com
-          acl is_status_df hdr_beg(host) -i ${configVars.healthDomain}
+
+          # Akkoma/Fediverse subdomains hosted on bombadil nginx (exact matches only)
+          # All other *.nocoolnametom.com traffic (kavitan, stash, etc.) falls through to homelab
+          acl is_nct_bare    hdr(host) -i ${configVars.domain}
+          acl is_nct_www     hdr(host) -i www.${configVars.domain}
+          acl is_nct_cache   hdr(host) -i cache.${configVars.domain}
+          acl is_nct_media   hdr(host) -i media.${configVars.domain}
+          acl is_nct_private hdr(host) -i private.${configVars.domain}
+          acl is_nct_handle  hdr(host) -i ${configVars.handles.mastodon}.${configVars.domain}
 
           # Locally-hosted subdomains under homeDomain (exact match)
           acl is_fmd_home     hdr(host) -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
@@ -66,8 +72,12 @@ in
           use_backend bombadil_http if is_morm_quotes
           use_backend bombadil_http if is_morm_canon
           use_backend bombadil_http if is_jod
-          use_backend bombadil_http if is_nct
-          use_backend bombadil_http if is_status_df
+          use_backend bombadil_http if is_nct_bare
+          use_backend bombadil_http if is_nct_www
+          use_backend bombadil_http if is_nct_cache
+          use_backend bombadil_http if is_nct_media
+          use_backend bombadil_http if is_nct_private
+          use_backend bombadil_http if is_nct_handle
           use_backend bombadil_http if is_fmd_home
           use_backend bombadil_http if is_devices_home
           use_backend bombadil_http if is_ntfy_home
@@ -89,9 +99,15 @@ in
           acl is_morm_quotes req_ssl_sni -m end mormonquotes.com
           acl is_morm_canon req_ssl_sni -m end mormoncanon.com
           acl is_jod req_ssl_sni -m end journalofdiscourses.com
-          # All nocoolnametom.com subdomains (covers cache., media., private., tom., www., gts., ssh., bare)
-          acl is_nct req_ssl_sni -m end nocoolnametom.com
-          acl is_status_df req_ssl_sni -m beg ${configVars.healthDomain}
+
+          # Akkoma/Fediverse subdomains hosted on bombadil nginx (exact matches only)
+          # All other *.nocoolnametom.com traffic (kavitan, stash, etc.) falls through to homelab
+          acl is_nct_bare    req_ssl_sni -i ${configVars.domain}
+          acl is_nct_www     req_ssl_sni -i www.${configVars.domain}
+          acl is_nct_cache   req_ssl_sni -i cache.${configVars.domain}
+          acl is_nct_media   req_ssl_sni -i media.${configVars.domain}
+          acl is_nct_private req_ssl_sni -i private.${configVars.domain}
+          acl is_nct_handle  req_ssl_sni -i ${configVars.handles.mastodon}.${configVars.domain}
 
           # Locally-hosted subdomains under homeDomain (exact match)
           acl is_fmd_home     req_ssl_sni -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
@@ -104,8 +120,12 @@ in
           use_backend bombadil_https if is_morm_quotes
           use_backend bombadil_https if is_morm_canon
           use_backend bombadil_https if is_jod
-          use_backend bombadil_https if is_nct
-          use_backend bombadil_https if is_status_df
+          use_backend bombadil_https if is_nct_bare
+          use_backend bombadil_https if is_nct_www
+          use_backend bombadil_https if is_nct_cache
+          use_backend bombadil_https if is_nct_media
+          use_backend bombadil_https if is_nct_private
+          use_backend bombadil_https if is_nct_handle
           use_backend bombadil_https if is_fmd_home
           use_backend bombadil_https if is_devices_home
           use_backend bombadil_https if is_ntfy_home
