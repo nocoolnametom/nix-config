@@ -16,10 +16,13 @@ let
   }) inputs.nix-secrets.sso.users;
 
   authFile = "/var/lib/ntfy-sh/user.db";
-  ntfyBin = "${pkgs.ntfy-sh}/bin/ntfy";
+  # Use unstable to track the most recent stable-ish ntfy version.
+  ntfyPackage = pkgs.unstable.ntfy-sh;
+  ntfyBin = "${ntfyPackage}/bin/ntfy";
 in
 {
   services.ntfy-sh.enable = lib.mkDefault true;
+  services.ntfy-sh.package = ntfyPackage;
   services.ntfy-sh.settings.listen-http = "127.0.0.1:${builtins.toString configVars.networking.ports.tcp.ntfy}";
   services.ntfy-sh.settings.base-url = "https://${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}";
   services.ntfy-sh.settings.behind-proxy = true;
