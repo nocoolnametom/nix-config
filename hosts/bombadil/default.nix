@@ -139,6 +139,10 @@ in
     "-Xmx256m"
   ];
 
+  # pnpm-9.15.9 is marked insecure (CVEs in pnpm itself) but is a build-time dep
+  # of ntfy-sh. Remove once nixpkgs-unstable updates pnpm to a patched version.
+  nixpkgs.config.permittedInsecurePackages = [ "pnpm-9.15.9" ];
+
   time.timeZone = "America/New_York";
 
   # Prevent systemd from logging too much
