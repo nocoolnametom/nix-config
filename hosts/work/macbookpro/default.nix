@@ -134,7 +134,7 @@ in
     pkgs.unstable.postman
     pkgs.unstable.protonmail-bridge
     pkgs.unstable.protonmail-desktop
-    pkgs.unstable.vscode
+    pkgs.bleeding.vscode
     pkgs.unstable.zed-editor
 
     # Terminal Programs
