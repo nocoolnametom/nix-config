@@ -39,6 +39,7 @@
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/actual-budget.nix"
+    "hosts/common/optional/services/atuin.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
     "hosts/common/optional/services/homelab-beszel-hub.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"

@@ -21,6 +21,7 @@ let
     # These are kept MORE up-to-date than unstable usually allows
     # so we need to defer to using the system services instead of
     # Nix-Darwin to handle them.
+    "vscode"
     "code-cursor"
     "google-chrome"
     "google-chrome-beta"
@@ -134,7 +135,6 @@ in
     pkgs.unstable.postman
     pkgs.unstable.protonmail-bridge
     pkgs.unstable.protonmail-desktop
-    pkgs.unstable.vscode
     pkgs.unstable.zed-editor
 
     # Terminal Programs

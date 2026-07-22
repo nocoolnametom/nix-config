@@ -139,6 +139,11 @@ let
 
     # Services on domain
     {
+      host = "estel";
+      service = "atuin-sync";
+      domain = "domain";
+    }
+    {
       host = "smeagol";
       service = "archerstash";
       domain = "domain";

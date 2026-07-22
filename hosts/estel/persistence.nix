@@ -46,6 +46,7 @@
       "/var/lib/paperless"
       "/var/lib/postgresql"
       "/var/lib/private/actual"
+      "/var/lib/private/atuin"
       # "/var/lib/private/ddclient" # Disabled - no longer using ddclient
       "/var/lib/private/jellyseerr"
       "/var/lib/private/karakeep-browser"
