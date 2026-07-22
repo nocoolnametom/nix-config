@@ -14,7 +14,9 @@
     common/optional/claude.nix
   ];
 
-  programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${toString configVars.networking.ports.tcp."atuin-sync"}";
+  programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${
+    toString configVars.networking.ports.tcp."atuin-sync"
+  }";
 
   # Headless: gpg-agent handles GPG only; standard ssh-agent handles SSH.
   # pinentry-gtk2 requires a display, which durin doesn't have.

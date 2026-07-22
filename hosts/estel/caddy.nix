@@ -136,13 +136,12 @@ let
       service = "portainer";
       domain = "homeDomain";
     }
-
-    # Services on domain
     {
       host = "estel";
       service = "atuin-sync";
       domain = "homeDomain";
     }
+    # Services on domain
     {
       host = "smeagol";
       service = "archerstash";
