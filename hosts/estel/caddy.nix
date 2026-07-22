@@ -141,7 +141,7 @@ let
     {
       host = "estel";
       service = "atuin-sync";
-      domain = "domain";
+      domain = "homeDomain";
     }
     {
       host = "smeagol";
