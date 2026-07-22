@@ -6,6 +6,10 @@
   ...
 }:
 {
+  # pnpm-9.15.9 is marked insecure (CVEs in pnpm itself) but is a build-time dep
+  # of ntfy-sh. Remove once nixpkgs-unstable updates pnpm to a patched version.
+  nixpkgs.config.permittedInsecurePackages = [ "pnpm-9.15.9" ];
+
   nix = {
     # This will add each flake input as a registry
     # To make nix3 commands consistent with your flake
