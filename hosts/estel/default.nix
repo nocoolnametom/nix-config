@@ -1,8 +1,4 @@
 ###############################################################################
-#
-#  Estel - Beelink Mini PC
-#  NixOS running on Beelink SER5 Mini PC
-#
 ###############################################################################
 
 {
@@ -105,6 +101,7 @@
   ];
 
   ## Imports overrides
+  services.atuin.openRegistration = true;
   services.karakeep.package = pkgs.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.chromium}/bin/chromium";
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
