@@ -20,6 +20,7 @@
     common/optional/immersed.nix
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
     common/optional/desktops/bluetooth-applet.nix
+    common/optional/desktops/vscode.nix
     common/optional/claude.nix
     common/optional/notification-leds.nix
 

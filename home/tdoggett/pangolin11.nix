@@ -16,6 +16,7 @@
     common/optional/jj.nix
     common/optional/desktops
     common/optional/desktops/bluetooth-applet.nix
+    common/optional/desktops/vscode.nix
     common/optional/claude.nix
     common/optional/devenv.nix
     common/optional/notification-leds.nix

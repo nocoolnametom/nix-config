@@ -18,6 +18,7 @@
     common/optional/git.nix
     common/optional/jj.nix
     common/optional/desktops/kitty.nix
+    common/optional/desktops/vscode.nix
     common/optional/desktops/bluetooth-applet.nix
     common/optional/claude.nix
     common/optional/devenv.nix

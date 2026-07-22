@@ -13,7 +13,6 @@
 
     # Editors & IDEs
     ./kitty.nix
-    ./vscode.nix
 
     # Communication
     ./discord.nix
