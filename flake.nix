@@ -396,6 +396,16 @@
                   ./home/tdoggett/steamdeck.nix
                 ];
               };
+          # Steam Machine
+          "deck@${nix-secrets.networking.subnets.steammachine.name}" =
+            home-manager.lib.homeManagerConfiguration
+              {
+                pkgs = specialArgs.nixpkgs.legacyPackages.${system};
+                extraSpecialArgs = specialArgs;
+                modules = [
+                  ./home/tdoggett/steammachine.nix
+                ];
+              };
         };
       });
 

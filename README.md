@@ -107,6 +107,7 @@ to be reachable (see `hosts/common/darwin/optional/nix-remote-builders.nix`).
 
 ### Home Manager Only (Limited System Access)
 - **steamdeck** - Steam Deck (SteamOS with HM overlay)
+- **steammachine** - Steam Machine (SteamOS with HM overlay)
 
 ### Archived Systems
 NixOS (in `hosts/archived/`): thinkpadx1, melian, sauron, bert, glorfindel, fedibox

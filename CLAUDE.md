@@ -26,7 +26,7 @@ Tom Doggett's NixOS/Nix-Darwin flake configuration for managing multiple machine
 
 **NixOS Systems**: pangolin11 (dev laptop), barliman (testbed), smeagol (GPU/Docker), durin (mini server), estel (media server), bombadil (VPS)
 **Nix-Darwin**: macbookpro (work)
-**Home Manager Only**: steamdeck, vm1 (work)
+**Home Manager Only**: steamdeck, steammachine vm1 (work)
 **Archived**: bert, fedibox, william, thinkpadx1, melian, sauron, glorfindel (in `hosts/archived/` and `home/tdoggett/archived/`)
 
 ### Machine Decision Matrix
@@ -41,6 +41,7 @@ Tom Doggett's NixOS/Nix-Darwin flake configuration for managing multiple machine
 | bombadil | ✗ | Low | 4GB | **VPS - watch RAM!** Web services |
 | macbookpro | ✓ | High | 16GB | Work (restrictions) |
 | steamdeck | ✓ | Med | 16GB | Gaming (HM only, read-only) |
+| steammachine | ✓ | Med | 16GB | Gaming (HM only, read-only) |
 | vm1 | ✓ | Low | 8GB | Work VM (HM only) |
 
 **Quick Guide**: Desktop features → pangolin11/barliman/smeagol/macbookpro | Heavy AI/video → smeagol/pangolin11/barliman | 24/7 services → durin/estel/bombadil

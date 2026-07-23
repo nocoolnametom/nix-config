@@ -36,32 +36,22 @@
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
-    "hosts/common/optional/services/eden.nix" # Temporarily disabled - tzdb source is down
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/open-webui.nix"
-    "hosts/common/optional/services/pipewire.nix" # audio
-    "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/amdgpu_top.nix"
     "hosts/common/optional/cross-compiling.nix"
-    "hosts/common/optional/jovian.nix"
     "hosts/common/optional/nvtop.nix"
-    "hosts/common/optional/scanning.nix"
-    "hosts/common/optional/stylix.nix"
     "hosts/common/optional/bluetooth.nix"
     "hosts/common/optional/foreign-binaries.nix"
-    "hosts/common/optional/steam.nix"
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
     "hosts/common/users/${configVars.username}"
-
-    # Temporary empty modules to help pass rebuild errors
-    "hosts/barliman/logindhelper.nix"
   ]);
 
   # Send alerts on systemd service failures
@@ -98,29 +88,6 @@
     AllowSuspendThenHibernate = "no";
   };
 
-  # While this is a Jovian machine, it's NOT a SteamDeck
-  jovian.devices.steamdeck.enable = lib.mkForce false;
-  jovian.steamos.enableBluetoothConfig = true;
-  jovian.decky-loader.enable = true;
-  environment.plasma6.excludePackages = with pkgs; [
-    kdePackages.baloo # File search than can take a lot of resources to index
-    kdePackages.baloo-widgets # Widgets for using baloo
-    kdePackages.elisa # Simple music player aiming to provide a nice experience for its users
-    kdePackages.kdepim-runtime # Akonadi agents and resources
-    kdePackages.kmahjongg # KMahjongg is a tile matching game for one or two players
-    kdePackages.kmines # KMines is the classic Minesweeper game
-    kdePackages.konversation # User-friendly and fully-featured IRC client
-    kdePackages.kpat # KPatience offers a selection of solitaire card games
-    kdePackages.ksudoku # KSudoku is a logic-based symbol placement puzzle
-    kdePackages.ktorrent # Powerful BitTorrent client
-    mpv
-  ];
-
-  # Ensure we're using the BLEEDING EDGE version of GE Proton!
-  programs.steam.extraCompatPackages = [
-    pkgs.unstable.proton-ge-bin
-  ];
-
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "barliman";
@@ -137,11 +104,9 @@
 
   environment.systemPackages = with pkgs; [
     appimage-run
-    brave
     glibcLocales
     cmake
     libdrm
-    steam-rom-manager
     gnumake
     nodejs
     p7zip

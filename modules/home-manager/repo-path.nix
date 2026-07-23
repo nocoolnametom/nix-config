@@ -9,7 +9,7 @@
 # When running as a module of NixOS or nix-darwin (the common case here),
 # defaults to the parent system's `osConfig.repoPath` so per-host overrides
 # at the system level automatically flow through to HM.
-# For HM-only hosts (e.g. steamdeck), falls back to deriving from
+# For HM-only hosts (e.g. steammachine, steamdeck), falls back to deriving from
 # `configVars.nixConfigPath.{darwin|linux}` directly.
 {
   options.repoPath = lib.mkOption {

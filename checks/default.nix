@@ -123,7 +123,7 @@ in
       # Each produces its own "Passed/Failed" line in the pre-commit output.
       # Archived and HM-only systems are intentionally excluded.
       # Archived: not actively maintained.
-      # HM-only (vm1, steamdeck): config keys use dynamic nix-secrets refs that can
+      # HM-only (vm1, steammachine, steamdeck): config keys use dynamic nix-secrets refs that can
       # cause flake evaluation failures if those attrs are missing from nix-secrets.
     }
     // nixosHooks

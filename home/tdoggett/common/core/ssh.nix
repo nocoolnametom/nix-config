@@ -121,6 +121,13 @@ in
         Port = configVars.networking.ports.tcp.localSsh;
         IdentityFile = identityFilePaths;
       };
+      "steammachine" = {
+        header = "Host ${configVars.networking.subnets.steammachine.name} ${configVars.networking.subnets.steammachine.name}.${configVars.homeDomain}";
+        HostName = configVars.networking.subnets.steammachine.ip;
+        User = configVars.networking.subnets.steammachine.username;
+        Port = configVars.networking.ports.tcp.localSsh;
+        IdentityFile = identityFilePaths;
+      };
     };
 
   };
