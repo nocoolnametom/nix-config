@@ -48,6 +48,15 @@ in
     none = null; # No SSO/proxy
   };
 
+  yubikey.identifiers = {
+    ykbackup    = 22910125;
+    ykkeychain  = 16961659;
+    yklappy     = 22373686;
+    ykmbp       = 22373683;
+    ykmacbookc  = 35911238;
+    yknfc       = 35821306;
+  };
+
   homepage = {
     serviceBlacklist = [
       "archerstashvr"

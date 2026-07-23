@@ -2,6 +2,8 @@
   config,
   inputs,
   lib,
+  configVars,
+  configLib,
   ...
 }:
 {
@@ -20,4 +22,19 @@
   nix.extraOptions = ''
     experimental-features = nix-command flakes
   '';
+
+  # Authorise every registered key so any YubiKey or personal SSH key can log in.
+  # id_nixbuilder is excluded: it's for Nix remote builds only, not interactive login.
+  home.file.".ssh/authorized_keys" =
+    let
+      keyDir = configLib.relativeToRoot "hosts/common/users/${configVars.username}/keys";
+      excludedKeys = [ "id_nixbuilder" ];
+      keyFiles = builtins.filter
+        (f: lib.hasSuffix ".pub" f &&
+            !(builtins.elem (lib.removeSuffix ".pub" f) excludedKeys))
+        (builtins.attrNames (builtins.readDir keyDir));
+    in
+    {
+      text = lib.concatMapStringsSep "\n" (f: lib.fileContents "${keyDir}/${f}") keyFiles + "\n";
+    };
 }
