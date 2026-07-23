@@ -10,7 +10,6 @@
     common/optional/sops.nix
     common/optional/git.nix
     common/optional/jj.nix
-    common/optional/claude.nix
   ];
 
   # Headless: gpg-agent handles GPG only; standard ssh-agent handles SSH.

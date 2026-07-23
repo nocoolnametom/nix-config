@@ -17,7 +17,6 @@
     common/optional/desktops
     common/optional/desktops/bluetooth-applet.nix
     common/optional/desktops/vscode.nix
-    common/optional/claude.nix
     common/optional/devenv.nix
     common/optional/notification-leds.nix
     common/optional/wakatime.nix
@@ -36,8 +35,6 @@
 
   services.playerctld.enable = true;
   programs.git.settings.user.email = configVars.gitHubEmail;
-
-  programs.claude.ollamaMachine = configVars.networking.subnets.barliman.name;
 
   home.packages = with pkgs; [
     bottles

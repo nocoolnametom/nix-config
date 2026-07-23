@@ -17,7 +17,6 @@
     common/optional/flatpak.nix
     common/optional/git.nix
     common/optional/jj.nix
-    common/optional/claude.nix
     common/optional/devenv.nix
     common/optional/notification-leds.nix
 

@@ -44,6 +44,10 @@
       ;
   };
 
+  # Claude Code AI helper
+  programs.claude-code.enable = lib.mkDefault true;
+  programs.claude-code.package = lib.mkDefault pkgs.claude-code;
+
   # JSON pretty printer and manipulator
   programs.jq.enable = true;
   programs.neovim = {

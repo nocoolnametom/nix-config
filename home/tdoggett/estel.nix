@@ -11,7 +11,6 @@
     common/optional/sops.nix
     common/optional/git.nix
     common/optional/jj.nix
-    common/optional/claude.nix
   ];
 
   programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${
@@ -23,9 +22,6 @@
   services.gpg-agent.enableSshSupport = false;
 
   programs.git.settings.user.email = configVars.gitHubEmail;
-
-  # Use barliman's ollama; IP derived from configVars.networking.subnets.barliman
-  programs.claude.ollamaMachine = configVars.networking.subnets.barliman.name;
 
   home = {
     stateVersion = "25.05";

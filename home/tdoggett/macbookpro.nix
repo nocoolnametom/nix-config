@@ -18,14 +18,13 @@
     common/optional/git.nix
     common/optional/jj.nix
     common/optional/devenv.nix
-    common/optional/claude.nix
     common/optional/docker.nix
     common/optional/docker-darwin.nix
     common/optional/notification-leds.nix
     common/optional/services/atuin.nix
   ];
 
-  programs.claude.enable = true;
+  programs.claude-code.package = pkgs.bleeding.claude-code;
 
   programs.git.settings.user.email = lib.mkForce configVars.email.work;
   programs.jujutsu.settings.user.email = lib.mkForce configVars.email.work;
