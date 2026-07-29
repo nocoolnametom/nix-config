@@ -10,6 +10,8 @@ with lib;
     "--force-cleanup"
   ];
   homebrew.brews = [
+    # Local Apple LLM
+    { name = "apfel"; }
     # Control Litra Glow light
     { name = "litra"; }
     # No current nixpkgs

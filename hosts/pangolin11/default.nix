@@ -48,6 +48,7 @@
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/adb.nix" # Android Debugging
     "hosts/common/optional/blinkstick.nix"
+    "hosts/common/optional/luxafor-flag.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/cosmic.nix"
     # "hosts/common/optional/cosmic-niri.nix"

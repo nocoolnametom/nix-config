@@ -1,10 +1,10 @@
 { ... }:
-# Shared notification-LED config for hosts that have (or might gain) the
-# BlinkStick Square + ThingM blink(1) USB devices. Drop this import into
-# any host's home-manager config and the `notify-blink` wrapper becomes
-# available with these source-to-color mappings.
+# Shared notification-LED config for hosts that have (or might gain) a
+# Luxafor Flag 2, ThingM blink(1), or BlinkStick Square USB device. Drop
+# this import into any host's home-manager config and the `notify-blink`
+# wrapper becomes available with these source-to-color mappings.
 #
-# If the devices aren't physically plugged in, calls silently fail (the
+# If a device isn't physically plugged in, calls silently fail (the
 # wrapper backgrounds each device call and discards errors). So enabling
 # this on every host is safe — only the host with the devices plugged in
 # will actually light up.
@@ -15,7 +15,7 @@
       slack = {
         color = "red";
         devices = [
-          "square"
+          "flag"
           "blink1"
         ];
         # Longer for "blink until I read it" continuous pattern — the
@@ -24,7 +24,7 @@
       };
       email = {
         color = "blue";
-        devices = [ "square" ];
+        devices = [ "flag" ];
       };
       calendar = {
         color = "yellow";

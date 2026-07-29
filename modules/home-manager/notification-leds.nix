@@ -143,9 +143,129 @@ let
   # PATH; on darwin we probe homebrew bin directory and /usr/local/bin.
   blink1Pkgs = lib.optional pkgs.stdenv.isLinux pkgs.blink1-tool;
 
+  # Luxafor Flag driver via the busylight-for-humans Python library.
+  # Targets only Luxafor devices (matched by vendor prefix) so it never
+  # accidentally drives a BlinkStick or blink(1) that's also plugged in.
+  # delay_to_speed maps our ms-per-phase value to busylight's speed tiers:
+  #   fast   = 250ms half-period → suits delay < 375ms (our default 200ms)
+  #   medium = 500ms half-period → 375-625ms
+  #   slow   = 750ms half-period → > 625ms
+  luxaforFlagDriver =
+    pkgs.writers.writePython3Bin "luxafor-flag"
+      {
+        libraries = [ pkgs.python3Packages.busylight-for-humans ];
+        flakeIgnore = [
+          "E501"
+          "E126"
+          "E127"
+          "E128"
+          "E201"
+          "E202"
+          "E221"
+          "E222"
+          "E241"
+          "E302"
+          "E305"
+          "W391"
+          "W292"
+        ];
+      }
+      ''
+        """Luxafor Flag driver via busylight-for-humans.
+
+        Usage:
+          luxafor-flag set-color <color>
+          luxafor-flag blink <color> [--repeats N] [--delay MS]
+          luxafor-flag off
+
+        Targets all connected Luxafor devices via the busylight-for-humans
+        library. Exits with code 1 (silently printed to stderr) if no Luxafor
+        device is found so the notify-blink wrapper can discard errors safely.
+        """
+        import argparse
+        import sys
+        from busylight.controller import LightController, LightSelection
+
+        NAMED_COLORS = {
+            "red":     (255,   0,   0),
+            "green":   (  0, 255,   0),
+            "blue":    (  0,   0, 255),
+            "yellow":  (255, 255,   0),
+            "cyan":    (  0, 255, 255),
+            "magenta": (255,   0, 255),
+            "white":   (255, 255, 255),
+            "orange":  (255, 100,   0),
+            "purple":  (128,   0, 128),
+            "off":     (  0,   0,   0),
+            "black":   (  0,   0,   0),
+        }
+
+        def parse_color(s):
+            s = s.strip().lower()
+            if s in NAMED_COLORS:
+                return NAMED_COLORS[s]
+            h = s.lstrip("#")
+            if len(h) == 6 and all(c in "0123456789abcdef" for c in h):
+                return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+            raise ValueError(f"Unknown color: {s!r}")
+
+        def delay_to_speed(delay_ms):
+            if delay_ms < 375:
+                return "fast"
+            elif delay_ms < 625:
+                return "medium"
+            else:
+                return "slow"
+
+        def main():
+            p = argparse.ArgumentParser(description="Luxafor Flag driver (busylight)")
+            sub = p.add_subparsers(dest="cmd", required=True)
+            sc = sub.add_parser("set-color")
+            sc.add_argument("color")
+            bk = sub.add_parser("blink")
+            bk.add_argument("color")
+            bk.add_argument("--repeats", type=int, default=3)
+            bk.add_argument("--delay", type=int, default=200,
+                            help="milliseconds per on/off phase")
+            sub.add_parser("off")
+            args = p.parse_args()
+
+            try:
+                ctrl = LightController()
+            except Exception as e:
+                print(f"luxafor-flag: controller error ({e})", file=sys.stderr)
+                sys.exit(1)
+
+            # light.name is just the product name ("Flag", "Orb", etc.) —
+            # by_pattern("^Luxafor") won't match. Filter by vendor() instead,
+            # which derives from the module path and returns "Luxafor".
+            selection = LightSelection(
+                [light for light in ctrl.lights if light.vendor().lower() == "luxafor"]
+            )
+            if not selection:
+                print("luxafor-flag: no Luxafor devices found", file=sys.stderr)
+                sys.exit(1)
+
+            try:
+                if args.cmd == "set-color":
+                    selection.turn_on(parse_color(args.color))
+                elif args.cmd == "off":
+                    selection.turn_off()
+                elif args.cmd == "blink":
+                    color = parse_color(args.color)
+                    speed = delay_to_speed(args.delay)
+                    selection.blink(color, count=args.repeats, speed=speed)
+            except Exception as e:
+                print(f"luxafor-flag: error ({e})", file=sys.stderr)
+                sys.exit(1)
+
+        if __name__ == "__main__":
+            main()
+      '';
+
   notifyBlinkScript = pkgs.writeShellApplication {
     name = "notify-blink";
-    runtimeInputs = [ blinkstickSquareDriver ] ++ blink1Pkgs;
+    runtimeInputs = [ blinkstickSquareDriver luxaforFlagDriver ] ++ blink1Pkgs;
     text = ''
       # notify-blink — drive USB notification LEDs.
       #
@@ -154,8 +274,8 @@ let
       #   notify-blink <color> [reps] [delay] # ad-hoc color+timing
       #   notify-blink off                    # turn all configured LEDs off
       #
-      # Add --device <square|blink1|both> to override the target device(s).
-      # Defaults to all devices configured for the source (or both for
+      # Add --device <square|blink1|flag|both|all> to override the target device(s).
+      # Defaults to all devices configured for the source (or all three for
       # ad-hoc invocations).
       #
       # Continuous-until-acknowledged pattern: caller polls the underlying
@@ -169,7 +289,7 @@ let
       COLOR=""
       REPEATS=10
       DELAY=200
-      DEVICES=("square" "blink1")
+      DEVICES=("square" "blink1" "flag")
       DEVICE_OVERRIDE=""
 
       # Pull --device out of positional args
@@ -194,7 +314,7 @@ let
 
       INPUT="''${1:-}"
       if [ -z "$INPUT" ]; then
-        echo "Usage: notify-blink <source|color|off> [reps] [delay] [--device square|blink1|both]" >&2
+        echo "Usage: notify-blink <source|color|off> [reps] [delay] [--device square|blink1|flag|both|all]" >&2
         exit 1
       fi
 
@@ -242,10 +362,12 @@ let
 
       case "$DEVICE_OVERRIDE" in
         "")     ;;
+        all)     DEVICES=("square" "blink1" "flag") ;;
         both)    DEVICES=("square" "blink1") ;;
         square)  DEVICES=("square") ;;
         blink1)  DEVICES=("blink1") ;;
-        *) echo "Unknown --device: $DEVICE_OVERRIDE (expected square|blink1|both)" >&2; exit 1 ;;
+        flag)    DEVICES=("flag") ;;
+        *) echo "Unknown --device: $DEVICE_OVERRIDE (expected square|blink1|flag|both|all)" >&2; exit 1 ;;
       esac
 
       BLINK1_BIN=""
@@ -273,11 +395,21 @@ let
         return 0
       }
 
+      drive_flag() {
+        if [ "$COLOR_HEX" = "000000" ]; then
+          luxafor-flag off 2>/dev/null &
+        else
+          luxafor-flag blink "$COLOR_HEX" --repeats "$REPEATS" --delay "$DELAY" 2>/dev/null &
+        fi
+        return 0
+      }
+
       DEVICE_PIDS=()
       for dev in "''${DEVICES[@]}"; do
         case "$dev" in
           square) drive_square && DEVICE_PIDS+=("$!") ;;
           blink1) drive_blink1 && DEVICE_PIDS+=("$!") ;;
+          flag)   drive_flag   && DEVICE_PIDS+=("$!") ;;
         esac
       done
 
@@ -304,7 +436,7 @@ let
 in
 {
   options.services.notification-leds = {
-    enable = lib.mkEnableOption "USB LED notification devices (BlinkStick Square + ThingM blink(1))";
+    enable = lib.mkEnableOption "USB LED notification devices (BlinkStick Square + ThingM blink(1) + Luxafor Flag)";
 
     sources = lib.mkOption {
       type = lib.types.attrsOf (
@@ -325,16 +457,20 @@ in
                 lib.types.enum [
                   "square"
                   "blink1"
+                  "flag"
                 ]
               );
               default = [
                 "square"
                 "blink1"
+                "flag"
               ];
               description = ''
                 Which device(s) fire when this source triggers.
                 "square" = the BlinkStick Square; "blink1" = the
-                ThingM blink(1). Use both for max visibility.
+                ThingM blink(1); "flag" = the Luxafor Flag (any
+                generation). Missing devices fail silently, so
+                listing all three is safe on any host.
               '';
             };
             repeats = lib.mkOption {
@@ -366,8 +502,8 @@ in
       '';
       example = lib.literalExpression ''
         {
-          slack    = { color = "red";    devices = [ "square" "blink1" ]; repeats = 30; };
-          email    = { color = "blue";   devices = [ "square" ]; };
+          slack    = { color = "red";    devices = [ "flag" "blink1" ]; repeats = 30; };
+          email    = { color = "blue";   devices = [ "flag" ]; };
           calendar = { color = "yellow"; devices = [ "blink1" ]; };
         }
       '';
@@ -377,6 +513,7 @@ in
   config = lib.mkIf cfg.enable {
     home.packages = [
       blinkstickSquareDriver
+      luxaforFlagDriver
       notifyBlinkScript
     ]
     ++ blink1Pkgs;
