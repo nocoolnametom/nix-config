@@ -83,7 +83,7 @@
     #################### Personal Repositories ####################
     # My Wordpress Themes and Plugins
     my-wordpress-plugins.url = "github:nocoolnametom/my-wordpress-plugins";
-    my-wordpress-plugins.inputs.nixpkgs.follows = "nixpkgs";
+    my-wordpress-plugins.inputs.nixpkgs.follows = "nixpkgs-unstable";
 
     # My SD models for various machines
     # Authenticate via ssh and use shallow clone (in case I ever put a model in here)

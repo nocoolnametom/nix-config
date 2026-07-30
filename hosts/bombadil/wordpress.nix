@@ -6,6 +6,13 @@
   configVars,
   ...
 }:
+let
+  # For security purposes, we sould ALWAYS be using at least stable if not bleeding-edge versions
+  # wpPkgBase = pkgs.bleeding;
+  wpPkgBase = pkgs.unstable;
+  wpPkg = wpPkgBase.wordpress;
+  wpPluginPkgs = wpPkgBase.wordpressPackages;
+in
 {
   # Testing WP Install
   services.wordpress.webserver = "nginx";
@@ -37,8 +44,8 @@
       twentyten = pkgs.myWpPlugins.wp-theme-twentyten-ken;
     };
     plugins = {
-      inherit (pkgs.wordpressPackages.plugins)
-        # akismet
+      inherit (wpPluginPkgs.plugins)
+        akismet
         # disable-xml-rpc
         # jetpack
         # merge-minify-refresh
@@ -46,7 +53,6 @@
         # wordpress-seo
         ;
       inherit (pkgs.myWpPlugins)
-        akismet
         classic-editor
         column-shortcodes
         # simple-csv-tables # Breaks for some reason - can't find a file that should be part of the plugin
@@ -69,7 +75,7 @@
     extraConfig = ''
       $_SERVER['HTTPS'] = 'on';
     '';
-    package = pkgs.wordpress.overrideAttrs (oldAttrs: rec {
+    package = wpPkg.overrideAttrs (oldAttrs: rec {
       installPhase =
         oldAttrs.installPhase
         # These folders link writable on-disk storage to the WP Nix Store package so that WP can write to them

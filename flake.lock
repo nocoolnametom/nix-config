@@ -270,15 +270,15 @@
     "flake-compat_3": {
       "flake": false,
       "locked": {
-        "lastModified": 1696426674,
-        "narHash": "sha256-kvjfFW7WAETZlt09AgDn1MrtKzP7t90Vf7vypd3OL1U=",
-        "owner": "edolstra",
+        "lastModified": 1767039857,
+        "narHash": "sha256-vNpUSpF5Nuw8xvDLj2KCwwksIbjua2LZCqhV1LNRDns=",
+        "owner": "NixOS",
         "repo": "flake-compat",
-        "rev": "0f9255e01c2351cc7d116c072cb317785dd33b33",
+        "rev": "5edf11c44bc78a0d334f6334cdaf7d60d732daab",
         "type": "github"
       },
       "original": {
-        "owner": "edolstra",
+        "owner": "NixOS",
         "repo": "flake-compat",
         "type": "github"
       }
@@ -458,28 +458,6 @@
         "nixpkgs": [
           "lanzaboote",
           "pre-commit",
-          "nixpkgs"
-        ]
-      },
-      "locked": {
-        "lastModified": 1709087332,
-        "narHash": "sha256-HG2cCnktfHsKV0s4XW83gU3F57gaTljL9KNSuG6bnQs=",
-        "owner": "hercules-ci",
-        "repo": "gitignore.nix",
-        "rev": "637db329424fd7e46cf4185293b9cc8c88c95394",
-        "type": "github"
-      },
-      "original": {
-        "owner": "hercules-ci",
-        "repo": "gitignore.nix",
-        "type": "github"
-      }
-    },
-    "gitignore_2": {
-      "inputs": {
-        "nixpkgs": [
-          "my-wordpress-plugins",
-          "pre-commit-hooks",
           "nixpkgs"
         ]
       },
@@ -727,17 +705,17 @@
     "my-wordpress-plugins": {
       "inputs": {
         "nixpkgs": [
-          "nixpkgs"
+          "nixpkgs-unstable"
         ],
         "pre-commit-hooks": "pre-commit-hooks",
         "wp-main": "wp-main"
       },
       "locked": {
-        "lastModified": 1737985560,
-        "narHash": "sha256-HbldamXPJTC3iDGG7IqF1M6LgwosD8LFHK8O6rTJQrE=",
+        "lastModified": 1785428134,
+        "narHash": "sha256-vyLCXXmNzYL/8XLKjGfJEIIYNiONV0gKzVNrsEPzzq4=",
         "owner": "nocoolnametom",
         "repo": "my-wordpress-plugins",
-        "rev": "d03589b88f2301effba8e99d8ecc6c98d84f2842",
+        "rev": "8dda6ed80c56aa23244dbdd881581ef4ed0249b0",
         "type": "github"
       },
       "original": {
@@ -924,22 +902,6 @@
     },
     "nixpkgs-stable": {
       "locked": {
-        "lastModified": 1730741070,
-        "narHash": "sha256-edm8WG19kWozJ/GqyYx2VjW99EdhjKwbY3ZwdlPAAlo=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "d063c1dd113c91ab27959ba540c0d9753409edf3",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixos-24.05",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
-    "nixpkgs-stable_2": {
-      "locked": {
         "lastModified": 1784707089,
         "narHash": "sha256-2V/6imsUgB7mPZlHY54oeVBRDoZbPKnvzwkAHUSSufk=",
         "owner": "NixOS",
@@ -1102,19 +1064,17 @@
     "pre-commit-hooks": {
       "inputs": {
         "flake-compat": "flake-compat_3",
-        "gitignore": "gitignore_2",
         "nixpkgs": [
           "my-wordpress-plugins",
           "nixpkgs"
-        ],
-        "nixpkgs-stable": "nixpkgs-stable"
+        ]
       },
       "locked": {
-        "lastModified": 1734797603,
-        "narHash": "sha256-ulZN7ps8nBV31SE+dwkDvKIzvN6hroRY8sYOT0w+E28=",
+        "lastModified": 1784288435,
+        "narHash": "sha256-ReRHaLgr/uVqdD8afFSn+myXIfpHeOhP0yYe0TJqAA8=",
         "owner": "cachix",
         "repo": "git-hooks.nix",
-        "rev": "f0f0dc4920a903c3e08f5bdb9246bb572fcae498",
+        "rev": "43b3c1ab9d40fb1dbb008f451988a91e375825e9",
         "type": "github"
       },
       "original": {
@@ -1166,7 +1126,7 @@
         "nixpkgs": "nixpkgs_4",
         "nixpkgs-master": "nixpkgs-master",
         "nixpkgs-old": "nixpkgs-old",
-        "nixpkgs-stable": "nixpkgs-stable_2",
+        "nixpkgs-stable": "nixpkgs-stable",
         "nixpkgs-unstable": "nixpkgs-unstable",
         "orion": "orion",
         "pre-commit-hooks": "pre-commit-hooks_2",
@@ -1445,11 +1405,11 @@
     "wp-main": {
       "flake": false,
       "locked": {
-        "lastModified": 1735151483,
-        "narHash": "sha256-UIm7/a1RKg3JqKMoIANpWJCtIgtFPOFTvRYcER5xf78=",
+        "lastModified": 1785423349,
+        "narHash": "sha256-yIRxTwFucXuI8n/XJIUSqoC4dqNUTS0faY0SZCgbq1I=",
         "owner": "WordPress",
         "repo": "WordPress",
-        "rev": "767dea88eb3bdb3fefb0bd9a552bb0d3ded2b14f",
+        "rev": "55daac4d891fc83fa70cc542ca9353f0f5a7c325",
         "type": "github"
       },
       "original": {
