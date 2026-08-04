@@ -43,9 +43,8 @@
     mode = "0400";
   };
 
-  # Use custom stashapp package (more up-to-date than nixpkgs)
   services.stash.enable = lib.mkDefault true;
-  services.stash.package = lib.mkDefault pkgs.stashapp;
+  services.stash.package = lib.mkDefault pkgs.unstable.stash;
 
   # Authentication and secrets
   services.stash.username = lib.mkDefault configVars.username;
@@ -67,6 +66,27 @@
   # All other systemd security hardening (ProtectSystem, PrivateDevices, etc.) remains active
   systemd.services.stash.serviceConfig.BindReadOnlyPaths = lib.mkForce [ ];
 
+  # Ensure that plugins have the proper dependencies available
+  systemd.services.stash.path = with pkgs; [
+    ffmpeg-full
+    ruby
+    openssl
+    sqlite
+    stashapp-tools
+    (python3.withPackages (ps: with ps; [
+      apscheduler
+      beautifulsoup4
+      bundler
+      cloudscraper
+      configparser
+      lxml
+      nokogiri
+      progressbar
+      requests
+      watchdog
+    ]))
+  ];
+
   # Basic settings (used for initialization if config doesn't exist)
   services.stash.settings.host = lib.mkDefault "0.0.0.0";
   services.stash.settings.port = lib.mkDefault configVars.networking.ports.tcp.stash;
@@ -77,6 +97,7 @@
   services.stash.settings.image_exclude = [
     "_unpack"
   ];
+  services.stash.settings.nobrowser = lib.mkDefault true;
   services.stash.settings.ffmpeg.hardware_acceleration = lib.mkDefault true;
   services.stash.settings.max_streaming_transcode_size = lib.mkDefault "FULL_HD";
   services.stash.settings.video_extensions = lib.mkDefault [

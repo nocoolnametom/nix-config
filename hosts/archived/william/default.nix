@@ -145,7 +145,7 @@
 
   services.resolved = {
     enable = true;
-    dnssec = "true";
+    settings.Resolve.DNSSEC = "true";
     domains = [ "~." ];
     fallbackDns = [
       "1.1.1.1#one.one.one.one"
