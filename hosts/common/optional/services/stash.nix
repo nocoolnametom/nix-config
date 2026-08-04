@@ -4,7 +4,19 @@
   config,
   configVars,
   ...
-}:
+}: let
+  stash-python3 = pkgs.python3.withPackages (ps: with ps; [
+    apscheduler
+    beautifulsoup4
+    cloudscraper
+    configparser
+    lxml
+    progressbar
+    requests
+    watchdog
+  ]);
+  stashPythonPathString = "${stash-python3}/${stash-python3.sitePackages}";
+in
 # Configuration for the nixpkgs stash service with VR helper extension
 #
 # Required sops-nix secrets (extracted from existing config.yml):
@@ -44,7 +56,9 @@
   };
 
   services.stash.enable = lib.mkDefault true;
-  services.stash.package = lib.mkDefault pkgs.unstable.stash;
+  # Bleeding doesn't seem to update nearly enough
+  # services.stash.package = lib.mkDefault pkgs.bleeding.stash;
+  services.stash.package = lib.mkDefault pkgs.stashapp;
 
   # Authentication and secrets
   services.stash.username = lib.mkDefault configVars.username;
@@ -67,24 +81,15 @@
   systemd.services.stash.serviceConfig.BindReadOnlyPaths = lib.mkForce [ ];
 
   # Ensure that plugins have the proper dependencies available
-  systemd.services.stash.path = with pkgs; [
-    ffmpeg-full
-    ruby
+  systemd.services.stash.path = lib.mkBefore (with pkgs; [
     openssl
     sqlite
     stashapp-tools
-    (python3.withPackages (ps: with ps; [
-      apscheduler
-      beautifulsoup4
-      bundler
-      cloudscraper
-      configparser
-      lxml
-      nokogiri
-      progressbar
-      requests
-      watchdog
-    ]))
+    stash-python3
+  ]);
+  systemd.services.stash.environment.STASH_PYTHONPATH = stashPythonPathString;
+  systemd.services.stash.serviceConfig.Environment = [
+    "PYTHONPATH=${stashPythonPathString}"
   ];
 
   # Basic settings (used for initialization if config doesn't exist)
