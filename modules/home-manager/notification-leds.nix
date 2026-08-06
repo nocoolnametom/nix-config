@@ -265,7 +265,11 @@ let
 
   notifyBlinkScript = pkgs.writeShellApplication {
     name = "notify-blink";
-    runtimeInputs = [ blinkstickSquareDriver luxaforFlagDriver ] ++ blink1Pkgs;
+    runtimeInputs = [
+      blinkstickSquareDriver
+      luxaforFlagDriver
+    ]
+    ++ blink1Pkgs;
     text = ''
       # notify-blink — drive USB notification LEDs.
       #

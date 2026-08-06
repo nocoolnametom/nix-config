@@ -1,14 +1,21 @@
-{ lib, config, pkgs, configVars, ... }:
+{
+  lib,
+  config,
+  pkgs,
+  configVars,
+  ...
+}:
 let
   # Collect any steam-related packages that snuck into home.packages.
   # Matches against pname/name (case-insensitive) so it catches packages
   # from any nixpkgs input or overlay, not just the canonical `pkgs.steam`.
-  steamPkgs = builtins.filter
-    (p:
-      let name = lib.toLower (if builtins.isAttrs p then p.pname or p.name or "" else "");
-      in builtins.match ".*steam.*" name != null
-    )
-    config.home.packages;
+  steamPkgs = builtins.filter (
+    p:
+    let
+      name = lib.toLower (if builtins.isAttrs p then p.pname or p.name or "" else "");
+    in
+    builtins.match ".*steam.*" name != null
+  ) config.home.packages;
 
   # SteamOS doesn't ship libfido2, so /usr/lib/ssh/ssh-sk-helper fails with:
   #   cannot open shared object file: libfido2.so.1
@@ -35,10 +42,9 @@ let
   # Build a bash associative-array literal from the shared serial → key-name map.
   # Produces: ([yklappy]="22373686" [ykmbp]="22373683" ...)
   # Same data as configVars.yubikey.identifiers used by modules/nixos/yubikey.nix.
-  serialMapBash = lib.concatStringsSep " "
-    (lib.mapAttrsToList
-      (name: serial: "[${name}]=\"${toString serial}\"")
-      configVars.yubikey.identifiers);
+  serialMapBash = lib.concatStringsSep " " (
+    lib.mapAttrsToList (name: serial: "[${name}]=\"${toString serial}\"") configVars.yubikey.identifiers
+  );
 
   # Userspace equivalent of the udev rules in modules/nixos/yubikey.nix.
   # On SteamOS, /etc/udev/rules.d/ is wiped by every A/B OS upgrade, so we
@@ -53,7 +59,10 @@ let
     name = "steamos-yubikey-monitor";
     # yubikey-manager provides ykman; gawk for the serial extraction.
     # udevadm comes from the system (/usr/bin/udevadm) — not nix dep.
-    runtimeInputs = with pkgs; [ yubikey-manager gawk ];
+    runtimeInputs = with pkgs; [
+      yubikey-manager
+      gawk
+    ];
     text = ''
       SSH_DIR="${config.home.homeDirectory}/.ssh"
 
@@ -129,7 +138,9 @@ in
       message = ''
         steamos-hm-helper: Steam-related packages found in home.packages — not allowed on SteamOS.
 
-          Offending package(s): ${lib.concatMapStringsSep ", " (p: p.pname or p.name or "(unknown)") steamPkgs}
+          Offending package(s): ${
+            lib.concatMapStringsSep ", " (p: p.pname or p.name or "(unknown)") steamPkgs
+          }
 
           On SteamOS, Steam is managed by Valve's system image, not by Nix.
           Installing it via Nix would shadow the system Steam, breaking Game Mode,

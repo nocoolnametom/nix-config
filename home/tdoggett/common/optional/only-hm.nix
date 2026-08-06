@@ -14,7 +14,8 @@
   # For legacy commands: route NIX_PATH through registry
   home.sessionVariables.NIX_PATH =
     let
-      nixpkgsRef = if builtins.hasAttr "to" inputs.nixpkgs then inputs.nixpkgs.to.path else inputs.nixpkgs.outPath;
+      nixpkgsRef =
+        if builtins.hasAttr "to" inputs.nixpkgs then inputs.nixpkgs.to.path else inputs.nixpkgs.outPath;
     in
     "nixpkgs=${nixpkgsRef}$\{NIX_PATH:+:$NIX_PATH}";
 
@@ -29,10 +30,9 @@
     let
       keyDir = configLib.relativeToRoot "hosts/common/users/${configVars.username}/keys";
       excludedKeys = [ "id_nixbuilder" ];
-      keyFiles = builtins.filter
-        (f: lib.hasSuffix ".pub" f &&
-            !(builtins.elem (lib.removeSuffix ".pub" f) excludedKeys))
-        (builtins.attrNames (builtins.readDir keyDir));
+      keyFiles = builtins.filter (
+        f: lib.hasSuffix ".pub" f && !(builtins.elem (lib.removeSuffix ".pub" f) excludedKeys)
+      ) (builtins.attrNames (builtins.readDir keyDir));
     in
     {
       text = lib.concatMapStringsSep "\n" (f: lib.fileContents "${keyDir}/${f}") keyFiles + "\n";

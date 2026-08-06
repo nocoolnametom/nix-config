@@ -1,4 +1,9 @@
-{ pkgs, lib, configVars, ... }:
+{
+  pkgs,
+  lib,
+  configVars,
+  ...
+}:
 {
   yubikey = {
     enable = lib.mkDefault true;

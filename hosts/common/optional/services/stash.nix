@@ -4,17 +4,20 @@
   config,
   configVars,
   ...
-}: let
-  stash-python3 = pkgs.python3.withPackages (ps: with ps; [
-    apscheduler
-    beautifulsoup4
-    cloudscraper
-    configparser
-    lxml
-    progressbar
-    requests
-    watchdog
-  ]);
+}:
+let
+  stash-python3 = pkgs.python3.withPackages (
+    ps: with ps; [
+      apscheduler
+      beautifulsoup4
+      cloudscraper
+      configparser
+      lxml
+      progressbar
+      requests
+      watchdog
+    ]
+  );
   stashPythonPathString = "${stash-python3}/${stash-python3.sitePackages}";
 in
 # Configuration for the nixpkgs stash service with VR helper extension
@@ -55,6 +58,16 @@ in
     mode = "0400";
   };
 
+  # Separate sops secret entry owned by the stash user so the scheduler
+  # startup service can read it at runtime without elevated privileges.
+  # Uses the same underlying secret key as the nzbget stash integration.
+  sops.secrets."stash-api-key" = {
+    key = "${config.networking.hostName}-stashapp-api-key";
+    owner = config.services.stash.user;
+    group = config.services.stash.group;
+    mode = "0400";
+  };
+
   services.stash.enable = lib.mkDefault true;
   # Bleeding doesn't seem to update nearly enough
   # services.stash.package = lib.mkDefault pkgs.bleeding.stash;
@@ -81,12 +94,15 @@ in
   systemd.services.stash.serviceConfig.BindReadOnlyPaths = lib.mkForce [ ];
 
   # Ensure that plugins have the proper dependencies available
-  systemd.services.stash.path = lib.mkBefore (with pkgs; [
-    openssl
-    sqlite
-    stashapp-tools
-    stash-python3
-  ]);
+  systemd.services.stash.path = lib.mkBefore (
+    with pkgs;
+    [
+      openssl
+      sqlite
+      stashapp-tools
+      stash-python3
+    ]
+  );
   systemd.services.stash.environment.STASH_PYTHONPATH = stashPythonPathString;
   systemd.services.stash.serviceConfig.Environment = [
     "PYTHONPATH=${stashPythonPathString}"
@@ -156,6 +172,71 @@ in
   # Ensure the stash user is in the shared media group
   users.groups.media = { };
   users.users.${config.services.stash.user}.extraGroups = [ "media" ];
+
+  # Start the stash-scheduler plugin daemon whenever stash comes online.
+  # wantedBy = ["stash.service"] places this unit in stash.service's .wants/
+  # directory so systemd activates it on every stash activation — boot,
+  # manual start, or after work-block stops.  No changes to work-block needed.
+  systemd.services.stash-start-scheduler =
+    let
+      stashPort = toString configVars.networking.ports.tcp.stash;
+      schedulerScript = pkgs.writeShellScript "stash-start-scheduler" ''
+        set -euo pipefail
+
+        MAX_ATTEMPTS=30
+        attempt=0
+
+        # Poll until stash's GraphQL API is accepting requests before sending
+        # the plugin task — stash takes a moment to fully initialise after the
+        # systemd unit reports started.
+        until ${pkgs.curl}/bin/curl \
+            --silent \
+            --fail \
+            --output /dev/null \
+            --max-time 2 \
+            -X POST \
+            -H "Content-Type: application/json" \
+            --data '{"query":"{ version { version } }"}' \
+            "http://localhost:${stashPort}/graphql"; do
+          attempt=$((attempt + 1))
+          if [ "$attempt" -ge "$MAX_ATTEMPTS" ]; then
+            echo "Stash GraphQL API not ready after $MAX_ATTEMPTS attempts (60s), giving up" >&2
+            exit 1
+          fi
+          echo "Stash not ready yet (attempt $attempt/$MAX_ATTEMPTS), retrying in 2s..."
+          sleep 2
+        done
+
+        echo "Stash is ready, starting stash-scheduler plugin..."
+        ${pkgs.curl}/bin/curl \
+          --silent \
+          --fail \
+          -X POST \
+          -H "ApiKey: $(cat ${config.sops.secrets."stash-api-key".path})" \
+          -H "Content-Type: application/json" \
+          --data '{"operationName":"RunPluginTask","variables":{"plugin_id":"stash-scheduler","task_name":"Start Scheduler"},"query":"mutation RunPluginTask($plugin_id: ID!, $task_name: String!, $args_map: Map) {\n  runPluginTask(plugin_id: $plugin_id, task_name: $task_name, args_map: $args_map)\n}"}' \
+          "http://localhost:${stashPort}/graphql"
+        echo "stash-scheduler plugin started successfully"
+      '';
+    in
+    {
+      description = "Start stash-scheduler plugin after stash comes online";
+      after = [ "stash.service" ];
+      # Placing this unit in stash.service.wants/ means systemd starts it
+      # automatically on every stash activation without any caller needing to
+      # know about it.
+      wantedBy = [ "stash.service" ];
+
+      serviceConfig = {
+        Type = "oneshot";
+        User = config.services.stash.user;
+        Group = config.services.stash.group;
+        ExecStart = "${schedulerScript}";
+        # RemainAfterExit = false (the default) means the unit becomes inactive
+        # after completion, so systemd will re-run it the next time stash starts.
+        RemainAfterExit = false;
+      };
+    };
 
   # Set umask so stash creates group-writable files
   systemd.services.stash.serviceConfig.UMask = lib.mkDefault "0002";
