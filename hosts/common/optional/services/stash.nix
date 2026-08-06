@@ -195,6 +195,7 @@ in
             --output /dev/null \
             --max-time 2 \
             -X POST \
+            -H "ApiKey: $(cat ${config.sops.secrets."stash-api-key".path})" \
             -H "Content-Type: application/json" \
             --data '{"query":"{ version { version } }"}' \
             "http://localhost:${stashPort}/graphql"; do
