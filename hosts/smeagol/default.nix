@@ -46,8 +46,6 @@ in
     "hosts/common/optional/services/docker/invokeai.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/oauth2-proxy.nix"
-    "hosts/common/optional/services/ollama.nix"
-    "hosts/common/optional/services/open-webui.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"

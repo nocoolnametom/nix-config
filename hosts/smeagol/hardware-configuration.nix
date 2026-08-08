@@ -105,6 +105,19 @@
     neededForBoot = true;
   };
 
+  fileSystems."/var/lib/docker" = {
+    device = "/dev/disk/by-label/Insignia";
+    fsType = "btrfs";
+    options = [
+      "subvol=docker"
+      "users"
+      "auto"
+      "compress=zstd"
+      "nofail"
+      "defaults"
+    ];
+  };
+
   fileSystems."/var/lib/ollama/models" = {
     device = "/dev/disk/by-label/Insignia";
     fsType = "btrfs";
