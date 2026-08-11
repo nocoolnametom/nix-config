@@ -523,6 +523,98 @@ let
             sys.exit(0)
   '';
 
+  # Script that runs when the override period ends:
+  # removes the pause sentinel and restarts work-block only if still within work hours.
+  # Work hours, work days, and holidays are all embedded at build time so no runtime
+  # config parsing is needed.
+  overrideEndScript = pkgs.writeScript "work-block-override-end.sh" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    rm -f /run/work-block-paused
+
+    TODAY=$(${pkgs.coreutils}/bin/date +%Y-%m-%d)
+    DAY=$(${pkgs.coreutils}/bin/date +%a)
+    TIME=$(${pkgs.coreutils}/bin/date +%H:%M:%S)
+
+    HOLIDAYS=(${concatStringsSep " " (map (h: ''"${h}"'') cfg.holidays)})
+    for holiday in "''${HOLIDAYS[@]}"; do
+      if [[ "$TODAY" == "$holiday" ]]; then
+        echo "Override ended on a holiday ($TODAY); not restarting work-block."
+        exit 0
+      fi
+    done
+
+    WORK_DAYS=(${concatStringsSep " " cfg.workDays})
+    IS_WORK_DAY=false
+    for d in "''${WORK_DAYS[@]}"; do
+      if [[ "$DAY" == "$d" ]]; then IS_WORK_DAY=true; break; fi
+    done
+    if ! $IS_WORK_DAY; then
+      echo "Override ended on a non-work day ($DAY); not restarting work-block."
+      exit 0
+    fi
+
+    if [[ "$TIME" > "${cfg.startTime}" && "$TIME" < "${cfg.endTime}" ]]; then
+      echo "Override ended within work hours ($TIME); restarting work-block."
+      ${pkgs.systemd}/bin/systemctl start work-block.service
+    else
+      echo "Override ended outside work hours ($TIME); not restarting work-block."
+    fi
+  '';
+
+  # Script run by work-block-override.service: creates the pause sentinel, stops
+  # work-block (which auto-restarts blocked services via ExecStopPost), schedules
+  # the re-evaluation after overrideDuration seconds, and fans out to any peer machines.
+  overrideScript = pkgs.writeScript "work-block-override.sh" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    echo "Activating work-block override for ${toString cfg.overrideDuration} seconds."
+
+    # Pause sentinel: prevents the start timer from reactivating work-block during the override
+    touch /run/work-block-paused
+
+    # Stopping work-block triggers ExecStopPost, which restarts the blocked services
+    ${pkgs.systemd}/bin/systemctl stop work-block.service || true
+
+    # Cancel any existing override-end timer so a second button press resets the clock
+    ${pkgs.systemd}/bin/systemctl stop work-block-override-end.timer 2>/dev/null || true
+    ${pkgs.systemd}/bin/systemd-run \
+      --unit=work-block-override-end \
+      --description="Re-evaluate work-block after override period" \
+      --on-active=${toString cfg.overrideDuration} \
+      ${overrideEndScript}
+
+    ${optionalString (cfg.listener.peers != [ ]) ''
+      # Forward the override to peer machines (fire and forget; failures are non-fatal)
+      PEERS=(${concatStringsSep " " (map (p: ''"${p}"'') cfg.listener.peers)})
+      for peer in "''${PEERS[@]}"; do
+        ${pkgs.curl}/bin/curl -s -m 5 --connect-timeout 3 "http://''${peer}/" \
+          >/dev/null 2>&1 || true &
+      done
+      wait 2>/dev/null || true
+    ''}
+  '';
+
+  # Handler for each incoming socket connection: drains the HTTP request headers,
+  # sends a minimal 200 response so the button knows the request landed, then
+  # triggers the override non-blocking so the socket can close promptly.
+  listenerHandlerScript = pkgs.writeScript "work-block-listener-handler.sh" ''
+    #!${pkgs.bash}/bin/bash
+
+    # Drain incoming HTTP headers (read until blank line or 2s timeout)
+    while IFS= read -r -t 2 line; do
+      [[ "''${line%$'\r'}" == "" ]] && break
+    done 2>/dev/null || true
+
+    # Acknowledge the request before triggering so the button sees a clean response
+    printf 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK'
+
+    # Non-blocking so this handler exits quickly and the socket closes
+    ${pkgs.systemd}/bin/systemctl --no-block start work-block-override.service
+  '';
+
   # Check if any services are configured and enabled
   hasEnabledServices = (length cfg.services) > 0 && (length enabledServices) > 0;
 
@@ -628,12 +720,61 @@ in
         - "2026-07-04" - Independence Day
       '';
     };
+
+    overrideDuration = mkOption {
+      type = types.int;
+      default = 3600;
+      description = mdDoc ''
+        How long (in seconds) the manual override lasts before work-block is re-evaluated.
+        Pressing the button again while an override is active resets this timer.
+      '';
+    };
+
+    listener = {
+      enable = mkOption {
+        type = types.bool;
+        default = false;
+        description = mdDoc ''
+          Enable a systemd socket-activated listener that triggers the work-block override
+          when any HTTP request arrives on the configured port. Intended for use with a
+          physical button or other simple trigger that sends a single HTTP request.
+
+          No request body is parsed; the mere arrival of a connection is the signal.
+        '';
+      };
+
+      port = mkOption {
+        type = types.port;
+        default = 9119;
+        description = "TCP port the override listener binds to.";
+      };
+
+      peers = mkOption {
+        type = types.listOf types.str;
+        default = [ ];
+        example = [
+          "192.168.1.10:9119"
+          "192.168.1.11:9119"
+        ];
+        description = mdDoc ''
+          List of `host:port` addresses to forward the override request to after
+          applying it locally. Use this on the coordinator machine (e.g. estel) to
+          fan out a single button press to every other machine running work-block.
+          Leave empty on non-coordinator machines.
+        '';
+      };
+    };
   };
 
   config = mkIf (cfg.enable && hasEnabledServices) {
     # Main work-block service that stops services and serves placeholders
     systemd.services.work-block = {
       description = "Work Block - Disable distracting services during work hours (Python HTTP server)";
+
+      unitConfig = {
+        # Skip activation when a manual override is active (pause file present)
+        ConditionPathExists = "!/run/work-block-paused";
+      };
 
       # Stop the blocked services when this starts
       # Note: systemd requires full unit names with .service suffix
@@ -758,5 +899,47 @@ in
         ) uniqueServiceNames;
       };
     };
+
+    # Oneshot service that applies the manual override: creates the pause sentinel,
+    # stops work-block (triggering service restarts via ExecStopPost), schedules
+    # re-evaluation after overrideDuration seconds, and fans out to peers if configured.
+    systemd.services.work-block-override = {
+      description = "Temporarily suspend work-block for ${toString cfg.overrideDuration} seconds";
+      serviceConfig = {
+        Type = "oneshot";
+        ExecStart = "${overrideScript}";
+        User = "root";
+        # Allow time for the fan-out curl calls to complete
+        TimeoutStartSec = "30s";
+      };
+    };
+
+    # Socket that listens for override trigger requests (e.g. from a physical button).
+    # Accept=yes spawns a fresh handler instance for each incoming connection.
+    systemd.sockets.work-block-trigger = mkIf cfg.listener.enable {
+      description = "Work-block override trigger socket";
+      wantedBy = [ "sockets.target" ];
+      socketConfig = {
+        ListenStream = cfg.listener.port;
+        Accept = true;
+      };
+    };
+
+    # Template service instantiated per connection by the socket above.
+    # Reads and discards the HTTP headers, sends a 200 OK, then kicks off the override.
+    systemd.services."work-block-trigger@" = mkIf cfg.listener.enable {
+      description = "Work-block override trigger handler";
+      serviceConfig = {
+        Type = "simple";
+        StandardInput = "socket";
+        StandardOutput = "socket";
+        StandardError = "journal";
+        ExecStart = "${listenerHandlerScript}";
+        User = "root";
+        TimeoutStartSec = "10s";
+      };
+    };
+
+    networking.firewall.allowedTCPPorts = mkIf cfg.listener.enable [ cfg.listener.port ];
   };
 }

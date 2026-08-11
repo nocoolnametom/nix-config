@@ -1,11 +1,9 @@
 {
   pkgs,
   lib,
-  config,
   inputs,
   outputs,
   configLib,
-  configVars,
   configurationRevision,
   ...
 }:

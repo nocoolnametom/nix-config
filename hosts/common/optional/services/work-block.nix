@@ -7,6 +7,7 @@
   # Enable work-block to help with focus during work hours
   services.work-block = {
     enable = lib.mkDefault true;
+    listener.enable = lib.mkDefault true;
 
     # Services to block during work hours
     # Only services that are actually enabled on each system will be blocked
