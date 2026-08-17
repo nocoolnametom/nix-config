@@ -104,16 +104,28 @@ let
     };
 
     comfyui = {
+      # The comfyui wrapper (hosts/common/optional/services/comfyui/default.nix)
+      # force-sets services.comfyui.enable=false when useDocker=true, so
+      # `services.comfyui.enable` alone can't distinguish "docker variant is
+      # running" from "comfyui isn't set up at all". Read useDocker directly:
+      # it's the option that actually gates whether the arion project (and
+      # thus arion-comfyui-docker.service) is defined. This preserves the
+      # mutual exclusion (useDocker=true xor useDocker=false), and correctly
+      # includes the enableNativeAlongside case where both variants run.
       services = [
         {
           name = "comfyui";
           enabled =
-            (config.services.comfyui.enable or false) && !(config.services.comfyui.useDocker or false);
+            (config.services.comfyui.enable or false)
+            && (
+              !(config.services.comfyui.useDocker or false)
+              || (config.services.comfyui.enableNativeAlongside or false)
+            );
           port = config.services.comfyui.port or 8188;
         }
         {
           name = "arion-comfyui-docker";
-          enabled = (config.services.comfyui.enable or false) && (config.services.comfyui.useDocker or false);
+          enabled = config.services.comfyui.useDocker or false;
           port = config.services.comfyui.docker.port or 8188;
         }
       ];

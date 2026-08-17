@@ -473,6 +473,17 @@ in
     (mkIf cfg.enable {
       virtualisation.arion.backend = mkForce "docker";
 
+      # Force-recreate the container on every start. Without this,
+      # docker-compose reuses the existing container across restarts, which on
+      # this kernel/docker combination can leave it running but detached from
+      # its bridge network - the container is up, invokeai is running inside,
+      # but no port is published and the state persists until docker rm.
+      # Data lives on host volumes (/var/lib/stable-diffusion/*), so recreating
+      # the container is cheap and doesn't lose state.
+      systemd.services.arion-invokeai.serviceConfig.ExecStartPre = [
+        "-${pkgs.docker}/bin/docker rm -f invokeai"
+      ];
+
       virtualisation.arion.projects."invokeai".settings = {
         services."invokeai".service = mkIf cfg.active (mkMerge [
           # Base configuration
@@ -497,7 +508,7 @@ in
               "/nix/store:/nix/store:ro"
               "${cfg.customNodesDir}:/invokeai/custom_nodes"
               "${cfg.legacyConfDir}:/invokeai/configs"
-              "${cfg.dbDir}:/invokeai/db"
+              "${cfg.dbDir}:/invokeai/databases"
               "${cfg.downloadCacheDir}:/invokeai/downloads"
               "${cfg.modelsDir}:/invokeai/models"
               "${cfg.outputsDir}:/invokeai/outputs"
