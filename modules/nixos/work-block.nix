@@ -21,8 +21,13 @@
 #       (Stopping the service triggers ExecStopPost, which restarts blocked services.)
 #
 #     work-block-check.service (run at boot and after the override timer elapses)
-#       If blocked-until exists and is in the future and today is not a holiday,
-#       start work-block.service. Otherwise clear stale state.
+#       Reconciles state:
+#       - If blocked-until is valid, (re)start work-block.
+#       - If blocked-until is stale or today is a holiday, clear it and exit.
+#       - If there's no state but we're currently inside work hours on a work
+#         day, delegate to work-block-start.service to establish today's session.
+#         (This handles boot / rebuild during work hours, which the calendar
+#         timer alone can't cover from a fresh install.)
 #
 #     work-block-override.service  (triggered by HTTP request on the listener port)
 #       Stop work-block.service (blocked services restart via ExecStopPost).
@@ -538,30 +543,81 @@ let
   '';
 
   # Called at boot (via wantedBy=multi-user.target) and after the override timer
-  # elapses. Restarts work-block if the day's session is still valid.
+  # elapses. Reconciles state:
+  # - If the state file exists and is still valid, (re)start work-block.
+  # - If the state file is stale or today is a holiday, clean up and exit.
+  # - If there is no state file but we're currently inside work hours on a work
+  #   day, establish today's session by delegating to work-block-start.service.
+  #   This closes the gap where a boot / rebuild during work hours would otherwise
+  #   leave the day unblocked until tomorrow's calendar tick.
   checkScript = pkgs.writeScript "work-block-check.sh" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
 
-    if [ ! -f ${stateFile} ]; then
-      echo "No ${stateFile}; nothing to do."
+    TODAY=$(${pkgs.coreutils}/bin/date +%Y-%m-%d)
+    DAY=$(${pkgs.coreutils}/bin/date +%a)
+    TIME=$(${pkgs.coreutils}/bin/date +%H:%M:%S)
+
+    is_holiday() {
+      local h
+      for h in ${concatStringsSep " " (map (h: ''"${h}"'') cfg.holidays)}; do
+        [ "$TODAY" = "$h" ] && return 0
+      done
+      return 1
+    }
+
+    is_work_day() {
+      local d
+      for d in ${concatStringsSep " " cfg.workDays}; do
+        [ "$DAY" = "$d" ] && return 0
+      done
+      return 1
+    }
+
+    within_work_hours() {
+      [[ "$TIME" > "${cfg.startTime}" && "$TIME" < "${cfg.endTime}" ]]
+    }
+
+    if [ -f ${stateFile} ]; then
+      BLOCKED_UNTIL=$(${pkgs.coreutils}/bin/cat ${stateFile})
+      BLOCKED_TS=$(${pkgs.coreutils}/bin/date -d "$BLOCKED_UNTIL" +%s 2>/dev/null || echo 0)
+      NOW_TS=$(${pkgs.coreutils}/bin/date +%s)
+
+      if [ "$BLOCKED_TS" -le "$NOW_TS" ]; then
+        echo "$BLOCKED_UNTIL is in the past; removing stale state."
+        ${pkgs.coreutils}/bin/rm -f ${stateFile}
+        exit 0
+      fi
+
+      if is_holiday; then
+        echo "Today ($TODAY) is a configured holiday; clearing state and not blocking."
+        ${pkgs.coreutils}/bin/rm -f ${stateFile}
+        exit 0
+      fi
+
+      echo "Session still active until $BLOCKED_UNTIL; starting work-block.service."
+      ${pkgs.systemd}/bin/systemctl start work-block.service
       exit 0
     fi
 
-    BLOCKED_UNTIL=$(${pkgs.coreutils}/bin/cat ${stateFile})
-    BLOCKED_TS=$(${pkgs.coreutils}/bin/date -d "$BLOCKED_UNTIL" +%s 2>/dev/null || echo 0)
-    NOW_TS=$(${pkgs.coreutils}/bin/date +%s)
-
-    if [ "$BLOCKED_TS" -le "$NOW_TS" ]; then
-      echo "$BLOCKED_UNTIL is in the past; removing stale state."
-      ${pkgs.coreutils}/bin/rm -f ${stateFile}
+    # No state file: decide whether today's session should be established right now.
+    if is_holiday; then
+      echo "Today ($TODAY) is a configured holiday; nothing to do."
       exit 0
     fi
 
-    ${holidayGuardFragment}
+    if ! is_work_day; then
+      echo "$DAY is not a work day; nothing to do."
+      exit 0
+    fi
 
-    echo "Session still active until $BLOCKED_UNTIL; starting work-block.service."
-    ${pkgs.systemd}/bin/systemctl start work-block.service
+    if ! within_work_hours; then
+      echo "$TIME is outside work hours (${cfg.startTime}-${cfg.endTime}); nothing to do."
+      exit 0
+    fi
+
+    echo "Within work hours but no session exists; establishing via work-block-start.service."
+    ${pkgs.systemd}/bin/systemctl start work-block-start.service
   '';
 
   # Called by the HTTP listener (or manually). Stops work-block (ExecStopPost
