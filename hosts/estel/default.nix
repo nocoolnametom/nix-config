@@ -156,15 +156,6 @@
     hubUrl = "http://localhost:8090";
   };
 
-  # estel is the coordinator for work-block overrides: it receives the button press
-  # and fans out to every other machine running work-block on the LAN.
-  services.work-block.listener.peers = [
-    "pangolin11.${configVars.homeLanDomain}:9119"
-    "barliman.${configVars.homeLanDomain}:9119"
-    "smeagol.${configVars.homeLanDomain}:9119"
-    "durin.${configVars.homeLanDomain}:9119"
-  ];
-
   # The networking hostname is used in a lot of places, such as secret retrieval!
   networking = {
     hostName = "estel";

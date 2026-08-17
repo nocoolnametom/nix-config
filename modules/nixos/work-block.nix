@@ -6,49 +6,40 @@
 # - Auto-restarting services when work-block is stopped or outside work hours
 # - Respecting configured holidays (no blocking on vacation days)
 #
-# Uses Python's built-in HTTP server (no nginx) to avoid conflicts with existing web servers.
-# Only services that are explicitly configured and enabled will be affected.
-# If no relevant services are enabled, the work-block service won't be created.
+# Design overview:
+#   The persistent state file /var/lib/work-block/blocked-until holds an ISO
+#   timestamp describing when the current work-block session ends. Its presence
+#   with a future timestamp is the single source of truth for "work-block should
+#   be active right now."
 #
-# Usage:
-#   Add to your host configuration or import hosts/common/optional/services/work-block.nix:
+#     work-block-start.timer  -> work-block-start.service
+#       On workDays at startTime, unless today is a holiday: write blocked-until
+#       (= today at endTime) and start work-block.service.
 #
-#   services.work-block = {
-#     enable = true;
-#     services = [ "stash" "comfyui" "invokeai" ];  # Which services to block
-#   };
+#     work-block-stop.timer   -> work-block-stop.service
+#       On workDays at endTime: delete blocked-until and stop work-block.service.
+#       (Stopping the service triggers ExecStopPost, which restarts blocked services.)
 #
-# Optional configuration:
-#   services.work-block.startTime = "09:00:00";  # Default: 08:00:00
-#   services.work-block.endTime = "18:00:00";    # Default: 17:00:00
-#   services.work-block.workDays = [ "Mon" "Tue" "Wed" "Thu" "Fri" ];  # Default
-#   services.work-block.holidays = [ "2026-01-19" "2026-12-25" ];  # Default: []
+#     work-block-check.service (run at boot and after the override timer elapses)
+#       If blocked-until exists and is in the future and today is not a holiday,
+#       start work-block.service. Otherwise clear stale state.
 #
-# Note: Work hours use the system timezone (time.timeZone). Make sure your system
-#       timezone is set correctly for your location.
+#     work-block-override.service  (triggered by HTTP request on the listener port)
+#       Stop work-block.service (blocked services restart via ExecStopPost).
+#       Restart the one-hour work-block-check.timer, resetting its countdown from
+#       "now". After that hour, work-block-check re-evaluates and restarts
+#       work-block if the day's session is still active.
 #
-# Manual override:
-#   To temporarily disable work-block (e.g., on a work holiday):
-#     sudo systemctl stop work-block
-#   Services will automatically restart when work-block stops.
+# Manual controls:
+#   Force a fresh block session for today:
+#     sudo systemctl start work-block-start.service
 #
-#   To manually re-enable:
-#     sudo systemctl start work-block
+#   End today's block session immediately (until the next work day):
+#     sudo systemctl start work-block-stop.service
 #
-#   To manually re-enable on a holiday:
-#     sudo WORK_BLOCK_IGNORE_HOLIDAYS=1 systemctl start work-block
-#
-# Services that can be blocked (if enabled):
-#   - stash
-#   - stash-vr-helper
-#   - arion-invokeai (InvokeAI Docker)
-#   - comfyui (native or Docker)
-#   - comfyuimini
-#   - kavitan (note: kavita is NOT blocked, only kavitan)
-#   - open-webui
-#
-# The module automatically detects which services are enabled and their ports,
-# so you don't need to configure anything beyond enabling the module.
+#   Trigger the one-hour override manually:
+#     sudo systemctl start work-block-override.service
+#     # or: curl http://localhost:<port>/
 {
   config,
   lib,
@@ -61,6 +52,9 @@ with lib;
 
 let
   cfg = config.services.work-block;
+
+  stateDir = "/var/lib/work-block";
+  stateFile = "${stateDir}/blocked-until";
 
   # Complete registry of all available services with their friendly names
   # Each entry maps a friendly name to one or more systemd services
@@ -98,7 +92,6 @@ let
       services = [
         {
           name = "arion-invokeai";
-          # Check if invokeai service config is enabled AND active
           enabled = (config.services.invokeai.enable or false) && (config.services.invokeai.active or true);
           port = config.services.invokeai.port or 9090;
         }
@@ -115,7 +108,6 @@ let
         }
         {
           name = "arion-comfyui-docker";
-          # Check if comfyui is enabled AND using Docker
           enabled = (config.services.comfyui.enable or false) && (config.services.comfyui.useDocker or false);
           port = config.services.comfyui.docker.port or 8188;
         }
@@ -412,36 +404,7 @@ let
   # Get list of unique ports
   ports = unique (map (s: s.port) flattenedServices);
 
-  # Create a script to check if today is a holiday
-  # Returns exit code 0 if NOT a holiday (should block)
-  # Returns exit code 1 if IS a holiday (should NOT block)
-  # Can be bypassed by setting WORK_BLOCK_IGNORE_HOLIDAYS=1 environment variable
-  holidayCheckScript = pkgs.writeScript "work-block-holiday-check.sh" ''
-    #!${pkgs.bash}/bin/bash
-
-    # Allow manual override via environment variable
-    if [ "$WORK_BLOCK_IGNORE_HOLIDAYS" = "1" ]; then
-      echo "WORK_BLOCK_IGNORE_HOLIDAYS is set. Bypassing holiday check."
-      exit 0
-    fi
-
-    TODAY=$(${pkgs.coreutils}/bin/date +%Y-%m-%d)
-
-    HOLIDAYS=(${concatStringsSep " " (map (h: ''"${h}"'') cfg.holidays)})
-
-    for holiday in "''${HOLIDAYS[@]}"; do
-      if [ "$TODAY" = "$holiday" ]; then
-        echo "Today ($TODAY) is a configured holiday. Skipping work-block activation."
-        echo "To manually override, run: sudo WORK_BLOCK_IGNORE_HOLIDAYS=1 systemctl start work-block"
-        exit 1
-      fi
-    done
-
-    # Not a holiday, proceed with work-block
-    exit 0
-  '';
-
-  # Create a Python script that serves the placeholder HTML on multiple ports
+  # Python HTTP server that serves the placeholder HTML on the blocked ports
   serverScript = pkgs.writeScript "work-block-server.py" ''
     #!${pkgs.python3}/bin/python3
     # Work-block HTTP server
@@ -523,95 +486,111 @@ let
             sys.exit(0)
   '';
 
-  # Script that runs when the override period ends:
-  # removes the pause sentinel and restarts work-block only if still within work hours.
-  # Work hours, work days, and holidays are all embedded at build time so no runtime
-  # config parsing is needed.
-  overrideEndScript = pkgs.writeScript "work-block-override-end.sh" ''
-    #!${pkgs.bash}/bin/bash
-    set -euo pipefail
-
-    rm -f /run/work-block-paused
-
+  # Bash fragment: exits with a message and status 0 if today is a configured
+  # holiday. Callers should source or dot-include; on non-holidays it returns
+  # without producing output.
+  holidayGuardFragment = ''
     TODAY=$(${pkgs.coreutils}/bin/date +%Y-%m-%d)
-    DAY=$(${pkgs.coreutils}/bin/date +%a)
-    TIME=$(${pkgs.coreutils}/bin/date +%H:%M:%S)
-
     HOLIDAYS=(${concatStringsSep " " (map (h: ''"${h}"'') cfg.holidays)})
     for holiday in "''${HOLIDAYS[@]}"; do
-      if [[ "$TODAY" == "$holiday" ]]; then
-        echo "Override ended on a holiday ($TODAY); not restarting work-block."
+      if [ "$TODAY" = "$holiday" ]; then
+        echo "Today ($TODAY) is a configured holiday. Skipping."
         exit 0
       fi
     done
+  '';
 
-    WORK_DAYS=(${concatStringsSep " " cfg.workDays})
-    IS_WORK_DAY=false
-    for d in "''${WORK_DAYS[@]}"; do
-      if [[ "$DAY" == "$d" ]]; then IS_WORK_DAY=true; break; fi
-    done
-    if ! $IS_WORK_DAY; then
-      echo "Override ended on a non-work day ($DAY); not restarting work-block."
+  # Called by the work-block-start.timer. Writes today's session end into the
+  # state file and starts work-block.service unless an override is currently
+  # active (in which case work-block-check.service will pick it up when the
+  # override elapses).
+  startScript = pkgs.writeScript "work-block-start.sh" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    ${holidayGuardFragment}
+
+    END_TS="$TODAY ${cfg.endTime}"
+    echo "$END_TS" > ${stateFile}
+    echo "Wrote ${stateFile} = $END_TS"
+
+    if ${pkgs.systemd}/bin/systemctl is-active --quiet work-block-check.timer; then
+      echo "Override timer is active; not starting work-block.service now."
+      echo "It will be re-evaluated when the override timer elapses."
       exit 0
     fi
 
-    if [[ "$TIME" > "${cfg.startTime}" && "$TIME" < "${cfg.endTime}" ]]; then
-      echo "Override ended within work hours ($TIME); restarting work-block."
-      ${pkgs.systemd}/bin/systemctl start work-block.service
-    else
-      echo "Override ended outside work hours ($TIME); not restarting work-block."
-    fi
+    ${pkgs.systemd}/bin/systemctl start work-block.service
   '';
 
-  # Script run by work-block-override.service: creates the pause sentinel, stops
-  # work-block (which auto-restarts blocked services via ExecStopPost), schedules
-  # the re-evaluation after overrideDuration seconds, and fans out to any peer machines.
+  # Called by the work-block-stop.timer. Deletes the state file and stops
+  # work-block; ExecStopPost on work-block.service restarts blocked services.
+  # Also cancels any active override timer so a new session starts cleanly.
+  stopScript = pkgs.writeScript "work-block-stop.sh" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    ${pkgs.coreutils}/bin/rm -f ${stateFile}
+    echo "Removed ${stateFile}"
+
+    ${pkgs.systemd}/bin/systemctl stop work-block-check.timer 2>/dev/null || true
+    ${pkgs.systemd}/bin/systemctl stop work-block.service || true
+  '';
+
+  # Called at boot (via wantedBy=multi-user.target) and after the override timer
+  # elapses. Restarts work-block if the day's session is still valid.
+  checkScript = pkgs.writeScript "work-block-check.sh" ''
+    #!${pkgs.bash}/bin/bash
+    set -euo pipefail
+
+    if [ ! -f ${stateFile} ]; then
+      echo "No ${stateFile}; nothing to do."
+      exit 0
+    fi
+
+    BLOCKED_UNTIL=$(${pkgs.coreutils}/bin/cat ${stateFile})
+    BLOCKED_TS=$(${pkgs.coreutils}/bin/date -d "$BLOCKED_UNTIL" +%s 2>/dev/null || echo 0)
+    NOW_TS=$(${pkgs.coreutils}/bin/date +%s)
+
+    if [ "$BLOCKED_TS" -le "$NOW_TS" ]; then
+      echo "$BLOCKED_UNTIL is in the past; removing stale state."
+      ${pkgs.coreutils}/bin/rm -f ${stateFile}
+      exit 0
+    fi
+
+    ${holidayGuardFragment}
+
+    echo "Session still active until $BLOCKED_UNTIL; starting work-block.service."
+    ${pkgs.systemd}/bin/systemctl start work-block.service
+  '';
+
+  # Called by the HTTP listener (or manually). Stops work-block (ExecStopPost
+  # restarts blocked services) and resets the one-hour override timer so it
+  # fires an hour from now, replacing any prior countdown.
   overrideScript = pkgs.writeScript "work-block-override.sh" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
 
-    echo "Activating work-block override for ${toString cfg.overrideDuration} seconds."
+    echo "Override requested. Suspending work-block for ${toString cfg.overrideDuration}s."
 
-    # Pause sentinel: prevents the start timer from reactivating work-block during the override
-    touch /run/work-block-paused
-
-    # Stopping work-block triggers ExecStopPost, which restarts the blocked services
     ${pkgs.systemd}/bin/systemctl stop work-block.service || true
 
-    # Cancel any existing override-end timer so a second button press resets the clock
-    ${pkgs.systemd}/bin/systemctl stop work-block-override-end.timer 2>/dev/null || true
-    ${pkgs.systemd}/bin/systemd-run \
-      --unit=work-block-override-end \
-      --description="Re-evaluate work-block after override period" \
-      --on-active=${toString cfg.overrideDuration} \
-      ${overrideEndScript}
-
-    ${optionalString (cfg.listener.peers != [ ]) ''
-      # Forward the override to peer machines (fire and forget; failures are non-fatal)
-      PEERS=(${concatStringsSep " " (map (p: ''"${p}"'') cfg.listener.peers)})
-      for peer in "''${PEERS[@]}"; do
-        ${pkgs.curl}/bin/curl -s -m 5 --connect-timeout 3 "http://''${peer}/" \
-          >/dev/null 2>&1 || true &
-      done
-      wait 2>/dev/null || true
-    ''}
+    # restart resets OnActiveSec back to the full duration, regardless of
+    # whether the timer was already counting down.
+    ${pkgs.systemd}/bin/systemctl restart work-block-check.timer
   '';
 
-  # Handler for each incoming socket connection: drains the HTTP request headers,
-  # sends a minimal 200 response so the button knows the request landed, then
-  # triggers the override non-blocking so the socket can close promptly.
+  # HTTP listener handler: drains the request headers, sends a minimal OK, then
+  # kicks off the override in the background so the socket closes promptly.
   listenerHandlerScript = pkgs.writeScript "work-block-listener-handler.sh" ''
     #!${pkgs.bash}/bin/bash
 
-    # Drain incoming HTTP headers (read until blank line or 2s timeout)
     while IFS= read -r -t 2 line; do
       [[ "''${line%$'\r'}" == "" ]] && break
     done 2>/dev/null || true
 
-    # Acknowledge the request before triggering so the button sees a clean response
     printf 'HTTP/1.1 200 OK\r\nContent-Type: text/plain\r\nContent-Length: 2\r\nConnection: close\r\n\r\nOK'
 
-    # Non-blocking so this handler exits quickly and the socket closes
     ${pkgs.systemd}/bin/systemctl --no-block start work-block-override.service
   '';
 
@@ -708,16 +687,10 @@ in
       description = mdDoc ''
         List of holidays (in YYYY-MM-DD format) when work-block should NOT activate.
 
-        This is useful for pre-configuring company holidays, vacation days, and other
-        days off where you don't want services blocked even if they fall on a work day.
-
-        The work-block service will check if today matches any date in this list and
-        skip activation if it's a holiday.
-
-        Examples:
-        - "2026-01-19" - Martin Luther King Jr. Day
-        - "2026-12-25" - Christmas
-        - "2026-07-04" - Independence Day
+        On these dates, `work-block-start.service` exits without writing the state
+        file or starting the block, and `work-block-check.service` (if triggered by
+        an override or boot recovery) refuses to reactivate. Adding a day off still
+        requires a rebuild.
       '';
     };
 
@@ -725,8 +698,9 @@ in
       type = types.int;
       default = 3600;
       description = mdDoc ''
-        How long (in seconds) the manual override lasts before work-block is re-evaluated.
-        Pressing the button again while an override is active resets this timer.
+        How long (in seconds) the manual override suspends work-block before it is
+        re-evaluated. Every override request resets this countdown from the moment
+        the request arrives.
       '';
     };
 
@@ -735,49 +709,34 @@ in
         type = types.bool;
         default = false;
         description = mdDoc ''
-          Enable a systemd socket-activated listener that triggers the work-block override
-          when any HTTP request arrives on the configured port. Intended for use with a
-          physical button or other simple trigger that sends a single HTTP request.
+          Enable a systemd socket-activated HTTP listener that triggers the work-block
+          override on any incoming request. Intended for use with a physical button or
+          other simple trigger that sends a single HTTP request per press.
 
-          No request body is parsed; the mere arrival of a connection is the signal.
+          The request body is not parsed; the mere arrival of a connection is the signal.
         '';
       };
 
       port = mkOption {
         type = types.port;
-        default = 9119;
+        default = configVars.networking.ports.tcp.workBlockOverride;
         description = "TCP port the override listener binds to.";
-      };
-
-      peers = mkOption {
-        type = types.listOf types.str;
-        default = [ ];
-        example = [
-          "192.168.1.10:9119"
-          "192.168.1.11:9119"
-        ];
-        description = mdDoc ''
-          List of `host:port` addresses to forward the override request to after
-          applying it locally. Use this on the coordinator machine (e.g. estel) to
-          fan out a single button press to every other machine running work-block.
-          Leave empty on non-coordinator machines.
-        '';
       };
     };
   };
 
   config = mkIf (cfg.enable && hasEnabledServices) {
-    # Main work-block service that stops services and serves placeholders
+    # State directory for the blocked-until file. Persistent across reboots.
+    systemd.tmpfiles.rules = [
+      "d ${stateDir} 0755 root root -"
+    ];
+
+    # Main work-block service: HTTP server on the blocked ports.
+    # Conflicts= stops the blocked services when this starts.
+    # ExecStopPost restarts them when this stops (via the helper below).
     systemd.services.work-block = {
       description = "Work Block - Disable distracting services during work hours (Python HTTP server)";
 
-      unitConfig = {
-        # Skip activation when a manual override is active (pause file present)
-        ConditionPathExists = "!/run/work-block-paused";
-      };
-
-      # Stop the blocked services when this starts
-      # Note: systemd requires full unit names with .service suffix
       before = uniqueServiceNamesWithSuffix;
       conflicts = uniqueServiceNamesWithSuffix;
 
@@ -786,19 +745,11 @@ in
         Restart = "on-failure";
         RestartSec = "10s";
 
-        # Check if today is a holiday - if so, skip activation
-        # ExecCondition exits 0 = proceed, non-zero = skip (but not fail)
-        ExecCondition = mkIf ((length cfg.holidays) > 0) "${holidayCheckScript}";
-
-        # Run Python HTTP server to serve placeholder pages
         ExecStart = "${serverScript}";
 
-        # When work-block stops (manually or via timer), trigger service restart
-        # Use '-+' prefix: '-' ignores failures, '+' runs with full privileges (bypassing sandbox)
-        # Directly start the restart service without systemd-run to avoid timeout issues
+        # '-+' prefix: ignore failures, run with full privileges (bypass sandbox)
         ExecStopPost = "-+${pkgs.systemd}/bin/systemctl --no-block start work-block-restart-services.service";
 
-        # Timeout for stop phase (service has 90s to stop by default)
         TimeoutStopSec = "30s";
 
         # Security hardening
@@ -820,102 +771,100 @@ in
         RestrictRealtime = true;
         RestrictSUIDSGID = true;
 
-        # Allow binding to the service ports
         AmbientCapabilities = "CAP_NET_BIND_SERVICE";
         CapabilityBoundingSet = "CAP_NET_BIND_SERVICE";
       };
     };
 
-    # Timer to automatically enable work-block during work hours
-    systemd.timers.work-block-start = {
-      description = "Start work-block at beginning of work hours (${config.time.timeZone})";
-      wantedBy = [ "timers.target" ];
-
-      timerConfig = {
-        # Use system timezone (OnCalendar doesn't support timezone specification reliably)
-        # The system timezone should be configured via time.timeZone option
-        # OnCalendar format: "DayOfWeek *-*-* HH:MM:SS"
-        # Combine work days into a single calendar entry (comma-separated days)
-        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
-        Persistent = false;
-        Unit = "work-block.service";
-      };
-    };
-
-    # Timer to automatically disable work-block at end of work hours
-    systemd.timers.work-block-stop = {
-      description = "Stop work-block at end of work hours (${config.time.timeZone})";
-      wantedBy = [ "timers.target" ];
-
-      timerConfig = {
-        # Use system timezone (OnCalendar doesn't support timezone specification reliably)
-        # The system timezone should be configured via time.timeZone option
-        # OnCalendar format: "DayOfWeek *-*-* HH:MM:SS"
-        # Combine work days into a single calendar entry (comma-separated days)
-        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
-        Persistent = false;
-        Unit = "work-block-stop.service";
-      };
-    };
-
-    # Oneshot service that the stop timer activates
-    systemd.services.work-block-stop = {
-      description = "Stop work-block service and restart blocked services";
-
-      # Make sure work-block stops first
-      before = [ "work-block-restart-services.service" ];
-
-      serviceConfig = {
-        Type = "oneshot";
-        # Avoid hanging forever if post-start waits on work-block to stop
-        TimeoutStartSec = "2min";
-
-        # Stop work-block and wait for it to fully stop
-        ExecStart = "${pkgs.systemd}/bin/systemctl stop work-block.service";
-
-        # After this service completes, start the restart helper
-        ExecStartPost = "-+${pkgs.systemd}/bin/systemctl --no-block start work-block-restart-services.service";
-      };
-    };
-
-    # Helper service to restart blocked services
-    # This should be triggered after work-block has fully stopped
+    # Helper: restart blocked services after work-block.service stops.
+    # Runs as root so it can start services outside the sandboxed main unit.
     systemd.services.work-block-restart-services = {
       description = "Restart services that were blocked by work-block";
-
-      # Only start this after work-block is fully stopped
       after = [ "work-block.service" ];
-
       serviceConfig = {
         Type = "oneshot";
         RemainAfterExit = false;
-
-        # Add a small delay to ensure work-block is fully stopped
         ExecStartPre = "${pkgs.coreutils}/bin/sleep 1";
-
-        # Restart all blocked services
         ExecStart = map (
           service: "-${pkgs.systemd}/bin/systemctl start ${service}.service"
         ) uniqueServiceNames;
       };
     };
 
-    # Oneshot service that applies the manual override: creates the pause sentinel,
-    # stops work-block (triggering service restarts via ExecStopPost), schedules
-    # re-evaluation after overrideDuration seconds, and fans out to peers if configured.
-    systemd.services.work-block-override = {
-      description = "Temporarily suspend work-block for ${toString cfg.overrideDuration} seconds";
+    # Start-of-day: write the state file and start work-block.
+    systemd.services.work-block-start = {
+      description = "Begin a work-block session for the current day";
       serviceConfig = {
         Type = "oneshot";
-        ExecStart = "${overrideScript}";
         User = "root";
-        # Allow time for the fan-out curl calls to complete
-        TimeoutStartSec = "30s";
+        ExecStart = "${startScript}";
       };
     };
 
-    # Socket that listens for override trigger requests (e.g. from a physical button).
-    # Accept=yes spawns a fresh handler instance for each incoming connection.
+    systemd.timers.work-block-start = {
+      description = "Start work-block at beginning of work hours (${config.time.timeZone})";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
+        Persistent = true;
+        Unit = "work-block-start.service";
+      };
+    };
+
+    # End-of-day: delete the state file and stop work-block.
+    systemd.services.work-block-stop = {
+      description = "End the current day's work-block session";
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+        ExecStart = "${stopScript}";
+      };
+    };
+
+    systemd.timers.work-block-stop = {
+      description = "Stop work-block at end of work hours (${config.time.timeZone})";
+      wantedBy = [ "timers.target" ];
+      timerConfig = {
+        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
+        Persistent = true;
+        Unit = "work-block-stop.service";
+      };
+    };
+
+    # Check service: run at boot and after the override timer elapses.
+    # Reads the state file and restarts work-block if the session is still active.
+    systemd.services.work-block-check = {
+      description = "Re-evaluate work-block state (boot recovery / post-override)";
+      wantedBy = [ "multi-user.target" ];
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+        ExecStart = "${checkScript}";
+      };
+    };
+
+    # One-shot override timer. Not wantedBy anything: activated only by the
+    # override service. OnActiveSec fires once, then the timer goes inactive.
+    systemd.timers.work-block-check = {
+      description = "Fire work-block-check after the override elapses";
+      timerConfig = {
+        OnActiveSec = cfg.overrideDuration;
+        Unit = "work-block-check.service";
+        RemainAfterElapse = false;
+      };
+    };
+
+    # Manual override: stop work-block now, reset the one-hour timer.
+    systemd.services.work-block-override = {
+      description = "Suspend work-block for ${toString cfg.overrideDuration}s (resets on each request)";
+      serviceConfig = {
+        Type = "oneshot";
+        User = "root";
+        ExecStart = "${overrideScript}";
+      };
+    };
+
+    # HTTP listener socket. Accept=yes spawns a fresh handler per connection.
     systemd.sockets.work-block-trigger = mkIf cfg.listener.enable {
       description = "Work-block override trigger socket";
       wantedBy = [ "sockets.target" ];
@@ -925,8 +874,6 @@ in
       };
     };
 
-    # Template service instantiated per connection by the socket above.
-    # Reads and discards the HTTP headers, sends a 200 OK, then kicks off the override.
     systemd.services."work-block-trigger@" = mkIf cfg.listener.enable {
       description = "Work-block override trigger handler";
       serviceConfig = {
