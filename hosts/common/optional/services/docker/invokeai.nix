@@ -75,7 +75,7 @@ in
     version = mkOption {
       type = str;
       example = "latest";
-      default = "6.9.0";
+      default = "6.13.8";
       description = "Version of the InvokeAI container to use";
     };
 
