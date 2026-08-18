@@ -56,6 +56,7 @@
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     # "hosts/common/optional/niri.nix"
     "hosts/common/optional/nvtop.nix"
+    "hosts/common/optional/quickemu.nix"
     "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
     "hosts/common/optional/stylix.nix"
