@@ -38,6 +38,7 @@
           "Music"
           "Pictures"
           "Projects"
+          "QuickEmu"
           "Sync" # syncthing
           "Videos"
           "VirtualBox VMs"

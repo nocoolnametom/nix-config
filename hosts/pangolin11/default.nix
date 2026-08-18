@@ -125,6 +125,9 @@
     pkgs.update-cbz-tags
   ];
 
+  # Allow USB Redirection for VMs
+  virtualisation.spiceUSBRedirection.enable = true;
+
   # Enable Powertop
   powerManagement.enable = true;
   powerManagement.powertop.enable = true; # Should work fine with system76-power
