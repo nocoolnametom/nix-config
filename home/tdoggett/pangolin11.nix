@@ -42,7 +42,6 @@
     gnumake
     helium-browser-flake
     orion-browser-flake
-    ladybird
     megasync
     remmina
     standardnotes
