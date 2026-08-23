@@ -56,7 +56,7 @@ in
   services.mastodon.elasticsearch =
     if config.services.opensearch.enable then
       {
-        host = lib.mkDefault config.services.opensearch.listenAddress;
+        host = lib.mkDefault config.services.opensearch.settings."network.host";
         user = "elasticsearch-mastodon";
         passwordFile = config.sops.secrets."elasticsearch-mastodon-password".path;
       }
