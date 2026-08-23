@@ -17,7 +17,7 @@
     common/optional/flatpak.nix
     common/optional/git.nix
     common/optional/jj.nix
-    common/optional/immersed.nix
+    # common/optional/immersed.nix
     common/optional/desktops # Includes brave, kitty, cliphist, trash, etc.
     common/optional/desktops/bluetooth-applet.nix
     common/optional/desktops/vscode.nix
@@ -39,7 +39,7 @@
   home.packages = with pkgs; [
     bottles
     handbrake
-    helium-browser-flake
+    # helium-browser-flake
   ];
 
   # Flatpaks
