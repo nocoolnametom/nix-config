@@ -38,7 +38,7 @@ in
     "hosts/common/optional/services/akkoma.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/postgresql.nix"
-    "hosts/common/optional/services/elasticsearch.nix"
+    "hosts/common/optional/services/opensearch.nix"
     "hosts/common/optional/services/mailserver.nix"
     # "hosts/common/optional/linode.nix" # Until removed from EC2 we can't use Linode settings
     "hosts/common/optional/nostr.nix"

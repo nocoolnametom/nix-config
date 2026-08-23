@@ -27,6 +27,7 @@
       "/var/lib/postgresql"
       "/var/lib/elasticsearch"
       "/var/lib/mastodon"
+      "/var/lib/opensearch"
       "/var/lib/postfix"
       "/var/lib/redis-mastodon"
     ];

@@ -38,6 +38,7 @@
       "/var/lib/mastodon"
       "/var/lib/mysql"
       "/var/lib/nixos"
+      "/var/lib/opensearch"
       "/var/lib/pleroma"
       "/var/lib/postfix"
       "/var/lib/postgresql"

@@ -54,9 +54,9 @@ in
   services.mastodon.vapidPrivateKeyFile = config.sops.secrets."mastodon-vapid-private-key".path;
   services.mastodon.secretKeyBaseFile = config.sops.secrets."mastodon-secret-key-base".path;
   services.mastodon.elasticsearch =
-    if config.services.elasticsearch.enable then
+    if config.services.opensearch.enable then
       {
-        host = lib.mkDefault config.services.elasticsearch.listenAddress;
+        host = lib.mkDefault config.services.opensearch.listenAddress;
         user = "elasticsearch-mastodon";
         passwordFile = config.sops.secrets."elasticsearch-mastodon-password".path;
       }

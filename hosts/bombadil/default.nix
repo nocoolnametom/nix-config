@@ -44,7 +44,7 @@ in
     "hosts/common/optional/services/mastodon.nix"
     "hosts/common/optional/services/mormonsites.nix"
     "hosts/common/optional/services/postgresql.nix"
-    "hosts/common/optional/services/elasticsearch.nix"
+    "hosts/common/optional/services/opensearch.nix"
     "hosts/common/optional/services/mailserver.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/tailscale.nix"
@@ -62,7 +62,7 @@ in
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
     "akkoma"
-    "elasticsearch"
+    "opensearch"
     "fmd"
     "mastodon-web"
     "mormonsites-canon"
@@ -134,7 +134,7 @@ in
   programs.nostr.domain = configVars.domain;
 
   # Limit Elasticsearch Memory Usage - Minimum and Maximum
-  services.elasticsearch.extraJavaOptions = [
+  services.opensearch.extraJavaOptions = [
     "-Xms128m"
     "-Xmx256m"
   ];
