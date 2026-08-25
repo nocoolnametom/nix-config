@@ -86,6 +86,7 @@ in
     # repoPath uses the conventional default
     #   /Users/<configVars.username>/Projects/<configVars.handle>/nix-config
     # which matches this host. Set explicitly only if the checkout moves.
+    enableLedDevicesWidget = true;
   };
 
   # Litra Glow control — auto-start litra-autotoggle on login + sketchybar

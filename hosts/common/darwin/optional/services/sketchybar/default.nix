@@ -56,6 +56,8 @@ in
       '';
     };
 
+    enableLedDevicesWidget = lib.mkEnableOption "LED devices status + test widget in the menu bar";
+
   };
 
   config =
@@ -81,7 +83,8 @@ in
         "calendar_dismiss"
         "now_playing"
       ]
-      ++ lib.optional (config.services.litra.enable or false) "litra";
+      ++ lib.optional (config.services.litra.enable or false) "litra"
+      ++ lib.optional config.services.sketchybar.personalizedOptions.enableLedDevicesWidget "led_devices";
     in
     {
 
@@ -267,6 +270,16 @@ in
                       click_script="${plugins.litra_click}" \
                     --subscribe litra mouse.entered mouse.exited litra_state_changed
         ''}
+        ${lib.optionalString config.services.sketchybar.personalizedOptions.enableLedDevicesWidget ''
+          sketchybar --add item led_devices right \
+                    --set led_devices \
+                      update_freq=10 \
+                      label.drawing=off \
+                      script="${plugins.led_devices}" \
+                      click_script="${plugins.led_devices_click}" \
+                    --subscribe led_devices mouse.entered mouse.exited
+        ''}
+
                   sketchybar --add item weather right \
                   --set weather update_freq=600 icon=󰚕 script="${plugins.weather}" \
                     click_script="${plugins.weather_click}" \

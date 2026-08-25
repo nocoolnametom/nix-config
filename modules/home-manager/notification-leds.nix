@@ -263,11 +263,138 @@ let
             main()
       '';
 
+  # Kuando Busylight driver (Omega, Alpha, UC) via the same busylight-for-humans
+  # library used by the Luxafor driver. Filters by the vendor strings the library
+  # derives from its internal module paths — "kuando", "busylight", and "plenom"
+  # (the parent company) are all checked so any naming variation is covered.
+  # If none match, the error message lists the actual vendor strings seen, which
+  # makes it easy to add any missing entry to RECOGNIZED_VENDORS.
+  kuandoBusylightDriver =
+    pkgs.writers.writePython3Bin "kuando-busylight"
+      {
+        libraries = [ pkgs.python3Packages.busylight-for-humans ];
+        flakeIgnore = [
+          "E501"
+          "E126"
+          "E127"
+          "E128"
+          "E201"
+          "E202"
+          "E221"
+          "E222"
+          "E241"
+          "E302"
+          "E305"
+          "W391"
+          "W292"
+        ];
+      }
+      ''
+        """Kuando Busylight driver via busylight-for-humans.
+
+        Usage:
+          kuando-busylight set-color <color>
+          kuando-busylight blink <color> [--repeats N] [--delay MS]
+          kuando-busylight off
+
+        Targets all connected Kuando/Busylight devices. Exits with code 1
+        (with a message to stderr) if no matching device is found, so the
+        notify-blink wrapper can discard the error safely.
+        """
+        import argparse
+        import sys
+        from busylight.controller import LightController, LightSelection
+
+        # All vendor strings the busylight-for-humans library may use for Kuando
+        # devices, depending on library version and how it names its modules.
+        RECOGNIZED_VENDORS = ("kuando", "busylight", "plenom")
+
+        NAMED_COLORS = {
+            "red":     (255,   0,   0),
+            "green":   (  0, 255,   0),
+            "blue":    (  0,   0, 255),
+            "yellow":  (255, 255,   0),
+            "cyan":    (  0, 255, 255),
+            "magenta": (255,   0, 255),
+            "white":   (255, 255, 255),
+            "orange":  (255, 100,   0),
+            "purple":  (128,   0, 128),
+            "off":     (  0,   0,   0),
+            "black":   (  0,   0,   0),
+        }
+
+        def parse_color(s):
+            s = s.strip().lower()
+            if s in NAMED_COLORS:
+                return NAMED_COLORS[s]
+            h = s.lstrip("#")
+            if len(h) == 6 and all(c in "0123456789abcdef" for c in h):
+                return (int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16))
+            raise ValueError(f"Unknown color: {s!r}")
+
+        def delay_to_speed(delay_ms):
+            if delay_ms < 375:
+                return "fast"
+            elif delay_ms < 625:
+                return "medium"
+            else:
+                return "slow"
+
+        def main():
+            p = argparse.ArgumentParser(description="Kuando Busylight driver (busylight)")
+            sub = p.add_subparsers(dest="cmd", required=True)
+            sc = sub.add_parser("set-color")
+            sc.add_argument("color")
+            bk = sub.add_parser("blink")
+            bk.add_argument("color")
+            bk.add_argument("--repeats", type=int, default=3)
+            bk.add_argument("--delay", type=int, default=200,
+                            help="milliseconds per on/off phase")
+            sub.add_parser("off")
+            args = p.parse_args()
+
+            try:
+                ctrl = LightController()
+            except Exception as e:
+                print(f"kuando-busylight: controller error ({e})", file=sys.stderr)
+                sys.exit(1)
+
+            selection = LightSelection(
+                [light for light in ctrl.lights
+                 if light.vendor().lower() in RECOGNIZED_VENDORS]
+            )
+            if not selection:
+                found = sorted({light.vendor() for light in ctrl.lights})
+                print(
+                    f"kuando-busylight: no Kuando/Busylight device found "
+                    f"(busylight-for-humans vendors present: {found!r})",
+                    file=sys.stderr,
+                )
+                sys.exit(1)
+
+            try:
+                if args.cmd == "set-color":
+                    selection.turn_on(parse_color(args.color))
+                elif args.cmd == "off":
+                    selection.turn_off()
+                elif args.cmd == "blink":
+                    color = parse_color(args.color)
+                    speed = delay_to_speed(args.delay)
+                    selection.blink(color, count=args.repeats, speed=speed)
+            except Exception as e:
+                print(f"kuando-busylight: error ({e})", file=sys.stderr)
+                sys.exit(1)
+
+        if __name__ == "__main__":
+            main()
+      '';
+
   notifyBlinkScript = pkgs.writeShellApplication {
     name = "notify-blink";
     runtimeInputs = [
       blinkstickSquareDriver
       luxaforFlagDriver
+      kuandoBusylightDriver
     ]
     ++ blink1Pkgs;
     text = ''
@@ -278,8 +405,8 @@ let
       #   notify-blink <color> [reps] [delay] # ad-hoc color+timing
       #   notify-blink off                    # turn all configured LEDs off
       #
-      # Add --device <square|blink1|flag|both|all> to override the target device(s).
-      # Defaults to all devices configured for the source (or all three for
+      # Add --device <square|blink1|flag|busylight|both|all> to override the target device(s).
+      # Defaults to all devices configured for the source (or all four for
       # ad-hoc invocations).
       #
       # Continuous-until-acknowledged pattern: caller polls the underlying
@@ -293,7 +420,7 @@ let
       COLOR=""
       REPEATS=10
       DELAY=200
-      DEVICES=("square" "blink1" "flag")
+      DEVICES=("square" "blink1" "flag" "busylight")
       DEVICE_OVERRIDE=""
 
       # Pull --device out of positional args
@@ -318,7 +445,7 @@ let
 
       INPUT="''${1:-}"
       if [ -z "$INPUT" ]; then
-        echo "Usage: notify-blink <source|color|off> [reps] [delay] [--device square|blink1|flag|both|all]" >&2
+        echo "Usage: notify-blink <source|color|off> [reps] [delay] [--device square|blink1|flag|busylight|both|all]" >&2
         exit 1
       fi
 
@@ -365,13 +492,14 @@ let
       COLOR_HEX="$(to_hex "$COLOR")"
 
       case "$DEVICE_OVERRIDE" in
-        "")     ;;
-        all)     DEVICES=("square" "blink1" "flag") ;;
-        both)    DEVICES=("square" "blink1") ;;
-        square)  DEVICES=("square") ;;
-        blink1)  DEVICES=("blink1") ;;
-        flag)    DEVICES=("flag") ;;
-        *) echo "Unknown --device: $DEVICE_OVERRIDE (expected square|blink1|flag|both|all)" >&2; exit 1 ;;
+        "")        ;;
+        all)       DEVICES=("square" "blink1" "flag" "busylight") ;;
+        both)      DEVICES=("square" "blink1") ;;
+        square)    DEVICES=("square") ;;
+        blink1)    DEVICES=("blink1") ;;
+        flag)      DEVICES=("flag") ;;
+        busylight) DEVICES=("busylight") ;;
+        *) echo "Unknown --device: $DEVICE_OVERRIDE (expected square|blink1|flag|busylight|both|all)" >&2; exit 1 ;;
       esac
 
       BLINK1_BIN=""
@@ -408,12 +536,22 @@ let
         return 0
       }
 
+      drive_busylight() {
+        if [ "$COLOR_HEX" = "000000" ]; then
+          kuando-busylight off 2>/dev/null &
+        else
+          kuando-busylight blink "$COLOR_HEX" --repeats "$REPEATS" --delay "$DELAY" 2>/dev/null &
+        fi
+        return 0
+      }
+
       DEVICE_PIDS=()
       for dev in "''${DEVICES[@]}"; do
         case "$dev" in
-          square) drive_square && DEVICE_PIDS+=("$!") ;;
-          blink1) drive_blink1 && DEVICE_PIDS+=("$!") ;;
-          flag)   drive_flag   && DEVICE_PIDS+=("$!") ;;
+          square)    drive_square    && DEVICE_PIDS+=("$!") ;;
+          blink1)    drive_blink1    && DEVICE_PIDS+=("$!") ;;
+          flag)      drive_flag      && DEVICE_PIDS+=("$!") ;;
+          busylight) drive_busylight && DEVICE_PIDS+=("$!") ;;
         esac
       done
 
@@ -440,7 +578,7 @@ let
 in
 {
   options.services.notification-leds = {
-    enable = lib.mkEnableOption "USB LED notification devices (BlinkStick Square + ThingM blink(1) + Luxafor Flag)";
+    enable = lib.mkEnableOption "USB LED notification devices (BlinkStick Square + ThingM blink(1) + Luxafor Flag + Kuando Busylight)";
 
     sources = lib.mkOption {
       type = lib.types.attrsOf (
@@ -462,19 +600,22 @@ in
                   "square"
                   "blink1"
                   "flag"
+                  "busylight"
                 ]
               );
               default = [
                 "square"
                 "blink1"
                 "flag"
+                "busylight"
               ];
               description = ''
                 Which device(s) fire when this source triggers.
                 "square" = the BlinkStick Square; "blink1" = the
                 ThingM blink(1); "flag" = the Luxafor Flag (any
-                generation). Missing devices fail silently, so
-                listing all three is safe on any host.
+                generation); "busylight" = the Kuando Busylight
+                (Omega, Alpha, UC). Missing devices fail silently,
+                so listing all four is safe on any host.
               '';
             };
             repeats = lib.mkOption {
@@ -518,6 +659,7 @@ in
     home.packages = [
       blinkstickSquareDriver
       luxaforFlagDriver
+      kuandoBusylightDriver
       notifyBlinkScript
     ]
     ++ blink1Pkgs;

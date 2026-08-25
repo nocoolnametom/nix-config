@@ -43,6 +43,8 @@ rec {
       icon_map_fn
       ;
   };
+  led_devices = import ./led_devices.nix { inherit pkgs config sketchybar; };
+  led_devices_click = import ./led_devices_click.nix { inherit pkgs config sketchybar; };
   litra = import ./litra.nix { inherit pkgs config sketchybar; };
   litra_click = import ./litra_click.nix { inherit pkgs config sketchybar; };
   now_playing = import ./now_playing.nix { inherit pkgs config sketchybar; };
