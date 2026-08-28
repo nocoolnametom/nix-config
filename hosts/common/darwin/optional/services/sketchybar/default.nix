@@ -248,7 +248,7 @@ in
                   --subscribe clock mouse.entered mouse.exited \
                   --add item vpn right \
                   --set vpn update_freq=10 icon=󰦞 script="${plugins.vpn}" \
-                    click_script='open -b com.netskope.client.Netskope-Client' \
+                    click_script='open "x-apple.systempreferences:com.apple.Network-Settings.extension"' \
                 --subscribe vpn mouse.entered mouse.exited
 
         ##### Litra Auto-Toggle Indicator (conditional) #####

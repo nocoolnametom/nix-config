@@ -14,7 +14,7 @@
 # the user hovers — only label.drawing is toggled by mouse events.
 #
 # `nsdiag -n` reports two lines, e.g.:
-#   NPA status is Enabled.
+#   NPA status is Connected (User Tunnel).
 #   NPA gateway IP is <ip>.
 # or:
 #   NPA status is Disabled.
@@ -40,7 +40,7 @@ writeShellScript "sketchybar_vpn" ''
 
   RAW=$("$VPN_CLI" -n 2>/dev/null)
 
-  if echo "$RAW" | grep -qiE "NPA status is Enabled"; then
+  if echo "$RAW" | grep -qiE "NPA status is Connected"; then
     STATUS=Connected
   else
     STATUS=Disconnected

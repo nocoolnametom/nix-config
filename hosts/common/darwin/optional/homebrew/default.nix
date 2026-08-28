@@ -44,5 +44,7 @@ with lib;
     { name = "mediosz/tap/swipeaerospace"; }
     # KindaVim
     { name = "kindavim"; }
+    # Forel Autofiler
+    { name = "lab421/tap/forel"; }
   ];
 }
