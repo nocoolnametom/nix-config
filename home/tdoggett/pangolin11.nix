@@ -16,6 +16,7 @@
     common/optional/jj.nix
     common/optional/desktops
     common/optional/desktops/bluetooth-applet.nix
+    common/optional/desktops/plasma6.nix
     common/optional/desktops/vscode.nix
     common/optional/devenv.nix
     common/optional/notification-leds.nix
@@ -45,7 +46,7 @@
     megasync
     remmina
     standardnotes
-    ticktick
+    unstable.ticktick
     unzip
     zoom-us
   ];

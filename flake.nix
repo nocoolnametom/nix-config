@@ -41,6 +41,11 @@
     stylix.url = "github:nix-community/stylix/release-26.05";
     stylix.inputs.nixpkgs.follows = "nixpkgs";
 
+    # Manage KDE Settings and Plasma Desktop via Nix
+    plasma-manager.url = "github:nix-community/plasma-manager";
+    plasma-manager.inputs.nixpkgs.follows = "nixpkgs";
+    plasma-manager.inputs.home-manager.follows = "home-manager";
+
     # San Francisco Fonts | Apple Fonts
     apple-fonts.url = "github:Lyndeno/apple-fonts.nix";
     apple-fonts.inputs.nixpkgs.follows = "nixpkgs";
@@ -109,6 +114,7 @@
       nix-darwin,
       arion,
       stylix,
+      plasma-manager,
       apple-fonts,
       sops-nix,
       helium,

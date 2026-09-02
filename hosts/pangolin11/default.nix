@@ -56,6 +56,7 @@
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     # "hosts/common/optional/niri.nix"
     "hosts/common/optional/nvtop.nix"
+    "hosts/common/optional/plasma6.nix"
     "hosts/common/optional/quickemu.nix"
     "hosts/common/optional/scanning.nix"
     "hosts/common/optional/steam.nix"
@@ -72,6 +73,9 @@
   ]);
 
   # services.gotosocial.settings.landing-page-user = "tom";
+
+  # Enforce system76 power profile
+  services.power-profiles-daemon.enable = lib.mkForce false;
 
   # Mark this node as ephemeral since it's a laptop that goes offline regularly
   # This prevents warnings on the parent node (estel) when it disconnects
