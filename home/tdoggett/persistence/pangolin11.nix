@@ -48,6 +48,7 @@
           ".claude"
           ".config/calibre"
           ".config/cosmic"
+          ".config/Deskflow"
           ".config/jellyfin.org"
           ".config/KADOKAWA"
           ".config/net.imput.helium"
