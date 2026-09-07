@@ -99,7 +99,12 @@
 
   ## Imports overrides
   services.atuin.openRegistration = true;
-  services.karakeep.package = pkgs.karakeep;
+  # Pinned to unstable 2026-09-07: 26.05's karakeep builds against nodejs 24.19.0, whose
+  # node::ObjectWrap cleanup-hook change aborts better-sqlite3's Statement destructor
+  # ("Assertion failed: (env) != nullptr"), killing karakeep-workers ~4s after start.
+  # Unstable hardcodes nodejs_22 for this. Revert to pkgs.karakeep once 26.05 backports it.
+  # Upstream: https://github.com/karakeep-app/karakeep/issues/2989
+  services.karakeep.package = pkgs.unstable.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.chromium}/bin/chromium";
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
   services.immich.package = pkgs.immich;
