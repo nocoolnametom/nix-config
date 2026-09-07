@@ -30,7 +30,6 @@ let
     "nzbhydra"
     "pinchflat"
     "radarr"
-    "sickgear"
     "sonarr"
     "stash"
     "stashvr"

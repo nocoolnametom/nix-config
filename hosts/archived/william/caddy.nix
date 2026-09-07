@@ -184,12 +184,6 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.sickgear}.${configVars.domain}" = {
-      # Served through cirdan for bert
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
     "${configVars.networking.subdomains.sonarr}.${configVars.domain}" = {
       # Served through cirdan for bert
       extraConfig = ''

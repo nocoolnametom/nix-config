@@ -240,12 +240,6 @@ let
     }
     {
       host = "durin";
-      service = "sickgear";
-      domain = "domain";
-      proxy = "authentik";
-    }
-    {
-      host = "durin";
       service = "sonarr";
       domain = "domain";
       proxy = "authentik";

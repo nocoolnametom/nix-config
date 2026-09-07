@@ -188,14 +188,6 @@ lib.mkIf configVars.enableKanidmSSO {
           scopeMaps = makeScopeMaps "radarr";
         };
 
-        sickgear = {
-          displayName = "SickGear TV Shows";
-          originUrl = "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.sickgear}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/sickgear/client-secret".path;
-          scopeMaps = makeScopeMaps "sickgear";
-        };
-
         sonarr = {
           displayName = "Sonarr";
           originUrl = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
@@ -362,11 +354,6 @@ lib.mkIf configVars.enableKanidmSSO {
     mode = "0440";
   };
   sops.secrets."homelab/kanidm/oauth2/radarr/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/sickgear/client-secret" = {
     owner = "kanidm";
     group = "keys";
     mode = "0440";

@@ -61,10 +61,6 @@ lib.mkIf configVars.enableKanidmSSO {
     owner = config.services.oauth2-proxy-multi.user;
     group = config.services.oauth2-proxy-multi.group;
   };
-  sops.secrets."homelab/oauth2/sickgear/cookie-secret" = {
-    owner = config.services.oauth2-proxy-multi.user;
-    group = config.services.oauth2-proxy-multi.group;
-  };
   sops.secrets."homelab/oauth2/sonarr/cookie-secret" = {
     owner = config.services.oauth2-proxy-multi.user;
     group = config.services.oauth2-proxy-multi.group;
@@ -263,15 +259,6 @@ lib.mkIf configVars.enableKanidmSSO {
       # Pass HTTP Basic Auth to upstream (for API clients)
       basicAuthUsernameFile = config.sops.secrets."homelab/radarr/username".path;
       basicAuthPasswordFile = config.sops.secrets."homelab/radarr/password".path;
-    };
-
-    sickgear = {
-      port = configVars.networking.ports.tcp.oauth2-sickgear;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.sickgear}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/sickgear";
-      clientId = "sickgear";
-      clientSecretFile = config.sops.secrets."homelab/kanidm/oauth2/sickgear/client-secret".path;
-      cookieSecretFile = config.sops.secrets."homelab/oauth2/sickgear/cookie-secret".path;
     };
 
     sonarr = {

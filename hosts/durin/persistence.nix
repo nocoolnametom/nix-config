@@ -42,7 +42,6 @@
       "/var/lib/private/flood"
       "/var/lib/radarr/.config/Radarr"
       "/var/lib/sbctl"
-      "/var/lib/sickgear"
       "/var/lib/sonarr/.config/NzbDrone"
       "/var/lib/stashapp/.config/chromium"
       "/var/lib/stashapp/.stash"
