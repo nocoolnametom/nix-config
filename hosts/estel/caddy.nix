@@ -420,6 +420,14 @@ in
       '';
     };
 
+    # Special: Additional domain for autocaliweb
+    "${configVars.networking.subdomains.calibreweb2}.${configVars.homeDomain}" = {
+      useACMEHost = "wild-${configVars.homeDomain}";
+      extraConfig = ''
+        redir https://${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}{uri}
+      '';
+    };
+
     # Complex: Authentik with websocket support
     "${configVars.networking.subdomains.authentik}.${configVars.homeDomain}" = {
       useACMEHost = "wild-${configVars.homeDomain}";
