@@ -51,7 +51,6 @@
     # Disabled 2026-03-04: Navidrome build failure (pkg-config taglib issue), TODO: re-enable when fixed
     # "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/oauth2-proxy.nix"
-    "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
     "hosts/common/optional/services/seerr.nix"
@@ -85,9 +84,7 @@
     # Disabled 2026-03-04: Navidrome build failure
     # "navidrome"
     # "oauth2-proxy-navidrome"
-    "oauth2-proxy-ombi"
     "oauth2-proxy-seerr"
-    "ombi"
     "paperless-web"
     "seerr"
   ];

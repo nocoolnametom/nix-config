@@ -42,7 +42,6 @@
       "/var/lib/kavitan-library"
       "/var/lib/navidrome"
       "/var/lib/nixos"
-      "/var/lib/ombi"
       "/var/lib/paperless"
       "/var/lib/postgresql"
       "/var/lib/private/actual"

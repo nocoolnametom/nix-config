@@ -111,12 +111,6 @@ let
     # }
     {
       host = "estel";
-      service = "ombi";
-      domain = "homeDomain";
-      proxy = "authentik";
-    }
-    {
-      host = "estel";
       service = "paperless";
       domain = "homeDomain";
     }
@@ -417,6 +411,20 @@ in
       useACMEHost = "wild-${configVars.domain}";
       extraConfig = ''
         respond / "Service is UP" 200
+      '';
+    };
+
+    # Special: Legacy requests URL (was Ombi) now redirects to Seerr
+    "requests.${configVars.homeDomain}" = {
+      useACMEHost = "wild-${configVars.homeDomain}";
+      extraConfig = ''
+        redir https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}{uri}
+      '';
+    };
+    "requests.${configVars.networking.subdomains.punch}.${configVars.homeDomain}" = {
+      useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
+      extraConfig = ''
+        redir https://${configVars.networking.subdomains.seerr}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}{uri}
       '';
     };
 

@@ -51,7 +51,6 @@
     "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
     "hosts/common/optional/services/mealie.nix"
     "hosts/common/optional/services/navidrome.nix"
-    "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/paperless.nix"
     # tube-archivist via docker?
 

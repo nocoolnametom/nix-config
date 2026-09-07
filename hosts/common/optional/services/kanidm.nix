@@ -100,14 +100,6 @@ lib.mkIf configVars.enableKanidmSSO {
           scopeMaps = makeScopeMaps "navidrome";
         };
 
-        ombi = {
-          displayName = "Ombi Request System";
-          originUrl = "https://${configVars.networking.subdomains.ombi}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.ombi}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/ombi/client-secret".path;
-          scopeMaps = makeScopeMaps "ombi";
-        };
-
         seerr = {
           displayName = "Seerr Request System";
           originUrl = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
@@ -315,11 +307,6 @@ lib.mkIf configVars.enableKanidmSSO {
   # OAuth2 client secrets for OAuth2-proxy services (15 services)
   # Must be readable by both kanidm (for provisioning) and oauth2-proxy (for runtime)
   sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/ombi/client-secret" = {
     owner = "kanidm";
     group = "keys";
     mode = "0440";

@@ -37,7 +37,6 @@
     # "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/nzbget.nix"
     "hosts/common/optional/services/nzbhydra.nix"
-    # "hosts/common/optional/services/ombi.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/pinchflat.nix"
     "hosts/common/optional/services/radarr.nix"

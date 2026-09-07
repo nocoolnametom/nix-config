@@ -148,12 +148,6 @@
         reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
       '';
     };
-    "${configVars.networking.subdomains.ombi}.${configVars.homeDomain}" = {
-      # Servied through cirdan for william
-      extraConfig = ''
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-      '';
-    };
     "${configVars.networking.subdomains.openwebui}.${configVars.domain}" = {
       # Will move to barliman soon
       # reverse_proxy ${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.openwebui}
