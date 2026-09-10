@@ -28,6 +28,7 @@ let
     "comfyui"
     "comfyuimini"
     "invokeai"
+    "whisparr-eros"
   ];
 
   visibleServices = lib.filter (svc: !(lib.elem svc serviceBlacklist)) smeagolServices;

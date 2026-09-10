@@ -51,6 +51,7 @@ in
     "hosts/common/optional/services/printing.nix"
     "hosts/common/optional/services/stash.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/whisparr-eros.nix"
     "hosts/common/optional/services/wivrn.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/cross-compiling.nix"
@@ -86,6 +87,7 @@ in
     "stash"
     "stash-vr-local"
     "stash-vr-external"
+    "whisparr-eros"
     "work-block"
   ];
 

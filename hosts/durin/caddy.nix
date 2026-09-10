@@ -33,6 +33,8 @@ let
     "sonarr"
     "stash"
     "stashvr"
+    "whisparr"
+    "whisparr-eros"
   ];
 
   visibleServices = lib.filter (svc: !(lib.elem svc serviceBlacklist)) durinServices;

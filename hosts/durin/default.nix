@@ -56,6 +56,8 @@ in
     "hosts/common/optional/services/sonarr.nix"
     "hosts/common/optional/services/stash.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/whisparr.nix"
+    "hosts/common/optional/services/whisparr-eros.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/direnv.nix"
     "hosts/common/optional/dns-over-tls.nix" # TODO: band-aid for DNS failures — investigate root cause and remove
@@ -93,6 +95,8 @@ in
     "stash"
     "stash-vr-local"
     "stash-vr-external"
+    "whisparr"
+    "whisparr-eros"
     "work-block"
   ];
 
@@ -202,6 +206,7 @@ in
 
   # Example storage mounts - adjust to durin's disks
   services.nzbhydra2.dataDir = "/arkenstone/nzbhydra2";
+  services.whisparr-eros.dataDir = "/arkenstone/whisparr-eros";
 
   # Set up media directories with correct permissions for shared access
   # The 2775 mode sets setgid bit so new files inherit the media group

@@ -37,10 +37,7 @@ in
       Install.WantedBy = [ "graphical-session.target" ];
       Service.ExecStart =
         with cfg.client;
-        toString (
-          [ "${pkgs.deskflow}/bin/deskflow-core client" ]
-          ++ extraFlags
-        );
+        toString ([ "${pkgs.deskflow}/bin/deskflow-core client" ] ++ extraFlags);
     };
   };
 }

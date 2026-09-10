@@ -21,5 +21,6 @@ rec {
   mormonquotes = pkgs.callPackage ./mormonquotes { };
   journalofdiscourses = pkgs.callPackage ./journalofdiscourses { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
+  whisparr-eros = pkgs.callPackage ./whisparr-eros { };
   yknotify = pkgs.callPackage ./yknotify { };
 }

@@ -43,7 +43,9 @@
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/hedgedoc.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
-    "hosts/common/optional/services/immich.nix"
+    # Removed 2026-09-10: Immich is served by the Docker instance on cirdan, not from
+    # estel's NixOS service. (immich-public-proxy above already points at cirdan.)
+    # "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/karakeep.nix"
     "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
@@ -75,7 +77,6 @@
     "caddy"
     "hedgedoc"
     "immich-public-proxy"
-    "immich-server"
     "kanidm"
     "karakeep-web"
     "kavita"
@@ -107,9 +108,6 @@
   services.karakeep.package = pkgs.unstable.karakeep;
   services.karakeep.browser.exe = lib.mkForce "${pkgs.chromium}/bin/chromium";
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
-  services.immich.package = pkgs.immich;
-  services.immich.mediaLocation = "/mnt/cirdan/smb/Immich/uploads/";
-  services.immich.machine-learning.enable = false; # For now this seems too intensive for the little mini pc
 
   # Currently-Docker Stuff
   # Can replase kavita users below with kavita module when 0.8.8 is released!

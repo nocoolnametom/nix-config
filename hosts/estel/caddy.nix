@@ -249,6 +249,19 @@ let
       service = "tubearchivist";
       domain = "domain";
     }
+    {
+      host = "durin";
+      service = "whisparr";
+      domain = "domain";
+      proxy = "authentik";
+    }
+    # Runs on durin too, but the published instance is smeagol's
+    {
+      host = "smeagol";
+      service = "whisparr-eros";
+      domain = "domain";
+      proxy = "authentik";
+    }
   ];
 
   serviceBlacklist = configVars.homepage.serviceBlacklist or [ ];
