@@ -306,6 +306,15 @@ in
       virtualisation.docker.enable = mkForce true;
       virtualisation.docker.enableOnBoot = mkDefault true;
 
+      # Arion runs `arion up` attached, so a stop that outruns the systemd stop
+      # timeout can leave the container behind. Removing it before starting
+      # avoids reusing a container that is up but detached from its bridge
+      # network, and waiting for the name to be released avoids racing the
+      # daemon's teardown (which fails the start with a name conflict).
+      # Container data lives on host volumes under cfg.docker.workingDir, so
+      # recreating the container doesn't lose state.
+      services.arion-container-cleanup.projects.comfyui-docker = { };
+
       networking.firewall.allowedTCPPorts = mkIf (cfg.docker.port != null) [ cfg.docker.port ];
 
       # Define comfyui-docker group for jamesbrink/comfyui image (uses UID/GID 10001)

@@ -480,9 +480,11 @@ in
       # but no port is published and the state persists until docker rm.
       # Data lives on host volumes (/var/lib/stable-diffusion/*), so recreating
       # the container is cheap and doesn't lose state.
-      systemd.services.arion-invokeai.serviceConfig.ExecStartPre = [
-        "-${pkgs.docker}/bin/docker rm -f invokeai"
-      ];
+      #
+      # The cleanup module (not a bare `docker rm -f`) is used because `rm -f`
+      # returns before the daemon has finished releasing the container name,
+      # which made `arion up` fail with a name conflict on quick restarts.
+      services.arion-container-cleanup.projects.invokeai = { };
 
       virtualisation.arion.projects."invokeai".settings = {
         services."invokeai".service = mkIf cfg.active (mkMerge [
