@@ -71,7 +71,8 @@ in
 
         For each entry this removes the named containers in an `ExecStartPre`,
         waits until the daemon has actually released the names, orders the unit
-        after `docker.service`, and retries the unit on failure.
+        after `docker.service`, gives teardown enough time to finish, and
+        retries the unit on failure.
       '';
       example = lib.literalExpression ''
         {
@@ -100,6 +101,25 @@ in
                 default = config.virtualisation.docker.package;
                 defaultText = lib.literalExpression "config.virtualisation.docker.package";
                 description = "Docker package providing the CLI used for cleanup.";
+              };
+
+              stopTimeout = lib.mkOption {
+                type = lib.types.str;
+                default = "5min";
+                description = ''
+                  `TimeoutStopSec` for the arion unit, raised from systemd's
+                  90s default.
+
+                  This attacks the orphaned container at its source rather than
+                  cleaning up after it. `arion up` runs attached, so stopping
+                  the unit SIGTERMs docker-compose and compose then tears the
+                  container down. If that outruns the stop timeout, compose is
+                  SIGKILLed mid-teardown and the container is left behind for
+                  the next start to trip over. Teardown is disk-bound, so on a
+                  host whose docker storage shares a spindle with other heavy
+                  writers it can take far longer than 90s - a container that
+                  ignores SIGTERM adds compose's own 10s grace on top.
+                '';
               };
 
               daemonTimeout = lib.mkOption {
@@ -158,6 +178,7 @@ in
           ExecStartPre = [ "${cleanupScript project projectCfg}" ];
           Restart = "on-failure";
           RestartSec = projectCfg.restartSec;
+          TimeoutStopSec = projectCfg.stopTimeout;
         };
       }
     ) cfg.projects;
