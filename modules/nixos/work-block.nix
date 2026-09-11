@@ -20,8 +20,10 @@
 #       On workDays at endTime: delete blocked-until and stop work-block.service.
 #       (Stopping the service triggers ExecStopPost, which restarts blocked services.)
 #
-#     work-block-check.service (run at boot and after the override timer elapses)
+#     work-block-check.service (run at boot and on every rebuild)
 #       Reconciles state:
+#       - If an override is counting down, do nothing: the user asked for the
+#         services back, and a rebuild shouldn't quietly revoke that.
 #       - If blocked-until is valid, (re)start work-block.
 #       - If blocked-until is stale or today is a holiday, clear it and exit.
 #       - If there's no state but we're currently inside work hours on a work
@@ -29,11 +31,19 @@
 #         (This handles boot / rebuild during work hours, which the calendar
 #         timer alone can't cover from a fresh install.)
 #
+#     work-block-recheck.service (fired by work-block-check.timer)
+#       The same reconciliation, run when an override elapses, and willing to
+#       re-block.
+#
 #     work-block-override.service  (triggered by HTTP request on the listener port)
 #       Stop work-block.service (blocked services restart via ExecStopPost).
 #       Restart the one-hour work-block-check.timer, resetting its countdown from
-#       "now". After that hour, work-block-check re-evaluates and restarts
+#       "now". After that hour, work-block-recheck re-evaluates and restarts
 #       work-block if the day's session is still active.
+#
+#   Blocked services carry an ExecCondition (see blockGuardScript) so that a
+#   start attempt during a session is skipped quietly instead of being killed
+#   mid-start by Conflicts= and left in a failed state.
 #
 # Manual controls:
 #   Force a fresh block session for today:
@@ -556,15 +566,32 @@ let
 
   # Called at boot (via wantedBy=multi-user.target) and after the override timer
   # elapses. Reconciles state:
+  # - If an override is still counting down, do nothing (see below).
   # - If the state file exists and is still valid, (re)start work-block.
   # - If the state file is stale or today is a holiday, clean up and exit.
   # - If there is no state file but we're currently inside work hours on a work
   #   day, establish today's session by delegating to work-block-start.service.
   #   This closes the gap where a boot / rebuild during work hours would otherwise
   #   leave the day unblocked until tomorrow's calendar tick.
+  #
+  # Two entry points, because "reconcile at boot/rebuild" and "the override just
+  # elapsed" want opposite answers while an override is active:
+  #   work-block-check.service   - boot + every rebuild (oneshots re-run on each
+  #                                switch); must leave an active override alone.
+  #   work-block-recheck.service - what the override timer fires; passes
+  #                                --post-override to re-block deliberately,
+  #                                rather than depending on whether the timer has
+  #                                already flipped to inactive by the time this
+  #                                runs.
   checkScript = pkgs.writeScript "work-block-check.sh" ''
     #!${pkgs.bash}/bin/bash
     set -euo pipefail
+
+    if [ "''${1:-}" != "--post-override" ] &&
+      ${pkgs.systemd}/bin/systemctl is-active --quiet work-block-check.timer; then
+      echo "Override countdown is still running; leaving services unblocked."
+      exit 0
+    fi
 
     TODAY=$(${pkgs.coreutils}/bin/date +%Y-%m-%d)
     DAY=$(${pkgs.coreutils}/bin/date +%a)
@@ -646,6 +673,62 @@ let
     # restart resets OnActiveSec back to the full duration, regardless of
     # whether the timer was already counting down.
     ${pkgs.systemd}/bin/systemctl restart work-block-check.timer
+  '';
+
+  # ExecCondition guard attached to every blocked service. Systemd treats a
+  # 1-254 exit from ExecCondition as "condition not met": the start is skipped,
+  # the unit stays inactive instead of failed, and OnFailure= does not fire.
+  #
+  # Without this, a start attempt during a session (a rebuild, a boot, or the
+  # unit's own Restart=) races work-block.service's Conflicts=: the start gets
+  # SIGTERMed mid-flight, which leaves the unit *failed*, fires the failure
+  # alert, and makes switch-to-configuration exit non-zero. Blocking is
+  # intentional, so it should be quiet.
+  #
+  # Two tests, in order of directness:
+  #   1. work-block.service itself. While it is up it owns the ports, so a start
+  #      cannot succeed anyway. This is also the only test that stays correct
+  #      when the service is up during an override (a rebuild can do that).
+  #   2. The session state file, mirroring its documented role as the source of
+  #      truth, with the same expiry check work-block-check makes (the file
+  #      outlives its session until something reaps it) and the same override
+  #      test work-block-start makes (an override stops work-block.service but
+  #      deliberately keeps the state file so the session resumes afterwards).
+  #      This covers the window at boot before work-block.service is up.
+  #
+  # Test 1 fails open: if the unit state can't be read, fall through to the file
+  # test, which needs nothing but a world-readable file.
+  blockGuardScript = pkgs.writeScript "work-block-guard.sh" ''
+    #!${pkgs.bash}/bin/bash
+    set -uo pipefail
+
+    WB_STATE=$(${pkgs.systemd}/bin/systemctl show -p ActiveState --value work-block.service 2>/dev/null || echo "")
+    case "$WB_STATE" in
+      active | activating)
+        echo "work-block.service is $WB_STATE; skipping start."
+        exit 1
+        ;;
+    esac
+
+    # No session recorded: nothing is blocked.
+    [ -f ${stateFile} ] || exit 0
+
+    BLOCKED_UNTIL=$(${pkgs.coreutils}/bin/cat ${stateFile} 2>/dev/null || echo "")
+    BLOCKED_TS=$(${pkgs.coreutils}/bin/date -d "$BLOCKED_UNTIL" +%s 2>/dev/null || echo 0)
+    NOW_TS=$(${pkgs.coreutils}/bin/date +%s)
+
+    # Session already elapsed (stale state file): not blocked.
+    if [ "$BLOCKED_TS" -le "$NOW_TS" ]; then
+      exit 0
+    fi
+
+    # Override countdown running: the user asked for these services back.
+    if ${pkgs.systemd}/bin/systemctl is-active --quiet work-block-check.timer; then
+      exit 0
+    fi
+
+    echo "work-block session active until $BLOCKED_UNTIL; skipping start."
+    exit 1
   '';
 
   # HTTP listener handler: drains the request headers, sends a minimal OK, then
@@ -793,168 +876,193 @@ in
     };
   };
 
-  config = mkIf (cfg.enable && hasEnabledServices) {
-    # State directory for the blocked-until file. Persistent across reboots.
-    systemd.tmpfiles.rules = [
-      "d ${stateDir} 0755 root root -"
-    ];
+  config = mkIf (cfg.enable && hasEnabledServices) (mkMerge [
+    {
+      # State directory for the blocked-until file. Persistent across reboots.
+      systemd.tmpfiles.rules = [
+        "d ${stateDir} 0755 root root -"
+      ];
 
-    # Main work-block service: HTTP server on the blocked ports.
-    # Conflicts= stops the blocked services when this starts.
-    # ExecStopPost restarts them when this stops (via the helper below).
-    systemd.services.work-block = {
-      description = "Work Block - Disable distracting services during work hours (Python HTTP server)";
+      # Main work-block service: HTTP server on the blocked ports.
+      # Conflicts= stops the blocked services when this starts.
+      # ExecStopPost restarts them when this stops (via the helper below).
+      systemd.services.work-block = {
+        description = "Work Block - Disable distracting services during work hours (Python HTTP server)";
 
-      before = uniqueServiceNamesWithSuffix;
-      conflicts = uniqueServiceNamesWithSuffix;
+        before = uniqueServiceNamesWithSuffix;
+        conflicts = uniqueServiceNamesWithSuffix;
 
-      serviceConfig = {
-        Type = "simple";
-        Restart = "on-failure";
-        RestartSec = "10s";
+        serviceConfig = {
+          Type = "simple";
+          Restart = "on-failure";
+          RestartSec = "10s";
 
-        ExecStart = "${serverScript}";
+          ExecStart = "${serverScript}";
 
-        # '-+' prefix: ignore failures, run with full privileges (bypass sandbox)
-        ExecStopPost = "-+${pkgs.systemd}/bin/systemctl --no-block start work-block-restart-services.service";
+          # '-+' prefix: ignore failures, run with full privileges (bypass sandbox)
+          ExecStopPost = "-+${pkgs.systemd}/bin/systemctl --no-block start work-block-restart-services.service";
 
-        TimeoutStopSec = "30s";
+          TimeoutStopSec = "30s";
 
-        # Security hardening
-        DynamicUser = true;
-        PrivateTmp = true;
-        ProtectSystem = "strict";
-        ProtectHome = true;
-        NoNewPrivileges = true;
-        PrivateDevices = true;
-        ProtectKernelTunables = true;
-        ProtectKernelModules = true;
-        ProtectControlGroups = true;
-        RestrictAddressFamilies = [
-          "AF_INET"
-          "AF_INET6"
-        ];
-        RestrictNamespaces = true;
-        LockPersonality = true;
-        RestrictRealtime = true;
-        RestrictSUIDSGID = true;
+          # Security hardening
+          DynamicUser = true;
+          PrivateTmp = true;
+          ProtectSystem = "strict";
+          ProtectHome = true;
+          NoNewPrivileges = true;
+          PrivateDevices = true;
+          ProtectKernelTunables = true;
+          ProtectKernelModules = true;
+          ProtectControlGroups = true;
+          RestrictAddressFamilies = [
+            "AF_INET"
+            "AF_INET6"
+          ];
+          RestrictNamespaces = true;
+          LockPersonality = true;
+          RestrictRealtime = true;
+          RestrictSUIDSGID = true;
 
-        AmbientCapabilities = "CAP_NET_BIND_SERVICE";
-        CapabilityBoundingSet = "CAP_NET_BIND_SERVICE";
+          AmbientCapabilities = "CAP_NET_BIND_SERVICE";
+          CapabilityBoundingSet = "CAP_NET_BIND_SERVICE";
+        };
       };
-    };
 
-    # Helper: restart blocked services after work-block.service stops.
-    # Runs as root so it can start services outside the sandboxed main unit.
-    systemd.services.work-block-restart-services = {
-      description = "Restart services that were blocked by work-block";
-      after = [ "work-block.service" ];
-      serviceConfig = {
-        Type = "oneshot";
-        RemainAfterExit = false;
-        ExecStartPre = "${pkgs.coreutils}/bin/sleep 1";
-        ExecStart = map (
-          service: "-${pkgs.systemd}/bin/systemctl start ${service}.service"
-        ) uniqueServiceNames;
+      # Helper: restart blocked services after work-block.service stops.
+      # Runs as root so it can start services outside the sandboxed main unit.
+      systemd.services.work-block-restart-services = {
+        description = "Restart services that were blocked by work-block";
+        after = [ "work-block.service" ];
+        serviceConfig = {
+          Type = "oneshot";
+          RemainAfterExit = false;
+          ExecStartPre = "${pkgs.coreutils}/bin/sleep 1";
+          ExecStart = map (
+            service: "-${pkgs.systemd}/bin/systemctl start ${service}.service"
+          ) uniqueServiceNames;
+        };
       };
-    };
 
-    # Start-of-day: write the state file and start work-block.
-    systemd.services.work-block-start = {
-      description = "Begin a work-block session for the current day";
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        ExecStart = "${startScript}";
+      # Start-of-day: write the state file and start work-block.
+      systemd.services.work-block-start = {
+        description = "Begin a work-block session for the current day";
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          ExecStart = "${startScript}";
+        };
       };
-    };
 
-    systemd.timers.work-block-start = {
-      description = "Start work-block at beginning of work hours (${config.time.timeZone})";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
-        Persistent = true;
-        Unit = "work-block-start.service";
+      systemd.timers.work-block-start = {
+        description = "Start work-block at beginning of work hours (${config.time.timeZone})";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.startTime}";
+          Persistent = true;
+          Unit = "work-block-start.service";
+        };
       };
-    };
 
-    # End-of-day: delete the state file and stop work-block.
-    systemd.services.work-block-stop = {
-      description = "End the current day's work-block session";
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        ExecStart = "${stopScript}";
+      # End-of-day: delete the state file and stop work-block.
+      systemd.services.work-block-stop = {
+        description = "End the current day's work-block session";
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          ExecStart = "${stopScript}";
+        };
       };
-    };
 
-    systemd.timers.work-block-stop = {
-      description = "Stop work-block at end of work hours (${config.time.timeZone})";
-      wantedBy = [ "timers.target" ];
-      timerConfig = {
-        OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
-        Persistent = true;
-        Unit = "work-block-stop.service";
+      systemd.timers.work-block-stop = {
+        description = "Stop work-block at end of work hours (${config.time.timeZone})";
+        wantedBy = [ "timers.target" ];
+        timerConfig = {
+          OnCalendar = "${concatStringsSep "," cfg.workDays} *-*-* ${cfg.endTime}";
+          Persistent = true;
+          Unit = "work-block-stop.service";
+        };
       };
-    };
 
-    # Check service: run at boot and after the override timer elapses.
-    # Reads the state file and restarts work-block if the session is still active.
-    systemd.services.work-block-check = {
-      description = "Re-evaluate work-block state (boot recovery / post-override)";
-      wantedBy = [ "multi-user.target" ];
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        ExecStart = "${checkScript}";
+      # Check service: run at boot and on every rebuild (a oneshot is never
+      # "active", so switch-to-configuration always re-runs it). Reads the state
+      # file and restarts work-block if the session is still active - unless an
+      # override is counting down, which it leaves alone.
+      systemd.services.work-block-check = {
+        description = "Re-evaluate work-block state (boot / rebuild recovery)";
+        wantedBy = [ "multi-user.target" ];
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          ExecStart = "${checkScript}";
+        };
       };
-    };
 
-    # One-shot override timer. Not wantedBy anything: activated only by the
-    # override service. OnActiveSec fires once, then the timer goes inactive.
-    systemd.timers.work-block-check = {
-      description = "Fire work-block-check after the override elapses";
-      timerConfig = {
-        OnActiveSec = cfg.overrideDuration;
-        Unit = "work-block-check.service";
-        RemainAfterElapse = false;
+      # What the override timer fires when the override elapses: the same
+      # reconciliation, but explicitly willing to re-block.
+      systemd.services.work-block-recheck = {
+        description = "Re-evaluate work-block state (override elapsed)";
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          ExecStart = "${checkScript} --post-override";
+        };
       };
-    };
 
-    # Manual override: stop work-block now, reset the one-hour timer.
-    systemd.services.work-block-override = {
-      description = "Suspend work-block for ${toString cfg.overrideDuration}s (resets on each request)";
-      serviceConfig = {
-        Type = "oneshot";
-        User = "root";
-        ExecStart = "${overrideScript}";
+      # One-shot override timer. Not wantedBy anything: activated only by the
+      # override service. OnActiveSec fires once, then the timer goes inactive.
+      systemd.timers.work-block-check = {
+        description = "Fire work-block-recheck after the override elapses";
+        timerConfig = {
+          OnActiveSec = cfg.overrideDuration;
+          Unit = "work-block-recheck.service";
+          RemainAfterElapse = false;
+        };
       };
-    };
 
-    # HTTP listener socket. Accept=yes spawns a fresh handler per connection.
-    systemd.sockets.work-block-trigger = mkIf cfg.listener.enable {
-      description = "Work-block override trigger socket";
-      wantedBy = [ "sockets.target" ];
-      socketConfig = {
-        ListenStream = cfg.listener.port;
-        Accept = true;
+      # Manual override: stop work-block now, reset the one-hour timer.
+      systemd.services.work-block-override = {
+        description = "Suspend work-block for ${toString cfg.overrideDuration}s (resets on each request)";
+        serviceConfig = {
+          Type = "oneshot";
+          User = "root";
+          ExecStart = "${overrideScript}";
+        };
       };
-    };
 
-    systemd.services."work-block-trigger@" = mkIf cfg.listener.enable {
-      description = "Work-block override trigger handler";
-      serviceConfig = {
-        Type = "simple";
-        StandardInput = "socket";
-        StandardOutput = "socket";
-        StandardError = "journal";
-        ExecStart = "${listenerHandlerScript}";
-        User = "root";
-        TimeoutStartSec = "10s";
+      # HTTP listener socket. Accept=yes spawns a fresh handler per connection.
+      systemd.sockets.work-block-trigger = mkIf cfg.listener.enable {
+        description = "Work-block override trigger socket";
+        wantedBy = [ "sockets.target" ];
+        socketConfig = {
+          ListenStream = cfg.listener.port;
+          Accept = true;
+        };
       };
-    };
 
-    networking.firewall.allowedTCPPorts = mkIf cfg.listener.enable [ cfg.listener.port ];
-  };
+      systemd.services."work-block-trigger@" = mkIf cfg.listener.enable {
+        description = "Work-block override trigger handler";
+        serviceConfig = {
+          Type = "simple";
+          StandardInput = "socket";
+          StandardOutput = "socket";
+          StandardError = "journal";
+          ExecStart = "${listenerHandlerScript}";
+          User = "root";
+          TimeoutStartSec = "10s";
+        };
+      };
+
+      networking.firewall.allowedTCPPorts = mkIf cfg.listener.enable [ cfg.listener.port ];
+    }
+
+    # Every blocked service refuses to start (quietly, without entering a failed
+    # state) while a session is in effect. Each registry entry is gated on its
+    # owning service's enable option, so these names always refer to units some
+    # other module already defines.
+    {
+      systemd.services = genAttrs uniqueServiceNames (_: {
+        serviceConfig.ExecCondition = [ "${blockGuardScript}" ];
+      });
+    }
+  ]);
 }

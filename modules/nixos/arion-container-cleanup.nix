@@ -119,6 +119,24 @@ in
                 default = "15s";
                 description = "Delay before systemd retries the arion unit after a failure.";
               };
+
+              startLimitBurst = lib.mkOption {
+                type = lib.types.int;
+                default = 3;
+                description = ''
+                  Failed starts allowed within `startLimitIntervalSec` before
+                  systemd stops retrying. Bounds the retry loop for failures
+                  that a retry cannot fix - a published port held by another
+                  process, say - instead of failing (and alerting) every
+                  `restartSec` indefinitely.
+                '';
+              };
+
+              startLimitIntervalSec = lib.mkOption {
+                type = lib.types.str;
+                default = "5min";
+                description = "Window over which `startLimitBurst` is counted.";
+              };
             };
           }
         )
@@ -132,6 +150,10 @@ in
       lib.nameValuePair "arion-${project}" {
         after = [ "docker.service" ];
         wants = [ "docker.service" ];
+        unitConfig = {
+          StartLimitBurst = projectCfg.startLimitBurst;
+          StartLimitIntervalSec = projectCfg.startLimitIntervalSec;
+        };
         serviceConfig = {
           ExecStartPre = [ "${cleanupScript project projectCfg}" ];
           Restart = "on-failure";
