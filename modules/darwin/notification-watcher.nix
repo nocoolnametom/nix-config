@@ -7,13 +7,17 @@
 let
   cfg = config.services.notification-watcher;
 
-  # Build the bash case branches that map bundle ID → notify-blink source name.
+  # Build the bash case branches that map bundle ID → source name + inhibit session.
+  # Each branch sets both source_name and inhibit_session so the firing logic
+  # can check whether a competing service (e.g. slk-watcher via tmux) is active
+  # and skip the notify-blink call when it is.
   bundleCases = lib.concatStringsSep "\n        " (
     lib.concatLists (
       lib.mapAttrsToList (
         sourceName: src:
         map (
-          bundleId: "${lib.escapeShellArg bundleId}) source_name=${lib.escapeShellArg sourceName} ;;"
+          bundleId:
+          "${lib.escapeShellArg bundleId}) source_name=${lib.escapeShellArg sourceName} inhibit_session=${lib.escapeShellArg src.inhibitWhenTmuxSession} ;;"
         ) src.bundleIds
       ) cfg.sources
     )
@@ -21,7 +25,10 @@ let
 
   watcherScript = pkgs.writeShellApplication {
     name = "notification-watcher";
-    runtimeInputs = [ pkgs.jq ];
+    runtimeInputs = [
+      pkgs.jq
+      pkgs.tmux
+    ];
     text = ''
       # macOS notification watcher — dbus-equivalent for user notifications.
       #
@@ -95,13 +102,22 @@ let
         fi
         remember_id "$notif_id"
 
-        # Map bundle id → source name.
+        # Map bundle id → source name + optional inhibit session.
         source_name=""
+        inhibit_session=""
         case "$bundle" in
           ${bundleCases}
           *) continue ;;
         esac
         [ -z "$source_name" ] && continue
+
+        # If this source has a configured inhibit session and that tmux session
+        # is currently alive, skip firing — another service (e.g. slk-watcher)
+        # is handling notifications for this source more precisely.
+        if [ -n "$inhibit_session" ] && tmux has-session -t "$inhibit_session" 2>/dev/null; then
+          echo "[$(date +%T)] $bundle (id=$notif_id) → $source_name SKIPPED (tmux:$inhibit_session active)"
+          continue
+        fi
 
         # Fire. Backgrounded so a slow blink doesn't block log streaming.
         if command -v notify-blink >/dev/null 2>&1; then
@@ -133,6 +149,24 @@ in
                 "com.apple.mail"
                 "com.fastmail.mail"
               ];
+            };
+
+            inhibitWhenTmuxSession = lib.mkOption {
+              type = lib.types.str;
+              default = "";
+              description = ''
+                If non-empty, skip firing `notify-blink` for this source when
+                a tmux session with this name is currently alive. Use this to
+                hand off notification driving to another service (e.g. slk-watcher
+                via its background tmux session) that can fire more precise,
+                content-aware LED colours.
+
+                Set to the same session name as
+                `services.slk-watcher.background.sessionName` to make
+                slk-watcher the sole LED driver when slk is running, with
+                notification-watcher as the automatic fallback when it is not.
+              '';
+              example = "slk-bg";
             };
           };
         }

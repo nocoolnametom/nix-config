@@ -5,6 +5,7 @@
   # my-module = import ./my-module.nix;
   notification-watcher = import ./notification-watcher.nix;
   repo-path = import ./repo-path.nix;
+  slk-watcher = import ./slk-watcher.nix;
   yubikey = import ./yubikey.nix;
   yknotify = import ./yknotify.nix;
 }

@@ -28,10 +28,10 @@ with lib;
     { name = "timrogers/tap/litra-autotoggle"; }
     # Hunk Diff Viewer
     { name = "modem-dev/tap/hunk"; }
-    # SLK Slack TUI
-    { name = "gammons/tap/slk"; }
   ];
   homebrew.casks = [
+    # SLK Slack TUI
+    { name = "gammons/tap/slk"; }
     # Podman should work better than docker on MacOS
     { name = "podman-desktop"; }
     # Deskflow

@@ -69,6 +69,10 @@ in
     "hosts/common/users/${configVars.username}/darwin.nix"
   ]);
 
+  # Enable local SSH ONLY with keys
+  services.openssh.enable = lib.mkForce true;
+  services.openssh.extraConfig = "PasswordAuthentication no";
+
   # Per-host sketchybar customization. UUIDs are repo-safe (no PII);
   # discover yours with `icalBuddy calendars`. See
   # hosts/common/darwin/optional/services/sketchybar/default.nix for
@@ -100,13 +104,84 @@ in
   services.notification-watcher = {
     enable = true;
     sources = {
-      slack.bundleIds = [ "com.tinyspeck.slackmacgap" ];
+      slack = {
+        bundleIds = [ "com.tinyspeck.slackmacgap" ];
+        # When slk-watcher's background tmux session is alive, slk-watcher
+        # drives Slack LEDs with content-aware colours. Yield to it here so
+        # both agents don't fire on the same notification.
+        inhibitWhenTmuxSession = "slk-bg";
+      };
       email.bundleIds = [ "com.apple.mail" ];
       calendar.bundleIds = [
         "com.apple.iCal"
         "com.TickTick.task.mac"
       ];
     };
+  };
+
+  # Polls slk's SQLite message cache for new messages matching patterns and fires
+  # notify-blink sources distinct from the generic Slack notification.
+  #
+  # Requires slk to be open (the TUI syncs the cache; the watcher reads it).
+  # When slk is closed, notification-watcher provides the generic red fallback.
+  #
+  # Source names must exist in `services.notification-leds.sources` (configured in
+  # home/tdoggett/common/optional/notification-leds.nix).
+  services.slk-watcher = {
+    enable = true;
+    # Check every 30 seconds — responsive without hammering the SQLite file.
+    pollInterval = 30;
+    # Don't re-fire the same source within 60 seconds of the last firing.
+    cooldown = 60;
+    # Fire the generic slack source for every new message so slk is the sole
+    # LED driver when running. notification-watcher yields to this via
+    # inhibitWhenTmuxSession above; when slk stops, notification-watcher
+    # resumes driving the generic red blink automatically.
+    defaultSource = "slack";
+    sources = {
+      # Orange blink when directly @-mentioned or a broadcast goes out.
+      # TODO: fill in your Slack user ID. Find it while slk has synced some channels:
+      #   sqlite3 ~/.local/share/slk/cache.db \
+      #     "SELECT id, name, display_name FROM users WHERE name LIKE '%tdoggett%';"
+      # Once you appear in the cache (after sending a message slk has fetched):
+      #   sqlite3 ~/.local/share/slk/cache.db \
+      #     "SELECT DISTINCT u.id, u.name FROM messages m JOIN users u ON m.user_id = u.id WHERE u.name = 'tdoggett';"
+      mention = {
+        handles = [
+          # "U0YOURSLACKID"   ← replace with your actual Slack user ID
+        ];
+        patterns = [
+          "@here"
+          "@channel"
+        ];
+        notifySource = "slack-mention";
+      };
+
+      # Magenta blink on high-urgency keywords. Extend this list as needed.
+      urgent = {
+        keywords = [
+          "urgent"
+          "outage"
+          "P0"
+          "SEV0"
+          "SEV1"
+          "on fire"
+          "ASAP"
+        ];
+        notifySource = "slack-urgent";
+      };
+    };
+
+    # Keep slk running in a detached tmux session so the message cache stays
+    # fresh even when no interactive terminal has slk open.
+    #
+    # Presence is safe: slk uses batch_presence_aware=1 + connect_only=true
+    # on its WebSocket — Slack won't mark you active just because slk is connected.
+    #
+    # To interact with the running TUI at any time:
+    #   tmux attach -t slk-bg     # attach your terminal to the background session
+    #   Ctrl-b d                   # detach (slk stays running)
+    background.enable = true;
   };
 
   networking.hostName = configVars.networking.work.macbookpro.name;
