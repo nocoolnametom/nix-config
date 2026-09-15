@@ -1,3 +1,4 @@
+
 # NixOS Configuration Repository
 
 This repository contains a comprehensive NixOS/Nix-Darwin configuration managing a fleet of heterogeneous machines using Nix flakes. The design emphasizes code reuse, modularity, and clear organization to minimize configuration duplication across systems.
