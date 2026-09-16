@@ -111,11 +111,15 @@ let
                     set_all(dev, 0, 0, 0)
                 elif args.cmd == "blink":
                     r, g, b = parse_color(args.color)
-                    for _ in range(args.repeats):
-                        set_all(dev, r, g, b)
-                        time.sleep(args.delay / 1000)
+                    try:
+                        for _ in range(args.repeats):
+                            set_all(dev, r, g, b)
+                            time.sleep(args.delay / 1000)
+                            set_all(dev, 0, 0, 0)
+                            time.sleep(args.delay / 1000)
+                    finally:
+                        # Guard against being killed mid-on-phase: always end off.
                         set_all(dev, 0, 0, 0)
-                        time.sleep(args.delay / 1000)
             finally:
                 dev.close()
 
@@ -255,6 +259,10 @@ let
                     color = parse_color(args.color)
                     speed = delay_to_speed(args.delay)
                     selection.blink(color, count=args.repeats, speed=speed)
+                    # Luxafor firmware maintains the last commanded state even
+                    # after the blink animation finishes. Explicitly turn off so
+                    # the device doesn't stay on (purple/magenta) after the blink.
+                    selection.turn_off()
             except Exception as e:
                 print(f"luxafor-flag: error ({e})", file=sys.stderr)
                 sys.exit(1)
@@ -381,6 +389,11 @@ let
                     color = parse_color(args.color)
                     speed = delay_to_speed(args.delay)
                     selection.blink(color, count=args.repeats, speed=speed)
+                    # Kuando firmware / the busylight-for-humans keepalive thread
+                    # can leave the device lit after the blink completes. Explicitly
+                    # turn off to avoid the device staying on (and keeping the HID
+                    # connection open, which triggers yknotify false positives).
+                    selection.turn_off()
             except Exception as e:
                 print(f"kuando-busylight: error ({e})", file=sys.stderr)
                 sys.exit(1)

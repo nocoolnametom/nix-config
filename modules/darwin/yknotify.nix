@@ -36,8 +36,22 @@ let
         (( now - mtime < LED_SUPPRESS_SECONDS ))
       }
 
+      # yknotify's IOKit predicate matches any HID device open — not just
+      # YubiKeys. LED devices (BlinkStick, Luxafor, blink(1), Kuando) all
+      # generate the same events. This check queries the USB device tree for
+      # Yubico's vendor ID (0x1050 = 4176 decimal) so we only notify when a
+      # YubiKey is physically connected. LED devices have different VIDs and
+      # will never match, eliminating that entire class of false positives
+      # without relying on timing-sensitive suppress windows.
+      yubico_connected() {
+        /usr/sbin/ioreg -p IOUSB -l 2>/dev/null | /usr/bin/grep -q '"idVendor" = 4176'
+      }
+
       LAST_NTFY=0
       yknotify | while IFS= read -r line; do
+        if ! yubico_connected; then
+          continue
+        fi
         if led_recently_active; then
           continue
         fi
@@ -66,6 +80,13 @@ let
       terminal-notifier -remove "${notifierGroup}"
       launchctl stop com.user.yknotify
       launchctl start com.user.yknotify
+      # Also turn off any stuck notification LEDs that may have triggered the
+      # false yknotify alert. notify-blink is a home-manager package; probe
+      # the user profile for it and skip silently if it isn't there.
+      NOTIFY_BLINK="$HOME/.nix-profile/bin/notify-blink"
+      if [ -x "$NOTIFY_BLINK" ]; then
+        "$NOTIFY_BLINK" off >/dev/null 2>&1 || true
+      fi
       echo "yknotify restarted"
     '';
   };
