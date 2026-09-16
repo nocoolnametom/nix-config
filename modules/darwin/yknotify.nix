@@ -7,6 +7,9 @@
 let
   cfg = config.services.yknotify;
 
+  # Group ID used with terminal-notifier so yknotify-dismiss can remove banners.
+  notifierGroup = "yknotify";
+
   launcher = pkgs.writeShellApplication {
     name = "yknotify-launcher";
     runtimeInputs = [
@@ -47,8 +50,23 @@ let
         terminal-notifier \
           -title "yknotify" \
           -message "YubiKey touch: $message" \
+          -group "${notifierGroup}" \
           -sound "${cfg.sound}"
       done
+    '';
+  };
+
+  # Helper script: dismisses any live yknotify banner and restarts the launchd
+  # agent so a stuck/spurious yknotify process is killed cleanly without
+  # needing an actual YubiKey touch.
+  dismiss = pkgs.writeShellApplication {
+    name = "yknotify-dismiss";
+    runtimeInputs = [ pkgs.terminal-notifier ];
+    text = ''
+      terminal-notifier -remove "${notifierGroup}"
+      launchctl stop com.user.yknotify
+      launchctl start com.user.yknotify
+      echo "yknotify restarted"
     '';
   };
 in
@@ -80,10 +98,14 @@ in
         masked during long animations.
       '';
     };
+
   };
 
   config = lib.mkIf cfg.enable {
-    environment.systemPackages = [ pkgs.yknotify ];
+    environment.systemPackages = [
+      pkgs.yknotify
+      dismiss
+    ];
 
     launchd.user.agents.yknotify = {
       serviceConfig = {

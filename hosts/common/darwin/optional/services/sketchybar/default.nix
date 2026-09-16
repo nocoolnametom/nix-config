@@ -84,7 +84,8 @@ in
         "now_playing"
       ]
       ++ lib.optional (config.services.litra.enable or false) "litra"
-      ++ lib.optional config.services.sketchybar.personalizedOptions.enableLedDevicesWidget "led_devices";
+      ++ lib.optional config.services.sketchybar.personalizedOptions.enableLedDevicesWidget "led_devices"
+      ++ lib.optional (config.services.yknotify.enable or false) "yknotify_dismiss";
     in
     {
 
@@ -245,11 +246,23 @@ in
         sketchybar --add item clock right \
                   --set clock update_freq=10 icon.drawing=off script="${plugins.clock}" \
                     click_script="${config.services.sketchybar.personalizedOptions.clockClickCommand}" \
-                  --subscribe clock mouse.entered mouse.exited \
-                  --add item vpn right \
+                  --subscribe clock mouse.entered mouse.exited
+
+        ${lib.optionalString (config.services.yknotify.enable or false) ''
+          # YubiKey dismiss panic button — sits just left of the clock.
+          # Click to clear any stuck yknotify banner and restart the agent.
+          sketchybar --add item yknotify_dismiss right \
+                    --set yknotify_dismiss \
+                      icon=󰌋 \
+                      icon.color=0xffcc4444 \
+                      label.drawing=off \
+                      click_script="${plugins.yknotify_dismiss}"
+        ''}
+
+        sketchybar --add item vpn right \
                   --set vpn update_freq=10 icon=󰦞 script="${plugins.vpn}" \
                     click_script='open "x-apple.systempreferences:com.apple.Network-Settings.extension"' \
-                --subscribe vpn mouse.entered mouse.exited
+                  --subscribe vpn mouse.entered mouse.exited
 
         ##### Litra Auto-Toggle Indicator (conditional) #####
         # Bright yellow bulb when the litra-autotoggle daemon is running, dim
@@ -319,8 +332,9 @@ in
 
         # Right items added in visual right-to-left order. Each --add right pushes
         # the new item to the LEFT of previous right items. Final layout
-        # (right→left): clock, vpn, [litra,] weather, battery, cpu, memory, disk,
-        # volume, calendar, calendar_dismiss ([X], only when NOW event), now_playing.
+        # (right→left): clock, [yknotify_dismiss,] vpn, [litra,] weather, battery,
+        # cpu, memory, disk, volume, calendar, calendar_dismiss ([X], only when NOW
+        # event), now_playing.
 
         ##### Force all scripts to run the first time (never do this in a script) #####
         sketchybar --update

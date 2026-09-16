@@ -59,6 +59,7 @@ rec {
   };
   volume = import ./volume.nix { inherit pkgs config sketchybar; };
   vpn = import ./vpn.nix { inherit pkgs config sketchybar; };
+  yknotify_dismiss = import ./yknotify_dismiss.nix { inherit pkgs config sketchybar; };
   weather = import ./weather.nix { inherit pkgs config sketchybar; };
   weather_click = import ./weather_click.nix {
     inherit pkgs config sketchybar;
