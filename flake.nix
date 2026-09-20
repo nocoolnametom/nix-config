@@ -282,6 +282,15 @@
             ./hosts/durin
           ];
         };
+        # UGREEN DXP4800 Plus NAS (replacing cirdan)
+        feanor = lib.nixosSystem {
+          inherit specialArgs;
+          modules = [
+            home-manager.nixosModules.home-manager
+            { home-manager.extraSpecialArgs = specialArgs; }
+            ./hosts/feanor
+          ];
+        };
         # Pixel 10 Fold
         droid = lib.nixosSystem {
           inherit specialArgs;
