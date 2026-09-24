@@ -2,48 +2,52 @@
 #
 #  Feanor - Hardware Configuration (UGREEN DXP4800 Plus)
 #
-#  !!! PLACEHOLDER !!!
-#  Written before the hardware arrived so the flake evaluates. Replace the
-#  kernel-module lists with the output of `nixos-generate-config` on the real
-#  box, then keep the filesystem layout below (it is the intended design, not
-#  a guess at what the installer will produce).
+#  Kernel module lists validated against nixos-generate-config output on
+#  the real hardware (2026-09-24). Filesystem layout is intentional design
+#  using by-label mounts; the generated-config UUIDs were discarded.
 #
 #  ---------------------------------------------------------------------------
 #  Disk layout
 #  ---------------------------------------------------------------------------
-#  Factory UGOS SSD (internal NVMe slot)  - LEFT ALONE except for its ESP.
-#      The DXP4800 Plus only boots from this slot, so the NixOS bootloader is
-#      installed into the vendor ESP alongside UGOS's. Keeping the rest of the
-#      disk untouched means a BIOS boot-order change restores the stock NAS.
+#  Factory UGOS SSD (internal NVMe slot)  - LEFT PHYSICALLY IN PLACE but
+#      disabled in BIOS. The unit does not boot from this slot during normal
+#      NixOS operation. Re-enabling UGOS drive in BIOS boot-order restores
+#      the stock NAS if needed without touching the NixOS install.
 #
-#  User M.2 #1  -> label `formenos`  (btrfs, OS)
-#      subvol /root        -> /
-#      subvol /root-blank  -> pristine snapshot, restored every boot
-#      subvol /nix         -> /nix
-#      subvol /persist     -> /persist   (impermanence target)
-#      subvol /log         -> /var/log
+#  User M.2 #1  -> EFI partition (label `FEANOR_EFI`) + label `formenos` (btrfs, OS)
+#      The NixOS bootloader lives in the M.2 #1 ESP, NOT in the vendor ESP.
+#      M.2 #1 is set as the bootable device in BIOS; UGOS drive is disabled.
+#      subvol root        -> /
+#      subvol root-blank  -> pristine snapshot, restored every boot
+#      subvol nix         -> /nix
+#      subvol persist     -> /persist   (impermanence target)
+#      subvol log         -> /var/log
 #
-#  User M.2 #2  -> unused for now. Candidate: bcache/L2ARC-equivalent, or a
-#      second copy of /persist. Deliberately left out of the pool so a failure
-#      can't take data with it.
+#  User M.2 #2  -> disabled in BIOS during initial setup. Candidate for
+#      bcache/L2ARC-equivalent, or a second copy of /persist. Deliberately
+#      left out of the pool so a failure can't take data with it.
 #
-#  SATA bays -> label `silmaril`  (btrfs RAID1 data + metadata)
-#      Mounted at /silmaril. Drive inventory is 2x20TB + 2x26TB, built up in
-#      two phases while cirdan still holds the live data.
+#  SATA bays -> label `silmaril`  (btrfs data pool)
+#      Mounted at /silmaril. Drive inventory grows in phases:
+#
+#      CURRENT (single drive, no redundancy):
+#        1x 26TB HDD - temporary, no RAID until second drive arrives
+#        mkfs.btrfs -L silmaril /dev/sdX
+#
+#      PHASE A - add second 26TB (after cirdan data verified):
+#        btrfs device add /dev/sdY /silmaril
+#        btrfs balance start -dconvert=raid1 -mconvert=raid1 /silmaril
+#
+#      PHASE B - fold in two 20TB drives from retired cirdan:
+#        btrfs device add /dev/sdZ /dev/sdW /silmaril
+#        btrfs balance start /silmaril      # days at this size; safe to resume
 #
 #      btrfs RAID1 usable space with mixed drives is min(sum/2, sum - largest),
 #      so unlike ZFS mirrors (which cap each vdev at its smallest member and
 #      would strand 12 TB here) every byte of raw capacity gets used:
 #
-#        phase 1, 3 drives (20+20+26):  min(33, 40) = 33 TB usable
-#        phase 2, 4 drives (+26):       min(46, 66) = 46 TB usable
-#
-#  Phase 1 - create the pool (adjust device paths!):
-#      mkfs.btrfs -L silmaril -d raid1 -m raid1 /dev/sdX /dev/sdY /dev/sdZ
-#
-#  Phase 2 - fold in cirdan's last drive once the copy is verified:
-#      btrfs device add /dev/sdW /silmaril
-#      btrfs balance start /silmaril      # days at this size; safe to resume
+#        2 drives (26+26):            min(26, 26) = 26 TB usable
+#        4 drives (20+20+26+26):      min(46, 52) = 46 TB usable
 #
 #  NOTE: btrfs RAID1 means two copies on two *different* devices - it is not
 #  "mirrored pairs". Any single drive can fail. Recovery is `btrfs replace`,
@@ -55,6 +59,7 @@
 ###############################################################################
 
 {
+  config,
   lib,
   modulesPath,
   ...
@@ -93,8 +98,8 @@ in
   # TODO: replace with nixos-generate-config output from the real hardware.
   boot.initrd.availableKernelModules = [
     "xhci_pci"
-    "ahci"
     "nvme"
+    "ahci"
     "usbhid"
     "usb_storage"
     "sd_mod"
@@ -105,9 +110,10 @@ in
 
   boot.supportedFilesystems = [ "btrfs" ];
 
-  # Boot from the factory UGOS SSD's ESP - see the header comment. No
-  # Lanzaboote here: sharing an ESP with the vendor bootloader and then
-  # enrolling Secure Boot keys with sbctl is how you end up with a brick.
+  # Boot from M.2 #1's own ESP (label FEANOR_EFI) - see the header comment.
+  # No Lanzaboote: there is no shared vendor ESP to worry about, but enabling
+  # Secure Boot and then discovering sbctl needs the key enrolled at runtime
+  # is a painful recovery path on a headless box. Leave it off.
   boot.loader.systemd-boot.enable = true;
   boot.loader.systemd-boot.configurationLimit = 10;
   boot.loader.efi.canTouchEfiVariables = true;
@@ -156,9 +162,8 @@ in
     neededForBoot = true;
   };
 
-  # TODO: confirm the vendor ESP's label/UUID on the real hardware.
   fileSystems."/boot" = {
-    device = "/dev/disk/by-label/ESP";
+    device = "/dev/disk/by-label/FEANOR_EFI";
     fsType = "vfat";
     options = [
       "fmask=0077"
@@ -208,5 +213,5 @@ in
   zramSwap.enable = true;
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-  hardware.cpu.intel.updateMicrocode = lib.mkDefault true;
+  hardware.cpu.intel.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }
