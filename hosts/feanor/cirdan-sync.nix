@@ -66,7 +66,7 @@ let
         --exclude='#recycle' \
         --exclude='@tmp' \
         --exclude='.DS_Store' \
-        -e "ssh -i ${sshKey} -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${knownHosts} -o BatchMode=yes" \
+        -e "${pkgs.openssh}/bin/ssh -i ${sshKey} -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${knownHosts} -o BatchMode=yes" \
         "$src" "$dst"
       echo "=== $(date -Iseconds): finished $src ==="
     }
