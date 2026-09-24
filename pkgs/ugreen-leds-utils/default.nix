@@ -32,6 +32,9 @@
   bc,
   coreutils,
   dmidecode,
+  gawk,
+  gnugrep,
+  gnused,
   i2c-tools,
   iproute2,
   iputils,
@@ -113,6 +116,9 @@ stdenv.mkDerivation (finalAttrs: {
           bash
           coreutils
           dmidecode
+          gawk
+          gnugrep
+          gnused
           kmod
           smartmontools
           util-linux
@@ -128,6 +134,8 @@ stdenv.mkDerivation (finalAttrs: {
           bash
           bc
           coreutils
+          gawk
+          gnugrep
           iproute2
           iputils
           kmod
