@@ -59,7 +59,11 @@
       "/etc/machine-id"
       "/etc/machine-info"
       "/etc/nix/id_rsa"
-      "/var/lib/logrotate.status"
+      # logrotate.status is NOT bind-mounted: logrotate writes via atomic rename
+      # (write temp, rename into place) which fails on a bind-mount target with
+      # "Device or resource busy".  Losing it on reboot is harmless — logrotate
+      # recreates it and may re-rotate a few logs once.
+      # "/var/lib/logrotate.status"
       {
         file = "/etc/ssh/ssh_host_ed25519_key";
         parentDirectory = {
