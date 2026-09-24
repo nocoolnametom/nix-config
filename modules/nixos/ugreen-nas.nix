@@ -349,11 +349,15 @@ in
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
+            # Use sysfs rather than ugreen_leds_cli.  After ugreen-probe-leds
+            # registers led-ugreen on the I2C bus, the kernel marks that I2C
+            # address as driver-owned and blocks raw /dev/i2c-N access from
+            # userspace (which is what ugreen_leds_cli uses).  Writing to the
+            # LED class device sysfs attributes goes through the driver instead
+            # and works correctly.
             ExecStart = pkgs.writeShellScript "ugreen-power-led-init" ''
-              ${pkgs.ugreen-leds-cli}/bin/ugreen_leds_cli power \
-                -on \
-                -color ${ledsCfg.powerLed.color} \
-                -brightness ${toString ledsCfg.powerLed.brightness}
+              echo "${ledsCfg.powerLed.color}" > /sys/class/leds/power/color
+              echo "${toString ledsCfg.powerLed.brightness}" > /sys/class/leds/power/brightness
             '';
             StandardOutput = "journal";
             StandardError = "journal";
