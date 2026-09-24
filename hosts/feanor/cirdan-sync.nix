@@ -22,12 +22,11 @@
 #      while the previous run is still going.  The first run will be active
 #      for days; subsequent nightly runs top up whatever changed that day.
 #
-#  SSH key: uses tdoggett's id_ed25519.  That key must be passphrase-free
-#  (or stored in ssh-agent) for unattended use.  If the key has a passphrase,
-#  generate a dedicated migration key:
-#    ssh-keygen -t ed25519 -f /persist/etc/cirdan-sync-key -N ""
+#  SSH key: uses a dedicated passphrase-free key at /persist/etc/cirdan-sync-key
+#  (in /persist so it survives the ephemeral root wipe on every boot).
+#  Generate it once:
+#    sudo ssh-keygen -t ed25519 -f /persist/etc/cirdan-sync-key -N ""
 #    ssh-copy-id -i /persist/etc/cirdan-sync-key.pub tdoggett@cirdan
-#  then point sshKey below at the new key.
 #
 #  Mount layout on silmaril:
 #    /silmaril/jellyfin/            <- cirdan /volume1/Jellyfin/
@@ -45,7 +44,11 @@
 { configVars, pkgs, ... }:
 
 let
-  sshKey = "/home/${configVars.username}/.ssh/id_ed25519";
+  # Passphrase-free key stored in /persist so it survives the ephemeral root
+  # wipe on every boot.  Generate it once with:
+  #   sudo ssh-keygen -t ed25519 -f /persist/etc/cirdan-sync-key -N ""
+  # then add the .pub to cirdan's authorized_keys via ssh-copy-id.
+  sshKey = "/persist/etc/cirdan-sync-key";
   knownHosts = "/home/${configVars.username}/.ssh/known_hosts";
 
   syncScript = pkgs.writeShellScript "cirdan-sync" ''
