@@ -36,7 +36,6 @@
     enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
-      "/etc/nixos"
       "/var/db/sudo/lectured"
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/chrony"
@@ -91,6 +90,23 @@
       }
     ];
   };
+
+  # Give nixos-rebuild a /etc/nixos it can find the flake through, so a bare
+  # `sudo nixos-rebuild switch` (without --flake) works.  Nix resolves
+  # imports relative to the symlink *target*'s directory, so only flake.nix
+  # and flake.lock need to be present here — all relative paths in flake.nix
+  # resolve against the real repo directory automatically.
+  # tmpfiles runs after local-fs.target, which is after the impermanence
+  # user bind mounts (including ~/Projects), so the targets exist.
+  systemd.tmpfiles.rules =
+    let
+      repo = "/home/${configVars.username}/Projects/nocoolnametom/nix-config";
+    in
+    [
+      "d /etc/nixos 0755 root root - -"
+      "L /etc/nixos/flake.nix  - - - - ${repo}/flake.nix"
+      "L /etc/nixos/flake.lock - - - - ${repo}/flake.lock"
+    ];
 
   # Restore the blank root subvolume on every boot, so that anything not
   # persisted above is genuinely gone.
