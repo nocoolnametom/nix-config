@@ -30,17 +30,26 @@
 #  SATA bays -> label `silmaril`  (btrfs data pool)
 #      Mounted at /silmaril. Drive inventory grows in phases:
 #
-#      CURRENT (single drive, no redundancy):
-#        1x 26TB HDD - temporary, no RAID until second drive arrives
-#        mkfs.btrfs -L silmaril /dev/sdX
+#      CURRENT (two drives, JBOD, no redundancy):
+#        1x 26TB HDD (sda) - primary data drive
+#        1x 20TB HDD (sdb) - added 2026-09-24 for cirdan migration staging;
+#                            future RAID1 candidate once second 20TB arrives
 #
-#      PHASE A - add second 26TB (after cirdan data verified):
-#        btrfs device add /dev/sdY /silmaril
-#        btrfs balance start -dconvert=raid1 -mconvert=raid1 /silmaril
+#        Total usable: ~43.6 TiB. No redundancy until PHASE A.
 #
-#      PHASE B - fold in two 20TB drives from retired cirdan:
-#        btrfs device add /dev/sdZ /dev/sdW /silmaril
-#        btrfs balance start /silmaril      # days at this size; safe to resume
+#        Note: btrfs device add requires a mounted btrfs path; /silmaril itself
+#        is not mounted (only its subvolumes are), so use any subvol:
+#          sudo btrfs device add /dev/sdX /silmaril/jellyfin
+#
+#      PHASE A - add second 26TB (after cirdan data verified and stable):
+#        btrfs device add /dev/sdY /silmaril/jellyfin
+#        btrfs balance start -dconvert=raid1 -mconvert=raid1 /silmaril/jellyfin
+#        # Three drives (26+26+20 TB) in RAID1: ~36 TB usable with redundancy.
+#
+#      PHASE B - fold in second 20TB from retired cirdan:
+#        btrfs device add /dev/sdW /silmaril/jellyfin
+#        btrfs balance start /silmaril/jellyfin  # days at this size; safe to resume
+#        # Four drives (26+26+20+20 TB) in RAID1: ~46 TB usable with redundancy.
 #
 #      btrfs RAID1 usable space with mixed drives is min(sum/2, sum - largest),
 #      so unlike ZFS mirrors (which cap each vdev at its smallest member and
@@ -203,6 +212,13 @@ in
   fileSystems."/silmaril/netbackup" = poolSubvol "@netbackup" squishy; # WebDAV target for GrapheneOS
   fileSystems."/silmaril/syncthing" = poolSubvol "@syncthing" squishy;
   fileSystems."/silmaril/stacks" = poolSubvol "@stacks" squishy; # Komodo compose files + container volumes
+
+  # --- cirdan migration staging: compressible ---
+  # Temporary home for data being migrated from cirdan that doesn't yet have a
+  # permanent home. Split into subdirectories by source share so services can
+  # be cut over one at a time without moving data again. Delete this subvolume
+  # (or repurpose it) once cirdan is retired and all stacks are migrated.
+  fileSystems."/silmaril/cirdan-migration" = poolSubvol "@cirdan-migration" squishy;
 
   # NOTE: data.dat (the adult-content share) is deliberately absent - flagged
   # as not needing migration.

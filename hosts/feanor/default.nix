@@ -64,6 +64,11 @@ in
 
     ####################### Borg + offsite sync ###############################
     ./backup.nix
+
+    ################### cirdan data migration (temporary) #####################
+    # Rsync service + timer that copies all cirdan shares to the silmaril pool.
+    # Remove this import once cirdan is retired and all data is verified.
+    ./cirdan-sync.nix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
