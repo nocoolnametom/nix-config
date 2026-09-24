@@ -23,6 +23,7 @@
   stash-vr-helper = import ./stash-vr-helper.nix;
   mormonsites = import ./mormonsites.nix;
   systemd-failure-alert = import ./systemd-failure-alert.nix;
+  ugreen-nas = import ./ugreen-nas.nix;
   whisparr-eros = import ./whisparr-eros.nix;
   work-block = import ./work-block.nix;
   yubikey = import ./yubikey.nix;

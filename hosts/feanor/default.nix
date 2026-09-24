@@ -70,7 +70,8 @@ in
     "hosts/common/core"
 
     #################### Hardware ####################
-    "hosts/common/optional/ugreen-nas.nix" # Fans, LEDs, SMART, spindown
+    # ugreen-nas is a NixOS module auto-imported from modules/nixos/ugreen-nas.nix;
+    # hardware.ugreenNas options are set below rather than imported here.
     "hosts/common/optional/io-latency-tuning.nix" # Keep reads responsive during writes
 
     #################### Host-specific Optional Configs ####################
@@ -94,6 +95,21 @@ in
   ############################# Hardware ######################################
 
   hardware.ugreenNas.enable = true;
+
+  # diskiomon lights up bay LEDs on I/O and monitors SMART health
+  # even without knowing interface names
+  hardware.ugreenNas.leds.enable = true;
+  hardware.ugreenNas.leds.diskiomon.enable = true;
+
+  # netdevmon colours the network LED by link speed and gateway reachability.
+  # TODO: confirm NIC interface names once the hardware is in hand.
+  # The 10GbE is expected to be an Aquantia/Marvell atlantic device; the
+  # 2.5GbE a Realtek RTL8125 (r8169).  Set interface and flip enable to
+  # true once confirmed:
+  # hardware.ugreenNas.leds.netdevmon.enable = true;
+  #
+  # replace with confirmed 10GbE interface
+  # hardware.ugreenNas.leds.netdevmon.interface = "enp2s0";
 
   ############################## Storage ######################################
   #
