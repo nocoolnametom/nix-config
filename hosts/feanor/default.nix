@@ -70,8 +70,6 @@ in
     "hosts/common/core"
 
     #################### Hardware ####################
-    # ugreen-nas is a NixOS module auto-imported from modules/nixos/ugreen-nas.nix;
-    # hardware.ugreenNas options are set below rather than imported here.
     "hosts/common/optional/io-latency-tuning.nix" # Keep reads responsive during writes
 
     #################### Host-specific Optional Configs ####################
@@ -93,7 +91,7 @@ in
   networking.hostName = hostName;
 
   ############################# Hardware ######################################
-
+  # hardware.ugreenNas is a NixOS module auto-imported from modules/nixos/ugreen-nas.nix;
   hardware.ugreenNas.enable = true;
 
   # diskiomon lights up bay LEDs on I/O and monitors SMART health
