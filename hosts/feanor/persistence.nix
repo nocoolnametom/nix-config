@@ -36,6 +36,7 @@
     enable = lib.mkDefault true;
     hideMounts = true;
     directories = [
+      "/etc/nixos"
       "/var/db/sudo/lectured"
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/chrony"
