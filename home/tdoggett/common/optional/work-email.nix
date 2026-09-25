@@ -239,21 +239,46 @@ in
         fi
       fi
 
+      # Force the per-account store type to Maildir in user.js.
+      # user.js overrides prefs.js on every Thunderbird startup, so this is
+      # idempotent and survives profile resets.  We parse prefs.js to discover
+      # the server number dynamically rather than hard-coding it so this works
+      # on fresh installs where the server number may differ.
+      if [ -f "$PREFS_JS" ]; then
+        SERVER_NUM=$(grep -o 'mail\.server\.server[0-9]*\.hostname.*imap\.gmail\.com' "$PREFS_JS" \
+          | grep -o 'server[0-9]*' | head -1 | tr -d -c '0-9')
+        if [ -n "$SERVER_NUM" ]; then
+          SERVER_STORE_KEY="mail.server.server$SERVER_NUM.storeContractID\", \"@mozilla.org/msgstore/maildirstore;1"
+          if ! grep -qF "$SERVER_STORE_KEY" "$USER_JS" 2>/dev/null && \
+             ! grep -qF "$SERVER_STORE_KEY" "$PREFS_JS" 2>/dev/null; then
+            $VERBOSE_ECHO "Adding per-server Maildir preference for server$SERVER_NUM to $USER_JS"
+            if [ -z "$DRY_RUN_CMD" ]; then
+              printf '// Force imap.gmail.com (server%s) to Maildir store.\n' "$SERVER_NUM" >> "$USER_JS"
+              printf 'user_pref("mail.server.server%s.storeContractID", "@mozilla.org/msgstore/maildirstore;1");\n' "$SERVER_NUM" >> "$USER_JS"
+            fi
+          fi
+        fi
+      fi
+
       IMAP_DIR="$PROFILE/ImapMail/imap.gmail.com"
       if [ -d "$IMAP_DIR" ]; then
         if [ -d "$IMAP_DIR/INBOX" ] && [ -d "$IMAP_DIR/INBOX/cur" ]; then
           # INBOX is a Maildir directory — safe to link.
           $DRY_RUN_CMD ln -sfn "$IMAP_DIR" "${thunderbirdImapDir}"
         elif [ -f "$IMAP_DIR/INBOX" ]; then
-          # INBOX is a plain file — Thunderbird is using mbox format.
-          $VERBOSE_ECHO "WARNING: Thunderbird INBOX is in mbox format (neomutt requires Maildir)."
-          $VERBOSE_ECHO "Convert in Thunderbird:"
-          $VERBOSE_ECHO "  Account Settings → <account> → Server Settings"
-          $VERBOSE_ECHO "  → Message Store Type → Maildir (one file per message)"
-          $VERBOSE_ECHO "  → restart Thunderbird → wait for re-sync"
-          $VERBOSE_ECHO "  → darwin-rebuild switch --flake ~/.config/nix-darwin#macbookpro"
+          # INBOX is a plain file: Thunderbird is still using mbox format.
+          # user.js now has the Maildir preference; the cache must be cleared
+          # for Thunderbird to re-download in the new format.
+          $VERBOSE_ECHO "WARNING: Thunderbird INBOX is in mbox format."
+          $VERBOSE_ECHO "user.js has been updated with the Maildir preference."
+          $VERBOSE_ECHO "To complete conversion:"
+          $VERBOSE_ECHO "  1. Quit Thunderbird."
+          $VERBOSE_ECHO "  2. Delete the local cache:"
+          $VERBOSE_ECHO "       rm -rf '$IMAP_DIR'"
+          $VERBOSE_ECHO "  3. Restart Thunderbird — it re-downloads in Maildir format."
+          $VERBOSE_ECHO "  4. darwin-rebuild switch --flake ~/.config/nix-darwin#ZG15993"
         else
-          # INBOX not present yet — Thunderbird hasn't fully synced.
+          # INBOX not present — Thunderbird hasn't fully synced yet.
           $VERBOSE_ECHO "NOTE: Thunderbird imap.gmail.com folder found but INBOX not synced yet."
           $VERBOSE_ECHO "Let Thunderbird finish syncing, then run darwin-rebuild switch."
           $DRY_RUN_CMD ln -sfn "$IMAP_DIR" "${thunderbirdImapDir}"
