@@ -1,36 +1,34 @@
-# Work email TUI stack for macOS (Google Workspace via Thunderbird)
+# Work email TUI stack for macOS (Google Workspace via lieer + notmuch)
 #
 # Architecture:
-#   Google Workspace ←─OAuth─→ Thunderbird (sole network-connected component)
-#       ↓ caches locally as Maildir (one file per message)
-#   ~/Library/Thunderbird/Profiles/<hash>/ImapMail/imap.gmail.com/
-#       ↓ stable symlink (created by activation script)
-#   ~/.mail/thunderbird-imap/
-#       ↕ neomutt + notmuch read/write here directly
-#
-# Read/unread flags sync bidirectionally: neomutt and Thunderbird share the same
-# Maildir files; flag changes are carried in the filename suffix (:2,S = Seen),
-# so marking a message read in neomutt is visible to Thunderbird immediately.
+#   Google Workspace ←─OAuth REST API─→ lieer (gmi sync, every 5 min)
+#       ↓ flat Maildir (all messages in one directory)
+#   ~/.mail/work/mail/cur/<hash>:2,<flags>
+#       ↕ indexed by notmuch (full-text search, tag-based organization)
+#   notmuch tags ↔ Gmail labels (bidirectional via gmi push)
+#       ↕ neomutt presents mail via notmuch virtual-mailboxes
 #
 # Outgoing mail:
-#   neomutt compose → sendmail wrapper → appends to Thunderbird's Unsent Messages
+#   neomutt compose → send-via-thunderbird → Thunderbird Unsent Messages mbox
 #   → launchd agent fires Cmd+Shift+D every 5 min → sent via Thunderbird OAuth SMTP
 #
-# One-time Thunderbird setup (required before `darwin-rebuild switch` can link):
-#   1. Open Thunderbird and add your Google Workspace account (via OAuth).
-#   2. Account Settings → <account> → Server Settings →
-#      "Message Store Type" → "Maildir (one file per message)".
-#   3. Restart Thunderbird and let it fully sync.
-#   4. Run `darwin-rebuild switch`.
+# Flag/label sync path:
+#   neomutt marks message (renames file with Maildir T/S flag)
+#   → gmi pull runs `notmuch new` (detects rename, updates tags: T→deleted, S→~unread)
+#   → gmi push reads tag changes, applies Gmail labels (\Trash, etc.)
 #
-# If Thunderbird was set up AFTER `darwin-rebuild switch` runs, step 2 may not
-# be needed: the activation script writes user.js to the profile declaring
-# Maildir as the default for new accounts, so the account will be created in
-# Maildir format automatically.
+# One-time setup per machine:
+#   1. darwin-rebuild switch  (creates ~/.mail/work/ and writes .gmailieer.json)
+#   2. cd ~/.mail/work && gmi auth  (OAuth browser flow; credentials saved locally)
+#   3. cd ~/.mail/work && gmi pull  (initial sync; may take a few minutes)
+#   4. For outgoing: open Thunderbird and add your Google Workspace account via OAuth.
 #
-# If Thunderbird was already configured before this, the activation script
-# detects mbox format (INBOX is a plain file, not a directory) and prints a
-# warning with instructions for the manual Server Settings conversion.
+# Re-auth when Google Workspace policy expires the token:
+#   cd ~/.mail/work && gmi auth
+#
+# Credentials are NOT stored in SOPS because enterprise OAuth tokens expire on
+# policy schedules you don't control — re-auth is always a manual step. There is
+# no benefit to wrapping a value that needs periodic replacement in nix-secrets.
 
 {
   pkgs,
@@ -42,14 +40,15 @@
 
 let
   homeDir = config.home.homeDirectory;
-  # All mail tooling anchors here; notmuch also uses this as its database root.
+  # All mail tooling anchors here; notmuch database also lives here (.notmuch/).
   mailBase = "${homeDir}/.mail";
-  # Symlink to Thunderbird's IMAP cache; created by the activation script.
-  thunderbirdImapDir = "${mailBase}/thunderbird-imap";
+  # lieer account directory: contains .gmailieer.json, .credentials.gmailieer.json
+  lieerDir = "${mailBase}/work";
+  # lieer writes all message files here (flat Maildir, no subfolders)
+  lieerMailDir = "${lieerDir}/mail";
 
-  # Wrapper script: neomutt pipes composed messages here.
-  # Appended to Thunderbird's Unsent Messages mbox; Thunderbird then sends via
-  # its own OAuth SMTP connection.
+  # Wrapper: neomutt pipes composed messages here.
+  # Appended to Thunderbird's Unsent Messages mbox; Thunderbird sends via OAuth SMTP.
   sendmailScript = pkgs.writeShellScript "send-via-thunderbird" ''
     set -e
 
@@ -84,8 +83,7 @@ let
 
     MESSAGE=$(cat)
 
-    # mboxrd format: "From " at the start of a body line must be escaped as
-    # ">From " so it is not mistaken for the message separator.
+    # mboxrd format: "From " at the start of a body line must be escaped.
     {
       printf 'From MAILER-DAEMON %s\n' "$(date +'%a %b %d %H:%M:%S %Y')"
       printf '%s\n' "$MESSAGE" | sed 's/^\(>*From \)/>From /'
@@ -95,32 +93,57 @@ let
     printf 'Queued — Thunderbird will send within ~5 minutes.\n' >&2
   '';
 
+  # Non-sensitive lieer configuration. Written declaratively by the activation
+  # script. The credentials file (.credentials.gmailieer.json) is NOT managed
+  # here — generate it with `cd ~/.mail/work && gmi auth`.
+  gmailieerConfig = pkgs.writeText "gmailieer-config.json" (builtins.toJSON {
+    account = configVars.email.work;
+    replace_slash_with_dot = false;
+    timeout = 600;
+    drop_non_existing_label = false;
+    ignore_empty_history = false;
+    ignore_tags = [ ];
+    # Must match notmuch's Maildir T-flag mapping (T flag → `deleted` tag).
+    # notmuch.maildir.synchronizeFlags maps T → `deleted`, so setting
+    # local_trash_tag = "deleted" ensures gmi push propagates neomutt deletions
+    # to Gmail's \Trash label.
+    local_trash_tag = "deleted";
+    ignore_remote_labels = [
+      "CATEGORY_PERSONAL"
+      "CATEGORY_PROMOTIONS"
+      "CATEGORY_UPDATES"
+      "CATEGORY_SOCIAL"
+      "CATEGORY_FORUMS"
+    ];
+    remove_local_messages = true;
+    file_extension = "";
+    translation_list_overlay = [ ];
+  });
+
 in
 {
   home.packages = with pkgs; [
     w3m # HTML rendering inside neomutt
     urlscan # URL picker invoked from neomutt
+    lieer # Gmail REST API sync; provides the `gmi` command
   ];
 
-  # All email tooling anchors its Maildir paths here.
+  # All email tooling anchors Maildir paths here; notmuch database root.
   accounts.email.maildirBasePath = "${homeDir}/.mail";
 
-  # Account definition drives notmuch and neomutt config generation.
-  # No imap/mbsync block: neomutt reads Thunderbird's Maildir directly.
   accounts.email.accounts.work = {
     primary = true;
     address = configVars.email.work;
     realName = configVars.userFullName;
 
-    # thunderbird-imap is a symlink created by the activation script pointing at
-    # Thunderbird's ImapMail/imap.gmail.com/ cache directory.
-    maildir.path = "thunderbird-imap";
+    # lieer uses a flat Maildir at ~/.mail/work/mail/ (relative: work/mail)
+    maildir.path = "work/mail";
 
-    # HM's neomutt module's accountStr function always references imap.tls.enable
-    # (line 358 of neomutt/default.nix) regardless of whether IMAP is used. The
-    # imap block must be a non-null set or Nix evaluation fails with
-    # "expected a set but found null". neomutt won't connect here because
-    # mailboxType defaults to Maildir when maildir.path is set.
+    # HM's neomutt module unconditionally accesses imap.tls.enable (line 358 of
+    # neomutt/default.nix) regardless of whether IMAP is used. Without a non-null
+    # imap block, evaluation fails with "expected a set but found null".
+    # neomutt never connects here because mailboxType defaults to Maildir when
+    # maildir.path is set.
     imap = {
       host = "127.0.0.1";
       port = 993;
@@ -133,39 +156,38 @@ in
 
     # sendMailCommand being non-null is what places this account in
     # neomuttAccounts — the list that gates neomuttrc generation in HM
-    # (see programs.neomutt/default.nix:496).  It also short-circuits
-    # accountStr's SMTP evaluation, which would otherwise error with no smtp set.
+    # (programs.neomutt/default.nix:496). It also short-circuits accountStr's
+    # SMTP evaluation path, which would error with no smtp block set.
     neomutt.enable = true;
     neomutt.sendMailCommand = "${homeDir}/.local/bin/send-via-thunderbird";
   };
 
-  # notmuch: full-text search index over ~/.mail/ (includes thunderbird-imap/).
+  # notmuch: full-text search index + tag store over ~/.mail/
+  # lieer handles all label→tag mapping during `gmi pull`, so we don't need
+  # new.tags or a postNew hook to set inbox/unread — lieer does that from Gmail's
+  # INBOX and UNREAD labels. An inbox-tagging hook would incorrectly re-add the
+  # inbox tag to archived messages.
   programs.notmuch = {
     enable = true;
+    # Bidirectional sync between Maildir flags and notmuch tags:
+    #   T flag (Trashed)  ↔  deleted tag
+    #   S flag (Seen)     ↔  ~unread tag (presence of S removes unread)
     maildir.synchronizeFlags = true;
-    new.tags = [
-      "new"
-      "unread"
-    ];
+    new.tags = [ ];
     search.excludeTags = [
       "deleted"
       "spam"
     ];
-    hooks.postNew = ''
-      ${pkgs.notmuch}/bin/notmuch tag +inbox -new -- tag:new
-    '';
   };
 
-  # neomutt: TUI client reading Thunderbird's Maildir directly.
+  # neomutt: TUI mail client presenting Gmail via notmuch virtual-mailboxes.
+  # lieer's flat Maildir has no subfolder hierarchy; all organization is via tags.
   programs.neomutt = {
     enable = true;
     vimKeys = true;
     # HM's `settings` generates unquoted `set key=value` lines.
     # Values containing spaces must go in `extraConfig` to avoid parse errors.
     settings = {
-      folder = thunderbirdImapDir;
-      spoolfile = "+INBOX";
-
       editor = "nvim";
       sort = "reverse-date-received";
       pager_index_lines = "10";
@@ -175,10 +197,10 @@ in
       sendmail_wait = "0";
       mailcap_path = "${homeDir}/.config/neomutt/mailcap";
       sidebar_visible = "yes";
-      sidebar_width = "24";
-      # Keep deleted-message files in-place with the 'T' (trashed) flag rather
-      # than unlinking them immediately. Thunderbird maps 'T' to IMAP \Deleted
-      # and expunges on next sync, ensuring server-side deletion propagates.
+      sidebar_width = "30";
+      # Keep deleted-message files in-place with the T (Trashed) flag rather than
+      # unlinking them. notmuch.maildir.synchronizeFlags converts T → `deleted` tag;
+      # gmi push then moves the message to Gmail's \Trash label.
       maildir_trash = "yes";
     };
     extraConfig = ''
@@ -190,11 +212,27 @@ in
       auto_view text/html
       alternative_order text/plain text/enriched text/html
 
-      # Gmail folder layout: nested labels live under [Gmail].sbd/
-      mailboxes +INBOX "+[Gmail].sbd/All Mail" +Sent +Drafts +Trash
+      # notmuch virtual-mailbox setup.
+      # folder: physical Maildir root — used by neomutt to resolve message paths
+      #   when opening individual messages from a virtual-mailbox view.
+      # nm_default_url: the notmuch database directory (containing .notmuch/).
+      # spoolfile: the mailbox neomutt opens on startup (notmuch inbox query).
+      set folder = "${lieerMailDir}"
+      set nm_default_url = "notmuch://${mailBase}"
+      set spoolfile = "notmuch://${mailBase}?query=tag:inbox"
+
+      virtual-mailboxes "INBOX"    "notmuch://${mailBase}?query=tag:inbox"
+      virtual-mailboxes "Unread"   "notmuch://${mailBase}?query=tag:unread"
+      virtual-mailboxes "Sent"     "notmuch://${mailBase}?query=tag:sent"
+      virtual-mailboxes "All Mail" "notmuch://${mailBase}?query=NOT tag:deleted AND NOT tag:spam"
+
       bind index,pager \CP sidebar-prev
       bind index,pager \CN sidebar-next
       bind index,pager \CO sidebar-open
+
+      # vim-keys.rc binds \Cm (Enter) to list-reply with a "Doesn't work currently"
+      # comment. Override it so Enter opens the selected message as expected.
+      bind index \Cm display-message
 
       macro index,pager \Cu "<pipe-message> ${pkgs.urlscan}/bin/urlscan<Enter>" "pick URL"
       macro index \` "<vfolder-from-query>" "notmuch query"
@@ -211,89 +249,51 @@ in
   };
 
   home.activation.setupMailDir = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    $DRY_RUN_CMD mkdir -p "${mailBase}"
+    # Create the Maildir structure that lieer expects.
+    $DRY_RUN_CMD mkdir -p "${lieerMailDir}/cur" "${lieerMailDir}/new" "${lieerMailDir}/tmp"
 
-    # Locate the Thunderbird profile directory (name contains a random hash).
-    PROFILE=$(ls -d "${homeDir}/Library/Thunderbird/Profiles/"*.default-release \
-                2>/dev/null | head -1)
-    if [ -z "$PROFILE" ]; then
-      PROFILE=$(ls -d "${homeDir}/Library/Thunderbird/Profiles/"*.default \
-                  2>/dev/null | head -1)
+    # Write the non-sensitive lieer config declaratively.
+    # Overwritten on every darwin-rebuild switch — do not edit by hand.
+    # Credentials (.credentials.gmailieer.json) are not written here.
+    $DRY_RUN_CMD cp -f ${gmailieerConfig} "${lieerDir}/.gmailieer.json"
+
+    # Remove the old Thunderbird IMAP symlink if it exists (from before lieer).
+    if [ -L "${mailBase}/thunderbird-imap" ]; then
+      $DRY_RUN_CMD rm "${mailBase}/thunderbird-imap"
     fi
 
-    if [ -n "$PROFILE" ]; then
-      # Declare Maildir as the default store type for new IMAP accounts.
-      # Written to user.js (read by Thunderbird on every startup, overriding
-      # prefs.js) so this preference survives profile resets and Thunderbird
-      # reinstalls. Idempotent: skipped if already present in user.js or prefs.js.
-      USER_JS="$PROFILE/user.js"
-      PREFS_JS="$PROFILE/prefs.js"
-      MAILDIR_KEY='mailnews.default_store_contract_id", "@mozilla.org/msgstore/maildirstore;1'
-      if ! grep -qF "$MAILDIR_KEY" "$USER_JS" 2>/dev/null && \
-         ! grep -qF "$MAILDIR_KEY" "$PREFS_JS" 2>/dev/null; then
-        $VERBOSE_ECHO "Adding Maildir preference to $USER_JS"
-        if [ -z "$DRY_RUN_CMD" ]; then
-          printf '// Managed by Nix: sets Maildir (one file per message) as default\n' >> "$USER_JS"
-          printf '// store for new IMAP accounts so neomutt can share the same files.\n' >> "$USER_JS"
-          printf 'user_pref("mailnews.default_store_contract_id", "@mozilla.org/msgstore/maildirstore;1");\n' >> "$USER_JS"
-        fi
-      fi
+    # Initialize notmuch database if not already present.
+    if [ ! -d "${mailBase}/.notmuch" ] && [ -z "$DRY_RUN_CMD" ]; then
+      $VERBOSE_ECHO "Initializing notmuch database at ${mailBase}/.notmuch"
+      ${pkgs.notmuch}/bin/notmuch new
+    fi
 
-      # Force the per-account store type to Maildir in user.js.
-      # user.js overrides prefs.js on every Thunderbird startup, so this is
-      # idempotent and survives profile resets.  We parse prefs.js to discover
-      # the server number dynamically rather than hard-coding it so this works
-      # on fresh installs where the server number may differ.
-      if [ -f "$PREFS_JS" ]; then
-        SERVER_NUM=$(grep -o 'mail\.server\.server[0-9]*\.hostname.*imap\.gmail\.com' "$PREFS_JS" \
-          | grep -o 'server[0-9]*' | head -1 | tr -d -c '0-9')
-        if [ -n "$SERVER_NUM" ]; then
-          SERVER_STORE_KEY="mail.server.server$SERVER_NUM.storeContractID\", \"@mozilla.org/msgstore/maildirstore;1"
-          if ! grep -qF "$SERVER_STORE_KEY" "$USER_JS" 2>/dev/null && \
-             ! grep -qF "$SERVER_STORE_KEY" "$PREFS_JS" 2>/dev/null; then
-            $VERBOSE_ECHO "Adding per-server Maildir preference for server$SERVER_NUM to $USER_JS"
-            if [ -z "$DRY_RUN_CMD" ]; then
-              printf '// Force imap.gmail.com (server%s) to Maildir store.\n' "$SERVER_NUM" >> "$USER_JS"
-              printf 'user_pref("mail.server.server%s.storeContractID", "@mozilla.org/msgstore/maildirstore;1");\n' "$SERVER_NUM" >> "$USER_JS"
-            fi
-          fi
-        fi
-      fi
-
-      IMAP_DIR="$PROFILE/ImapMail/imap.gmail.com"
-      if [ -d "$IMAP_DIR" ]; then
-        if [ -d "$IMAP_DIR/INBOX" ] && [ -d "$IMAP_DIR/INBOX/cur" ]; then
-          # INBOX is a Maildir directory — safe to link.
-          $DRY_RUN_CMD ln -sfn "$IMAP_DIR" "${thunderbirdImapDir}"
-        elif [ -f "$IMAP_DIR/INBOX" ]; then
-          # INBOX is a plain file: Thunderbird is still using mbox format.
-          # user.js now has the Maildir preference; the cache must be cleared
-          # for Thunderbird to re-download in the new format.
-          $VERBOSE_ECHO "WARNING: Thunderbird INBOX is in mbox format."
-          $VERBOSE_ECHO "user.js has been updated with the Maildir preference."
-          $VERBOSE_ECHO "To complete conversion:"
-          $VERBOSE_ECHO "  1. Quit Thunderbird."
-          $VERBOSE_ECHO "  2. Delete the local cache:"
-          $VERBOSE_ECHO "       rm -rf '$IMAP_DIR'"
-          $VERBOSE_ECHO "  3. Restart Thunderbird — it re-downloads in Maildir format."
-          $VERBOSE_ECHO "  4. darwin-rebuild switch --flake ~/.config/nix-darwin#ZG15993"
-        else
-          # INBOX not present — Thunderbird hasn't fully synced yet.
-          $VERBOSE_ECHO "NOTE: Thunderbird imap.gmail.com folder found but INBOX not synced yet."
-          $VERBOSE_ECHO "Let Thunderbird finish syncing, then run darwin-rebuild switch."
-          $DRY_RUN_CMD ln -sfn "$IMAP_DIR" "${thunderbirdImapDir}"
-        fi
-      else
-        $VERBOSE_ECHO "NOTE: Thunderbird imap.gmail.com folder not found."
-        $VERBOSE_ECHO "Add your Google Workspace account in Thunderbird, let it sync,"
-        $VERBOSE_ECHO "then run: darwin-rebuild switch --flake ~/.config/nix-darwin#macbookpro"
-      fi
-    else
-      $VERBOSE_ECHO "NOTE: No Thunderbird profile found."
-      $VERBOSE_ECHO "Install Thunderbird and add your Google Workspace account,"
-      $VERBOSE_ECHO "then run: darwin-rebuild switch --flake ~/.config/nix-darwin#macbookpro"
+    # Credentials are generated by the OAuth flow and are not managed by Nix.
+    # After darwin-rebuild switch on a new machine, run:
+    #   cd ${lieerDir} && ${pkgs.lieer}/bin/gmi auth
+    if [ ! -f "${lieerDir}/.credentials.gmailieer.json" ]; then
+      $VERBOSE_ECHO "NOTE: lieer OAuth credentials not found."
+      $VERBOSE_ECHO "To authenticate with Google Workspace:"
+      $VERBOSE_ECHO "  cd ${lieerDir} && ${pkgs.lieer}/bin/gmi auth"
     fi
   '';
+
+  # Sync Gmail every 5 minutes via lieer.
+  # `gmi sync` = `gmi pull` (Gmail → Maildir + notmuch tags) +
+  #              `gmi push` (notmuch tag changes → Gmail labels).
+  launchd.agents.lieer-sync = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "${pkgs.lieer}/bin/gmi"
+        "sync"
+      ];
+      WorkingDirectory = lieerDir;
+      StartInterval = 300;
+      StandardOutPath = "${mailBase}/lieer-sync.log";
+      StandardErrorPath = "${mailBase}/lieer-sync.log";
+    };
+  };
 
   # Thunderbird outbox flush every 5 minutes.
   # Fires Cmd+Shift+D (File → Send Unsent Messages) when Thunderbird is running;
