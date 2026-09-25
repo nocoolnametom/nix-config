@@ -47,6 +47,48 @@ let
   # lieer writes all message files here (flat Maildir, no subfolders)
   lieerMailDir = "${lieerDir}/mail";
 
+  # Bridge: called by neomutt's $ macro after sync-mailbox flushes Maildir flag
+  # renames to disk. notmuch's maildir.synchronizeFlags does NOT convert flag
+  # renames to tag changes for already-indexed messages — it only writes in the
+  # tags→flags direction. This script fills both gaps:
+  #   T flag (deleted) → +deleted -inbox -unread (scans all T-flagged files)
+  #   S flag (seen/read) → -unread (scans only files modified since last run)
+  # After tagging, notmuch new is called so gmi push sees the changes.
+  notmuchSyncScript = pkgs.writeShellScript "notmuch-maildir-sync" ''
+    MAIL_CUR="${lieerMailDir}/cur"
+    # Marker file: tracks when this script last ran. Used to find only recently
+    # S-flagged files (reads) without scanning all 7k+ messages every time.
+    SYNC_MARKER="${lieerDir}/.notmuch-sync-marker"
+
+    # T-flag: neomutt deletion (dd + maildir_trash=yes) → notmuch deleted tag.
+    # notmuch new does not convert T-flag renames to deleted tags for already-indexed
+    # messages (it only writes tags→flags), so we do it explicitly here.
+    while IFS= read -r -d "" MAIL_FILE; do
+      MID=$(grep -m1 '^Message-ID:' "$MAIL_FILE" 2>/dev/null \
+            | sed 's/Message-ID: //;s/[<>]//g')
+      if [ -n "$MID" ]; then
+        notmuch tag +deleted -inbox -unread -- "id:$MID" 2>/dev/null
+      fi
+    done < <(find "$MAIL_CUR" -maxdepth 1 -name '*:2,*T*' -print0 2>/dev/null)
+
+    # S-flag: neomutt read (opening a message adds S flag) → notmuch -unread tag.
+    # Only files modified since the last marker are checked. Files with T flag
+    # are excluded (already handled by the T loop above).
+    if [ -f "$SYNC_MARKER" ]; then
+      while IFS= read -r -d "" MAIL_FILE; do
+        MID=$(grep -m1 '^Message-ID:' "$MAIL_FILE" 2>/dev/null \
+              | sed 's/Message-ID: //;s/[<>]//g')
+        if [ -n "$MID" ]; then
+          notmuch tag -unread -- "id:$MID" 2>/dev/null
+        fi
+      done < <(find "$MAIL_CUR" -maxdepth 1 -newer "$SYNC_MARKER" \
+                    -name '*:2,*S*' -not -name '*:2,*T*' -print0 2>/dev/null)
+    fi
+    touch "$SYNC_MARKER"
+
+    notmuch new
+  '';
+
   # Wrapper: neomutt pipes composed messages here.
   # Appended to Thunderbird's Unsent Messages mbox; Thunderbird sends via OAuth SMTP.
   sendmailScript = pkgs.writeShellScript "send-via-thunderbird" ''
@@ -187,6 +229,8 @@ in
       ".state.gmailieer.json"
       ".state.gmailieer.json.bak"
       ".resume-pull.gmailieer.json.bak"
+      # Marker file written by notmuch-maildir-sync on each $ press.
+      ".notmuch-sync-marker"
       # launchd agent logs land in ~/.mail/; *.log catches current and future ones.
       "*.log"
       # Old Dovecot directory — cleaned up by activation script but guarded here too.
@@ -211,12 +255,11 @@ in
       "spam"
     ];
     hooks.postNew = ''
-      # When neomutt marks a message for deletion (Maildir T flag, maildir_trash=yes),
-      # notmuch new adds the `deleted` tag via maildir.synchronizeFlags. But `inbox`
-      # has no Maildir flag counterpart, so it is never removed automatically.
-      # Without this hook, deleted messages keep `inbox` and reappear in the INBOX
-      # virtual-mailbox after every sync. lieer's gmi push picks up the tag delta
-      # (-inbox, +deleted) and moves the message to Gmail Trash.
+      # Safety net: ensure deleted messages never appear in INBOX.
+      # The notmuch-maildir-sync script (called by neomutt's $ macro) already
+      # applies -inbox -unread when tagging T-flagged files. This hook covers
+      # cases where deleted was applied by lieer's gmi pull (from Gmail Trash)
+      # without -inbox, or any other path that adds deleted without removing inbox.
       ${pkgs.notmuch}/bin/notmuch tag -inbox -unread -- tag:deleted
     '';
   };
@@ -240,8 +283,9 @@ in
       sidebar_visible = "yes";
       sidebar_width = "30";
       # Keep deleted-message files in-place with the T (Trashed) flag rather than
-      # unlinking them. notmuch.maildir.synchronizeFlags converts T → `deleted` tag;
-      # gmi push then moves the message to Gmail's \Trash label.
+      # unlinking them. The notmuch-maildir-sync script ($ macro) detects the T flag,
+      # applies the deleted tag, and calls notmuch new. gmi push then moves the
+      # message to Gmail's \Trash label on the next launchd sync cycle.
       maildir_trash = "yes";
     };
     extraConfig = ''
@@ -282,12 +326,12 @@ in
       # comment. Override it so Enter opens the selected message as expected.
       bind index \Cm display-message
 
-      # After neomutt marks messages for deletion (Maildir T flag via dd) and after
-      # reading messages (Maildir S flag), press $ to flush the flag renames to
-      # disk and run notmuch new. notmuch new picks up the file renames, updates
-      # tags (T→+deleted, S→-unread), and runs the postNew hook which removes
-      # inbox from deleted messages. lieer's next gmi push propagates the changes.
-      macro index $ '<sync-mailbox><shell-escape>notmuch new<enter>' \
+      # After neomutt marks messages for deletion (Maildir T flag via dd), press $
+      # to flush the flag renames to disk and run the notmuch-maildir-sync script.
+      # The script detects T-flagged files and explicitly applies the deleted tag
+      # (notmuch new alone does not do this for renames), then calls notmuch new.
+      # lieer's next gmi sync picks up the deleted tag and pushes to Gmail Trash.
+      macro index $ '<sync-mailbox><shell-escape>${homeDir}/.local/bin/notmuch-maildir-sync<enter>' \
         'sync and update notmuch index'
 
       macro index,pager \Cu "<pipe-message> ${pkgs.urlscan}/bin/urlscan<Enter>" "pick URL"
@@ -301,6 +345,11 @@ in
 
   home.file.".local/bin/send-via-thunderbird" = {
     source = sendmailScript;
+    executable = true;
+  };
+
+  home.file.".local/bin/notmuch-maildir-sync" = {
+    source = notmuchSyncScript;
     executable = true;
   };
 
