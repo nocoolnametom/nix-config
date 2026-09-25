@@ -160,6 +160,10 @@ in
     # SMTP evaluation path, which would error with no smtp block set.
     neomutt.enable = true;
     neomutt.sendMailCommand = "${homeDir}/.local/bin/send-via-thunderbird";
+    # lieer uses a flat Maildir with no Inbox subfolder — suppress the physical
+    # `mailboxes ".../mail/Inbox"` line HM generates by default, which causes
+    # an "Unknown Mailbox" error and a segfault on startup.
+    neomutt.showDefaultMailbox = false;
   };
 
   # notmuch: full-text search index + tag store over ~/.mail/
@@ -174,10 +178,47 @@ in
     #   S flag (Seen)     ↔  ~unread tag (presence of S removes unread)
     maildir.synchronizeFlags = true;
     new.tags = [ ];
+    new.ignore = [
+      # lieer stores config, credentials, lock, and state files alongside the
+      # Maildir in ~/.mail/work/. notmuch new would otherwise warn about each.
+      ".gmailieer.json"
+      ".credentials.gmailieer.json"
+      ".lock"
+      ".state.gmailieer.json"
+      ".state.gmailieer.json.bak"
+      ".resume-pull.gmailieer.json.bak"
+      # launchd agent logs land in ~/.mail/; *.log catches current and future ones.
+      "*.log"
+      # Old Dovecot directory — cleaned up by activation script but guarded here too.
+      "dovecot-run"
+      # Thunderbird's own IMAP cache directory, exposed under ~/.mail/ via symlink
+      # in the old Dovecot-based architecture. Activation script removes the symlink,
+      # but this guard prevents re-indexing if Thunderbird recreates it.
+      "thunderbird-source"
+      # Old mbsync IMAP subfolder structure — lieer uses a flat Maildir, so any
+      # subdirectory under mail/ is a leftover from before lieer. Activation script
+      # removes them; this prevents accidental re-indexing.
+      "Trash"
+      "Sent"
+      "Sent Mail"
+      "All Mail"
+      "Drafts"
+      "Spam"
+      "Starred"
+    ];
     search.excludeTags = [
       "deleted"
       "spam"
     ];
+    hooks.postNew = ''
+      # When neomutt marks a message for deletion (Maildir T flag, maildir_trash=yes),
+      # notmuch new adds the `deleted` tag via maildir.synchronizeFlags. But `inbox`
+      # has no Maildir flag counterpart, so it is never removed automatically.
+      # Without this hook, deleted messages keep `inbox` and reappear in the INBOX
+      # virtual-mailbox after every sync. lieer's gmi push picks up the tag delta
+      # (-inbox, +deleted) and moves the message to Gmail Trash.
+      ${pkgs.notmuch}/bin/notmuch tag -inbox -unread -- tag:deleted
+    '';
   };
 
   # neomutt: TUI mail client presenting Gmail via notmuch virtual-mailboxes.
@@ -221,6 +262,13 @@ in
       set nm_default_url = "notmuch://${mailBase}"
       set spoolfile = "notmuch://${mailBase}?query=tag:inbox"
 
+      # Clear any mailboxes registered by HM's per-account stanzas before
+      # declaring our own clean set. `unmailboxes *` covers both physical and
+      # virtual mailboxes in this neomutt build (the fix landed alongside the
+      # separate `virtual-unmailboxes` command). HM generates a virtual
+      # "My INBOX" from notmuch.enable = true that duplicates our INBOX below.
+      unmailboxes *
+
       virtual-mailboxes "INBOX"    "notmuch://${mailBase}?query=tag:inbox"
       virtual-mailboxes "Unread"   "notmuch://${mailBase}?query=tag:unread"
       virtual-mailboxes "Sent"     "notmuch://${mailBase}?query=tag:sent"
@@ -233,6 +281,14 @@ in
       # vim-keys.rc binds \Cm (Enter) to list-reply with a "Doesn't work currently"
       # comment. Override it so Enter opens the selected message as expected.
       bind index \Cm display-message
+
+      # After neomutt marks messages for deletion (Maildir T flag via dd) and after
+      # reading messages (Maildir S flag), press $ to flush the flag renames to
+      # disk and run notmuch new. notmuch new picks up the file renames, updates
+      # tags (T→+deleted, S→-unread), and runs the postNew hook which removes
+      # inbox from deleted messages. lieer's next gmi push propagates the changes.
+      macro index $ '<sync-mailbox><shell-escape>notmuch new<enter>' \
+        'sync and update notmuch index'
 
       macro index,pager \Cu "<pipe-message> ${pkgs.urlscan}/bin/urlscan<Enter>" "pick URL"
       macro index \` "<vfolder-from-query>" "notmuch query"
@@ -257,10 +313,37 @@ in
     # Credentials (.credentials.gmailieer.json) are not written here.
     $DRY_RUN_CMD cp -f ${gmailieerConfig} "${lieerDir}/.gmailieer.json"
 
-    # Remove the old Thunderbird IMAP symlink if it exists (from before lieer).
-    if [ -L "${mailBase}/thunderbird-imap" ]; then
-      $DRY_RUN_CMD rm "${mailBase}/thunderbird-imap"
-    fi
+    # Remove symlinks from previous mail architectures.
+    # thunderbird-imap: old Dovecot IMAP server symlink.
+    # thunderbird-source: symlink into Thunderbird's own IMAP cache (before lieer).
+    for STALE_LINK in \
+      "${mailBase}/thunderbird-imap" \
+      "${mailBase}/thunderbird-source"; do
+      if [ -L "$STALE_LINK" ]; then
+        $VERBOSE_ECHO "Removing stale symlink: $STALE_LINK"
+        $DRY_RUN_CMD rm -f "$STALE_LINK"
+      fi
+    done
+
+    # Remove leftover artifacts from previous mail architectures (Dovecot, mbsync).
+    for STALE in \
+      "${mailBase}/dovecot-run" \
+      "${mailBase}/dovecot-stderr.log" \
+      "${mailBase}/dovecot-stdout.log" \
+      "${mailBase}/dovecot.log" \
+      "${mailBase}/mbsync.log" \
+      "${lieerMailDir}/Trash" \
+      "${lieerMailDir}/Sent" \
+      "${lieerMailDir}/Sent Mail" \
+      "${lieerMailDir}/All Mail" \
+      "${lieerMailDir}/Drafts" \
+      "${lieerMailDir}/Spam" \
+      "${lieerMailDir}/Starred"; do
+      if [ -e "$STALE" ] || [ -L "$STALE" ]; then
+        $VERBOSE_ECHO "Removing stale artifact: $STALE"
+        $DRY_RUN_CMD rm -rf "$STALE"
+      fi
+    done
 
     # Initialize notmuch database if not already present.
     if [ ! -d "${mailBase}/.notmuch" ] && [ -z "$DRY_RUN_CMD" ]; then
