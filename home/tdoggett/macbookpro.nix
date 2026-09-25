@@ -22,6 +22,7 @@
     common/optional/docker-darwin.nix
     common/optional/notification-leds.nix
     common/optional/services/atuin.nix
+    common/optional/work-email.nix
   ];
 
   programs.claude-code.package = pkgs.bleeding.claude-code;
