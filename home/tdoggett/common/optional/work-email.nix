@@ -336,6 +336,13 @@ in
 
       macro index,pager \Cu "<pipe-message> ${pkgs.urlscan}/bin/urlscan<Enter>" "pick URL"
       macro index \` "<vfolder-from-query>" "notmuch query"
+
+      # Archive: remove inbox tag and hide message from current view.
+      # neomutt's <modify-tags-then-hide> applies the notmuch tag change and
+      # immediately removes the message from the virtual-mailbox query result.
+      # gmi push on the next $ or launchd cycle removes the INBOX Gmail label.
+      # Overrides the rarely-used create-alias default on 'a'.
+      macro index,pager a "<modify-tags-then-hide>-inbox<enter>" "Archive (remove from inbox)"
     '';
   };
 

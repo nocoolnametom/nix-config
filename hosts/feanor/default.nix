@@ -81,6 +81,7 @@ in
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
+    "hosts/common/optional/services/kanidm.nix"
     # Immich is NOT native yet - see the note in the Immich section below.
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/openssh.nix"
@@ -221,15 +222,22 @@ in
   };
   users.users."${configVars.username}".extraGroups = [ "docker" ];
 
+  ############################## SSO / Kanidm #################################
+  #
+  # Kanidm runs here so SSO survives the eventual retirement of cirdan without
+  # any data migration. Public ingress follows the same path as every other
+  # homelab service: bombadil → (WireGuard) → estel Caddy → feanor LAN IP.
+  # No WireGuard changes needed; estel already has LAN connectivity to feanor.
+  #
+  # Before rebuilding, ensure feanor's age key can decrypt in nix-secrets:
+  #   - porkbun/dns-failover/key and porkbun/dns-failover/secret
+  #   - all homelab/kanidm/* secrets
+  services.kanidmSso.enable = true;
+
   ############################### Network #####################################
   #
-  # Reaches the Internet the same way estel does: no ports opened at home,
-  # outbound WireGuard to bombadil, HAProxy SNI routing on the far end.
-  #
-  # TODO: feanor is not yet a peer on the wg-homelab tunnel.
-  # hosts/common/optional/services/wireguard-bombadil-estel.nix is hardcoded
-  # to exactly two hosts and needs generalising before feanor can join. Until
-  # then this box is reachable over Tailscale and the LAN only.
+  # Public services reach the Internet via bombadil → estel (WireGuard).
+  # Feanor itself is NOT a WireGuard peer; estel reaches it over the LAN.
 
   # No NetworkManager here. It is the right tool for a laptop that roams
   # between networks; on a headless box with two fixed ethernet ports it just

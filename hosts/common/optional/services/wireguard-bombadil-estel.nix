@@ -2,13 +2,12 @@
   config,
   lib,
   configVars,
-  pkgs,
   ...
 }:
 
-# WireGuard tunnel between bombadil and estel
-# This provides a dedicated, always-on VPN tunnel for critical SSH access
-# Separate from Tailscale mesh networking
+# WireGuard tunnel between bombadil (VPS) and estel (homelab).
+# Provides a dedicated, always-on VPN link for SNI-routed service traffic.
+# Separate from Tailscale mesh networking.
 
 let
   hostName = config.networking.hostName;
@@ -17,56 +16,45 @@ let
 in
 {
   config = lib.mkIf (isBombadil || isEstel) {
-    # SOPS secrets for WireGuard private keys
-    # Using wireguard/homelab/${hostName}/privatekey structure
     sops.secrets."wireguard/homelab/${hostName}/privatekey" = {
       mode = "0400";
     };
 
-    # WireGuard network interface (name must be ≤15 chars for Linux kernel)
     networking.wireguard.interfaces.wg-homelab = lib.mkMerge [
-      # Common config for both sides
       {
         privateKeyFile = config.sops.secrets."wireguard/homelab/${hostName}/privatekey".path;
       }
 
-      # Bombadil-specific config (server side)
+      # Bombadil (server): accepts inbound from estel
       (lib.mkIf isBombadil {
         ips = [ "${configVars.networking.wireguard.bombadil.ip}/24" ];
         listenPort = configVars.networking.wireguard.port;
-
         peers = [
           {
-            # estel
             publicKey = configVars.networking.wireguard.estel.publicKey;
             allowedIPs = [ "${configVars.networking.wireguard.estel.ip}/32" ];
           }
         ];
       })
 
-      # Estel-specific config (client side)
+      # Estel (client): outbound to bombadil
       (lib.mkIf isEstel {
         ips = [ "${configVars.networking.wireguard.estel.ip}/24" ];
-
         peers = [
           {
-            # bombadil
             publicKey = configVars.networking.wireguard.bombadil.publicKey;
             endpoint = "${configVars.networking.external.bombadil.ip}:${toString configVars.networking.wireguard.port}";
             allowedIPs = [ "${configVars.networking.wireguard.bombadil.ip}/32" ];
-            persistentKeepalive = 25; # Keep connection alive through NAT
+            persistentKeepalive = 25;
           }
         ];
       })
     ];
 
-    # Firewall rules
     networking.firewall = lib.mkMerge [
-      # Bombadil needs to accept incoming WireGuard
       (lib.mkIf isBombadil {
         allowedUDPPorts = [ configVars.networking.wireguard.port ];
       })
-      # Both sides trust the WireGuard interface
       {
         trustedInterfaces = [ "wg-homelab" ];
       }

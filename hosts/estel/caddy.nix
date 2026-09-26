@@ -481,11 +481,14 @@ in
         '';
       };
 
-    # Kanidm SSO server
+    # Kanidm SSO server - hosted on feanor, proxied from estel over the LAN.
+    # Uses wildcard cert so sso.doggett.family never appears in CT logs.
+    # Same pattern as every other homelab service: estel terminates TLS, then
+    # forwards to the service host's LAN IP.
     "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
-      useACMEHost = "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
+      useACMEHost = "wild-${configVars.homeDomain}";
       extraConfig = ''
-        reverse_proxy https://${configVars.networking.subnets.estel.ip}:${builtins.toString configVars.networking.ports.tcp.kanidm} {
+        reverse_proxy https://${configVars.networking.subnets.feanor.ip}:${builtins.toString configVars.networking.ports.tcp.kanidm} {
           transport http {
             tls_insecure_skip_verify
           }
@@ -574,11 +577,8 @@ in
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
-    "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
-      domain = "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
+    # Standalone kanidm cert removed: Kanidm runs on feanor and uses feanor's
+    # wildcard cert. The per-subdomain cert here leaked sso.doggett.family to CT
+    # logs and is no longer needed; Caddy's kanidm vhost above uses wild-${configVars.homeDomain}.
   };
 }

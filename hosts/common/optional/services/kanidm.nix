@@ -60,348 +60,361 @@ let
         }) requiredGroups
       );
 in
-lib.mkIf configVars.enableKanidmSSO {
-  # Kanidm SSO Provider with declarative provisioning
-  services.kanidm = {
-    enableServer = true;
-    package = pkgs.kanidmWithSecretProvisioning_1_8;
+{
+  # Per-host opt-in: import this module anywhere, then set services.kanidmSso.enable = true.
+  # Using a dedicated option (rather than the global configVars.enableKanidmSSO flag) prevents
+  # oauth2-proxy.nix from activating on estel/durin before their SOPS secrets are provisioned.
+  options.services.kanidmSso.enable = lib.mkEnableOption "Kanidm SSO server";
 
-    serverSettings = {
-      bindaddress = "0.0.0.0:${toString configVars.networking.ports.tcp.kanidm}";
-      origin = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
-      domain = configVars.homeDomain;
-      log_level = "info";
-      tls_chain = "/var/lib/acme/${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/fullchain.pem";
-      tls_key = "/var/lib/acme/${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/key.pem";
-    };
+  config = lib.mkIf config.services.kanidmSso.enable {
+    # Kanidm SSO Provider with declarative provisioning
+    services.kanidm = {
+      enableServer = true;
+      package = pkgs.kanidmWithSecretProvisioning_1_8;
 
-    # Declarative provisioning via kanidm-provision
-    provision = {
-      enable = true;
-      idmAdminPasswordFile = config.sops.secrets."homelab/kanidm/admin-password".path;
+      serverSettings = {
+        bindaddress = "0.0.0.0:${toString configVars.networking.ports.tcp.kanidm}";
+        origin = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
+        domain = configVars.homeDomain;
+        log_level = "info";
+        # Use the wildcard cert so Kanidm's TLS subdomain does not appear in CT logs.
+        # Kanidm reads certs directly (not via Caddy), so it needs group membership.
+        tls_chain = "/var/lib/acme/wild-${configVars.homeDomain}/fullchain.pem";
+        tls_key = "/var/lib/acme/wild-${configVars.homeDomain}/key.pem";
+      };
 
-      # Define groups - combining system groups with groups from nix-secrets
-      groups = {
-        kanidm_admins = { };
-        service_users = { }; # Base group - all users get access to most services
-      }
-      // groupsFromSecrets;
+      # Declarative provisioning via kanidm-provision
+      provision = {
+        enable = true;
+        idmAdminPasswordFile = config.sops.secrets."homelab/kanidm/admin-password".path;
 
-      # Define persons (users) - imported from nix-secrets
-      persons = personsFromSecrets;
+        # Define groups - combining system groups with groups from nix-secrets
+        groups = {
+          kanidm_admins = { };
+          service_users = { }; # Base group - all users get access to most services
+        }
+        // groupsFromSecrets;
 
-      # OAuth2 client definitions for all 15 services
-      systems.oauth2 = {
-        navidrome = {
-          displayName = "Navidrome Music Server";
-          originUrl = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret".path;
-          scopeMaps = makeScopeMaps "navidrome";
-        };
+        # Define persons (users) - imported from nix-secrets
+        persons = personsFromSecrets;
 
-        seerr = {
-          displayName = "Seerr Request System";
-          originUrl = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/seerr/client-secret".path;
-          scopeMaps = makeScopeMaps "seerr";
-        };
+        # OAuth2 client definitions for all 15 services
+        systems.oauth2 = {
+          navidrome = {
+            displayName = "Navidrome Music Server";
+            originUrl = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret".path;
+            scopeMaps = makeScopeMaps "navidrome";
+          };
 
-        comfyui = {
-          displayName = "ComfyUI";
-          originUrl = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/comfyui/client-secret".path;
-          scopeMaps = makeScopeMaps "comfyui";
-        };
+          seerr = {
+            displayName = "Seerr Request System";
+            originUrl = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/seerr/client-secret".path;
+            scopeMaps = makeScopeMaps "seerr";
+          };
 
-        comfyuimini = {
-          displayName = "ComfyUI Mini";
-          originUrl = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/comfyuimini/client-secret".path;
-          scopeMaps = makeScopeMaps "comfyuimini";
-        };
+          comfyui = {
+            displayName = "ComfyUI";
+            originUrl = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/comfyui/client-secret".path;
+            scopeMaps = makeScopeMaps "comfyui";
+          };
 
-        invokeai = {
-          displayName = "InvokeAI";
-          originUrl = "https://${configVars.networking.subdomains.invokeai}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.invokeai}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/invokeai/client-secret".path;
-          scopeMaps = makeScopeMaps "invokeai";
-        };
+          comfyuimini = {
+            displayName = "ComfyUI Mini";
+            originUrl = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/comfyuimini/client-secret".path;
+            scopeMaps = makeScopeMaps "comfyuimini";
+          };
 
-        archerstashvr = {
-          displayName = "Archer Stash VR";
-          originUrl = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/archerstashvr/client-secret".path;
-          scopeMaps = makeScopeMaps "archerstashvr";
-        };
+          invokeai = {
+            displayName = "InvokeAI";
+            originUrl = "https://${configVars.networking.subdomains.invokeai}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.invokeai}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/invokeai/client-secret".path;
+            scopeMaps = makeScopeMaps "invokeai";
+          };
 
-        delugeweb = {
-          displayName = "Deluge Web UI";
-          originUrl = "https://${configVars.networking.subdomains.delugeweb}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.delugeweb}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/delugeweb/client-secret".path;
-          scopeMaps = makeScopeMaps "delugeweb";
-        };
+          archerstashvr = {
+            displayName = "Archer Stash VR";
+            originUrl = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/archerstashvr/client-secret".path;
+            scopeMaps = makeScopeMaps "archerstashvr";
+          };
 
-        flood = {
-          displayName = "Flood Torrent UI";
-          originUrl = "https://${configVars.networking.subdomains.flood}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.flood}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/flood/client-secret".path;
-          scopeMaps = makeScopeMaps "flood";
-        };
+          delugeweb = {
+            displayName = "Deluge Web UI";
+            originUrl = "https://${configVars.networking.subdomains.delugeweb}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.delugeweb}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/delugeweb/client-secret".path;
+            scopeMaps = makeScopeMaps "delugeweb";
+          };
 
-        nzbget = {
-          displayName = "NZBGet";
-          originUrl = "https://${configVars.networking.subdomains.nzbget}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.nzbget}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/nzbget/client-secret".path;
-          scopeMaps = makeScopeMaps "nzbget";
-        };
+          flood = {
+            displayName = "Flood Torrent UI";
+            originUrl = "https://${configVars.networking.subdomains.flood}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.flood}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/flood/client-secret".path;
+            scopeMaps = makeScopeMaps "flood";
+          };
 
-        nzbhydra = {
-          displayName = "NZBHydra2";
-          originUrl = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/nzbhydra/client-secret".path;
-          scopeMaps = makeScopeMaps "nzbhydra";
-        };
+          nzbget = {
+            displayName = "NZBGet";
+            originUrl = "https://${configVars.networking.subdomains.nzbget}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.nzbget}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/nzbget/client-secret".path;
+            scopeMaps = makeScopeMaps "nzbget";
+          };
 
-        pinchflat = {
-          displayName = "Pinchflat";
-          originUrl = "https://${configVars.networking.subdomains.pinchflat}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.pinchflat}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/pinchflat/client-secret".path;
-          scopeMaps = makeScopeMaps "pinchflat";
-        };
+          nzbhydra = {
+            displayName = "NZBHydra2";
+            originUrl = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/nzbhydra/client-secret".path;
+            scopeMaps = makeScopeMaps "nzbhydra";
+          };
 
-        radarr = {
-          displayName = "Radarr";
-          originUrl = "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/radarr/client-secret".path;
-          scopeMaps = makeScopeMaps "radarr";
-        };
+          pinchflat = {
+            displayName = "Pinchflat";
+            originUrl = "https://${configVars.networking.subdomains.pinchflat}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.pinchflat}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/pinchflat/client-secret".path;
+            scopeMaps = makeScopeMaps "pinchflat";
+          };
 
-        sonarr = {
-          displayName = "Sonarr";
-          originUrl = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret".path;
-          scopeMaps = makeScopeMaps "sonarr";
-        };
+          radarr = {
+            displayName = "Radarr";
+            originUrl = "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/radarr/client-secret".path;
+            scopeMaps = makeScopeMaps "radarr";
+          };
 
-        stashvr = {
-          displayName = "Stash VR";
-          originUrl = "https://${configVars.networking.subdomains.stashvr}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.stashvr}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret".path;
-          scopeMaps = makeScopeMaps "stashvr";
-        };
+          sonarr = {
+            displayName = "Sonarr";
+            originUrl = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret".path;
+            scopeMaps = makeScopeMaps "sonarr";
+          };
 
-        # Native OIDC services (services with built-in OIDC support)
-        actual = {
-          displayName = "Actual Budget";
-          originUrl = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/actual/client-secret".path;
-          scopeMaps = makeScopeMaps "actual";
-        };
+          stashvr = {
+            displayName = "Stash VR";
+            originUrl = "https://${configVars.networking.subdomains.stashvr}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.stashvr}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret".path;
+            scopeMaps = makeScopeMaps "stashvr";
+          };
 
-        hedgedoc = {
-          displayName = "HedgeDoc";
-          originUrl = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret".path;
-          scopeMaps = makeScopeMaps "hedgedoc";
-        };
+          # Native OIDC services (services with built-in OIDC support)
+          actual = {
+            displayName = "Actual Budget";
+            originUrl = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/actual/client-secret".path;
+            scopeMaps = makeScopeMaps "actual";
+          };
 
-        mealie = {
-          displayName = "Mealie";
-          originUrl = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/mealie/client-secret".path;
-          scopeMaps = makeScopeMaps "mealie";
-        };
+          hedgedoc = {
+            displayName = "HedgeDoc";
+            originUrl = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret".path;
+            scopeMaps = makeScopeMaps "hedgedoc";
+          };
 
-        miniflux = {
-          displayName = "Miniflux RSS Reader";
-          originUrl = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/miniflux/client-secret".path;
-          scopeMaps = makeScopeMaps "miniflux";
-        };
+          mealie = {
+            displayName = "Mealie";
+            originUrl = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/mealie/client-secret".path;
+            scopeMaps = makeScopeMaps "mealie";
+          };
 
-        paperless = {
-          displayName = "Paperless-ngx";
-          originUrl = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/paperless/client-secret".path;
-          scopeMaps = makeScopeMaps "paperless";
-        };
+          miniflux = {
+            displayName = "Miniflux RSS Reader";
+            originUrl = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/miniflux/client-secret".path;
+            scopeMaps = makeScopeMaps "miniflux";
+          };
 
-        karakeep = {
-          displayName = "KaraKeep Karaoke";
-          originUrl = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/karakeep/client-secret".path;
-          scopeMaps = makeScopeMaps "karakeep";
-        };
+          paperless = {
+            displayName = "Paperless-ngx";
+            originUrl = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/paperless/client-secret".path;
+            scopeMaps = makeScopeMaps "paperless";
+          };
 
-        kavita = {
-          displayName = "Kavita Reader";
-          originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavita/client-secret".path;
-          scopeMaps = makeScopeMaps "kavita";
-        };
+          karakeep = {
+            displayName = "KaraKeep Karaoke";
+            originUrl = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/karakeep/client-secret".path;
+            scopeMaps = makeScopeMaps "karakeep";
+          };
 
-        kavitan = {
-          displayName = "Kavita N";
-          originUrl = "https://${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavitan/client-secret".path;
-          scopeMaps = makeScopeMaps "kavitan";
-        };
+          kavita = {
+            displayName = "Kavita Reader";
+            originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavita/client-secret".path;
+            scopeMaps = makeScopeMaps "kavita";
+          };
 
-        openwebui = {
-          displayName = "Open WebUI";
-          originUrl = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/openwebui/client-secret".path;
-          scopeMaps = makeScopeMaps "openwebui";
-        };
+          kavitan = {
+            displayName = "Kavita N";
+            originUrl = "https://${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavitan/client-secret".path;
+            scopeMaps = makeScopeMaps "kavitan";
+          };
 
-        nas = {
-          displayName = "Cirdan NAS (DSM)";
-          originUrl = "https://${configVars.networking.subdomains.nas}.${configVars.homeDomain}";
-          originLanding = "https://${configVars.networking.subdomains.nas}.${configVars.homeDomain}";
-          basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/nas/client-secret".path;
-          scopeMaps = makeScopeMaps "nas";
+          openwebui = {
+            displayName = "Open WebUI";
+            originUrl = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/openwebui/client-secret".path;
+            scopeMaps = makeScopeMaps "openwebui";
+          };
+
+          nas = {
+            displayName = "Cirdan NAS (DSM)";
+            originUrl = "https://${configVars.networking.subdomains.nas}.${configVars.homeDomain}";
+            originLanding = "https://${configVars.networking.subdomains.nas}.${configVars.homeDomain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/nas/client-secret".path;
+            scopeMaps = makeScopeMaps "nas";
+          };
         };
       };
     };
-  };
 
-  # Ensure kanidm can read ACME certificates managed by caddy
-  users.users.kanidm.extraGroups = [ "caddy" ];
+    # Kanidm reads certs directly from /var/lib/acme/; caddy group membership
+    # lets it read the wildcard cert managed by Caddy's ACME agent on the same host.
+    users.users.kanidm.extraGroups = [ "caddy" ];
 
-  # SOPS secret definitions
-  sops.secrets."homelab/kanidm/admin-password" = {
-    owner = "kanidm";
-  };
+    # Open Kanidm's HTTPS port so estel's Caddy can proxy to it over the LAN.
+    networking.firewall.allowedTCPPorts = [ configVars.networking.ports.tcp.kanidm ];
 
-  # OAuth2 client secrets for OAuth2-proxy services (15 services)
-  # Must be readable by both kanidm (for provisioning) and oauth2-proxy (for runtime)
-  sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/seerr/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/comfyui/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/comfyuimini/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/invokeai/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/archerstashvr/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/delugeweb/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/flood/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/nzbget/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/nzbhydra/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/pinchflat/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/radarr/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
-  sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret" = {
-    owner = "kanidm";
-    group = "keys";
-    mode = "0440";
-  };
+    # SOPS secret definitions
+    sops.secrets."homelab/kanidm/admin-password" = {
+      owner = "kanidm";
+    };
 
-  # OIDC client secrets for native OIDC services (11 services)
-  # Must be readable by kanidm for provisioning
-  sops.secrets."homelab/kanidm/oidc/actual/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/paperless/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/karakeep/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/kavita/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/kavitan/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/openwebui/client-secret" = {
-    owner = "kanidm";
-  };
-  sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
-    owner = "kanidm";
-  };
+    # OAuth2 client secrets for OAuth2-proxy services (15 services)
+    # Must be readable by both kanidm (for provisioning) and oauth2-proxy (for runtime)
+    sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/seerr/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/comfyui/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/comfyuimini/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/invokeai/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/archerstashvr/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/delugeweb/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/flood/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/nzbget/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/nzbhydra/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/pinchflat/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/radarr/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
 
-  # Note: User passwords must be set via Kanidm web UI at https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}
-  # or via kanidm CLI after initial provisioning. Declarative passwordFile is not supported.
+    # OIDC client secrets for native OIDC services (11 services)
+    # Must be readable by kanidm for provisioning
+    sops.secrets."homelab/kanidm/oidc/actual/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/paperless/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/karakeep/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/kavita/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/kavitan/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/openwebui/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
+      owner = "kanidm";
+    };
+
+    # Note: User passwords must be set via Kanidm web UI at https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}
+    # or via kanidm CLI after initial provisioning. Declarative passwordFile is not supported.
+  };
 }
