@@ -70,7 +70,7 @@ in
     # Kanidm SSO Provider with declarative provisioning
     services.kanidm = {
       enableServer = true;
-      package = pkgs.kanidmWithSecretProvisioning_1_8;
+      package = pkgs.kanidmWithSecretProvisioning_1_11;
 
       serverSettings = {
         bindaddress = "0.0.0.0:${toString configVars.networking.ports.tcp.kanidm}";
