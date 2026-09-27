@@ -23,6 +23,7 @@
     common/optional/notification-leds.nix
     common/optional/services/atuin.nix
     common/optional/work-email.nix
+    common/optional/smolcoder.nix
   ];
 
   programs.claude-code.package = pkgs.bleeding.claude-code;

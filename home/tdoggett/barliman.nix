@@ -19,6 +19,7 @@
     common/optional/jj.nix
     common/optional/devenv.nix
     common/optional/notification-leds.nix
+    common/optional/smolcoder.nix
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/atuin.nix
@@ -50,6 +51,31 @@
       origin = "flathub";
     }
   ];
+
+  # smolcoder web UI — runs on barliman as a persistent user service.
+  # Listens on 127.0.0.1 only; access from other machines via SSH tunnel:
+  #   ssh -N -L 7433:127.0.0.1:7433 barliman
+  # The auth URL changes every restart; retrieve it with `smolcoder-url`.
+  systemd.user.services.smolcoder-web = {
+    Unit = {
+      Description = "smolcoder web UI (local LLM coding agent)";
+      # Wait for Ollama to be ready before starting
+      After = [ "default.target" ];
+    };
+    Service = {
+      ExecStart = "${pkgs.smolcoder}/bin/smolcoder --web ${toString configVars.networking.ports.tcp.smolcoder} --mode edit";
+      WorkingDirectory = "%h";
+      Restart = "on-failure";
+      RestartSec = "10s";
+    };
+    Install = {
+      WantedBy = [ "default.target" ];
+    };
+  };
+
+  # Quick alias to find the current URL+auth-token from the service journal
+  home.shellAliases.smolcoder-url =
+    "journalctl --user -u smolcoder-web --no-pager | grep 'smolcoder web UI' | tail -1 | grep -oP 'http://\\S+'";
 
   home = {
     stateVersion = "26.05";

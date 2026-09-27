@@ -21,6 +21,7 @@
     common/optional/devenv.nix
     common/optional/notification-leds.nix
     common/optional/wakatime.nix
+    common/optional/smolcoder.nix
 
     ############### Service Configurations (Enable below) #################
     common/optional/services/atuin.nix

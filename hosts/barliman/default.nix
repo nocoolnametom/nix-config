@@ -92,7 +92,10 @@
   networking = {
     hostName = "barliman";
     networkmanager.enable = true;
-    networkmanager.wifi.backend = "iwd";
+    # iwd backend caused "Too many open files" failures at early boot, leaving
+    # the machine unconnected after a cold start. wpa_supplicant is more
+    # reliable here since barliman is a fixed desktop with no power-mgmt needs.
+    # networkmanager.wifi.backend = "iwd";
     enableIPv6 = true;
     firewall.enable = true;
     firewall.allowPing = true;
@@ -100,7 +103,6 @@
 
   # Prevent network disruption during system rebuilds
   systemd.services.NetworkManager.restartIfChanged = false;
-  systemd.services.iwd.restartIfChanged = false;
 
   environment.systemPackages = with pkgs; [
     appimage-run
