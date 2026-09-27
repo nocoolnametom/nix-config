@@ -69,10 +69,11 @@ in
   config = lib.mkIf config.services.kanidmSso.enable {
     # Kanidm SSO Provider with declarative provisioning
     services.kanidm = {
-      enableServer = true;
       package = pkgs.kanidmWithSecretProvisioning_1_11;
 
-      serverSettings = {
+      server.enable = true;
+
+      server.settings = {
         bindaddress = "0.0.0.0:${toString configVars.networking.ports.tcp.kanidm}";
         origin = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
         domain = configVars.homeDomain;
@@ -299,6 +300,11 @@ in
     # Kanidm reads certs directly from /var/lib/acme/; caddy group membership
     # lets it read the wildcard cert managed by Caddy's ACME agent on the same host.
     users.users.kanidm.extraGroups = [ "caddy" ];
+
+    # On first boot the cert doesn't exist until the ACME service completes.
+    # Make kanidm wait for it so the namespace bind-mount doesn't fail.
+    systemd.services.kanidm.after = [ "acme-wild-${configVars.homeDomain}.service" ];
+    systemd.services.kanidm.wants = [ "acme-wild-${configVars.homeDomain}.service" ];
 
     # Open Kanidm's HTTPS port so estel's Caddy can proxy to it over the LAN.
     networking.firewall.allowedTCPPorts = [ configVars.networking.ports.tcp.kanidm ];
