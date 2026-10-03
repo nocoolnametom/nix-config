@@ -73,7 +73,7 @@ in
 
       # Remote fallback — estel via bombadil SSH proxy (available from anywhere)
       Host nix-builder-estel-ext
-        HostName ssh.nocoolnametom.com
+        HostName ${configVars.networking.subdomains.estelSshProxy}.${configVars.domain}
         Port ${toString configVars.networking.ports.tcp.estelSshProxy}
         User ${configVars.username}
         IdentityFile /etc/nix/nix-builder-key

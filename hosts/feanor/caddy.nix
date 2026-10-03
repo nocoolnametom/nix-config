@@ -10,9 +10,9 @@
 #  Public routing path:
 #    client → bombadil HAProxy (TCP passthrough) → here (TLS terminate) → localhost:kanidm
 #
-#  Cert strategy: wildcard *.doggett.family so sso.doggett.family never appears
+#  Cert strategy: wildcard *.<homeDomain> so sso.<homeDomain> never appears
 #  in CT logs. Porkbun DNS-01 challenge, same as estel. Each host manages its
-#  own cert independently; both are valid *.doggett.family certs.
+#  own cert independently; both are valid *.<homeDomain> certs.
 #
 ###############################################################################
 
@@ -66,7 +66,7 @@ in
 
   ##################### Caddy + ACME wildcard cert ############################
   #
-  # Caddy manages the *.doggett.family wildcard cert via Porkbun DNS-01.
+  # Caddy manages the *.<homeDomain> wildcard cert via Porkbun DNS-01.
   # Kanidm reads the cert directly from /var/lib/acme/wild-${configVars.homeDomain}/
   # (kanidm.nix adds kanidm to the "caddy" group so it can read cert files).
   #

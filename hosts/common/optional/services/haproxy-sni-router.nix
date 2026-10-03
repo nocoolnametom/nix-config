@@ -53,7 +53,7 @@ in
           acl is_jod hdr_end(host) -i journalofdiscourses.com
 
           # Akkoma/Fediverse subdomains hosted on bombadil nginx (exact matches only)
-          # All other *.nocoolnametom.com traffic (kavitan, stash, etc.) falls through to homelab
+          # All other *.${configVars.domain} traffic (kavitan, stash, etc.) falls through to homelab
           acl is_nct_bare    hdr(host) -i ${configVars.domain}
           acl is_nct_www     hdr(host) -i www.${configVars.domain}
           acl is_nct_cache   hdr(host) -i cache.${configVars.domain}
@@ -101,7 +101,7 @@ in
           acl is_jod req_ssl_sni -m end journalofdiscourses.com
 
           # Akkoma/Fediverse subdomains hosted on bombadil nginx (exact matches only)
-          # All other *.nocoolnametom.com traffic (kavitan, stash, etc.) falls through to homelab
+          # All other *.${configVars.domain} traffic (kavitan, stash, etc.) falls through to homelab
           acl is_nct_bare    req_ssl_sni -i ${configVars.domain}
           acl is_nct_www     req_ssl_sni -i www.${configVars.domain}
           acl is_nct_cache   req_ssl_sni -i cache.${configVars.domain}

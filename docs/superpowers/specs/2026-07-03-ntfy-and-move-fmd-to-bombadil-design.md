@@ -33,7 +33,7 @@ cache-file all under `/var/lib/ntfy-sh`). `behind-proxy = true` tells ntfy
 to honour `X-Forwarded-For` from nginx.
 
 The `nfty` (n-f-t-y) key comes from nix-secrets and is used verbatim —
-subdomain becomes `nfty.doggett.family`.
+subdomain becomes `nfty.<homeDomain>`.
 
 ## bombadil edits
 
@@ -79,7 +79,7 @@ works.
 ## HAProxy ACLs — required
 
 `hosts/common/optional/services/haproxy-sni-router.nix`: without new
-ACLs, `fmd.doggett.family` and `nfty.doggett.family` fall through to the
+ACLs, `fmd.<homeDomain>` and `nfty.<homeDomain>` fall through to the
 default backend (estel via WireGuard). Add exact-match ACLs (not
 `hdr_beg`/`-m beg`) using nix-secrets values, and route to bombadil's
 local nginx.
