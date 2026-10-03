@@ -35,7 +35,7 @@
 #    /silmaril/immich/              <- cirdan /volume1/Immich/
 #    /silmaril/borg/                <- cirdan /volume1/BorgBackup/
 #    /silmaril/netbackup/           <- cirdan /volume1/NetBackup/
-#    /silmaril/syncthing/           <- cirdan /volume1/syncthing/
+#    /silmaril/syncthing/           <- (now via Syncthing, not rsync)
 #    /silmaril/tubearchivist/media/ <- cirdan /volumeUSB2/usbshare/docker/tubearchivist/media/
 #    /silmaril/cirdan-migration/docker/   <- cirdan /volume1/docker/ (staging)
 #    /silmaril/cirdan-migration/family/   <- cirdan /volume1/Family_Data/ (staging)
@@ -88,7 +88,9 @@ let
     sync_one '${configVars.username}@cirdan:/volume1/Immich/'      '/silmaril/immich/'
     sync_one '${configVars.username}@cirdan:/volume1/BorgBackup/'  '/silmaril/borg/'
     sync_one '${configVars.username}@cirdan:/volume1/NetBackup/'   '/silmaril/netbackup/'
-    sync_one '${configVars.username}@cirdan:/volume1/syncthing/'   '/silmaril/syncthing/'
+    # /volume1/syncthing/ is no longer rsynced: since 2026-10-03 feanor is a
+    # Syncthing peer of cirdan for all of those folders, and rsync writing into
+    # Syncthing-managed folders would show up as local changes / conflicts.
     # authentik/ is skipped: Authentik is retired with cirdan, not migrated,
     # and its root-owned DB files are unreadable over this login anyway.
     sync_one '${configVars.username}@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' --exclude='/authentik/'

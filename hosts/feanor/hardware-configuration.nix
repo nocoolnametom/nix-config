@@ -222,7 +222,7 @@ in
   # (or repurpose it) once cirdan is retired and all stacks are migrated.
   fileSystems."/silmaril/cirdan-migration" = poolSubvol "@cirdan-migration" squishy;
 
-  # NOTE: data.dat (the adult-content share) is deliberately absent - flagged
+  # NOTE: data.dat (the limited-access share) is deliberately absent - flagged
   # as not needing migration.
 
   # No swap partition: btrfs swapfiles need a nodatacow subvolume and don't

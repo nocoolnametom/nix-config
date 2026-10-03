@@ -85,6 +85,19 @@ in
       Music = primaryShare "${pool}/music";
       NetBackup = primaryShare "${pool}/netbackup";
       Immich = primaryShare "${pool}/immich";
+
+      # Mirrors cirdan's `syncthing` share: the whole Syncthing tree, limited-access
+      # folders included, so only the datadat login may use it (kavitan and
+      # audiobookshelf on estel mount it as the datadat group). Samba runs
+      # file access as the datadat user, which is what the 0751/0750 gates
+      # in default.nix let through.
+      syncthing = {
+        path = "${pool}/syncthing";
+        browseable = "yes";
+        "read only" = "yes";
+        "guest ok" = "no";
+        "valid users" = "datadat";
+      };
     };
   };
 
@@ -104,6 +117,11 @@ in
   sops.secrets."samba/feanor-tdoggett-password" = {
     mode = "0400";
   };
+  # Same password as cirdan's data.dat Samba login, so estel's existing
+  # secondary credentials keep working after the IP change.
+  sops.secrets."samba/feanor-datadat-password" = {
+    mode = "0400";
+  };
 
   systemd.services.samba-provision-users = {
     description = "Seed Samba passdb from sops";
@@ -114,9 +132,12 @@ in
       RemainAfterExit = true;
     };
     script = ''
-      pw=$(cat ${config.sops.secrets."samba/feanor-tdoggett-password".path})
-      printf '%s\n%s\n' "$pw" "$pw" \
-        | ${lib.getExe' pkgs.samba "smbpasswd"} -s -a ${configVars.username}
+      seed() {
+        pw=$(cat "$2")
+        printf '%s\n%s\n' "$pw" "$pw" | ${lib.getExe' pkgs.samba "smbpasswd"} -s -a "$1"
+      }
+      seed ${configVars.username} ${config.sops.secrets."samba/feanor-tdoggett-password".path}
+      seed datadat ${config.sops.secrets."samba/feanor-datadat-password".path}
     '';
   };
 

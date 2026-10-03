@@ -101,7 +101,7 @@ in
 {
   options = {
     services.whisparr-eros = {
-      enable = lib.mkEnableOption "Whisparr-Eros, an adult scene collection manager";
+      enable = lib.mkEnableOption "Whisparr-Eros, an private scene collection manager";
 
       package = lib.mkPackageOption pkgs "whisparr-eros" { };
 

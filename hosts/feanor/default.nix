@@ -178,6 +178,32 @@ in
   ############################## Syncthing ####################################
 
   # Service settings live in hosts/common/optional/services/syncthing.nix.
+  #
+  # Access gates on the Syncthing tree. `datadat` is the limited-access group:
+  # only syncthing itself, humans, and services explicitly cleared for limited
+  # material (kavitan, via the datadat SMB login) may read gated folders.
+  #   - Parents are 0751: traversable by any service configured with a full
+  #     path (e.g. autocaliweb -> Library/Calibre), listable only by datadat,
+  #     so even folder names stay hidden from other services.
+  #   - Private/ and the game-save folders are 0750: no access outside datadat.
+  # Modes below the gates do not matter. Syncthing has ignorePerms on, so it
+  # never fights these, and tmpfiles reapplies them every boot.
+  systemd.tmpfiles.rules = [
+    "d ${dataRoot}/syncthing                         0751 syncthing datadat -"
+    "d ${dataRoot}/syncthing/Sync                    0751 syncthing datadat -"
+    "d ${dataRoot}/syncthing/Sync/Library            0751 syncthing datadat -"
+    "d ${dataRoot}/syncthing/Sync/Library/Private    0750 syncthing datadat -"
+    "d ${dataRoot}/syncthing/Sync/Ludusavi           0750 syncthing datadat -"
+    "d ${dataRoot}/syncthing/Sync/DeckyCloudSaves    0750 syncthing datadat -"
+    "d ${dataRoot}/stacks 0770 root root -"
+  ];
+
+  # Second lock for native general-audience services: even if one is ever
+  # added to datadat by mistake, systemd hides the limited tree from it.
+  systemd.services.jellyfin.serviceConfig.InaccessiblePaths = [
+    "-${dataRoot}/syncthing/Sync/Library/Private"
+  ];
+
   services.syncthing = {
     # Literal rather than config.users.groups.datadat.name: syncthing's module
     # defines a user, so reading users.groups here is a cycle.
@@ -185,9 +211,6 @@ in
     dataDir = "${dataRoot}/syncthing";
   };
 
-  systemd.tmpfiles.rules = [
-    "d ${dataRoot}/stacks 0770 root root -"
-  ];
 
   ############################ Container services #############################
   # Modules live in hosts/common/optional/services/docker/; only where their
@@ -196,6 +219,9 @@ in
   # Fresh install, not a migration from cirdan: subscriptions were re-added by
   # hand and cirdan's database and downloads were deliberately left behind.
   services.podfetch.podcastsDir = "${dataRoot}/podcasts";
+  # Web login via Kanidm; existing `tdoggett` PodFetch user is matched by
+  # preferred_username and keeps its password for GPodder clients.
+  services.podfetch.useKanidm = true;
 
   # TODO 2026-10-04: uncomment with the tubearchivist import above.
   # services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";

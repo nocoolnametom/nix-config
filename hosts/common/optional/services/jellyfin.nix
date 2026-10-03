@@ -12,10 +12,11 @@
   # option, so configVars.networking.ports.tcp.jellyfin is only useful to the
   # reverse proxy in front of it.
 
-  # Media lives on the shared data group, same as audiobookshelf/kavita.
-  # `render` and `video` are what let it reach the iGPU for transcoding.
+  # General-audience media group. NOT datadat: that group gates limited-access
+  # content, and Jellyfin (which can now index ebooks too) must never be able
+  # to list it. `render` and `video` are what let it reach the iGPU.
   users.users.jellyfin.extraGroups = [
-    config.users.groups.datadat.name
+    config.users.groups.media.name
     "render"
     "video"
   ];

@@ -41,6 +41,7 @@
       "/var/lib/chrony"
       "/var/lib/docker" # container images + volumes
       "/var/lib/jellyfin" # library DB, metadata, user state
+      "/var/lib/kanidm" # SSO database: users, passwords, passkeys, sessions
       "/var/cache/immich" # ML models (~1 GB); re-downloaded on every boot otherwise
       "/var/lib/immich"
       "/var/lib/nixos"

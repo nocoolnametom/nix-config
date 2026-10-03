@@ -84,6 +84,9 @@ in
         # and no public cert or DNS-provider API key is needed on this host.
         tls_chain = config.sops.secrets."kanidm/tls-chain".path;
         tls_key = config.sops.secrets."kanidm/tls-key".path;
+        # The module defaults to versions = 0, which disables online backups.
+        # Nightly JSON dumps land in /var/lib/kanidm/backups (default path).
+        online_backup.versions = 7;
       };
 
       # Declarative provisioning via kanidm-provision
@@ -294,7 +297,9 @@ in
             displayName = "PodFetch Podcasts";
             public = true;
             preferShortUsername = true;
-            originUrl = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}/ui/login";
+            # Must equal PodFetch's OIDC_REDIRECT_URI exactly (see docker/podfetch.nix
+            # for why it is /ui/ and not /ui/login).
+            originUrl = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}/ui/";
             originLanding = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}";
             scopeMaps = makeScopeMaps "podfetch";
           };

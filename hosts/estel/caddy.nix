@@ -121,7 +121,7 @@ let
       proxy = "oidc";
     }
     {
-      host = "cirdan";
+      host = "feanor";
       service = "podfetch";
       domain = "homeDomain";
     }

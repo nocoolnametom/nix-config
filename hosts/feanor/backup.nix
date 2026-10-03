@@ -60,6 +60,10 @@ in
       # is TA's primary store, and these zips are how it moves to a new ES.
       "/var/lib/tubearchivist/cache/backup"
 
+      # Kanidm's nightly online backups (22:00): users, credentials, passkeys,
+      # OAuth2 clients. Restorable with `kanidmd database restore`.
+      "/var/lib/kanidm/backups"
+
       # NOTE: cirdan also backed up /volume1/docker/actual. Actual Budget now
       # runs natively on estel (hosts/common/optional/services/actual-budget.nix),
       # so that source looks stale - it should be backed up from estel, not

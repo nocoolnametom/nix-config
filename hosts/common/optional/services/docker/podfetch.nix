@@ -134,7 +134,9 @@ in
               OIDC_AUTH = "true";
               OIDC_AUTHORITY = "${kanidmUrl}/ui/oauth2";
               OIDC_CLIENT_ID = oidcClientId;
-              OIDC_REDIRECT_URI = "${publicUrl}/ui/login";
+              # NOT /ui/login: the UI skips the whole OIDC code exchange on any
+              # path ending in "login", so returning there loops forever.
+              OIDC_REDIRECT_URI = "${publicUrl}/ui/";
               OIDC_SCOPE = "openid profile email";
               OIDC_JWKS = "${kanidmUrl}/oauth2/openid/${oidcClientId}/public_key.jwk";
             }
