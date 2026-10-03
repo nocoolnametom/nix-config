@@ -181,10 +181,23 @@ in
     group = "datadat";
     dataDir = "${dataRoot}/syncthing";
     configDir = "/var/lib/syncthing"; # NVMe: small, write-heavy index DB
-    # reverse-proxied; never bind this publicly
-    guiAddress = "127.0.0.1:${toString configVars.networking.ports.tcp.syncthing}";
+    # LAN-reachable so folders and devices can be managed from the web UI.
+    # Nothing is port-forwarded to feanor, so this is not Internet-exposed.
+    # Unlike the desktops (Home Manager, GUI on localhost only), this GUI is
+    # reachable by anything on the LAN, so it gets a declarative login.
+    guiAddress = "0.0.0.0:${toString configVars.networking.ports.tcp.syncthing}";
+    guiPasswordFile = config.sops.secrets."syncthing/feanor-gui-password".path;
+    settings.gui.user = configVars.username;
     openDefaultPorts = true; # 22000/tcp+udp for sync traffic itself
+    # Folders and devices are managed in the web UI, not here. With these left
+    # at their default (true) every rebuild would delete anything added there.
+    # The UI-managed config lives in /var/lib/syncthing, which is persisted.
+    overrideFolders = false;
+    overrideDevices = false;
   };
+  networking.firewall.allowedTCPPorts = [ configVars.networking.ports.tcp.syncthing ];
+  # Read by syncthing-init, which runs as the syncthing user.
+  sops.secrets."syncthing/feanor-gui-password".owner = config.services.syncthing.user;
 
   systemd.tmpfiles.rules = [
     "d ${dataRoot}/stacks 0770 root root -"
