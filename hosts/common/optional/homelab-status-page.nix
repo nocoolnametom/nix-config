@@ -13,6 +13,42 @@ let
   # e.g., "estel" + homelabDomain = "estel.<homelabDomain>"
   statusPageHostname = "${config.networking.hostName}.${configVars.homelabDomain}";
 
+  # Port for a service name: configVars' port table first, then the common
+  # NixOS option spellings. null when nothing is found (no link rendered).
+  resolveServicePort =
+    serviceName:
+    let
+      portFromNetworking = lib.attrByPath [ serviceName ] null configVars.networking.ports.tcp;
+      portFromServiceConfig = lib.findFirst (port: port != null) null [
+        (lib.attrByPath [ "services" serviceName "port" ] null config)
+        (lib.attrByPath [ "services" serviceName "listenPort" ] null config)
+        (lib.attrByPath [ "services" serviceName "settings" "Port" ] null config)
+        (lib.attrByPath [ "services" serviceName "settings" "port" ] null config)
+      ];
+      resolvedPort = if portFromNetworking != null then portFromNetworking else portFromServiceConfig;
+    in
+    if resolvedPort == null then null else builtins.toString resolvedPort;
+
+  serviceBlacklist = configVars.homepage.serviceBlacklist or [ ];
+
+  localServiceLinks = lib.sort (a: b: a.name < b.name) (
+    lib.filter (svc: svc != null) (
+      map (
+        service:
+        let
+          port = resolveServicePort service;
+        in
+        if port == null then
+          null
+        else
+          {
+            name = service;
+            url = "http://${config.networking.hostName}.${configVars.homeLanDomain}:${port}";
+          }
+      ) (lib.filter (svc: !(lib.elem svc serviceBlacklist)) cfg.localServices)
+    )
+  );
+
   serviceLinksHtml =
     if cfg.serviceLinks == [ ] then
       ""
@@ -153,9 +189,25 @@ in
       default = [ ];
       description = "Local service links to render on the homelab status page.";
     };
+
+    localServices = lib.mkOption {
+      type = lib.types.listOf lib.types.str;
+      default = [ ];
+      example = [
+        "immich"
+        "jellyfin"
+      ];
+      description = ''
+        Names of services hosted here. Each becomes a serviceLinks entry
+        pointing at this host's LAN name and the service's port (skipped if no
+        port can be resolved or the name is in the homepage blacklist).
+      '';
+    };
   };
 
   config = lib.mkMerge [
+    { services.homelab-status-page.serviceLinks = localServiceLinks; }
+
     # Configure sops secrets for this host's SSL certificates (always enabled)
     {
       sops.secrets."homelab-ssl/${config.networking.hostName}/key" = {

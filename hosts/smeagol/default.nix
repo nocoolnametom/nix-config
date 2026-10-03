@@ -39,7 +39,6 @@ in
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
-    "hosts/smeagol/caddy.nix" # Service links for homelab status page
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     "hosts/common/optional/services/comfyui/default.nix"
     "hosts/common/optional/services/docker.nix"
@@ -410,6 +409,16 @@ in
   # Homelab Beszel monitoring - GPU and Docker monitoring
   # Homelab Beszel monitoring - filesystems and GPU auto-detected
   # services.homelab-beszel-agent = { };
+
+  # Links on this host's homelab status page.
+  services.homelab-status-page.localServices = [
+    "archerstash"
+    "archerstashvr"
+    "comfyui"
+    "comfyuimini"
+    "invokeai"
+    "whisparr-eros"
+  ];
 
   system.stateVersion = "25.05";
 

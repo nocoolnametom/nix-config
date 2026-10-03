@@ -37,7 +37,6 @@ in
     # Homelab SSL and status page
     "hosts/common/optional/homelab-ca.nix" # Install homelab CA certificate
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
-    "hosts/durin/caddy.nix" # Service links for homelab status page
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
 
     # GPG Agent with SSH support
@@ -223,6 +222,22 @@ in
   ];
 
   services.fail2ban.enable = false;
+
+  # Links on this host's homelab status page.
+  services.homelab-status-page.localServices = [
+    "delugeweb"
+    "flood"
+    "miniflux"
+    "nzbget"
+    "nzbhydra"
+    "pinchflat"
+    "radarr"
+    "sonarr"
+    "stash"
+    "stashvr"
+    "whisparr"
+    "whisparr-eros"
+  ];
 
   system.stateVersion = "26.05";
 

@@ -78,10 +78,12 @@ in
         origin = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
         domain = configVars.homeDomain;
         log_level = "info";
-        # Use the wildcard cert so Kanidm's TLS subdomain does not appear in CT logs.
-        # Kanidm reads certs directly (not via Caddy), so it needs group membership.
-        tls_chain = "/var/lib/acme/wild-${configVars.homeDomain}/fullchain.pem";
-        tls_key = "/var/lib/acme/wild-${configVars.homeDomain}/key.pem";
+        # Kanidm insists on TLS, but nobody verifies this cert: estel's Caddy is
+        # the public TLS terminator and proxies here with verification off. So
+        # the host's existing homelab-CA cert does (tested 2026-10-03 on 1.11.2),
+        # and no public cert or DNS-provider API key is needed on this host.
+        tls_chain = config.sops.secrets."kanidm/tls-chain".path;
+        tls_key = config.sops.secrets."kanidm/tls-key".path;
       };
 
       # Declarative provisioning via kanidm-provision
@@ -332,14 +334,19 @@ in
       };
     };
 
-    # Kanidm reads certs directly from /var/lib/acme/; caddy group membership
-    # lets it read the wildcard cert managed by Caddy's ACME agent on the same host.
-    users.users.kanidm.extraGroups = [ "caddy" ];
-
-    # On first boot the cert doesn't exist until the ACME service completes.
-    # Make kanidm wait for it so the namespace bind-mount doesn't fail.
-    systemd.services.kanidm.after = [ "acme-wild-${configVars.homeDomain}.service" ];
-    systemd.services.kanidm.wants = [ "acme-wild-${configVars.homeDomain}.service" ];
+    # Kanidm's own read-only copies of the host's homelab-ssl secret (the
+    # status page keeps the caddy-owned ones). Kanidm warns unless these are
+    # readable only by its uid.
+    sops.secrets."kanidm/tls-chain" = {
+      key = "homelab-ssl/${config.networking.hostName}/cert";
+      owner = "kanidm";
+      mode = "0400";
+    };
+    sops.secrets."kanidm/tls-key" = {
+      key = "homelab-ssl/${config.networking.hostName}/key";
+      owner = "kanidm";
+      mode = "0400";
+    };
 
     # Open Kanidm's HTTPS port so estel's Caddy can proxy to it over the LAN.
     networking.firewall.allowedTCPPorts = [ configVars.networking.ports.tcp.kanidm ];

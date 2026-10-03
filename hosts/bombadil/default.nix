@@ -33,6 +33,7 @@ in
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
     "hosts/common/core"
+    "hosts/common/optional/headless-server.nix"
 
     #################### Host-specific Optional Configs ####################
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
@@ -139,22 +140,7 @@ in
     "-Xmx256m"
   ];
 
-  time.timeZone = "America/New_York";
 
-  # Prevent systemd from logging too much
-  services.journald.extraConfig = ''
-    SystemMaxUse=500M
-    RuntimeMaxUse=500M
-  '';
-
-  # Disable the xserver
-  services.xserver.enable = false;
-
-  # Enable the Time Protocol
-  # Use Chrony instead of NTP for a virtualized environment
-  services.chrony.enable = true;
-  services.chrony.enableNTS = true;
-  services.chrony.servers = [ "time.cloudflare.com" ];
 
   # OpenSSH
   services.openssh.ports = [
@@ -183,22 +169,10 @@ in
   # Fail2Ban
   services.fail2ban.enable = true;
 
-  # Automatic Upgrades
-  system.autoUpgrade.enable = true;
-  system.autoUpgrade.flake = inputs.self.outPath;
-  system.autoUpgrade.flags = [
-    "--update-input"
+  # Automatic upgrades (base settings in hosts/common/optional/headless-server.nix)
+  headlessServer.extraUpdateInputs = [
     "disposable-email-domains"
-    "--update-input"
-    "nixpkgs"
-    "--update-input"
-    "nixpkgs-stable"
-    "--update-input"
-    "nixpkgs-unstable"
-    "--update-input"
     "my-wordpress-plugins"
-    "--no-write-lock-file"
-    "-L" # print build logs
   ];
 
   system.stateVersion = "26.05";

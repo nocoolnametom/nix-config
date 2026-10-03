@@ -56,9 +56,6 @@ in
     ########################### Impermanence ##################################
     ./persistence.nix
 
-    ######################### Status Page Links ###############################
-    ./caddy.nix
-
     ######################### SMB / NFS / WebDAV ##############################
     ./shares.nix
 
@@ -69,14 +66,11 @@ in
     # Rsync service + timer that copies all cirdan shares to the silmaril pool.
     # Remove this import once cirdan is retired and all data is verified.
     ./cirdan-sync.nix
-
-    ####################### Immich module from unstable #######################
-    # Paired with pkgs.unstable.immich below; see the Immich section.
-    "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
     "hosts/common/core"
+    "hosts/common/optional/headless-server.nix"
 
     #################### Hardware ####################
     "hosts/common/optional/io-latency-tuning.nix" # Keep reads responsive during writes
@@ -86,6 +80,7 @@ in
     "hosts/common/optional/homelab-status-page.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
     "hosts/common/optional/services/kanidm.nix"
+    "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/docker/podfetch.nix"
     # TODO 2026-10-04: enable at cutover (with services.tubearchivist below),
     # after the 03:00 cirdan-sync has copied the media to /silmaril/tubearchivist
@@ -95,6 +90,7 @@ in
     "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/tailscale.nix"
     "hosts/common/optional/foreign-binaries.nix"
@@ -165,11 +161,8 @@ in
 
   ############################### Immich ######################################
   #
-  # Package AND module come from nixos-unstable. nixos-26.05 is stuck on
-  # immich 2.7.5, marked insecure (CVE-2026-59258, CVE-2026-82272) and no
-  # longer updated; unstable carries the 3.x series. The 26.05 module was
-  # written against 2.x, so it is swapped out rather than fed a 3.x package.
-  # Drop both overrides once the stable branch ships 3.x.
+  # Service settings (unstable module/package, proxy trust, iGPU) live in
+  # hosts/common/optional/services/immich.nix.
   #
   # The originals belong on the pool and the Postgres database on the NVMe
   # (/var/lib/postgresql) - databases on btrfs HDDs are the worst case for
@@ -180,46 +173,17 @@ in
   # upload/{upload,profile,backups} paths in backup.nix line up. Immich
   # (>= 1.136) rewrites the stored file paths on startup when it notices the
   # location moved from the container's /usr/src/app/upload.
-  disabledModules = [ "services/web-apps/immich.nix" ];
-  services.immich.package = pkgs.unstable.immich;
   services.immich.mediaLocation = "${dataRoot}/immich/upload";
-  services.immich.host = "0.0.0.0";
-  # Public traffic arrives via estel's Caddy; trust its X-Forwarded-For so
-  # Immich logs and rate-limits real client IPs rather than estel's.
-  services.immich.environment.IMMICH_TRUSTED_PROXIES = configVars.networking.subnets.estel.ip;
-  # VAAPI transcoding and ML on the Alder Lake iGPU (accelerationDevices is
-  # null = all devices, from the shared immich.nix).
-  users.users.immich.extraGroups = [
-    "video"
-    "render"
-  ];
 
   ############################## Syncthing ####################################
 
+  # Service settings live in hosts/common/optional/services/syncthing.nix.
   services.syncthing = {
-    enable = true;
     # Literal rather than config.users.groups.datadat.name: syncthing's module
     # defines a user, so reading users.groups here is a cycle.
     group = "datadat";
     dataDir = "${dataRoot}/syncthing";
-    configDir = "/var/lib/syncthing"; # NVMe: small, write-heavy index DB
-    # LAN-reachable so folders and devices can be managed from the web UI.
-    # Nothing is port-forwarded to feanor, so this is not Internet-exposed.
-    # Unlike the desktops (Home Manager, GUI on localhost only), this GUI is
-    # reachable by anything on the LAN, so it gets a declarative login.
-    guiAddress = "0.0.0.0:${toString configVars.networking.ports.tcp.syncthing}";
-    guiPasswordFile = config.sops.secrets."syncthing/feanor-gui-password".path;
-    settings.gui.user = configVars.username;
-    openDefaultPorts = true; # 22000/tcp+udp for sync traffic itself
-    # Folders and devices are managed in the web UI, not here. With these left
-    # at their default (true) every rebuild would delete anything added there.
-    # The UI-managed config lives in /var/lib/syncthing, which is persisted.
-    overrideFolders = false;
-    overrideDevices = false;
   };
-  networking.firewall.allowedTCPPorts = [ configVars.networking.ports.tcp.syncthing ];
-  # Read by syncthing-init, which runs as the syncthing user.
-  sops.secrets."syncthing/feanor-gui-password".owner = config.services.syncthing.user;
 
   systemd.tmpfiles.rules = [
     "d ${dataRoot}/stacks 0770 root root -"
@@ -251,22 +215,10 @@ in
   # Even with OIDC in front of it, this stays off the public Internet - a
   # container manager is root-equivalent on the host. Tailscale only.
 
-  # Deliberately NOT importing hosts/common/optional/services/docker.nix: it
-  # publishes an unauthenticated, root-equivalent Docker API on 0.0.0.0:2375
-  # and opens the firewall for it. Tolerable on durin; not on the box holding
-  # every photo we own. Same settings minus the network socket:
-  virtualisation.docker.enable = true;
-  virtualisation.docker.listenOptions = [ "/run/docker.sock" ];
-  virtualisation.docker.autoPrune = {
-    enable = true;
-    dates = "weekly";
-    flags = [
-      "--all"
-      "--filter"
-      "until=168h"
-    ];
-  };
-  users.users."${configVars.username}".extraGroups = [ "docker" ];
+  # The shared docker.nix publishes an unauthenticated, root-equivalent
+  # Docker API on 0.0.0.0:2375 by default. Tolerable elsewhere; not on the
+  # box holding every photo we own.
+  virtualisation.dockerTcpApi.enable = false;
 
   ############################## SSO / Kanidm #################################
   #
@@ -276,8 +228,8 @@ in
   # No WireGuard changes needed; estel already has LAN connectivity to feanor.
   #
   # Before rebuilding, ensure feanor's age key can decrypt in nix-secrets:
-  #   - porkbun/dns-failover/key and porkbun/dns-failover/secret
   #   - all homelab/kanidm/* secrets
+  #   - homelab-ssl/feanor/{cert,key} (Kanidm's TLS cert; see kanidm.nix)
   services.kanidmSso.enable = true;
 
   ############################### Network #####################################
@@ -301,19 +253,6 @@ in
   # Firewall stays on: nothing is port-forwarded to this machine.
   networking.firewall.enable = true;
 
-  time.timeZone = "America/New_York";
-
-  services.chrony.enable = true;
-  services.chrony.enableNTS = true;
-  services.chrony.servers = [ "time.cloudflare.com" ];
-
-  # Headless.
-  services.xserver.enable = false;
-
-  services.journald.extraConfig = ''
-    SystemMaxUse=500M
-    RuntimeMaxUse=500M
-  '';
 
   ############################### Alerting ####################################
 
@@ -328,8 +267,7 @@ in
 
   ########################### Automatic Upgrades ##############################
   #
-  # Tracks flake *inputs* only - this never pulls main from the config repo.
-  # Config changes land when you rebuild by hand, same as bombadil.
+  # Schedule and flags come from hosts/common/optional/headless-server.nix.
   #
   # allowReboot is off during bring-up: with root being wiped every boot, an
   # unattended 4am reboot is a bad time to discover a missing persistence
@@ -337,23 +275,11 @@ in
   # flip it on with the rebootWindow below - an Internet-facing box that never
   # reboots is quietly accumulating unpatched kernel and openssl CVEs.
 
-  system.autoUpgrade.enable = true;
-  system.autoUpgrade.flake = inputs.self.outPath;
   system.autoUpgrade.allowReboot = false;
   system.autoUpgrade.rebootWindow = {
     lower = "04:00";
     upper = "05:00";
   };
-  system.autoUpgrade.flags = [
-    "--update-input"
-    "nixpkgs"
-    "--update-input"
-    "nixpkgs-stable"
-    "--update-input"
-    "nixpkgs-unstable"
-    "--no-write-lock-file"
-    "-L"
-  ];
 
   environment.systemPackages = with pkgs; [
     btrfs-progs
@@ -367,6 +293,12 @@ in
   ];
 
   services.fail2ban.enable = false; # No direct SSH from outside.
+
+  # Links on this host's homelab status page.
+  services.homelab-status-page.localServices = [
+    "immich"
+    "jellyfin"
+  ];
 
   system.stateVersion = "26.05";
 }

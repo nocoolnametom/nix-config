@@ -264,37 +264,6 @@ let
     }
   ];
 
-  serviceBlacklist = configVars.homepage.serviceBlacklist or [ ];
-
-  resolveServicePort =
-    serviceName:
-    let
-      portFromNetworking = lib.attrByPath [ serviceName ] null configVars.networking.ports.tcp;
-      portFromServiceConfig = lib.findFirst (port: port != null) null [
-        (lib.attrByPath [ "services" serviceName "port" ] null config)
-        (lib.attrByPath [ "services" serviceName "listenPort" ] null config)
-        (lib.attrByPath [ "services" serviceName "settings" "Port" ] null config)
-        (lib.attrByPath [ "services" serviceName "settings" "port" ] null config)
-      ];
-      resolvedPort = if portFromNetworking != null then portFromNetworking else portFromServiceConfig;
-    in
-    if resolvedPort == null then null else builtins.toString resolvedPort;
-
-  localHomepageServices =
-    let
-      serviceEntries = lib.filter (svc: svc.host == config.networking.hostName) simpleServices;
-      visibleServices = lib.filter (svc: !(lib.elem svc.service serviceBlacklist)) serviceEntries;
-      withPorts = lib.filter (svc: svc.port != null) (
-        map (svc: svc // { port = resolveServicePort svc.service; }) visibleServices
-      );
-    in
-    lib.sort (a: b: a.service < b.service) withPorts;
-
-  localServiceLinks = map (svc: {
-    name = svc.service;
-    url = "http://${config.networking.hostName}.${configVars.homeLanDomain}:${svc.port}";
-  }) localHomepageServices;
-
   # Function to generate both regular and punch-through virtual hosts from simple service definitions
   makeServiceHosts =
     serviceList:
@@ -392,7 +361,9 @@ in
     )
   );
 
-  services.homelab-status-page.serviceLinks = localServiceLinks;
+  services.homelab-status-page.localServices = map (svc: svc.service) (
+    lib.filter (svc: svc.host == config.networking.hostName) simpleServices
+  );
 
   services.caddy.enable = true;
   networking.firewall.allowedTCPPorts = [
