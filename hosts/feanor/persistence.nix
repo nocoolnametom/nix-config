@@ -37,6 +37,7 @@
     hideMounts = true;
     directories = [
       "/var/db/sudo/lectured"
+      "/var/lib/autocaliweb" # config (app.db, acw.db) + ingest; library is in Syncthing
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/chrony"
       "/var/lib/docker" # container images + volumes

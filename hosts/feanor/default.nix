@@ -82,6 +82,7 @@ in
     "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/docker/podfetch.nix"
+    "hosts/common/optional/services/docker/autocaliweb.nix"
     # TODO 2026-10-04: enable at cutover (with services.tubearchivist below),
     # after the 03:00 cirdan-sync has copied the media to /silmaril/tubearchivist
     # and the cirdan stack is stopped with its es/ and redis dump.rdb copied
@@ -195,6 +196,14 @@ in
     "d ${dataRoot}/syncthing/Sync/Library/Private    0750 syncthing datadat -"
     "d ${dataRoot}/syncthing/Sync/Ludusavi           0750 syncthing datadat -"
     "d ${dataRoot}/syncthing/Sync/DeckyCloudSaves    0750 syncthing datadat -"
+    # General-access folder shared with services through the `media` group;
+    # setgid so everything created below inherits it.
+    "d ${dataRoot}/syncthing/Sync/Library/Calibre    2775 syncthing media -"
+    # Syncthing drop folder that autocaliweb ingests from. Uses a custom
+    # marker file (folder markerName) instead of .stfolder/, whose .txt file
+    # the recursive ingest watcher would otherwise import as a "book".
+    "d ${dataRoot}/syncthing/Sync/AutoCaliWebAutoUploads         2775 syncthing media -"
+    "f ${dataRoot}/syncthing/Sync/AutoCaliWebAutoUploads/.stmarker 0644 syncthing media -"
     "d ${dataRoot}/stacks 0770 root root -"
   ];
 
@@ -203,6 +212,12 @@ in
   systemd.services.jellyfin.serviceConfig.InaccessiblePaths = [
     "-${dataRoot}/syncthing/Sync/Library/Private"
   ];
+
+  # Syncthing writes into general-access folders that services (autocaliweb)
+  # also write, so it joins `media` and creates files group-writable. Gated
+  # folders stay protected by their 0750 parents, not by file modes.
+  users.users.syncthing.extraGroups = [ "media" ];
+  systemd.services.syncthing.serviceConfig.UMask = "0002";
 
   services.syncthing = {
     # Literal rather than config.users.groups.datadat.name: syncthing's module
@@ -222,6 +237,22 @@ in
   # Web login via Kanidm; existing `tdoggett` PodFetch user is matched by
   # preferred_username and keeps its password for GPodder clients.
   services.podfetch.useKanidm = true;
+
+  # Fixed so containers can be given it as PGID (996 is what NixOS had
+  # already allocated here, so pinning it renumbers nothing).
+  users.groups.media.gid = 996;
+
+  # Runs as its own `autocaliweb` user but in the general-access `media`
+  # group; the library is a Syncthing folder kept group-writable for `media`
+  # (see the Syncthing section). The image's default UMASK is 0002, so files
+  # it creates stay group-writable too.
+  # Config was copied from cirdan (2026-10-03, stack stopped first); never
+  # run a second instance against the same Syncthing-shared library.
+  services.autocaliweb = {
+    libraryDir = "${dataRoot}/syncthing/Sync/Library/Calibre/Library";
+    ingestDir = "${dataRoot}/syncthing/Sync/AutoCaliWebAutoUploads";
+    group = "media";
+  };
 
   # TODO 2026-10-04: uncomment with the tubearchivist import above.
   # services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";

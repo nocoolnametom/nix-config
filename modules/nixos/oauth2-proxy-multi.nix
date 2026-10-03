@@ -24,6 +24,12 @@ let
           description = "Port for this instance to listen on";
         };
 
+        listenAddress = mkOption {
+          type = types.str;
+          default = "0.0.0.0";
+          description = "Address to bind; use 127.0.0.1 when the reverse proxy is on the same host.";
+        };
+
         upstreamUrl = mkOption {
           type = types.str;
           description = "URL of the upstream service (e.g., 'http://192.168.0.30:4533')";
@@ -137,6 +143,35 @@ let
           description = "Name of the OAuth2 cookie";
         };
 
+        externalUrl = mkOption {
+          type = types.nullOr types.str;
+          default = null;
+          example = "https://app.example.com";
+          description = ''
+            Public URL users reach this instance at. Sets redirect_url to
+            <externalUrl>/oauth2/callback. Providers that match redirect URIs
+            exactly (e.g. Kanidm) need this; otherwise oauth2-proxy derives it
+            from request headers.
+          '';
+        };
+
+        codeChallengeMethod = mkOption {
+          type = types.nullOr (
+            types.enum [
+              "S256"
+              "plain"
+            ]
+          );
+          default = "S256";
+          description = "PKCE method sent to the provider (null disables PKCE).";
+        };
+
+        openFirewall = mkOption {
+          type = types.bool;
+          default = false;
+          description = "Open this instance's port (e.g. for a reverse proxy on another host).";
+        };
+
         # Proxy behavior
         skipAuthRegex = mkOption {
           type = types.listOf types.str;
@@ -167,72 +202,138 @@ let
   # Get enabled instances
   enabledInstances = filterAttrs (n: v: v.enable) cfg.instances;
 
-  # Generate configuration file for an instance
-  mkInstanceConfig =
+  # Each instance runs with oauth2-proxy's structured ("alpha") config, which
+  # owns the server address, upstream, provider and all header injection.
+  # The legacy config file is limited to what alpha mode still accepts
+  # (cookies, skip-auth rules, redirect URL, trusted proxies, email domains);
+  # options alpha mode replaces are an error if left in it.
+  mkLegacyConfig =
     name: instCfg:
     let
       baseConfig = {
-        http_address = "0.0.0.0:${toString instCfg.port}";
-        upstreams = [ instCfg.upstreamUrl ];
-        provider = "oidc";
-        oidc_issuer_url = instCfg.oidcIssuerUrl;
-        client_id = instCfg.clientId;
         email_domains = instCfg.emailDomains;
         cookie_secure = instCfg.cookieSecure;
         cookie_httponly = instCfg.cookieHttpOnly;
         cookie_name = instCfg.cookieName;
-        set_xauthrequest = instCfg.setXAuthRequest;
-        pass_access_token = instCfg.passAccessToken;
-        pass_user_headers = instCfg.passUserHeaders;
-        pass_basic_auth = instCfg.passBasicAuth;
-        set_authorization_header = instCfg.setAuthorizationHeader;
         reverse_proxy = instCfg.reverseProxy;
       }
-      // (optionalAttrs (instCfg.basicAuthPassword != null) {
-        basic_auth_password = instCfg.basicAuthPassword;
-      })
       // (optionalAttrs (instCfg.skipAuthRegex != [ ]) { skip_auth_regex = instCfg.skipAuthRegex; })
+      // (optionalAttrs (instCfg.externalUrl != null) {
+        redirect_url = "${instCfg.externalUrl}/oauth2/callback";
+      })
       // instCfg.extraConfig;
 
+      # TOML: lists must be arrays (repeating a key is a parse error), and
+      # JSON string/array syntax is valid TOML with the same escaping, which
+      # matters for regexes containing backslashes.
       configLines = mapAttrsToList (
         k: v:
         if isList v then
-          map (item: ''${k} = "${item}"'') v
+          "${k} = ${builtins.toJSON v}"
         else if isBool v then
           "${k} = ${if v then "true" else "false"}"
         else
-          ''${k} = "${toString v}"''
+          "${k} = ${builtins.toJSON (toString v)}"
       ) baseConfig;
-
-      flatConfigLines = flatten configLines;
     in
-    pkgs.writeText "oauth2-proxy-${name}.cfg" (concatStringsSep "\n" flatConfigLines);
+    pkgs.writeText "oauth2-proxy-${name}.cfg" (concatStringsSep "\n" configLines);
+
+  runtimeDir = name: "/run/oauth2-proxy-${name}";
+  hasStaticBasicAuth =
+    instCfg: instCfg.basicAuthUsernameFile != null && instCfg.basicAuthPasswordFile != null;
+
+  claimHeader = header: claim: {
+    name = header;
+    values = [ { claimSource = { inherit claim; }; } ];
+  };
+
+  # JSON is valid YAML, so the alpha config is generated with toJSON.
+  mkAlphaConfig =
+    name: instCfg:
+    let
+      requestHeaders =
+        optionals instCfg.passUserHeaders [
+          (claimHeader "X-Forwarded-User" "user")
+          (claimHeader "X-Forwarded-Email" "email")
+          (claimHeader "X-Forwarded-Preferred-Username" "preferred_username")
+          (claimHeader "X-Forwarded-Groups" "groups")
+        ]
+        ++ optional instCfg.passAccessToken (claimHeader "X-Forwarded-Access-Token" "access_token")
+        # Static upstream credentials, only ever sent after a successful login.
+        # The file is written at service start from the sops secrets.
+        ++ optional (hasStaticBasicAuth instCfg) {
+          name = "Authorization";
+          values = [ { secretSource.fromFile = "${runtimeDir name}/upstream-authorization"; } ];
+        };
+
+      responseHeaders =
+        optionals instCfg.setXAuthRequest [
+          (claimHeader "X-Auth-Request-User" "user")
+          (claimHeader "X-Auth-Request-Email" "email")
+          (claimHeader "X-Auth-Request-Preferred-Username" "preferred_username")
+          (claimHeader "X-Auth-Request-Groups" "groups")
+        ]
+        ++ optional instCfg.setAuthorizationHeader {
+          name = "Authorization";
+          values = [
+            {
+              claimSource = {
+                claim = "id_token";
+                prefix = "Bearer ";
+              };
+            }
+          ];
+        };
+    in
+    pkgs.writeText "oauth2-proxy-${name}.alpha.yaml" (
+      builtins.toJSON (
+        {
+          server.bindAddress = "http://${instCfg.listenAddress}:${toString instCfg.port}";
+          upstreamConfig.upstreams = [
+            {
+              id = name;
+              path = "/";
+              uri = instCfg.upstreamUrl;
+            }
+          ];
+          providers = [
+            (
+              {
+                id = "oidc";
+                provider = "oidc";
+                clientID = instCfg.clientId;
+                clientSecretFile = instCfg.clientSecretFile;
+                scope = "openid email profile";
+                oidcConfig.issuerURL = instCfg.oidcIssuerUrl;
+              }
+              // optionalAttrs (instCfg.codeChallengeMethod != null) {
+                code_challenge_method = instCfg.codeChallengeMethod;
+              }
+            )
+          ];
+        }
+        // optionalAttrs (requestHeaders != [ ]) { injectRequestHeaders = requestHeaders; }
+        // optionalAttrs (responseHeaders != [ ]) { injectResponseHeaders = responseHeaders; }
+      )
+    );
 
   # Create systemd service for an instance
   mkInstanceService =
     name: instCfg:
     let
-      # Create wrapper script if custom basic auth is needed
-      needsBasicAuthWrapper =
-        instCfg.basicAuthUsernameFile != null && instCfg.basicAuthPasswordFile != null;
-
-      wrapperScript = pkgs.writeShellScript "oauth2-proxy-${name}-wrapper" ''
-        set -e
-        USERNAME=$(cat ${instCfg.basicAuthUsernameFile})
-        PASSWORD=$(cat ${instCfg.basicAuthPasswordFile})
-        CREDENTIALS=$(echo -n "$USERNAME:$PASSWORD" | ${pkgs.coreutils}/bin/base64 -w 0)
-
+      startScript = pkgs.writeShellScript "oauth2-proxy-${name}-start" ''
+        set -euo pipefail
+        ${optionalString (hasStaticBasicAuth instCfg) ''
+          umask 077
+          user=$(cat ${instCfg.basicAuthUsernameFile})
+          pass=$(cat ${instCfg.basicAuthPasswordFile})
+          printf 'Basic %s' "$(printf '%s:%s' "$user" "$pass" | ${pkgs.coreutils}/bin/base64 -w 0)" \
+            > "$RUNTIME_DIRECTORY/upstream-authorization"
+          unset user pass
+        ''}
         exec ${pkgs.oauth2-proxy}/bin/oauth2-proxy \
-          --config ${mkInstanceConfig name instCfg} \
-          --client-secret-file ${instCfg.clientSecretFile} \
-          --cookie-secret-file ${instCfg.cookieSecretFile} \
-          --inject-request-headers "Authorization=Basic $CREDENTIALS"
-      '';
-
-      standardExecStart = ''
-        ${pkgs.oauth2-proxy}/bin/oauth2-proxy \
-          --config ${mkInstanceConfig name instCfg} \
-          --client-secret-file ${instCfg.clientSecretFile} \
+          --alpha-config ${mkAlphaConfig name instCfg} \
+          --config ${mkLegacyConfig name instCfg} \
           --cookie-secret-file ${instCfg.cookieSecretFile}
       '';
     in
@@ -250,7 +351,10 @@ let
           User = cfg.user;
           Group = cfg.group;
 
-          ExecStart = if needsBasicAuthWrapper then wrapperScript else standardExecStart;
+          ExecStart = startScript;
+          # Holds the rendered upstream Authorization header, if any.
+          RuntimeDirectory = "oauth2-proxy-${name}";
+          RuntimeDirectoryMode = "0700";
 
           # Security hardening
           ProtectSystem = "strict";
@@ -324,7 +428,16 @@ in
 
     users.groups.${cfg.group} = { };
 
+    assertions = mapAttrsToList (name: i: {
+      assertion = !i.passBasicAuth;
+      message = "oauth2-proxy-multi.${name}: passBasicAuth is not supported in alpha-config mode; use basicAuthUsernameFile/basicAuthPasswordFile.";
+    }) enabledInstances;
+
     # Create systemd services for all enabled instances
     systemd.services = listToAttrs (mapAttrsToList mkInstanceService enabledInstances);
+
+    networking.firewall.allowedTCPPorts = mapAttrsToList (_: i: i.port) (
+      filterAttrs (_: i: i.openFirewall) enabledInstances
+    );
   };
 }

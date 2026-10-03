@@ -79,7 +79,6 @@ in
     "arion-invokeai"
     "nzbget"
     "nzbget-to-management"
-    "oauth2-proxy-archerstashvr"
     "oauth2-proxy-comfyui"
     "oauth2-proxy-comfyuimini"
     "oauth2-proxy-invokeai"
@@ -419,6 +418,12 @@ in
     "invokeai"
     "whisparr-eros"
   ];
+
+  # Whisparr-Eros sits behind estel's Kanidm oauth2-proxy, which injects this
+  # instance's Basic credentials after login. Whisparr-Eros 3.5 rejects Basic
+  # ("no longer supported, switch to Forms"; its config API refuses it and it
+  # rewrites config.xml on start), so it still shows its own login page after
+  # Kanidm. If Basic is ever accepted again, switching it in the app is enough.
 
   system.stateVersion = "25.05";
 

@@ -124,64 +124,74 @@ in
 
           comfyui = {
             displayName = "ComfyUI";
-            originUrl = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.comfyui}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.comfyui}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.comfyui}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/comfyui/client-secret".path;
             scopeMaps = makeScopeMaps "comfyui";
           };
 
           comfyuimini = {
             displayName = "ComfyUI Mini";
-            originUrl = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.comfyuimini}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/comfyuimini/client-secret".path;
             scopeMaps = makeScopeMaps "comfyuimini";
           };
 
           invokeai = {
             displayName = "InvokeAI";
-            originUrl = "https://${configVars.networking.subdomains.invokeai}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.invokeai}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.invokeai}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.invokeai}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/invokeai/client-secret".path;
             scopeMaps = makeScopeMaps "invokeai";
           };
 
+          # Fronted by oauth2-proxy on smeagol. Served on `domain` (not
+          # homeDomain) per estel's caddy.nix, and Kanidm matches the
+          # redirect exactly, so the full callback path is required.
           archerstashvr = {
             displayName = "Archer Stash VR";
-            originUrl = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.homeDomain}";
+            originUrl = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.archerstashvr}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/archerstashvr/client-secret".path;
             scopeMaps = makeScopeMaps "archerstashvr";
           };
 
           delugeweb = {
             displayName = "Deluge Web UI";
-            originUrl = "https://${configVars.networking.subdomains.delugeweb}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.delugeweb}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.delugeweb}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.delugeweb}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/delugeweb/client-secret".path;
             scopeMaps = makeScopeMaps "delugeweb";
           };
 
           flood = {
             displayName = "Flood Torrent UI";
-            originUrl = "https://${configVars.networking.subdomains.flood}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.flood}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.flood}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.flood}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/flood/client-secret".path;
             scopeMaps = makeScopeMaps "flood";
           };
 
           nzbget = {
             displayName = "NZBGet";
-            originUrl = "https://${configVars.networking.subdomains.nzbget}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.nzbget}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.nzbget}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.nzbget}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/nzbget/client-secret".path;
             scopeMaps = makeScopeMaps "nzbget";
           };
 
           nzbhydra = {
             displayName = "NZBHydra2";
-            originUrl = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/nzbhydra/client-secret".path;
             scopeMaps = makeScopeMaps "nzbhydra";
           };
@@ -196,26 +206,49 @@ in
 
           radarr = {
             displayName = "Radarr";
-            originUrl = "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.radarr}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.radarr}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.radarr}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/radarr/client-secret".path;
             scopeMaps = makeScopeMaps "radarr";
           };
 
           sonarr = {
             displayName = "Sonarr";
-            originUrl = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.sonarr}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.sonarr}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.sonarr}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/sonarr/client-secret".path;
             scopeMaps = makeScopeMaps "sonarr";
           };
 
           stashvr = {
             displayName = "Stash VR";
-            originUrl = "https://${configVars.networking.subdomains.stashvr}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.stashvr}.${configVars.homeDomain}";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.stashvr}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.stashvr}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/stashvr/client-secret".path;
             scopeMaps = makeScopeMaps "stashvr";
+          };
+
+          whisparr = {
+            displayName = "Whisparr";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${configVars.networking.subdomains.whisparr}.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains.whisparr}.${configVars.domain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/whisparr/client-secret".path;
+            scopeMaps = makeScopeMaps "whisparr";
+          };
+
+          "whisparr-eros" = {
+            displayName = "Whisparr Eros";
+            # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
+            originUrl = "https://${
+              configVars.networking.subdomains."whisparr-eros"
+            }.${configVars.domain}/oauth2/callback";
+            originLanding = "https://${configVars.networking.subdomains."whisparr-eros"}.${configVars.domain}";
+            basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/whisparr-eros/client-secret".path;
+            scopeMaps = makeScopeMaps "whisparr-eros";
           };
 
           # Native OIDC services (services with built-in OIDC support)
@@ -286,6 +319,25 @@ in
               originLanding = immichUrl;
               basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/immich/client-secret".path;
               scopeMaps = makeScopeMaps "immich";
+            };
+
+          # Autocaliweb (Calibre-Web fork) has a single "generic" OAuth slot and
+          # matches logins to existing users by username, so short usernames
+          # land each person on their existing account. Its OAuth library
+          # (flask-dance) does not send PKCE; this is a confidential client
+          # authenticating with its secret, so PKCE is disabled for it alone.
+          autocaliweb =
+            let
+              url = "https://${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Autocaliweb Library";
+              originUrl = "${url}/login/generic/authorized";
+              originLanding = url;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/autocaliweb/client-secret".path;
+              preferShortUsername = true;
+              allowInsecureClientDisablePkce = true;
+              scopeMaps = makeScopeMaps "autocaliweb";
             };
 
           # PodFetch's SPA does the code flow in the browser, so this is a
@@ -433,6 +485,16 @@ in
       group = "keys";
       mode = "0440";
     };
+    sops.secrets."homelab/kanidm/oauth2/whisparr-eros/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
+    sops.secrets."homelab/kanidm/oauth2/whisparr/client-secret" = {
+      owner = "kanidm";
+      group = "keys";
+      mode = "0440";
+    };
 
     # OIDC client secrets for native OIDC services (11 services)
     # Must be readable by kanidm for provisioning
@@ -446,6 +508,9 @@ in
       owner = "kanidm";
     };
     sops.secrets."homelab/kanidm/oidc/immich/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/autocaliweb/client-secret" = {
       owner = "kanidm";
     };
     sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = {

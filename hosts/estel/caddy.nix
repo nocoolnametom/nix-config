@@ -51,7 +51,7 @@ let
       domain = "homeDomain";
     }
     {
-      host = "cirdan";
+      host = "feanor";
       service = "calibreweb";
       domain = "homeDomain";
     }
@@ -147,7 +147,7 @@ let
       host = "smeagol";
       service = "archerstashvr";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
       certName = "wild-stash-vr";
       punchCertName = "wild-stash-vr-punch";
     }
@@ -160,7 +160,7 @@ let
       host = "durin";
       service = "stashvr";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
       certName = "wild-${configVars.domain}";
       punchCertName = "wild-${configVars.networking.subdomains.punch}.${configVars.domain}";
     }
@@ -168,25 +168,25 @@ let
       host = "smeagol";
       service = "comfyui";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "durin";
       service = "delugeweb";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "durin";
       service = "flood";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "smeagol";
       service = "invokeai";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "estel";
@@ -197,7 +197,7 @@ let
       host = "smeagol";
       service = "comfyuimini";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "cirdan";
@@ -213,36 +213,37 @@ let
       host = "durin";
       service = "nzbget";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "durin";
       service = "nzbhydra";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "barliman";
       service = "openwebui";
       domain = "domain";
     }
-    {
-      host = "durin";
-      service = "pinchflat";
-      domain = "domain";
-      proxy = "authentik";
-    }
+    # INACTIVE: Pinchflat is not running (disabled on durin); route kept for reference.
+    # {
+    #   host = "durin";
+    #   service = "pinchflat";
+    #   domain = "domain";
+    #   proxy = "authentik";
+    # }
     {
       host = "durin";
       service = "radarr";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "durin";
       service = "sonarr";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
       host = "cirdan";
@@ -253,14 +254,14 @@ let
       host = "durin";
       service = "whisparr";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     # Runs on durin too, but the published instance is smeagol's
     {
       host = "smeagol";
       service = "whisparr-eros";
       domain = "domain";
-      proxy = "authentik";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
   ];
 
@@ -289,7 +290,7 @@ let
 
           # OAuth2-proxy (if enabled) - generic reverse proxy for OIDC providers
           useOAuth2 = proxy == configVars.proxyTypes.oauth2;
-          oauth2ProxyIp = serviceHostIp; # OAuth2-proxy runs on same host as service
+          oauth2ProxyIp = "127.0.0.1"; # OAuth2-proxy instances run here on estel
           oauth2ProxyPort = builtins.toString configVars.networking.ports.tcp."oauth2-${service}";
 
           # Native OIDC (if enabled) - service handles OIDC internally
@@ -313,9 +314,21 @@ let
           regularHost = {
             "${subdomain}.${baseDomain}" = {
               useACMEHost = if certName == null then "wild-${baseDomain}" else certName;
-              extraConfig = ''
-                reverse_proxy ${proxyTarget}
-              '';
+              # For oauth2-proxy routes, overwrite X-Forwarded-Uri with the real
+              # request URI: oauth2-proxy evaluates skip-auth rules against that
+              # header, so a client-supplied value could otherwise bypass login
+              # (CVE-2026-40575 / GHSA-7x63-xv5r-3p2x; 7.15.2-7.15.4 still need it).
+              extraConfig =
+                if useOAuth2 then
+                  ''
+                    reverse_proxy ${proxyTarget} {
+                      header_up X-Forwarded-Uri {uri}
+                    }
+                  ''
+                else
+                  ''
+                    reverse_proxy ${proxyTarget}
+                  '';
             };
           };
 

@@ -85,6 +85,19 @@
     # Disabled 2026-03-04: Navidrome build failure
     # "navidrome"
     # "oauth2-proxy-navidrome"
+    "oauth2-proxy-archerstashvr"
+    "oauth2-proxy-comfyui"
+    "oauth2-proxy-comfyuimini"
+    "oauth2-proxy-delugeweb"
+    "oauth2-proxy-flood"
+    "oauth2-proxy-invokeai"
+    "oauth2-proxy-nzbget"
+    "oauth2-proxy-nzbhydra"
+    "oauth2-proxy-radarr"
+    "oauth2-proxy-sonarr"
+    "oauth2-proxy-stashvr"
+    "oauth2-proxy-whisparr"
+    "oauth2-proxy-whisparr-eros"
     "oauth2-proxy-seerr"
     "paperless-web"
     "seerr"
@@ -211,6 +224,24 @@
 
   # fail2ban disabled - no direct SSH access (key-only via bombadil proxy), ISP blocks incoming
   services.fail2ban.enable = false;
+
+  # OAuth2-proxy instances (Kanidm SSO) for services fronted by this Caddy.
+  # A service only uses one once its caddy.nix entry has proxy = "oauth2".
+  services.homelab-oauth2-proxy.instances = [
+    "archerstashvr"
+    "comfyui"
+    "comfyuimini"
+    "delugeweb"
+    "flood"
+    "invokeai"
+    "nzbget"
+    "nzbhydra"
+    "radarr"
+    "sonarr"
+    "stashvr"
+    "whisparr"
+    "whisparr-eros"
+  ];
 
   system.stateVersion = "25.05";
 
