@@ -178,6 +178,9 @@ in
   services.immich.package = pkgs.unstable.immich;
   services.immich.mediaLocation = "${dataRoot}/immich/upload";
   services.immich.host = "0.0.0.0";
+  # Public traffic arrives via estel's Caddy; trust its X-Forwarded-For so
+  # Immich logs and rate-limits real client IPs rather than estel's.
+  services.immich.environment.IMMICH_TRUSTED_PROXIES = configVars.networking.subnets.estel.ip;
   # VAAPI transcoding and ML on the Alder Lake iGPU (accelerationDevices is
   # null = all devices, from the shared immich.nix).
   users.users.immich.extraGroups = [

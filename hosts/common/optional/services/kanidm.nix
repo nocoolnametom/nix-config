@@ -262,6 +262,27 @@ in
             scopeMaps = makeScopeMaps "karakeep";
           };
 
+          # Immich only supports one OAuth provider at a time. Switching from
+          # Authentik: set Immich's signing algorithm to ES256 (Kanidm's
+          # default) and its mobile redirect override to the
+          # /api/oauth/mobile-redirect URL below, so no app.immich:// scheme
+          # has to be registered here.
+          immich =
+            let
+              immichUrl = "https://${configVars.networking.subdomains.immich}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Immich Photos";
+              originUrl = [
+                "${immichUrl}/auth/login"
+                "${immichUrl}/user-settings"
+                "${immichUrl}/api/oauth/mobile-redirect"
+              ];
+              originLanding = immichUrl;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/immich/client-secret".path;
+              scopeMaps = makeScopeMaps "immich";
+            };
+
           kavita = {
             displayName = "Kavita Reader";
             originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
@@ -396,6 +417,9 @@ in
       owner = "kanidm";
     };
     sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = {
+      owner = "kanidm";
+    };
+    sops.secrets."homelab/kanidm/oidc/immich/client-secret" = {
       owner = "kanidm";
     };
     sops.secrets."homelab/kanidm/oidc/miniflux/client-secret" = {

@@ -43,8 +43,8 @@
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/hedgedoc.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
-    # Removed 2026-09-10: Immich is served by the Docker instance on cirdan, not from
-    # estel's NixOS service. (immich-public-proxy above already points at cirdan.)
+    # Immich itself runs natively on feanor (hosts/feanor/default.nix); the
+    # public proxy above points there.
     # "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/karakeep.nix"

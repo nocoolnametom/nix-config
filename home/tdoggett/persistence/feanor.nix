@@ -47,11 +47,16 @@
   # setup runs *after* local-fs.target, so these rules reliably correct
   # ownership each boot before any user services (home-manager, syncthing, …)
   # start.
+  #
+  # The /persist copy matters too: impermanence's activation script copies
+  # ownership from the persistent source onto /home/${u} on every rebuild, so
+  # a root-owned source re-breaks home-manager after each switch.
   systemd.tmpfiles.rules =
     let
       u = configVars.username;
     in
     [
+      "d ${configVars.persistFolder}/home/${u} 0700 ${u} users - -"
       "d /home/${u}          0700 ${u} users - -"
       "d /home/${u}/.local   0755 ${u} users - -"
       "d /home/${u}/.local/share 0755 ${u} users - -"

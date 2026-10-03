@@ -61,7 +61,7 @@ let
       domain = "homeDomain";
     }
     {
-      host = "cirdan";
+      host = "feanor";
       service = "immich";
       domain = "homeDomain";
     }
