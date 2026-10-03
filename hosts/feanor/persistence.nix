@@ -41,7 +41,8 @@
       "/var/lib/chrony"
       "/var/lib/docker" # container images + volumes
       "/var/lib/jellyfin" # library DB, metadata, user state
-      # "/var/lib/immich"  # re-enable when Immich goes native (see default.nix)
+      "/var/cache/immich" # ML models (~1 GB); re-downloaded on every boot otherwise
+      "/var/lib/immich"
       "/var/lib/nixos"
       "/var/lib/postgresql" # immich DB - on NVMe, not the btrfs HDD pool
       "/var/lib/private/webdav"

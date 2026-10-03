@@ -69,6 +69,10 @@ in
     # Rsync service + timer that copies all cirdan shares to the silmaril pool.
     # Remove this import once cirdan is retired and all data is verified.
     ./cirdan-sync.nix
+
+    ####################### Immich module from unstable #######################
+    # Paired with pkgs.unstable.immich below; see the Immich section.
+    "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
@@ -82,7 +86,7 @@ in
     "hosts/common/optional/homelab-status-page.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
     "hosts/common/optional/services/kanidm.nix"
-    # Immich is NOT native yet - see the note in the Immich section below.
+    "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
@@ -115,6 +119,9 @@ in
   # replace with confirmed 10GbE interface
   # hardware.ugreenNas.leds.netdevmon.interface = "enp2s0";
 
+  # Alder Lake UHD iGPU: Jellyfin transcode load shows up in Beszel.
+  services.homelab-beszel-agent.enableIntelGpu = true;
+
   ############################## Storage ######################################
   #
   # The data pool is btrfs RAID1 (see hardware-configuration.nix for the disk
@@ -144,7 +151,7 @@ in
     enable = true;
     ioPriorities = {
       jellyfin = 1000; # 10x default: never starve a stream
-      # immich-server = 200;  # re-enable when Immich goes native
+      immich-server = 200;
       samba-smbd = 50; # bulk imports yield to everything above
       nfs-server = 50;
     };
@@ -152,25 +159,31 @@ in
 
   ############################### Immich ######################################
   #
-  # STAYS IN A CONTAINER FOR NOW. nixpkgs marks immich 2.7.5 insecure
-  # (CVE-2026-59258, CVE-2026-82272) and both nixos-26.05 and nixos-unstable
-  # are pinned to that same version, so there is no patched build to switch
-  # to. Whitelisting it via permittedInsecurePackages on the box that holds
-  # every photo we own is not a trade worth making; the container lets us
-  # track upstream's patched release the day it lands.
+  # Package AND module come from nixos-unstable. nixos-26.05 is stuck on
+  # immich 2.7.5, marked insecure (CVE-2026-59258, CVE-2026-82272) and no
+  # longer updated; unstable carries the 3.x series. The 26.05 module was
+  # written against 2.x, so it is swapped out rather than fed a 3.x package.
+  # Drop both overrides once the stable branch ships 3.x.
   #
-  # Re-check with:  nix eval nixpkgs#immich.version
-  # When a fixed version ships, import
-  # "hosts/common/optional/services/immich.nix" above and restore:
+  # The originals belong on the pool and the Postgres database on the NVMe
+  # (/var/lib/postgresql) - databases on btrfs HDDs are the worst case for
+  # copy-on-write fragmentation, and nodatacow would fix that only by
+  # disabling checksums, which is the whole reason we chose btrfs.
   #
-  #   services.immich.mediaLocation = "${dataRoot}/immich";
-  #   services.immich.host = "0.0.0.0";
-  #   services.immich.accelerationDevices = lib.mkForce null;
-  #
-  # Either way the originals belong on the pool and the Postgres database on
-  # the NVMe - databases on btrfs HDDs are the worst case for copy-on-write
-  # fragmentation, and nodatacow would fix that only by disabling checksums,
-  # which is the whole reason we chose btrfs.
+  # mediaLocation mirrors the container's UPLOAD_LOCATION, so the
+  # upload/{upload,profile,backups} paths in backup.nix line up. Immich
+  # (>= 1.136) rewrites the stored file paths on startup when it notices the
+  # location moved from the container's /usr/src/app/upload.
+  disabledModules = [ "services/web-apps/immich.nix" ];
+  services.immich.package = pkgs.unstable.immich;
+  services.immich.mediaLocation = "${dataRoot}/immich/upload";
+  services.immich.host = "0.0.0.0";
+  # VAAPI transcoding and ML on the Alder Lake iGPU (accelerationDevices is
+  # null = all devices, from the shared immich.nix).
+  users.users.immich.extraGroups = [
+    "video"
+    "render"
+  ];
 
   ############################## Syncthing ####################################
 
@@ -286,7 +299,10 @@ in
 
   services.systemd-failure-alert.additional-services = [
     "docker"
+    "immich-machine-learning"
+    "immich-server"
     "jellyfin"
+    "postgresql"
     "smartd"
   ];
 

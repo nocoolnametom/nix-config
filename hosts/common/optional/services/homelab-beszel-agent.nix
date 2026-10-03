@@ -104,7 +104,7 @@
       in
       lib.mkDefault selectedMounts;
 
-    # GPU monitoring is auto-detected by the agent - no configuration needed
-    # Agent will automatically detect NVIDIA, AMD, and Intel GPUs if present
+    # The agent auto-detects NVIDIA and AMD GPUs. Intel needs intel_gpu_top
+    # plus CAP_PERFMON, so hosts with an Intel iGPU must set enableIntelGpu.
   };
 }

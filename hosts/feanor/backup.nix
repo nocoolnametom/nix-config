@@ -44,9 +44,8 @@ in
       "${pool}/netbackup"
       "${pool}/jellyfin/Backups"
 
-      # Immich originals. Path assumes the container keeps DSM's
-      # upload/{upload,profile,backups} layout under the pool subvolume;
-      # confirm against the compose file at migration time.
+      # Immich originals, under services.immich.mediaLocation (default.nix).
+      # backups/ holds Immich's own nightly database dumps.
       "${pool}/immich/upload/upload"
       "${pool}/immich/upload/profile"
       "${pool}/immich/upload/backups"

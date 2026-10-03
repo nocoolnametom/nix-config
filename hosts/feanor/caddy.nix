@@ -41,6 +41,7 @@ let
 
   # Services hosted on feanor. Grows as stacks move off cirdan.
   feanorServices = [
+    "immich"
     "jellyfin"
   ];
 

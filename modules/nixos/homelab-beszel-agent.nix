@@ -120,6 +120,15 @@ in
       default = true;
       description = "Enable hardware sensor monitoring (temperature, fans, etc.)";
     };
+
+    enableIntelGpu = mkOption {
+      type = types.bool;
+      default = false;
+      description = ''
+        Collect Intel iGPU metrics. The agent shells out to intel_gpu_top,
+        which reads i915 perf counters and so needs CAP_PERFMON.
+      '';
+    };
   };
 
   config = mkIf cfg.enable {
@@ -144,7 +153,11 @@ in
       extraGroups = [
         "disk"
       ] # S.M.A.R.T. disk monitoring (fallback if capabilities don't work)
-      ++ lib.optional config.virtualisation.docker.enable "docker"; # Container monitoring
+      ++ lib.optional config.virtualisation.docker.enable "docker" # Container monitoring
+      ++ lib.optionals cfg.enableIntelGpu [
+        "video" # /dev/dri/card*
+        "render" # /dev/dri/renderD*
+      ];
     };
     users.groups.beszel-agent = { };
 
@@ -225,19 +238,27 @@ in
           RestartSec = "10s";
 
           # Make smartmontools available in PATH
-          Environment = [ "PATH=${pkgs.smartmontools}/bin:/run/current-system/sw/bin" ];
+          Environment = [
+            "PATH=${
+              lib.makeBinPath (
+                [ pkgs.smartmontools ] ++ lib.optional cfg.enableIntelGpu pkgs.intel-gpu-tools
+              )
+            }:/run/current-system/sw/bin"
+          ];
 
-          # SMART monitoring capabilities
-          # CAP_SYS_RAWIO: Required for SATA/ATA via SG_IO
-          # CAP_SYS_ADMIN: Required for NVMe admin passthrough
+          # CAP_SYS_RAWIO: SMART via SG_IO on SATA/ATA
+          # CAP_SYS_ADMIN: SMART via NVMe admin passthrough
+          # CAP_PERFMON:   i915 perf counters for intel_gpu_top
           AmbientCapabilities = [
             "CAP_SYS_RAWIO"
             "CAP_SYS_ADMIN"
-          ];
+          ]
+          ++ lib.optional cfg.enableIntelGpu "CAP_PERFMON";
           CapabilityBoundingSet = [
             "CAP_SYS_RAWIO"
             "CAP_SYS_ADMIN"
-          ];
+          ]
+          ++ lib.optional cfg.enableIntelGpu "CAP_PERFMON";
 
           # Security hardening
           ProtectSystem = "strict";
