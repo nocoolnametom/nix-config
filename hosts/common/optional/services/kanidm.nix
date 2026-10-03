@@ -283,6 +283,20 @@ in
               scopeMaps = makeScopeMaps "immich";
             };
 
+          # PodFetch's SPA does the code flow in the browser, so this is a
+          # public client (PKCE, no secret). Short usernames make the
+          # preferred_username claim `tdoggett`, which PodFetch matches against
+          # its existing users. See hosts/feanor/podfetch.nix for the
+          # /ui/token rewrite this flow depends on.
+          podfetch = {
+            displayName = "PodFetch Podcasts";
+            public = true;
+            preferShortUsername = true;
+            originUrl = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}/ui/login";
+            originLanding = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}";
+            scopeMaps = makeScopeMaps "podfetch";
+          };
+
           kavita = {
             displayName = "Kavita Reader";
             originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";

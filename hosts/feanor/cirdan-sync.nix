@@ -26,7 +26,7 @@
 #  (in /persist so it survives the ephemeral root wipe on every boot).
 #  Generate it once:
 #    sudo ssh-keygen -t ed25519 -f /persist/etc/cirdan-sync-key -N ""
-#    ssh-copy-id -i /persist/etc/cirdan-sync-key.pub tdoggett@cirdan
+#    ssh-copy-id -i /persist/etc/cirdan-sync-key.pub <username>@cirdan
 #
 #  Mount layout on silmaril:
 #    /silmaril/jellyfin/            <- cirdan /volume1/Jellyfin/
@@ -82,28 +82,28 @@ let
       echo "=== $(date -Iseconds): finished $src ==="
     }
 
-    sync_one 'tdoggett@cirdan:/volume1/Jellyfin/'   '/silmaril/jellyfin/'
-    sync_one 'tdoggett@cirdan:/volume1/Music/'       '/silmaril/music/'
-    sync_one 'tdoggett@cirdan:/volume1/Comics/'      '/silmaril/comics/'
-    sync_one 'tdoggett@cirdan:/volume1/Immich/'      '/silmaril/immich/'
-    sync_one 'tdoggett@cirdan:/volume1/BorgBackup/'  '/silmaril/borg/'
-    sync_one 'tdoggett@cirdan:/volume1/NetBackup/'   '/silmaril/netbackup/'
-    sync_one 'tdoggett@cirdan:/volume1/syncthing/'   '/silmaril/syncthing/'
+    sync_one '${configVars.username}@cirdan:/volume1/Jellyfin/'   '/silmaril/jellyfin/'
+    sync_one '${configVars.username}@cirdan:/volume1/Music/'       '/silmaril/music/'
+    sync_one '${configVars.username}@cirdan:/volume1/Comics/'      '/silmaril/comics/'
+    sync_one '${configVars.username}@cirdan:/volume1/Immich/'      '/silmaril/immich/'
+    sync_one '${configVars.username}@cirdan:/volume1/BorgBackup/'  '/silmaril/borg/'
+    sync_one '${configVars.username}@cirdan:/volume1/NetBackup/'   '/silmaril/netbackup/'
+    sync_one '${configVars.username}@cirdan:/volume1/syncthing/'   '/silmaril/syncthing/'
     # authentik/ is skipped: Authentik is retired with cirdan, not migrated,
     # and its root-owned DB files are unreadable over this login anyway.
-    sync_one 'tdoggett@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' --exclude='/authentik/'
+    sync_one '${configVars.username}@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' --exclude='/authentik/'
     # docker/tubearchivist on cirdan is a symlink to this USB disk, so the
     # line above only copies the link. Media only; the ES index and Redis are
     # copied once at cutover with the stack stopped.
     # Guarded: the pool mount is nofail, and an unmounted target would send
     # 286 GB onto the ephemeral root SSD instead.
     if ${pkgs.util-linux}/bin/mountpoint -q /silmaril/tubearchivist; then
-      sync_one 'tdoggett@cirdan:/volumeUSB2/usbshare/docker/tubearchivist/media/' '/silmaril/tubearchivist/media/'
+      sync_one '${configVars.username}@cirdan:/volumeUSB2/usbshare/docker/tubearchivist/media/' '/silmaril/tubearchivist/media/'
     else
       failed+=("tubearchivist (pool not mounted)")
       echo "!!! /silmaril/tubearchivist is not mounted; skipping" >&2
     fi
-    sync_one 'tdoggett@cirdan:/volume1/Family_Data/' '/silmaril/cirdan-migration/family/'
+    sync_one '${configVars.username}@cirdan:/volume1/Family_Data/' '/silmaril/cirdan-migration/family/'
 
     if [ "''${#failed[@]}" -gt 0 ]; then
       echo "=== $(date -Iseconds): finished with failures: ''${failed[*]} ===" >&2

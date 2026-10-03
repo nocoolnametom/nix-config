@@ -208,6 +208,7 @@ in
   fileSystems."/silmaril/immich" = poolSubvol "@immich" opaque; # photo/video originals only; DB lives on NVMe
   fileSystems."/silmaril/borg" = poolSubvol "@borg" opaque; # borg repo + borgmatic config + keys
   fileSystems."/silmaril/tubearchivist" = poolSubvol "@tubearchivist" opaque; # downloaded YouTube video
+  fileSystems."/silmaril/podcasts" = poolSubvol "@podcasts" opaque; # PodFetch MP3s
 
   # --- compressible: zstd:3 ---
   fileSystems."/silmaril/netbackup" = poolSubvol "@netbackup" squishy; # WebDAV target for GrapheneOS

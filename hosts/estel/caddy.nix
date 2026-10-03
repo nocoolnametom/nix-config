@@ -487,7 +487,10 @@ in
     # forwards to the service host's LAN IP.
     "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
       useACMEHost = "wild-${configVars.homeDomain}";
+      # PodFetch derives its token URL as "<authorise URL>/../token"; with
+      # Kanidm's /ui/oauth2 that lands on /ui/token (see hosts/feanor/podfetch.nix).
       extraConfig = ''
+        rewrite /ui/token /oauth2/token
         reverse_proxy https://${configVars.networking.subnets.feanor.ip}:${builtins.toString configVars.networking.ports.tcp.kanidm} {
           transport http {
             tls_insecure_skip_verify

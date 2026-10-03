@@ -70,13 +70,6 @@ in
     # Remove this import once cirdan is retired and all data is verified.
     ./cirdan-sync.nix
 
-    ############################ TubeArchivist ################################
-    # TODO 2026-10-04: enable at cutover, after the 03:00 cirdan-sync has copied
-    # the media to /silmaril/tubearchivist and the cirdan stack is stopped with
-    # its es/ and redis dump.rdb copied over. Enabling it earlier starts TA on
-    # an empty Elasticsearch index.
-    # ./tubearchivist.nix
-
     ####################### Immich module from unstable #######################
     # Paired with pkgs.unstable.immich below; see the Immich section.
     "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"
@@ -93,6 +86,12 @@ in
     "hosts/common/optional/homelab-status-page.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
     "hosts/common/optional/services/kanidm.nix"
+    "hosts/common/optional/services/docker/podfetch.nix"
+    # TODO 2026-10-04: enable at cutover (with services.tubearchivist below),
+    # after the 03:00 cirdan-sync has copied the media to /silmaril/tubearchivist
+    # and the cirdan stack is stopped with its es/ and redis dump.rdb copied
+    # over. Enabling it earlier starts TA on an empty Elasticsearch index.
+    # "hosts/common/optional/services/docker/tubearchivist.nix"
     "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/openssh.nix"
@@ -225,6 +224,17 @@ in
   systemd.tmpfiles.rules = [
     "d ${dataRoot}/stacks 0770 root root -"
   ];
+
+  ############################ Container services #############################
+  # Modules live in hosts/common/optional/services/docker/; only where their
+  # bulk data goes is feanor-specific.
+
+  # Fresh install, not a migration from cirdan: subscriptions were re-added by
+  # hand and cirdan's database and downloads were deliberately left behind.
+  services.podfetch.podcastsDir = "${dataRoot}/podcasts";
+
+  # TODO 2026-10-04: uncomment with the tubearchivist import above.
+  # services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";
 
   ######################## Container Layer (Komodo) ###########################
   #
