@@ -36,6 +36,7 @@
 #    /silmaril/borg/                <- cirdan /volume1/BorgBackup/
 #    /silmaril/netbackup/           <- cirdan /volume1/NetBackup/
 #    /silmaril/syncthing/           <- cirdan /volume1/syncthing/
+#    /silmaril/tubearchivist/media/ <- cirdan /volumeUSB2/usbshare/docker/tubearchivist/media/
 #    /silmaril/cirdan-migration/docker/   <- cirdan /volume1/docker/ (staging)
 #    /silmaril/cirdan-migration/family/   <- cirdan /volume1/Family_Data/ (staging)
 #
@@ -52,13 +53,20 @@ let
   knownHosts = "/home/${configVars.username}/.ssh/known_hosts";
 
   syncScript = pkgs.writeShellScript "cirdan-sync" ''
-    set -euo pipefail
+    set -uo pipefail
+
+    # One unreadable path must not stop the remaining shares (with set -e it
+    # did: authentik's DB files aborted every run before Family_Data). Each
+    # share runs regardless; the unit still fails at the end if any did, so
+    # the failure alert keeps firing.
+    failed=()
 
     sync_one() {
       local src="$1" dst="$2"
+      shift 2
       echo "=== $(date -Iseconds): starting $src -> $dst ==="
       mkdir -p "$dst"
-      ${pkgs.rsync}/bin/rsync \
+      ${pkgs.rsync}/bin/rsync "$@" \
         --archive \
         --partial \
         --append-verify \
@@ -70,7 +78,7 @@ let
         --exclude='@tmp' \
         --exclude='.DS_Store' \
         -e "${pkgs.openssh}/bin/ssh -i ${sshKey} -o StrictHostKeyChecking=yes -o UserKnownHostsFile=${knownHosts} -o BatchMode=yes" \
-        "$src" "$dst"
+        "$src" "$dst" || { failed+=("$src"); echo "!!! $src failed" >&2; }
       echo "=== $(date -Iseconds): finished $src ==="
     }
 
@@ -81,9 +89,26 @@ let
     sync_one 'tdoggett@cirdan:/volume1/BorgBackup/'  '/silmaril/borg/'
     sync_one 'tdoggett@cirdan:/volume1/NetBackup/'   '/silmaril/netbackup/'
     sync_one 'tdoggett@cirdan:/volume1/syncthing/'   '/silmaril/syncthing/'
-    sync_one 'tdoggett@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/'
+    # authentik/ is skipped: Authentik is retired with cirdan, not migrated,
+    # and its root-owned DB files are unreadable over this login anyway.
+    sync_one 'tdoggett@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' --exclude='/authentik/'
+    # docker/tubearchivist on cirdan is a symlink to this USB disk, so the
+    # line above only copies the link. Media only; the ES index and Redis are
+    # copied once at cutover with the stack stopped.
+    # Guarded: the pool mount is nofail, and an unmounted target would send
+    # 286 GB onto the ephemeral root SSD instead.
+    if ${pkgs.util-linux}/bin/mountpoint -q /silmaril/tubearchivist; then
+      sync_one 'tdoggett@cirdan:/volumeUSB2/usbshare/docker/tubearchivist/media/' '/silmaril/tubearchivist/media/'
+    else
+      failed+=("tubearchivist (pool not mounted)")
+      echo "!!! /silmaril/tubearchivist is not mounted; skipping" >&2
+    fi
     sync_one 'tdoggett@cirdan:/volume1/Family_Data/' '/silmaril/cirdan-migration/family/'
 
+    if [ "''${#failed[@]}" -gt 0 ]; then
+      echo "=== $(date -Iseconds): finished with failures: ''${failed[*]} ===" >&2
+      exit 1
+    fi
     echo "=== $(date -Iseconds): all syncs complete ==="
   '';
 in

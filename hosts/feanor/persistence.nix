@@ -50,6 +50,8 @@
       "/var/lib/syncthing" # index DB + device keys; losing this re-hashes everything
       "/var/lib/systemd/coredump"
       "/var/lib/tailscale"
+      "/var/lib/redis-tubearchivist" # TubeArchivist app settings + task queue
+      "/var/lib/tubearchivist" # elasticsearch index + cache (media is on the pool)
 
       # Komodo keeps each stack as a plain compose.yaml on disk. Persisting
       # this directory is what makes the eventual arion migration a matter of

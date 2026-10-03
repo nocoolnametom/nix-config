@@ -70,6 +70,13 @@ in
     # Remove this import once cirdan is retired and all data is verified.
     ./cirdan-sync.nix
 
+    ############################ TubeArchivist ################################
+    # TODO 2026-10-04: enable at cutover, after the 03:00 cirdan-sync has copied
+    # the media to /silmaril/tubearchivist and the cirdan stack is stopped with
+    # its es/ and redis dump.rdb copied over. Enabling it earlier starts TA on
+    # an empty Elasticsearch index.
+    # ./tubearchivist.nix
+
     ####################### Immich module from unstable #######################
     # Paired with pkgs.unstable.immich below; see the Immich section.
     "${inputs.nixpkgs-unstable}/nixos/modules/services/web-apps/immich.nix"

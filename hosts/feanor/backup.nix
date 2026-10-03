@@ -38,6 +38,12 @@ in
     mode = "0400";
   };
 
+  # failOnWarnings is on, and borg warns on a missing source path. TA only
+  # creates this on its first backup, so make sure it always exists.
+  systemd.tmpfiles.rules = [
+    "d /var/lib/tubearchivist/cache/backup 0755 ${configVars.username} users -"
+  ];
+
   services.borgbackup.jobs.local = {
     paths = [
       "${pool}/syncthing/Sync/Library/Calibre/Library"
@@ -49,6 +55,10 @@ in
       "${pool}/immich/upload/upload"
       "${pool}/immich/upload/profile"
       "${pool}/immich/upload/backups"
+
+      # TubeArchivist's own index exports (Settings > Backup). Elasticsearch
+      # is TA's primary store, and these zips are how it moves to a new ES.
+      "/var/lib/tubearchivist/cache/backup"
 
       # NOTE: cirdan also backed up /volume1/docker/actual. Actual Budget now
       # runs natively on estel (hosts/common/optional/services/actual-budget.nix),

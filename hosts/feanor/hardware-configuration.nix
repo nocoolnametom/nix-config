@@ -207,6 +207,7 @@ in
   fileSystems."/silmaril/comics" = poolSubvol "@comics" opaque; # CBZ/CBR, served to Kavita over SMB
   fileSystems."/silmaril/immich" = poolSubvol "@immich" opaque; # photo/video originals only; DB lives on NVMe
   fileSystems."/silmaril/borg" = poolSubvol "@borg" opaque; # borg repo + borgmatic config + keys
+  fileSystems."/silmaril/tubearchivist" = poolSubvol "@tubearchivist" opaque; # downloaded YouTube video
 
   # --- compressible: zstd:3 ---
   fileSystems."/silmaril/netbackup" = poolSubvol "@netbackup" squishy; # WebDAV target for GrapheneOS
