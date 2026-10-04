@@ -38,11 +38,20 @@ in
     mode = "0400";
   };
 
-  # failOnWarnings is on, and borg warns on a missing source path. TA only
-  # creates this on its first backup, so make sure it always exists.
+  # failOnWarnings is on, and borg warns on a missing source path. The
+  # snapshot repository only appears with TA's first snapshot, so make sure it
+  # always exists (owned like the rest of the ES data: 1000:0).
   systemd.tmpfiles.rules = [
-    "d /var/lib/tubearchivist/cache/backup 0755 ${configVars.username} users -"
+    "d /var/lib/tubearchivist/es/snapshot 0770 1000 0 -"
   ];
+
+  # Logical dumps are what borg should hold for databases: a copy of the live
+  # data directory taken mid-write may not be restorable.
+  services.postgresqlBackup = {
+    enable = true;
+    databases = [ "podfetch" ];
+    startAt = "*-*-* 01:30:00"; # before borg's daily run
+  };
 
   services.borgbackup.jobs.local = {
     paths = [
@@ -56,13 +65,22 @@ in
       "${pool}/immich/upload/profile"
       "${pool}/immich/upload/backups"
 
-      # TubeArchivist's own index exports (Settings > Backup). Elasticsearch
-      # is TA's primary store, and these zips are how it moves to a new ES.
-      "/var/lib/tubearchivist/cache/backup"
+      # TubeArchivist's Elasticsearch snapshots (Settings > Application >
+      # Snapshots; TA recommends these over its old zip backups). ES is TA's
+      # primary store; restorable into any ES 8.x via the snapshot API.
+      "/var/lib/tubearchivist/es/snapshot"
 
       # Kanidm's nightly online backups (22:00): users, credentials, passkeys,
       # OAuth2 clients. Restorable with `kanidmd database restore`.
       "/var/lib/kanidm/backups"
+
+      # Nightly pg_dump of databases without their own dump job (see
+      # services.postgresqlBackup below). Immich dumps itself into upload/backups.
+      config.services.postgresqlBackup.location
+
+      # Small app state that lives only on this host:
+      "/var/lib/autocaliweb/config" # app.db (users, shelves, progress), acw.db
+      "/var/lib/redis-tubearchivist" # TubeArchivist's app settings (dump.rdb)
 
       # NOTE: cirdan also backed up /volume1/docker/actual. Actual Budget now
       # runs natively on estel (hosts/common/optional/services/actual-budget.nix),

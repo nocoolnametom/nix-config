@@ -5,8 +5,9 @@
 #  Not packaged in nixpkgs, so it stays containerised. Elasticsearch stays a
 #  container too: nixpkgs only ships 7.x and TA needs 8.x (an index created
 #  by 8.x cannot be opened by 7.x). ES is TA's primary data store, not a
-#  rebuildable cache - TA's Settings > Backup zips are what move it to a new
-#  ES; they land in <stateDir>/cache/backup.
+#  rebuildable cache - TA's Elasticsearch snapshots (Settings > Application >
+#  Snapshots) are what move it to a new ES; they land in <stateDir>/es/snapshot
+#  (ES path.repo).
 #
 #  Redis runs natively; TA keeps its app settings there. Containers reach it
 #  at host.docker.internal, and the project network gets a fixed bridge name
@@ -37,9 +38,8 @@ let
   ]
   ++ lib.optional (hostIp != null) "http://${hostIp}:${toString cfg.port}";
 
-  # The configured user, so downloaded media is owned by a real host account.
-  uid = toString config.users.users.${configVars.username}.uid;
-  gid = toString config.users.groups.users.gid;
+  uid = toString cfg.uid;
+  gid = toString cfg.gid;
 
   envFile = config.sops.templates."tubearchivist.env".path;
 
@@ -63,6 +63,22 @@ in
         Elasticsearch index and TA cache (including TA's backup zips).
         Keep it on SSD: ES is a database.
       '';
+    };
+
+    uid = lib.mkOption {
+      type = lib.types.int;
+      default = 1000;
+      description = ''
+        Numeric owner for downloaded media and the cache (TA's HOST_UID).
+        Numeric because NixOS user uids are often auto-assigned, i.e. not
+        known at evaluation time.
+      '';
+    };
+
+    gid = lib.mkOption {
+      type = lib.types.int;
+      default = 100; # `users`
+      description = "Numeric group for downloaded media and the cache (TA's HOST_GID).";
     };
 
     port = lib.mkOption {
@@ -96,10 +112,12 @@ in
 
     services.redis.servers.tubearchivist = {
       enable = true;
-      # Explicit bind (not null) keeps Redis out of protected mode, which would
-      # refuse the containers; the firewall rule below is what scopes access.
       bind = "0.0.0.0";
       port = redisPort;
+      # The NixOS module enables protected mode, which resets connections from
+      # non-loopback clients (the containers) when no password is set. Access
+      # is scoped instead by the firewall rule below (stack bridge only).
+      settings.protected-mode = "no";
     };
     networking.firewall.interfaces.${bridge}.allowedTCPPorts = [ redisPort ];
 

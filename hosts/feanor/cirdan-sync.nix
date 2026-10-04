@@ -91,9 +91,11 @@ let
     # /volume1/syncthing/ is no longer rsynced: since 2026-10-03 feanor is a
     # Syncthing peer of cirdan for all of those folders, and rsync writing into
     # Syncthing-managed folders would show up as local changes / conflicts.
-    # authentik/ is skipped: Authentik is retired with cirdan, not migrated,
-    # and its root-owned DB files are unreadable over this login anyway.
-    sync_one '${configVars.username}@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' --exclude='/authentik/'
+    # Skipped: database directories this login cannot read, none of which are
+    # needed - authentik/ retires with cirdan, immich was restored from its own
+    # SQL dump, podfetch started fresh, standardnotes stays with Proton.
+    sync_one '${configVars.username}@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' \
+      --exclude='/authentik/' --exclude='/immich/db/' --exclude='/podfetch/db/' --exclude='/standardnotes/'
     # docker/tubearchivist on cirdan is a symlink to this USB disk, so the
     # line above only copies the link. Media only; the ES index and Redis are
     # copied once at cutover with the stack stopped.

@@ -246,7 +246,7 @@ let
       proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
-      host = "cirdan";
+      host = "feanor";
       service = "tubearchivist";
       domain = "domain";
     }

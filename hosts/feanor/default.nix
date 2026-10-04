@@ -83,11 +83,7 @@ in
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/docker/podfetch.nix"
     "hosts/common/optional/services/docker/autocaliweb.nix"
-    # TODO 2026-10-04: enable at cutover (with services.tubearchivist below),
-    # after the 03:00 cirdan-sync has copied the media to /silmaril/tubearchivist
-    # and the cirdan stack is stopped with its es/ and redis dump.rdb copied
-    # over. Enabling it earlier starts TA on an empty Elasticsearch index.
-    # "hosts/common/optional/services/docker/tubearchivist.nix"
+    "hosts/common/optional/services/docker/tubearchivist.nix"
     "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/openssh.nix"
@@ -254,8 +250,9 @@ in
     group = "media";
   };
 
-  # TODO 2026-10-04: uncomment with the tubearchivist import above.
-  # services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";
+  # Migrated from cirdan 2026-10-03 (stack stopped; es/, cache/ and the Redis
+  # dump.rdb copied into /var/lib); never run a second copy against this index.
+  services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";
 
   ######################## Container Layer (Komodo) ###########################
   #

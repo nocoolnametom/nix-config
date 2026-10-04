@@ -39,18 +39,25 @@
       "/var/db/sudo/lectured"
       "/var/lib/autocaliweb" # config (app.db, acw.db) + ingest; library is in Syncthing
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
+      "/var/lib/btrfs" # scrub status/history for `btrfs scrub status`
       "/var/lib/chrony"
       "/var/lib/docker" # container images + volumes
       "/var/lib/jellyfin" # library DB, metadata, user state
       "/var/lib/kanidm" # SSO database: users, passwords, passkeys, sessions
       "/var/cache/immich" # ML models (~1 GB); re-downloaded on every boot otherwise
       "/var/lib/immich"
+      "/var/lib/nfs" # NFS server state, so clients recover cleanly after reboot
       "/var/lib/nixos"
-      "/var/lib/postgresql" # immich DB - on NVMe, not the btrfs HDD pool
+      "/var/lib/postgresql" # immich + podfetch DBs - on NVMe, not the btrfs HDD pool
+      "/var/lib/redis-immich" # Immich job queue
+      "/var/backup/postgresql" # nightly pg_dump of podfetch (backed up by borg)
       "/var/lib/private/webdav"
       "/var/lib/samba"
       "/var/lib/syncthing" # index DB + device keys; losing this re-hashes everything
       "/var/lib/systemd/coredump"
+      # Stamp files for Persistent=true timers (cirdan-sync, borg, pg dump,
+      # btrfs scrub, docker prune); without them missed runs are never caught up.
+      "/var/lib/systemd/timers"
       "/var/lib/tailscale"
       "/var/lib/redis-tubearchivist" # TubeArchivist app settings + task queue
       "/var/lib/tubearchivist" # elasticsearch index + cache (media is on the pool)
