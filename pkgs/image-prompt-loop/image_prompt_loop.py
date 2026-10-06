@@ -21,6 +21,7 @@ import base64
 import json
 import os
 import random
+import re
 import sys
 import time
 import urllib.error
@@ -51,7 +52,13 @@ Check, in this order:
 2. Attributes: clothing, colors, materials, expressions, poses, held objects.
 3. Setting and composition: background, framing, camera angle, lighting.
 4. Style and medium: photo vs illustration, art style, color palette.
-5. Defects: extra or fused limbs, malformed hands or faces, garbled text, artifacts.
+5. Defects: count the legs, arms, hands and fingers you can actually see. Look for
+   extra or fused limbs, impossible anatomy or posture, malformed faces, and ANY text,
+   watermark, signature or logo (these are always problems unless the goal asks for them).
+
+Only report problems you can point to in the image, judged against the goal. Don't
+"correct" details the goal didn't specify using your own beliefs about how things look.
+Something listed under problems must not also be listed under matches.
 
 Scoring: 10 means every requirement is met with no defects. Take off points for each
 problem. Never give 9 or 10 if any problem is listed.
@@ -61,22 +68,63 @@ When rewriting the prompt:
 - Keep the same prompt format as the current prompt (comma-separated tags stay tags,
   prose stays prose).
 - Fix the listed problems specifically: strengthen or reorder the words for missing
-  elements, and describe what should be there rather than only what should not.
-- Don't pad with generic quality words ("masterpiece", "best quality") unless the
+  elements, and describe what should be there.
+- Never write negations ("no X", "without X") in revised_prompt. Image models read the
+  word X and draw it. Put unwanted things (watermark, text, extra fingers, blur...) in
+  negative_additions as short tags instead, and say what should be there in the prompt.
+- Don't pad with generic quality words ("masterpiece", "best quality", "8k") unless the
   current prompt already uses them.
+- Keep revised_prompt close to the current prompt's length: change what the problems
+  require and leave the rest alone. Never repeat a phrase.
 """
 
+# The length limits are enforced while the model generates (Ollama turns the
+# schema into a grammar). Without them qwen3-vl sometimes repeats tags inside
+# revised_prompt until the whole context is used up.
 CRITIC_SCHEMA = {
     "type": "object",
     "properties": {
         # Listed before the score so the model reasons about problems first
-        "problems": {"type": "array", "items": {"type": "string"}},
-        "matches": {"type": "array", "items": {"type": "string"}},
+        "problems": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 300}},
+        "matches": {"type": "array", "maxItems": 8, "items": {"type": "string", "maxLength": 300}},
         "score": {"type": "integer", "minimum": 0, "maximum": 10},
-        "revised_prompt": {"type": "string"},
+        "revised_prompt": {"type": "string", "maxLength": 1000},
+        "negative_additions": {"type": "array", "maxItems": 10, "items": {"type": "string", "maxLength": 60}},
     },
-    "required": ["problems", "matches", "score", "revised_prompt"],
+    "required": ["problems", "matches", "score", "revised_prompt", "negative_additions"],
 }
+
+
+# "no watermark", "without text", ... in a positive prompt makes most image
+# models draw the very thing, so these phrases are moved to the negative prompt
+NEGATION_PATTERN = re.compile(r"^\s*(?:no|without|not|never)\s+(.+?)\s*$", re.IGNORECASE)
+# "tail without black tip" -> keep "tail", move "black tip" to the negative
+INNER_NEGATION_PATTERN = re.compile(r"^\s*(.+?)\s+(?:without|but no|and no)\s+(.+?)\s*$", re.IGNORECASE)
+
+
+def split_negations(prompt):
+    """Return (prompt without "no X" phrases, list of the X's)."""
+    kept_parts, negated_terms = [], []
+    for part in prompt.split(","):
+        negation = NEGATION_PATTERN.match(part)
+        inner_negation = INNER_NEGATION_PATTERN.match(part)
+        if negation:
+            negated_terms.append(negation.group(1))
+        elif inner_negation:
+            kept_parts.append(inner_negation.group(1))
+            negated_terms.append(inner_negation.group(2))
+        elif part.strip():
+            kept_parts.append(part.strip())
+    return ", ".join(kept_parts), negated_terms
+
+
+def merge_negative(negative_prompt, new_terms):
+    existing = [term.strip() for term in (negative_prompt or "").split(",") if term.strip()]
+    for term in new_terms:
+        term = term.strip()
+        if term and term.lower() not in (known.lower() for known in existing):
+            existing.append(term)
+    return ", ".join(existing)
 
 
 def env_default(name, fallback=None):
@@ -109,12 +157,13 @@ def b64(image_bytes):
 # ----------------------------------------------------------------- Ollama ---
 
 
-def ollama_chat(ollama_url, model, system_prompt, user_prompt, images, response_schema=None, temperature=0.2):
+def ollama_chat(ollama_url, model, system_prompt, user_prompt, images, response_schema=None, temperature=0.2, max_tokens=1500):
     payload = {
         "model": model,
         "stream": False,
         "keep_alive": "30m",
-        "options": {"temperature": temperature},
+        # max_tokens is a backstop against runaway generations
+        "options": {"temperature": temperature, "num_predict": max_tokens, "repeat_penalty": 1.1},
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt, "images": [b64(image) for image in images]},
@@ -150,8 +199,30 @@ def critique(ollama_url, model, goal, current_prompt, candidate_bytes, reference
         )
         image_note = "The first attached image is the REFERENCE. The second was generated from the current prompt."
     user_prompt = f"{goal_text}\n\nCURRENT PROMPT:\n{current_prompt}\n\n{image_note}\nReview it and answer in JSON."
-    raw_reply = ollama_chat(ollama_url, model, CRITIC_SYSTEM_PROMPT, user_prompt, images, CRITIC_SCHEMA)
-    return json.loads(raw_reply)
+    # The critic ignores "keep the length" and pads revised_prompt with stock
+    # quality tags, so cap it relative to the current prompt: room to fix the
+    # problems, not room to bury the goal.
+    prompt_budget = min(1000, max(2 * len(current_prompt), len(current_prompt) + 250))
+    schema = json.loads(json.dumps(CRITIC_SCHEMA))
+    schema["properties"]["revised_prompt"]["maxLength"] = prompt_budget
+    raw_reply = ollama_chat(ollama_url, model, CRITIC_SYSTEM_PROMPT, user_prompt, images, schema)
+    try:
+        review = json.loads(raw_reply)
+        revised_prompt = review["revised_prompt"].strip()
+        if len(revised_prompt) >= prompt_budget - 1 and "," in revised_prompt:
+            # Cut off by the cap: drop the half-written last phrase
+            review["revised_prompt"] = revised_prompt.rsplit(",", 1)[0]
+        return review
+    except json.JSONDecodeError:
+        # Hit the token limit mid-reply: report it, and keep the current prompt
+        log("  (critic reply was cut off; keeping the current prompt this round)")
+        return {
+            "problems": ["critic reply was cut off before it finished"],
+            "matches": [],
+            "score": 0,
+            "revised_prompt": current_prompt,
+            "negative_additions": [],
+        }
 
 
 # ----------------------------------------------------------- ComfyUI -------
@@ -354,6 +425,7 @@ def command_refine(args):
         log(f"Describing reference with {args.caption_model} ...")
         current_prompt = describe_image(args.ollama, args.caption_model, reference_bytes, args.style)
     goal = args.prompt or "(match the reference image)"
+    current_negative = args.negative
     seed = args.seed if args.seed is not None else random.randint(0, 2**31 - 1)
 
     history = []
@@ -362,7 +434,9 @@ def command_refine(args):
         if args.vary_seed and round_number > 1:
             seed = random.randint(0, 2**31 - 1)
         log(f"\nRound {round_number}/{args.rounds} (seed {seed})\n  prompt: {current_prompt}")
-        image_bytes = backend.render(current_prompt, args.negative, seed)
+        if current_negative:
+            log(f"  negative: {current_negative}")
+        image_bytes = backend.render(current_prompt, current_negative, seed)
         image_path = out_dir / f"round-{round_number:02d}.png"
         image_path.write_bytes(image_bytes)
 
@@ -375,11 +449,13 @@ def command_refine(args):
             "round": round_number,
             "seed": seed,
             "prompt": current_prompt,
+            "negative": current_negative,
             "image": image_path.name,
             "score": review["score"],
             "problems": review["problems"],
             "matches": review["matches"],
             "revised_prompt": review["revised_prompt"],
+            "negative_additions": review["negative_additions"],
         }
         history.append(record)
         if best is None or record["score"] > best["score"]:
@@ -389,9 +465,13 @@ def command_refine(args):
         if review["score"] >= args.target_score:
             log(f"  reached target score {args.target_score}")
             break
-        current_prompt = review["revised_prompt"].strip() or current_prompt
+        revised_prompt, negated_terms = split_negations(review["revised_prompt"])
+        current_prompt = revised_prompt or current_prompt
+        current_negative = merge_negative(current_negative, review["negative_additions"] + negated_terms)
 
     log(f"\nBest: round {best['round']}, score {best['score']}/10 -> {out_dir / best['image']}")
+    if best["negative"]:
+        log(f"Best negative prompt: {best['negative']}")
     print(best["prompt"])
 
 
