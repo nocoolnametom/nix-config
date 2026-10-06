@@ -484,13 +484,14 @@ in
       # The cleanup module (not a bare `docker rm -f`) is used because `rm -f`
       # returns before the daemon has finished releasing the container name,
       # which made `arion up` fail with a name conflict on quick restarts.
-      services.arion-container-cleanup.projects.invokeai = { };
+      services.arion-container-cleanup.projects.invokeai.containers = [ "arion-invokeai" ];
 
       virtualisation.arion.projects."invokeai".settings = {
         services."invokeai".service = mkIf cfg.active (mkMerge [
           # Base configuration
           {
-            container_name = "invokeai";
+            container_name = "arion-invokeai";
+            labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
             environment = {
               # Tell InvokeAI to use our config file
               INVOKEAI_ROOT = "/invokeai";

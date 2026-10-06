@@ -14,6 +14,9 @@ in
   services.open-webui.host = lib.mkDefault "0.0.0.0";
   services.open-webui.port = lib.mkDefault configVars.networking.ports.tcp.openwebui;
   services.open-webui.openFirewall = lib.mkDefault true;
+  # Where Open WebUI sends the browser after login (and builds links from).
+  # The nixpkgs module defaults it to http://localhost:<port>.
+  services.open-webui.environment.WEBUI_URL = "https://${configVars.networking.subdomains.openwebui}.${configVars.domain}";
 
   # Authentik OIDC secrets
   sops.secrets."open-webui-slug" = { };

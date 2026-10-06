@@ -52,6 +52,7 @@ let
         "stashvr"
         "whisparr"
         "whisparr-eros"
+        "tubearchivist"
       ]
       (n: [
         "homelab/kanidm/oauth2/${n}/client-secret"
@@ -111,18 +112,24 @@ let
     # estel services (2)
     navidrome = {
       port = configVars.networking.ports.tcp.oauth2-navidrome;
-      upstreamUrl = "http://${configVars.networking.subnets.estel.ip}:${toString configVars.networking.ports.tcp.navidrome}";
+      # Navidrome runs on feanor (navidrome.nix) and trusts the username
+      # header only from estel, where this instance runs.
+      upstreamUrl = "http://${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.navidrome}";
       oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/navidrome";
       clientId = "navidrome";
       clientSecretFile = secret "homelab/kanidm/oauth2/navidrome/client-secret";
       cookieSecretFile = secret "homelab/oauth2/navidrome/cookie-secret";
-      # Navidrome-specific: use X-Forwarded-User header
+      # Navidrome reads X-Forwarded-Preferred-Username (short name, see the
+      # Kanidm client).
       passUserHeaders = true;
       setXAuthRequest = true;
-      # Allow unauthenticated access to health checks and shared links
+      # Health checks and public share links skip the login; so does the
+      # Subsonic API, whose clients (phone apps) authenticate against
+      # Navidrome's own user passwords.
       skipAuthRegex = [
         "^/ping$"
         "^/share/"
+        "^/rest/"
       ];
     };
 
@@ -299,6 +306,20 @@ let
       skipAuthRegex = [ "^/ping$" ];
       basicAuthUsernameFile = secret "homelab/whisparr-eros/username";
       basicAuthPasswordFile = secret "homelab/whisparr-eros/password";
+    };
+
+    # TubeArchivist logs users in from X-Forwarded-Preferred-Username
+    # (TA_LOGIN_AUTH_MODE=forwardauth; see docker/tubearchivist.nix).
+    tubearchivist = {
+      port = configVars.networking.ports.tcp.oauth2-tubearchivist;
+      upstreamUrl = "http://${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.tubearchivist}";
+      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/tubearchivist";
+      clientId = "tubearchivist";
+      clientSecretFile = secret "homelab/kanidm/oauth2/tubearchivist/client-secret";
+      cookieSecretFile = secret "homelab/oauth2/tubearchivist/cookie-secret";
+      # The API authenticates with TubeArchivist tokens (browser extension,
+      # other integrations), so it bypasses the login.
+      skipAuthRegex = [ "^/api/" ];
     };
   };
 

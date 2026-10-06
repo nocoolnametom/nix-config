@@ -13,6 +13,12 @@
 #  at host.docker.internal, and the project network gets a fixed bridge name
 #  so the firewall admits Redis traffic from this stack only, not the LAN.
 #
+#  forwardAuth: TubeArchivist logs users in from a username header
+#  (TA_LOGIN_AUTH_MODE=forwardauth), set by the "tubearchivist" oauth2-proxy
+#  instance on estel (oauth2-proxy.nix). Users are created on first login.
+#  The LAN is trusted: anything on it that reaches the port directly could
+#  send that header itself.
+#
 #  Secrets (nix-secrets): homelab/tubearchivist/{es-password,ta-password,
 #  ta-token,mb-token}. ELASTIC_PASSWORD must match the value an existing index
 #  was created with; ES only reads it when bootstrapping a fresh node.
@@ -86,6 +92,16 @@ in
       default = configVars.networking.ports.tcp.tubearchivist;
       description = "Host port the web UI is published on.";
     };
+
+    forwardAuth = {
+      enable = lib.mkEnableOption "login through a trusted proxy header (see the header comment)";
+      usernameHeader = lib.mkOption {
+        type = lib.types.str;
+        # oauth2-proxy's X-Forwarded-Preferred-Username, in TA's naming
+        default = "X_FORWARDED_PREFERRED_USERNAME";
+        description = "Header TubeArchivist reads the username from.";
+      };
+    };
   };
 
   config = {
@@ -122,7 +138,11 @@ in
     networking.firewall.interfaces.${bridge}.allowedTCPPorts = [ redisPort ];
 
     virtualisation.arion.backend = "docker";
-    services.arion-container-cleanup.projects.tubearchivist = { };
+    services.arion-container-cleanup.projects.tubearchivist.containers = [
+      "arion-tubearchivist-es"
+      "arion-tubearchivist"
+      "arion-tubearchivist-client"
+    ];
 
     # If mediaDir sits on a nofail mount, never let downloads land on the
     # disk underneath it instead.
@@ -142,7 +162,8 @@ in
     virtualisation.arion.projects.tubearchivist.settings.services = {
       es.service = {
         image = "elastic/elasticsearch:8.14.3";
-        container_name = "TubeArchivist-ES";
+        container_name = "arion-tubearchivist-es";
+        labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
         environment = {
           TZ = config.time.timeZone;
           ES_JAVA_OPTS = "-Xms512m -Xmx512m";
@@ -171,7 +192,8 @@ in
 
       tubearchivist.service = {
         image = "bbilly1/tubearchivist:latest";
-        container_name = "TubeArchivist";
+        container_name = "arion-tubearchivist";
+        labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
         ports = [ "${toString cfg.port}:8000" ];
         environment = {
           TZ = config.time.timeZone;
@@ -183,6 +205,12 @@ in
           TA_HOST = lib.concatStringsSep " " ([ publicUrl ] ++ lanUrls);
           TA_AUTO_UPDATE_YTDLP = "nightly";
           DISABLE_STATIC_AUTH = "1";
+        }
+        // lib.optionalAttrs cfg.forwardAuth.enable {
+          TA_LOGIN_AUTH_MODE = "forwardauth";
+          # A custom X- header is named without the HTTP_ prefix (TA 0.5.3+).
+          TA_AUTH_PROXY_USERNAME_HEADER = cfg.forwardAuth.usernameHeader;
+          TA_AUTH_PROXY_LOGOUT_URL = "${publicUrl}/oauth2/sign_out";
         };
         env_file = [ envFile ];
         volumes = [
@@ -208,7 +236,8 @@ in
       # Members client: websocket to the TubeArchivist members service.
       tubearchivist-client.service = {
         image = "bbilly1/tubearchivist-client";
-        container_name = "tubearchivist-client";
+        container_name = "arion-tubearchivist-client";
+        labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
         environment = {
           TZ = config.time.timeZone;
           TA_URL = "http://tubearchivist:8000";

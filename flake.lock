@@ -785,10 +785,10 @@
     },
     "nix-secrets": {
       "locked": {
-        "lastModified": 1791295109,
-        "narHash": "sha256-IyWa6EILKeX4QdupcvK+riRri5ju1Cq1m9QckDZwgp0=",
+        "lastModified": 1791307548,
+        "narHash": "sha256-oxLYPRAi2/KR4ARd06gmFapM2fpYtovnz58jP46HP2s=",
         "ref": "main",
-        "rev": "c84705c6017f4dc16884fb94711c6487f96a242e",
+        "rev": "60df159574e57e7a370604f357a369c08f7bc166",
         "shallow": true,
         "type": "git",
         "url": "ssh://git@github.com/nocoolnametom/nix-secrets.git"

@@ -11,6 +11,9 @@ with lib;
 
 let
   cfg = config.services.comfyui;
+  # Container name. The arion- prefix marks it in Komodo's container list as
+  # managed here; project, unit, user and paths keep the comfyui-docker name.
+  containerName = "arion-comfyui";
 in
 {
   imports = [
@@ -313,7 +316,7 @@ in
       # daemon's teardown (which fails the start with a name conflict).
       # Container data lives on host volumes under cfg.docker.workingDir, so
       # recreating the container doesn't lose state.
-      services.arion-container-cleanup.projects.comfyui-docker = { };
+      services.arion-container-cleanup.projects.comfyui-docker.containers = [ containerName ];
 
       networking.firewall.allowedTCPPorts = mkIf (cfg.docker.port != null) [ cfg.docker.port ];
 
@@ -370,11 +373,11 @@ in
           # Function to create backup
           create_backup() {
             echo "Creating backup of current ComfyUI version..."
-            ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+            ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
               tar -czf /tmp/comfyui-backup-$TIMESTAMP.tar.gz -C /data work
             "
-            ${pkgs.docker}/bin/docker cp comfyui-docker:/tmp/comfyui-backup-$TIMESTAMP.tar.gz "$BACKUP_DIR/"
-            ${pkgs.docker}/bin/docker exec comfyui-docker rm /tmp/comfyui-backup-$TIMESTAMP.tar.gz
+            ${pkgs.docker}/bin/docker cp ${containerName}:/tmp/comfyui-backup-$TIMESTAMP.tar.gz "$BACKUP_DIR/"
+            ${pkgs.docker}/bin/docker exec ${containerName} rm /tmp/comfyui-backup-$TIMESTAMP.tar.gz
             echo "✓ Backup created: comfyui-backup-$TIMESTAMP.tar.gz"
 
             # Keep only the last 3 backups
@@ -388,8 +391,8 @@ in
             local backup_file="$1"
             echo "⚠️  Update failed! Restoring from backup: $backup_file"
 
-            ${pkgs.docker}/bin/docker cp "$backup_file" comfyui-docker:/tmp/restore.tar.gz
-            ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+            ${pkgs.docker}/bin/docker cp "$backup_file" ${containerName}:/tmp/restore.tar.gz
+            ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
               cd /data
               rm -rf work
               tar -xzf /tmp/restore.tar.gz -C /data
@@ -423,7 +426,7 @@ in
           # Wait for container to be fully started
           echo "Waiting for ComfyUI container to be ready..."
           for i in {1..30}; do
-            if ${pkgs.docker}/bin/docker exec comfyui-docker test -d /data/work 2>/dev/null; then
+            if ${pkgs.docker}/bin/docker exec ${containerName} test -d /data/work 2>/dev/null; then
               echo "Container is ready!"
               break
             fi
@@ -432,12 +435,12 @@ in
           done
 
           # Check current version
-          CURRENT_VERSION=$(${pkgs.docker}/bin/docker exec comfyui-docker cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "Unable to determine")
+          CURRENT_VERSION=$(${pkgs.docker}/bin/docker exec ${containerName} cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "Unable to determine")
           echo "Current version: $CURRENT_VERSION"
 
           # Check latest version on GitHub
           echo "Checking for updates..."
-          LATEST_COMMIT=$(${pkgs.docker}/bin/docker exec comfyui-docker bash -c "git ls-remote https://github.com/comfyanonymous/ComfyUI.git refs/heads/master | cut -f1 | head -c7" 2>/dev/null || echo "unknown")
+          LATEST_COMMIT=$(${pkgs.docker}/bin/docker exec ${containerName} bash -c "git ls-remote https://github.com/comfyanonymous/ComfyUI.git refs/heads/master | cut -f1 | head -c7" 2>/dev/null || echo "unknown")
           echo "Latest commit on GitHub: $LATEST_COMMIT"
 
           # Create backup before updating
@@ -446,12 +449,12 @@ in
 
           # Stop ComfyUI process
           echo "Stopping ComfyUI..."
-          ${pkgs.docker}/bin/docker exec comfyui-docker pkill -f "python3 main.py" || true
+          ${pkgs.docker}/bin/docker exec ${containerName} pkill -f "python3 main.py" || true
           sleep 2
 
           # Clone latest ComfyUI to temp location
           echo "Downloading latest ComfyUI from GitHub..."
-          if ! ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+          if ! ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
             rm -rf /tmp/comfyui-update
             git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /tmp/comfyui-update
           "; then
@@ -462,7 +465,7 @@ in
 
           # Update the working directory (preserve custom_nodes, models, etc.)
           echo "Updating ComfyUI files..."
-          if ! ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+          if ! ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
             cd /data/work
             # Remove old symlinks and copy new files
             # Only exclude TOP-LEVEL directories, not nested ones (ldm/models/ contains Python code!)
@@ -489,7 +492,7 @@ in
           fi
 
           # Verify update
-          NEW_VERSION=$(${pkgs.docker}/bin/docker exec comfyui-docker cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "unknown")
+          NEW_VERSION=$(${pkgs.docker}/bin/docker exec ${containerName} cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "unknown")
           echo "========================================"
           echo "✓ ComfyUI updated successfully!"
           echo "New version: $NEW_VERSION"
@@ -535,12 +538,12 @@ in
           echo "Rolling back to: $(basename "$LATEST_BACKUP")"
 
           # Stop ComfyUI
-          ${pkgs.docker}/bin/docker exec comfyui-docker pkill -f "python3 main.py" || true
+          ${pkgs.docker}/bin/docker exec ${containerName} pkill -f "python3 main.py" || true
           sleep 2
 
           # Restore backup
-          ${pkgs.docker}/bin/docker cp "$LATEST_BACKUP" comfyui-docker:/tmp/restore.tar.gz
-          ${pkgs.docker}/bin/docker exec comfyui-docker bash -c "
+          ${pkgs.docker}/bin/docker cp "$LATEST_BACKUP" ${containerName}:/tmp/restore.tar.gz
+          ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
             cd /data
             rm -rf work
             tar -xzf /tmp/restore.tar.gz -C /data
@@ -624,7 +627,8 @@ in
         services."comfyui-docker".service = mkMerge [
           # Base configuration
           {
-            container_name = "comfyui-docker";
+            container_name = containerName;
+            labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
             environment = cfg.docker.environment;
             env_file = lib.optionals (cfg.docker.additionalEnvironmentFile != null) [
               "${cfg.docker.additionalEnvironmentFile}"
@@ -741,15 +745,15 @@ in
                     in
                     ''
                       echo "Managing custom node: ${nodeName}..."
-                      if ! ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -d /data/custom_nodes/${nodeName}/.git ]; then
+                      if ! ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} [ -d /data/custom_nodes/${nodeName}/.git ]; then
                         echo "  → Cloning ${nodeName} from ${nodeUrl}..."
-                        ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker bash -c "
+                        ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} bash -c "
                           cd /data/custom_nodes && \
                           git clone ${nodeUrl}
                         " && echo "  ✓ Successfully cloned ${nodeName}" || echo "  ✗ Failed to clone ${nodeName}"
                       else
                         echo "  → Updating ${nodeName}..."
-                        ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker bash -c "
+                        ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} bash -c "
                           cd /data/custom_nodes/${nodeName} && \
                           git fetch origin && \
                           if ! git diff --quiet HEAD origin/HEAD 2>/dev/null; then
@@ -769,7 +773,7 @@ in
                 workflowInstallScript = concatStringsSep "\n" (
                   mapAttrsToList (filename: url: ''
                     echo "Checking workflow: ${filename}..."
-                    if ! ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -f /data/user/default/workflows/${filename} ]; then
+                    if ! ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} [ -f /data/user/default/workflows/${filename} ]; then
                       echo "  → Downloading ${filename}..."
 
                       # Build curl command with authentication if needed
@@ -787,7 +791,7 @@ in
 
                       # Download workflow
                       eval "$CURL_CMD \"${url}\" -o /tmp/${filename}" && \
-                      ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/data/user/default/workflows/${filename} && \
+                      ${pkgs.docker}/bin/docker cp /tmp/${filename} ${containerName}:/data/user/default/workflows/${filename} && \
                       rm /tmp/${filename} && \
                       echo "  ✓ Successfully downloaded ${filename}" || \
                       echo "  ✗ Failed to download ${filename}"
@@ -804,7 +808,7 @@ in
                 echo "========================================"
                 echo "Waiting for container..."
                 for i in {1..30}; do
-                  if ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker test -d /data/custom_nodes; then
+                  if ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} test -d /data/custom_nodes; then
                     echo "✓ Container is ready!"
                     break
                   fi
@@ -882,12 +886,12 @@ in
                   echo "Checking model: ${filename}"
                   echo "Destination: ${model.destination}"
 
-                  if ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker [ -f /data/${model.destination} ]; then
+                  if ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} [ -f /data/${model.destination} ]; then
                     echo "${filename} already exists, skipping..."
                   else
                     MODELS_DOWNLOADED=true
                     echo "Creating destination directory if needed..."
-                    ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker mkdir -p /data/${dirname}
+                    ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} mkdir -p /data/${dirname}
 
                     echo "Downloading ${filename} from ${model.url}"
                     echo "This may take a while for large models..."
@@ -921,7 +925,7 @@ in
                     ${sha256Check}
 
                     echo "Copying ${filename} to container..."
-                    ${pkgs.docker}/bin/docker cp /tmp/${filename} comfyui-docker:/data/${model.destination} && \
+                    ${pkgs.docker}/bin/docker cp /tmp/${filename} ${containerName}:/data/${model.destination} && \
                     rm /tmp/${filename} && \
                     echo "Successfully installed ${filename}" || {
                       echo "ERROR: Failed to copy ${filename} to container"
@@ -944,7 +948,7 @@ in
             # Wait for container to be fully ready
             echo "Waiting for ComfyUI container to be ready..."
             for i in {1..30}; do
-              if ${pkgs.docker}/bin/docker exec -u comfyui comfyui-docker test -d /data/models; then
+              if ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} test -d /data/models; then
                 echo "Container is ready!"
                 break
               fi

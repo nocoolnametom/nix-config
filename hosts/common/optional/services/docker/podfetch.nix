@@ -105,7 +105,7 @@ in
     ];
 
     virtualisation.arion.backend = "docker";
-    services.arion-container-cleanup.projects.podfetch = { };
+    services.arion-container-cleanup.projects.podfetch.containers = [ "arion-podfetch" ];
 
     # If podcastsDir sits on a nofail mount, never let downloads land on the
     # disk underneath it instead.
@@ -118,7 +118,8 @@ in
     virtualisation.arion.projects.podfetch.settings.services.podfetch = {
       service = {
         image = "samuel19982/podfetch:latest";
-        container_name = "PodFetch";
+        container_name = "arion-podfetch";
+        labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
         user = "${toString podfetchUid}:${gid}";
         ports = [ "${toString cfg.port}:8000" ];
         environment = {

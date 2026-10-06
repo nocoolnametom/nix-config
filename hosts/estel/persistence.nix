@@ -43,7 +43,7 @@
       "/var/lib/kavita"
       "/var/lib/kavitan"
       "/var/lib/kavitan-library"
-      "/var/lib/navidrome"
+      "/var/lib/navidrome" # moved to feanor 2026-10-06; kept for rollback, TODO: drop
       "/var/lib/nixos"
       "/var/lib/paperless"
       "/var/lib/postgresql"

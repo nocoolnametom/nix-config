@@ -85,6 +85,8 @@ in
       # Small app state that lives only on this host:
       "/var/lib/autocaliweb/config" # app.db (users, shelves, progress), acw.db
       "/var/lib/redis-tubearchivist" # TubeArchivist's app settings (dump.rdb)
+      # Navidrome's own nightly database backups.
+      "/var/lib/navidrome/backups"
       # Audiobookshelf's own scheduled backups (database + metadata).
       "/var/lib/audiobookshelf/metadata/backups"
       # Kavita's own nightly backups: database, covers, bookmarks, themes,

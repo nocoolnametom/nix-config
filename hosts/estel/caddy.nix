@@ -102,13 +102,12 @@ let
       service = "nas";
       domain = "homeDomain";
     }
-    # Disabled 2026-03-04: Navidrome build failure
-    # {
-    #   host = "estel";
-    #   service = "navidrome";
-    #   domain = "homeDomain";
-    #   proxy = "authentik";
-    # }
+    {
+      host = "feanor"; # back 2026-10-06, moved from estel next to the music
+      service = "navidrome";
+      domain = "homeDomain";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel
+    }
     {
       host = "estel";
       service = "paperless";
@@ -248,6 +247,7 @@ let
     {
       host = "feanor";
       service = "tubearchivist";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (forward-auth login)
       domain = "domain";
     }
     {
@@ -389,11 +389,27 @@ in
   # Most services are auto-generated from simpleServices list above
   # Complex configurations (websockets, basic auth, custom certs) are defined manually here
   services.caddy.virtualHosts = generatedHosts // {
-    # Special: Bare domain redirect
+    # Special: Bare domain redirect to Kanidm (its apps page after login)
     "${configVars.homeDomain}" = {
       useACMEHost = configVars.homeDomain;
       extraConfig = ''
-        redir https://${configVars.networking.subdomains.authentik}.{host}{uri}
+        redir https://${configVars.networking.subdomains.kanidm}.{host}{uri}
+      '';
+    };
+
+    # Special: Komodo (container manager on feanor) for LAN clients only. It
+    # needs HTTPS for its Kanidm login, but is root-equivalent on feanor, so
+    # anything not from the LAN gets 403. LAN clients reach this name through
+    # the router's NAT loopback (seen here as 192.168.0.1); outside visitors
+    # keep their own addresses, and bombadil's tunnel uses 10.100.0.0/24.
+    # Caddy listens on IPv6 sockets, so LAN peers can also appear as
+    # IPv4-mapped addresses (::ffff:192.168.0.1); both forms are allowed.
+    "${configVars.networking.subdomains.komodo}.${configVars.homeDomain}" = {
+      useACMEHost = "wild-${configVars.homeDomain}";
+      extraConfig = ''
+        @outside not remote_ip 192.168.0.0/16 ::ffff:192.168.0.0/112
+        respond @outside "LAN only" 403
+        reverse_proxy ${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.komodo}
       '';
     };
 

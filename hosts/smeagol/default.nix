@@ -42,6 +42,7 @@ in
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     "hosts/common/optional/services/comfyui/default.nix"
     "hosts/common/optional/services/docker.nix"
+    "hosts/common/optional/services/komodo-periphery.nix" # containers visible in Komodo (feanor)
     "hosts/common/optional/services/docker/invokeai.nix"
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/oauth2-proxy.nix"

@@ -19,6 +19,8 @@
 
   # Beszel hub Docker container (using upstream image name)
   virtualisation.oci-containers.containers.homelab-beszel = {
+    # Shown in Komodo; changes made there are lost on the next rebuild.
+    labels."org.nix-config.managed-by" = "nixos oci-containers: change it in nix-config, not here";
     image = "henrygd/beszel:latest";
     autoStart = true;
     ports = [

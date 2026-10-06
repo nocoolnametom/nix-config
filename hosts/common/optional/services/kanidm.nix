@@ -65,6 +65,34 @@ let
   # images at most 1024x1024). Drop in a file named after a client to add one;
   # a file without a matching client would provision an incomplete client.
   # Most came from the retired Authentik instance's application icons.
+  # Clients for services that run on this (the Kanidm) host are shown only
+  # while their service is enabled here: disable one in this host's config
+  # and its tile disappears at the next rebuild, re-enable it and it returns.
+  # Clients for services on other hosts are always shown.
+  # The arion-based apps have no enable option; their project existing is it.
+  arionProjects = config.virtualisation.arion.projects or { };
+  localServiceEnabled = {
+    audiobookshelf = config.services.audiobookshelf.enable;
+    autocaliweb = arionProjects ? autocaliweb;
+    immich = config.services.immich.enable;
+    jellyfin = config.services.jellyfin.enable;
+    kavita = config.services.kavita.enable;
+    kavitan = config.services.kavitan.enable or false;
+    navidrome = config.services.navidrome.enable;
+    pinchflat = config.services.pinchflat.enable or false; # would run here if revived
+    podfetch = arionProjects ? podfetch;
+    tubearchivist = arionProjects ? tubearchivist;
+    komodo = arionProjects ? komodo;
+  };
+
+  # Disabled clients stay in Kanidm with no scope map, so nobody may use them
+  # and they are off every apps page; kanidm-inactive-clients (below) removes
+  # the scope maps provisioning leaves behind. (Not `present = false`:
+  # deleting a client makes kanidm-provision record a placeholder uuid in
+  # ext_idm_provisioned_entities, Kanidm rejects it, and kanidm.service fails
+  # to start - seen with 1.11.2 on 2026-10-06.)
+  inactiveClients = lib.attrNames (lib.filterAttrs (_: enabled: !enabled) localServiceEnabled);
+
   clientIcons = lib.mapAttrs' (
     file: _:
     lib.nameValuePair (builtins.head (builtins.match "(.*)\\.[^.]+" file)) (./kanidm-icons + "/${file}")
@@ -165,10 +193,12 @@ in
 
             # OAuth2 client definitions for all 15 services
             systems.oauth2 = {
+              # Behind oauth2-proxy on estel; Navidrome itself runs on feanor.
               navidrome = {
                 displayName = "Navidrome Music Server";
-                originUrl = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
+                originUrl = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}/oauth2/callback";
                 originLanding = "https://${configVars.networking.subdomains.navidrome}.${configVars.homeDomain}";
+                preferShortUsername = true;
                 basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/navidrome/client-secret".path;
                 scopeMaps = makeScopeMaps "navidrome";
               };
@@ -247,7 +277,7 @@ in
               };
 
               nzbhydra = {
-                displayName = "NZBHydra2";
+                displayName = "NZBHydra2 NZB Search";
                 # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
                 originUrl = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.domain}/oauth2/callback";
                 originLanding = "https://${configVars.networking.subdomains.nzbhydra}.${configVars.domain}";
@@ -256,7 +286,7 @@ in
               };
 
               pinchflat = {
-                displayName = "Pinchflat";
+                displayName = "Pinchflat YouTube Download";
                 originUrl = "https://${configVars.networking.subdomains.pinchflat}.${configVars.homeDomain}";
                 originLanding = "https://${configVars.networking.subdomains.pinchflat}.${configVars.homeDomain}";
                 basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/pinchflat/client-secret".path;
@@ -264,7 +294,7 @@ in
               };
 
               radarr = {
-                displayName = "Radarr";
+                displayName = "Radarr Movies";
                 # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
                 originUrl = "https://${configVars.networking.subdomains.radarr}.${configVars.domain}/oauth2/callback";
                 originLanding = "https://${configVars.networking.subdomains.radarr}.${configVars.domain}";
@@ -273,7 +303,7 @@ in
               };
 
               sonarr = {
-                displayName = "Sonarr";
+                displayName = "Sonarr TV";
                 # Behind oauth2-proxy on estel; served on `domain`, exact callback required.
                 originUrl = "https://${configVars.networking.subdomains.sonarr}.${configVars.domain}/oauth2/callback";
                 originLanding = "https://${configVars.networking.subdomains.sonarr}.${configVars.domain}";
@@ -335,7 +365,7 @@ in
                   url = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
                 in
                 {
-                  displayName = "HedgeDoc";
+                  displayName = "HedgeDoc Notes Writer";
                   originUrl = "${url}/auth/oauth2/callback";
                   originLanding = url;
                   preferShortUsername = true;
@@ -410,10 +440,14 @@ in
                 in
                 {
                   displayName = "Immich Photos";
+                  # Kanidm requires every redirect to be a secure origin once one is
+                  # https, so http LAN addresses (feanor:<port>) cannot be added
+                  # here; app schemes ("opaque origins") can.
                   originUrl = [
                     "${immichUrl}/auth/login"
                     "${immichUrl}/user-settings"
                     "${immichUrl}/api/oauth/mobile-redirect"
+                    "app.immich:///oauth-callback"
                   ];
                   originLanding = immichUrl;
                   basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/immich/client-secret".path;
@@ -430,7 +464,7 @@ in
                   url = "https://${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}";
                 in
                 {
-                  displayName = "Autocaliweb Library";
+                  displayName = "Calibre Web eBooks";
                   originUrl = "${url}/login/generic/authorized";
                   originLanding = url;
                   basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/autocaliweb/client-secret".path;
@@ -458,7 +492,7 @@ in
               # Kavita's OIDC callback is the fixed path /signin-oidc, and Kanidm
               # matches redirect URIs exactly.
               kavita = {
-                displayName = "Kavita Reader";
+                displayName = "Kavita Comics";
                 originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}/signin-oidc";
                 originLanding = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
                 basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavita/client-secret".path;
@@ -467,7 +501,7 @@ in
 
               # Served on the personal domain (see estel's caddy.nix), not homeDomain.
               kavitan = {
-                displayName = "Kavita N";
+                displayName = "Kavita Private Comics";
                 originUrl = "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}/signin-oidc";
                 originLanding = "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}";
                 basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavitan/client-secret".path;
@@ -488,9 +522,7 @@ in
                 };
 
               # Audiobookshelf keeps its OIDC settings in its own database (set in
-              # its admin UI), so this client has no basicSecretFile: Kanidm
-              # generates the secret, read it with
-              # `kanidm system oauth2 show-basic-secret audiobookshelf`.
+              # its admin UI); the secret there must equal this sops one.
               # The mobile app comes back through the server's mobile-redirect.
               audiobookshelf =
                 let
@@ -498,12 +530,17 @@ in
                 in
                 {
                   displayName = "Audiobookshelf";
+                  # App schemes are "opaque origins" to Kanidm and allowed beside
+                  # https; plain http (LAN) ones are not (see Immich).
                   originUrl = [
                     "${url}/auth/openid/callback"
                     "${url}/auth/openid/mobile-redirect"
+                    "audiobookshelf://oauth"
+                    "lissen://oauth" # Lissen, a third-party Android client
                   ];
                   originLanding = url;
                   preferShortUsername = true;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/audiobookshelf/client-secret".path;
                   scopeMaps = makeScopeMaps "audiobookshelf";
                 };
 
@@ -514,6 +551,95 @@ in
                 basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/nas/client-secret".path;
                 scopeMaps = makeScopeMaps "nas";
               };
+
+              # Behind oauth2-proxy on estel, which passes the short username on
+              # for TubeArchivist's forward-auth login.
+              tubearchivist =
+                let
+                  url = "https://${configVars.networking.subdomains.tubearchivist}.${configVars.domain}";
+                in
+                {
+                  displayName = "TubeArchivist";
+                  originUrl = "${url}/oauth2/callback";
+                  originLanding = url;
+                  preferShortUsername = true;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oauth2/tubearchivist/client-secret".path;
+                  scopeMaps = makeScopeMaps "tubearchivist";
+                };
+
+              # Beszel (PocketBase) keeps its OAuth2 provider settings in its own
+              # database; the client secret is the sops one below.
+              beszel =
+                let
+                  url = "https://${configVars.networking.subdomains.beszel}.${configVars.homeDomain}";
+                in
+                {
+                  displayName = "Beszel Dashboards";
+                  originUrl = "${url}/api/oauth2-redirect";
+                  originLanding = url;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/beszel/client-secret".path;
+                  scopeMaps = makeScopeMaps "beszel";
+                };
+
+              # Link-only tiles: Kanidm lists only OAuth2 clients, so these exist
+              # to put a launcher on the apps page. Nothing logs in through them
+              # (no basicSecretFile; Kanidm generates an unused secret).
+              stash =
+                let
+                  url = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
+                in
+                {
+                  displayName = "Stash";
+                  originUrl = url;
+                  originLanding = url;
+                  scopeMaps = makeScopeMaps "stash";
+                };
+              archerstash =
+                let
+                  url = "https://${configVars.networking.subdomains.archerstash}.${configVars.domain}";
+                in
+                {
+                  displayName = "Archer Stash";
+                  originUrl = url;
+                  originLanding = url;
+                  scopeMaps = makeScopeMaps "archerstash";
+                };
+
+              # Container manager on feanor, LAN-only behind estel's Caddy.
+              komodo =
+                let
+                  url = "https://${configVars.networking.subdomains.komodo}.${configVars.homeDomain}";
+                in
+                {
+                  displayName = "Komodo Containers";
+                  originUrl = "${url}/auth/oidc/callback";
+                  originLanding = url;
+                  preferShortUsername = true;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/komodo/client-secret".path;
+                  scopeMaps = makeScopeMaps "komodo";
+                };
+
+              # Shown to everyone now; the redirect is the one the Jellyfin SSO
+              # plugin uses for a provider named "kanidm", ready for when Jellyfin
+              # itself is wired up (its secret is the sops one below).
+              jellyfin =
+                let
+                  url = "https://${configVars.networking.subdomains.jellyfin}.${configVars.homeDomain}";
+                in
+                {
+                  displayName = "Jellyfin";
+                  # The SSO plugin builds the callback from the provider's name,
+                  # and Kanidm matches it case-sensitively; the provider in
+                  # Jellyfin is named "Kanidm".
+                  originUrl = [
+                    "${url}/sso/OID/redirect/Kanidm"
+                    "${url}/sso/OID/redirect/kanidm"
+                  ];
+                  originLanding = url;
+                  preferShortUsername = true;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/jellyfin/client-secret".path;
+                  scopeMaps = makeScopeMaps "jellyfin";
+                };
             };
           };
         };
@@ -661,16 +787,173 @@ in
         sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
           owner = "kanidm";
         };
+        sops.secrets."homelab/kanidm/oidc/beszel/client-secret" = {
+          owner = "kanidm";
+        };
+        sops.secrets."homelab/kanidm/oidc/komodo/client-secret" = {
+          owner = "kanidm";
+        };
+        sops.secrets."homelab/kanidm/oidc/audiobookshelf/client-secret" = {
+          owner = "kanidm";
+        };
+        sops.secrets."homelab/kanidm/oidc/jellyfin/client-secret" = {
+          owner = "kanidm";
+        };
+        sops.secrets."homelab/kanidm/oauth2/tubearchivist/client-secret" = {
+          owner = "kanidm";
+        };
 
         # Note: User passwords must be set via Kanidm web UI at https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}
         # or via kanidm CLI after initial provisioning. Declarative passwordFile is not supported.
       }
 
       {
-        services.kanidm.provision.systems.oauth2 = lib.mapAttrs (_: image: {
-          imageFile = image;
-        }) clientIcons;
+        services.kanidm.provision.systems.oauth2 =
+          lib.mapAttrs (_: image: { imageFile = image; }) clientIcons
+          // lib.genAttrs inactiveClients (name: {
+            imageFile = clientIcons.${name} or null;
+            # No scope map: nobody may use it, so it is off every apps page.
+            scopeMaps = lib.mkForce { };
+          });
       }
+
+      # Apps-page order. Kanidm lists a user's apps in creation order (its
+      # list_applinks does no sorting) and has no categories, so the order is
+      # imposed by creation: configVars.sso.appCategories gives the category
+      # order, apps sort by display name within a category, uncategorised
+      # clients go last. When that order changes (or on first run), every
+      # client is deleted and re-created bare in order, then Kanidm restarts
+      # so provisioning fills in the rest. Costs of a re-order: a few seconds
+      # of SSO downtime, and every app's grants/refresh tokens are dropped, so
+      # users pass through Kanidm (and may see a consent page) once per app.
+      # Secrets survive because every client in use has a basicSecretFile;
+      # the link-only Stash tiles just get new, unused ones.
+      # (Deleting through provisioning, `present = false`, crashes it; see
+      # inactiveClients above.)
+      (
+        let
+          clients = config.services.kanidm.provision.systems.oauth2;
+          lower = lib.toLower;
+          byDisplayName =
+            names: lib.sort (a: b: lower clients.${a}.displayName < lower clients.${b}.displayName) names;
+          categorised = lib.concatMap (cat: byDisplayName (lib.filter (n: clients ? ${n}) cat.apps)) (
+            configVars.sso.appCategories or [ ]
+          );
+          ordered = categorised ++ byDisplayName (lib.subtractLists categorised (lib.attrNames clients));
+          # One line per client: name, kind, display name, landing URL.
+          plan = lib.concatMapStringsSep "\n" (
+            n:
+            lib.concatStringsSep "\t" [
+              n
+              (if clients.${n}.public then "public" else "basic")
+              clients.${n}.displayName
+              clients.${n}.originLanding
+            ]
+          ) ordered;
+          planFile = pkgs.writeText "kanidm-app-order" (plan + "\n");
+          stateFile = "/var/lib/kanidm/.app-order"; # in the persisted state dir
+        in
+        lib.mkIf (configVars.sso ? appCategories) {
+          systemd.services.kanidm-app-order = {
+            description = "Re-create Kanidm OAuth2 clients in apps-page order when it changes";
+            after = [ "kanidm.service" ];
+            wants = [ "kanidm.service" ];
+            wantedBy = [
+              "kanidm.service"
+              "multi-user.target"
+            ];
+            restartTriggers = [ planFile ];
+            path = [
+              config.services.kanidm.package
+              pkgs.coreutils
+              pkgs.diffutils
+              config.systemd.package
+            ];
+            serviceConfig = {
+              Type = "oneshot";
+              RemainAfterExit = true;
+              RuntimeDirectory = "kanidm-app-order";
+              RuntimeDirectoryMode = "0700";
+            };
+            script = ''
+              if cmp -s ${planFile} ${stateFile}; then
+                echo "Apps-page order unchanged."
+                exit 0
+              fi
+              export HOME="$RUNTIME_DIRECTORY"
+              KANIDM_PASSWORD=$(< ${config.services.kanidm.provision.idmAdminPasswordFile})
+              export KANIDM_PASSWORD
+              kanidm login -D idm_admin >/dev/null
+
+              # If anything below fails, provisioning (run by a Kanidm restart)
+              # re-creates whatever is missing, just not in order; the order file
+              # is not written, so the next start tries again.
+              trap 'echo "re-ordering failed; restarting Kanidm to restore clients" >&2; systemctl --no-block restart kanidm.service' ERR
+
+              echo "Apps-page order changed; re-creating clients in order."
+              while IFS=$'\t' read -r name _ _ _; do
+                kanidm system oauth2 delete "$name" -D idm_admin >/dev/null 2>&1 || true
+              done < ${planFile}
+              while IFS=$'\t' read -r name kind display landing; do
+                if [ "$kind" = public ]; then
+                  kanidm system oauth2 create-public "$name" "$display" "$landing" -D idm_admin >/dev/null
+                else
+                  kanidm system oauth2 create "$name" "$display" "$landing" -D idm_admin >/dev/null
+                fi
+                echo "  $name"
+              done < ${planFile}
+              kanidm logout -D idm_admin >/dev/null || true
+
+              cp ${planFile} ${stateFile}
+              # Provisioning runs as part of kanidm.service's start.
+              systemctl --no-block restart kanidm.service
+            '';
+          };
+        }
+      )
+
+      # Provisioning adds declared scope maps but never removes others, so a
+      # client that was just disabled would keep its old ones. Strip them
+      # after each start (as idm_admin, like provisioning itself).
+      (lib.mkIf (inactiveClients != [ ]) {
+        systemd.services.kanidm-inactive-clients = {
+          description = "Remove scope maps from Kanidm clients of disabled services";
+          after = [ "kanidm.service" ];
+          requires = [ "kanidm.service" ];
+          wantedBy = [
+            "kanidm.service"
+            "multi-user.target"
+          ];
+          restartTriggers = inactiveClients;
+          path = [
+            config.services.kanidm.package
+            pkgs.gawk
+          ];
+          serviceConfig = {
+            Type = "oneshot";
+            RemainAfterExit = true;
+            User = "kanidm";
+            Group = "kanidm";
+            RuntimeDirectory = "kanidm-inactive-clients";
+            RuntimeDirectoryMode = "0700";
+          };
+          script = ''
+            export HOME="$RUNTIME_DIRECTORY"
+            KANIDM_PASSWORD=$(< ${config.services.kanidm.provision.idmAdminPasswordFile})
+            export KANIDM_PASSWORD
+            kanidm login -D idm_admin >/dev/null
+            for client in ${lib.escapeShellArgs inactiveClients}; do
+              # "oauth2_rs_scope_map: <group>@<domain>: {...}"
+              for group in $(kanidm system oauth2 get "$client" -D idm_admin |
+                awk -F': ' '/^oauth2_rs_scope_map:/ { sub(/@.*/, "", $2); print $2 }'); do
+                echo "$client: removing scope map for $group"
+                kanidm system oauth2 delete-scope-map "$client" "$group" -D idm_admin
+              done
+            done
+            kanidm logout -D idm_admin >/dev/null || true
+          '';
+        };
+      })
 
       # Domain display name and login-page logo. kanidm-provision cannot set
       # these, and only the system `admin` account may (idm_admin cannot even

@@ -41,6 +41,7 @@
     "hosts/common/optional/services/homelab-beszel-agent.nix"
     # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
     "hosts/common/optional/services/docker.nix"
+    "hosts/common/optional/services/komodo-periphery.nix" # containers visible in Komodo (feanor)
     "hosts/common/optional/services/hedgedoc.nix"
     "hosts/common/optional/services/immich-public-proxy.nix"
     # Immich itself runs natively on feanor (hosts/feanor/default.nix); the
@@ -51,7 +52,7 @@
     # Kavita and Kavitan run on feanor since 2026-10-05, next to their libraries.
     "hosts/common/optional/services/mealie.nix"
     # Disabled 2026-03-04: Navidrome build failure (pkg-config taglib issue), TODO: re-enable when fixed
-    # "hosts/common/optional/services/navidrome.nix"
+    # Navidrome runs on feanor since 2026-10-06 (its oauth2-proxy stays here).
     "hosts/common/optional/services/oauth2-proxy.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
@@ -79,8 +80,7 @@
     "karakeep-web"
     "mealie"
     # Disabled 2026-03-04: Navidrome build failure
-    # "navidrome"
-    # "oauth2-proxy-navidrome"
+    "oauth2-proxy-navidrome"
     "oauth2-proxy-archerstashvr"
     "oauth2-proxy-comfyui"
     "oauth2-proxy-comfyuimini"
@@ -92,6 +92,7 @@
     "oauth2-proxy-radarr"
     "oauth2-proxy-sonarr"
     "oauth2-proxy-stashvr"
+    "oauth2-proxy-tubearchivist"
     "oauth2-proxy-whisparr"
     "oauth2-proxy-whisparr-eros"
     "oauth2-proxy-seerr"
@@ -108,6 +109,12 @@
   ];
 
   ## Imports overrides
+  # The Beszel hub runs under Podman here; Docker has nothing. Komodo's agent
+  # watches Podman through its Docker-compatible socket.
+  services.komodoAgent.dockerHost = "unix:///run/podman/podman.sock";
+  # The agent's module defaults Docker off when it watches another engine;
+  # docker.nix wants it on (also at default priority), so decide it here.
+  virtualisation.docker.enable = true;
   # Native OIDC logins through Kanidm (Authentik retires with cirdan).
   services.ssoProvider = {
     budget = "kanidm-oidc";
@@ -131,29 +138,6 @@
   users.users.karakeep.isSystemUser = true;
   users.users.karakeep.group = "karakeep";
   users.users.karakeep.home = "/var/lib/karakeep";
-
-  # Navidrome Music Server - Disabled 2026-03-04: Build failure
-  # Configuration is conditional based on SSO provider (authentik vs kanidm-oauth2)
-  # services.navidrome.settings = {
-  #   MusicFolder = "/mnt/cirdan/smb/Music";
-  #   BaseUrl = "";
-  #   # OAuth2-proxy runs on estel (same host), Authentik runs on cirdan
-  #   ReverseProxyWhitelist =
-  #     if config.services.ssoProvider.navidrome or "authentik" == "kanidm-oauth2" then
-  #       "${configVars.networking.subnets.estel.ip}/32"
-  #     else
-  #       "${configVars.networking.subnets.cirdan.ip}/32";
-  #   # Header name differs between OAuth2-proxy and Authentik
-  #   ReverseProxyUserHeader =
-  #     if config.services.ssoProvider.navidrome or "authentik" == "kanidm-oauth2" then
-  #       "X-Forwarded-User"
-  #     else
-  #       "X-Authentik-Username";
-  # };
-  # services.navidrome.environmentFile = pkgs.writeText "stack.env" ''
-  #   ND_AUTH_PROXY_AUTO_CREATE_USERS=true
-  #   ND_AUTH_PROXY_DEFAULT_ROLE=USER
-  # '';
 
   # Homelab Beszel monitoring agent - override hubUrl to use local hub
   # Homelab Beszel monitoring - filesystems and GPU auto-detected
@@ -231,7 +215,9 @@
     "nzbhydra"
     "radarr"
     "sonarr"
+    "navidrome"
     "stashvr"
+    "tubearchivist"
     "whisparr"
     "whisparr-eros"
   ];

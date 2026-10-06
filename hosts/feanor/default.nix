@@ -86,10 +86,12 @@ in
     "hosts/common/optional/services/docker/podfetch.nix"
     "hosts/common/optional/services/docker/autocaliweb.nix"
     "hosts/common/optional/services/docker/tubearchivist.nix"
+    "hosts/common/optional/services/docker/komodo.nix"
     "hosts/common/optional/services/audiobookshelf.nix"
     "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/kavita.nix"
+    "hosts/common/optional/services/navidrome.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
@@ -259,6 +261,12 @@ in
   # Migrated from cirdan 2026-10-03 (stack stopped; es/, cache/ and the Redis
   # dump.rdb copied into /var/lib); never run a second copy against this index.
   services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";
+  # Log in through Kanidm (oauth2-proxy on estel passes the username).
+  services.tubearchivist.forwardAuth.enable = true;
+
+  # Navidrome moved from estel 2026-10-06 with its database (users, playlists,
+  # play history); it stores track paths relative to the library root.
+  services.navidrome.settings.MusicFolder = "${dataRoot}/music";
 
   # Audiobookshelf moved from estel 2026-10-05 (state copied with it stopped).
   # Its database stored the libraries' estel SMB paths; those were rewritten
@@ -293,12 +301,11 @@ in
   # every stack as a plain compose.yaml on disk - which is what makes the
   # eventual move to arion a transliteration rather than a database export.
   #
-  # nixpkgs ships a module for the periphery agent only; Komodo Core itself
-  # runs as a container. TODO: stand Core up once nix-secrets has the komodo
-  # subdomain/port and the Kanidm OAuth2 client is provisioned.
-  #
-  # Even with OIDC in front of it, this stays off the public Internet - a
-  # container manager is root-equivalent on the host. LAN only (no Caddy route).
+  # Core + MongoDB run in arion, Periphery natively (docker/komodo.nix, set
+  # up 2026-10-06). Even with OIDC in front of it, this stays off the public
+  # Internet - a container manager is root-equivalent on the host - so estel's
+  # Caddy serves it over HTTPS to LAN clients only.
+  services.komodo.stacksDir = "${dataRoot}/stacks"; # the @stacks subvolume
 
   # The shared docker.nix publishes an unauthenticated, root-equivalent
   # Docker API on 0.0.0.0:2375 by default. Tolerable elsewhere; not on the

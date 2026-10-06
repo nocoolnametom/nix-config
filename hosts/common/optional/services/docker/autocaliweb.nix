@@ -121,7 +121,7 @@ in
     ) "d ${cfg.libraryDir} 2775 ${cfg.user} ${cfg.group} -";
 
     virtualisation.arion.backend = "docker";
-    services.arion-container-cleanup.projects.autocaliweb = { };
+    services.arion-container-cleanup.projects.autocaliweb.containers = [ "arion-autocaliweb" ];
 
     # If the library sits on a nofail mount, never let the container write to
     # the disk underneath it instead.
@@ -133,7 +133,8 @@ in
 
     virtualisation.arion.projects.autocaliweb.settings.services.autocaliweb.service = {
       image = "gelbphoenix/autocaliweb:latest";
-      container_name = "autocaliweb";
+      container_name = "arion-autocaliweb";
+      labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
       ports = [ "${toString cfg.port}:8083" ];
       environment = {
         TZ = config.time.timeZone;
