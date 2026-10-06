@@ -220,6 +220,19 @@ let
       service = "openwebui";
       domain = "domain";
     }
+    # Hermes Agent API server (Conduit). No SSO proxy: Conduit authenticates with
+    # Hermes's own bearer key, which a login redirect would break.
+    {
+      host = "barliman";
+      service = "hermes";
+      domain = "domain";
+    }
+    # Hermes Agent web dashboard; Hermes does the Kanidm OIDC login itself
+    {
+      host = "barliman";
+      service = "hermeswebui";
+      domain = "domain";
+    }
     # INACTIVE: Pinchflat is not running (disabled on durin); route kept for reference.
     # {
     #   host = "durin";

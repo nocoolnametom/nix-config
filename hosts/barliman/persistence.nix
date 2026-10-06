@@ -29,6 +29,7 @@
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
+      "/var/lib/hermes" # Hermes Agent: memory, skills, sessions, cron jobs (hermes-agent.nix)
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];

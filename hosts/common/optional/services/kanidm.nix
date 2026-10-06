@@ -521,6 +521,20 @@ in
                   scopeMaps = makeScopeMaps "openwebui";
                 };
 
+              # Hermes Agent's web dashboard (hermes-agent.nix on barliman). Hermes
+              # does PKCE and also sends this secret. Served on `domain`.
+              hermeswebui =
+                let
+                  url = "https://${configVars.networking.subdomains.hermeswebui}.${configVars.domain}";
+                in
+                {
+                  displayName = "Hermes Agent";
+                  originUrl = "${url}/auth/callback";
+                  originLanding = url;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret".path;
+                  scopeMaps = makeScopeMaps "hermeswebui";
+                };
+
               # Audiobookshelf keeps its OIDC settings in its own database (set in
               # its admin UI); the secret there must equal this sops one.
               # The mobile app comes back through the server's mobile-redirect.
@@ -782,6 +796,9 @@ in
           owner = "kanidm";
         };
         sops.secrets."homelab/kanidm/oidc/openwebui/client-secret" = {
+          owner = "kanidm";
+        };
+        sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret" = {
           owner = "kanidm";
         };
         sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
