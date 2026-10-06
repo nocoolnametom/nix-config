@@ -48,7 +48,6 @@ in
     "hosts/common/optional/services/opensearch.nix"
     "hosts/common/optional/services/mailserver.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
-    "hosts/common/optional/services/tailscale.nix"
     "hosts/common/optional/services/wireguard-bombadil-estel.nix"
     "hosts/common/optional/services/uptime-kuma.nix"
     "hosts/common/optional/linode.nix"

@@ -7,7 +7,8 @@
 
 # WireGuard tunnel between bombadil (VPS) and estel (homelab).
 # Provides a dedicated, always-on VPN link for SNI-routed service traffic.
-# Separate from Tailscale mesh networking.
+# The only tunnel between the VPS and the homelab (Tailscale was removed
+# 2026-10-06; it had never been logged in on any of the servers).
 
 let
   hostName = config.networking.hostName;

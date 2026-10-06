@@ -11,7 +11,7 @@
 # Security note: smolcoder's web UI (--web) binds to 127.0.0.1 only and is
 # protected by a random URL token regenerated at every start.  Do NOT expose
 # it to the public internet even behind an OIDC proxy — edit mode provides
-# arbitrary shell command execution.  Access it via SSH tunnel or Tailscale.
+# arbitrary shell command execution.  Access it via an SSH tunnel.
 {
   pkgs,
   lib,

@@ -93,7 +93,6 @@ in
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
-    "hosts/common/optional/services/tailscale.nix"
     "hosts/common/optional/foreign-binaries.nix"
 
     #################### Users to Create ####################
@@ -299,7 +298,7 @@ in
   # subdomain/port and the Kanidm OAuth2 client is provisioned.
   #
   # Even with OIDC in front of it, this stays off the public Internet - a
-  # container manager is root-equivalent on the host. Tailscale only.
+  # container manager is root-equivalent on the host. LAN only (no Caddy route).
 
   # The shared docker.nix publishes an unauthenticated, root-equivalent
   # Docker API on 0.0.0.0:2375 by default. Tolerable elsewhere; not on the

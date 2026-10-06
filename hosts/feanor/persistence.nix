@@ -61,7 +61,6 @@
       # Stamp files for Persistent=true timers (cirdan-sync, borg, pg dump,
       # btrfs scrub, docker prune); without them missed runs are never caught up.
       "/var/lib/systemd/timers"
-      "/var/lib/tailscale"
       "/var/lib/redis-tubearchivist" # TubeArchivist app settings + task queue
       "/var/lib/tubearchivist" # elasticsearch index + cache (media is on the pool)
 
