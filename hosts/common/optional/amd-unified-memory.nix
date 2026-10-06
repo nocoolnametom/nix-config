@@ -36,7 +36,26 @@ in
     '';
   };
 
+  options.hardware.amdUnifiedMemory.systemMemoryGiB = lib.mkOption {
+    type = lib.types.nullOr lib.types.ints.positive;
+    default = null;
+    example = 62;
+    description = ''
+      RAM the OS sees after the BIOS carve-out (the "total" from `free -g`).
+      When set alongside gpuMemoryGiB, Ollama is told about the GTT limit.
+    '';
+  };
+
   config = lib.mkIf (cfg.gpuMemoryGiB != null) {
+    # Ollama sizes an integrated GPU from *free system RAM*, not from the GTT
+    # limit, so it believes the GPU can take up to systemMemoryGiB. Reserving
+    # the difference as "overhead" makes it plan within gpuMemoryGiB. Otherwise
+    # a model between the two sizes would be placed entirely on the GPU and fail
+    # to load, when it should have been split between GPU and CPU.
+    services.ollama.environmentVariables.OLLAMA_GPU_OVERHEAD = lib.mkIf (
+      cfg.systemMemoryGiB != null && config.services.ollama.enable
+    ) (toString ((cfg.systemMemoryGiB - cfg.gpuMemoryGiB) * 1024 * 1024 * 1024));
+
     boot.kernelParams = [
       "ttm.pages_limit=${toString (cfg.gpuMemoryGiB * pagesPerGiB)}"
       # Let the page pool cache up to the same amount, so freed GPU memory is

@@ -50,6 +50,7 @@
     "hosts/common/optional/bluetooth.nix"
     "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/llama-cpp.nix" # llama.cpp CLI tools (Vulkan)
+    "hosts/common/optional/llmfit.nix" # LLM fit estimates, told the real GPU limit
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
@@ -86,6 +87,14 @@
   # setting the BIOS iGPU memory (UMA frame buffer) to its minimum - see
   # hosts/common/optional/amd-unified-memory.nix for the reasoning.
   hardware.amdUnifiedMemory.gpuMemoryGiB = 52;
+  hardware.amdUnifiedMemory.systemMemoryGiB = 62; # 64 GB minus the 0.5 GB BIOS carve-out
+
+  # Two slots per loaded model, so Open WebUI's background requests (titles,
+  # tags, follow-up suggestions) run in their own slot. They don't queue behind
+  # the chat or overwrite its cached history, which would force the next prompt
+  # to re-read the whole conversation. Costs one extra KV cache per model
+  # (~2.7 GiB for a 24B model at 32k context).
+  services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
 
   # Bluetooth - Framework Desktop extras (base settings from bluetooth.nix)
   hardware.bluetooth.settings.General.Experimental = true;
