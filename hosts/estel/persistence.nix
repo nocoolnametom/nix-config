@@ -26,7 +26,7 @@
       "/etc/NetworkManager/system-connections"
       "/var/db/sudo/lectured"
       "/var/lib/acme"
-      "/var/lib/audiobookshelf"
+      "/var/lib/audiobookshelf" # moved to feanor 2026-10-05; kept for rollback, TODO: drop
       "/var/lib/beszel" # Beszel hub data (user accounts, system registrations, metrics)
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/bluetooth"
@@ -37,6 +37,9 @@
       "/var/lib/iwd"
       "/var/lib/kanidm"
       "/var/lib/karakeep"
+      # Kavita/Kavitan moved to feanor 2026-10-05. Kept so the old state stays
+      # mounted for a rollback; TODO: drop these and the /persist copies once
+      # feanor has run cleanly for a while.
       "/var/lib/kavita"
       "/var/lib/kavitan"
       "/var/lib/kavitan-library"

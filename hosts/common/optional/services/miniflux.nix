@@ -30,7 +30,8 @@ in
       # OAuth2/OIDC settings
       OAUTH2_PROVIDER = "oidc";
       OAUTH2_USER_CREATION = "1"; # Auto-create users from OIDC
-      OAUTH2_REDIRECT_URL = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}/oauth2/callback";
+      # Miniflux's callback route is /oauth2/{provider}/callback.
+      OAUTH2_REDIRECT_URL = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}/oauth2/oidc/callback";
 
       # Cleanup and performance settings
       CLEANUP_FREQUENCY = "48"; # Cleanup every 48 hours
@@ -77,6 +78,9 @@ in
         OAUTH2_CLIENT_ID=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-id"}
         OAUTH2_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/miniflux/authentik/client-secret"}
       '';
+
+  # Services read this file only at start, so a changed secret must restart them.
+  sops.templates."miniflux-secrets.env".restartUnits = [ "miniflux.service" ];
 
   # Pass secrets to Miniflux via environment file
   systemd.services.miniflux.serviceConfig.EnvironmentFile = [

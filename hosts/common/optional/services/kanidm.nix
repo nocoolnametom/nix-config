@@ -67,11 +67,58 @@ in
   options.services.kanidmSso.enable = lib.mkEnableOption "Kanidm SSO server";
 
   config = lib.mkIf config.services.kanidmSso.enable {
+    # Credential reset links (Kanidm 1.11's web UI cannot create these):
+    #
+    #   kanidm-reset <username> [lifetime-seconds]     # default 86400 = 24h
+    #
+    # Run it on the Kanidm host (re-runs itself under sudo to read the
+    # idm_admin password). It prints a one-time https://<sso>/ui/reset?token=
+    # link; whoever opens it sets their own password / TOTP / passkey.
+    #
+    # Password-only vs MFA is an account policy stored in Kanidm's database,
+    # not here. As set up 2026-10-05: idm_all_persons = "any" (password-only
+    # allowed, which forces a 15-character minimum) and adults = "mfa". The
+    # strictest policy across a person's groups wins, so only people outside
+    # `adults` may skip the second factor. To inspect or change it:
+    #   kanidm group get <group> -D idm_admin
+    #   kanidm group account-policy credential-type-minimum <group> any|mfa|passkey -D idm_admin
+    environment.systemPackages = [
+      (pkgs.writeShellApplication {
+        name = "kanidm-reset";
+        text = ''
+          if [ "$#" -lt 1 ] || [ "$#" -gt 2 ]; then
+            echo "usage: kanidm-reset <username> [lifetime-seconds]" >&2
+            exit 64
+          fi
+          if [ "$(id -u)" -ne 0 ]; then
+            exec sudo "$0" "$@"
+          fi
+
+          # Throwaway HOME: the CLI caches its session token under ~/.cache.
+          HOME="$(mktemp -d)"
+          export HOME
+          trap 'rm -rf "$HOME"' EXIT
+          export KANIDM_URL=${lib.escapeShellArg config.services.kanidm.server.settings.origin}
+          KANIDM_PASSWORD="$(cat ${config.sops.secrets."homelab/kanidm/admin-password".path})"
+          export KANIDM_PASSWORD
+
+          kanidm=${config.services.kanidm.package}/bin/kanidm
+          "$kanidm" login -D idm_admin >/dev/null
+          "$kanidm" person credential create-reset-token "$1" --ttl "''${2:-86400}" -D idm_admin
+        '';
+      })
+    ];
+
     # Kanidm SSO Provider with declarative provisioning
     services.kanidm = {
       package = pkgs.kanidmWithSecretProvisioning_1_11;
 
       server.enable = true;
+
+      # `kanidm` CLI on PATH, pointed at this server (for the account-policy
+      # commands noted above; log in first with `kanidm login -D idm_admin`).
+      client.enable = true;
+      client.settings.uri = config.services.kanidm.server.settings.origin;
 
       server.settings = {
         bindaddress = "0.0.0.0:${toString configVars.networking.ports.tcp.kanidm}";
@@ -252,53 +299,93 @@ in
           };
 
           # Native OIDC services (services with built-in OIDC support)
-          actual = {
-            displayName = "Actual Budget";
-            originUrl = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/actual/client-secret".path;
-            scopeMaps = makeScopeMaps "actual";
-          };
+          # Actual matches users by preferred_username against its own user
+          # names, so send the short name. Its openid-client keeps the RS256
+          # default for ID tokens, hence legacy crypto (RS256) for this client.
+          actual =
+            let
+              url = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Actual Budget";
+              originUrl = "${url}/openid/callback";
+              originLanding = url;
+              preferShortUsername = true;
+              enableLegacyCrypto = true;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/actual/client-secret".path;
+              scopeMaps = makeScopeMaps "actual";
+            };
 
-          hedgedoc = {
-            displayName = "HedgeDoc";
-            originUrl = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret".path;
-            scopeMaps = makeScopeMaps "hedgedoc";
-          };
+          # HedgeDoc's generic OAuth2 login keys accounts on preferred_username
+          # and its passport-oauth2 strategy sends no PKCE.
+          hedgedoc =
+            let
+              url = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "HedgeDoc";
+              originUrl = "${url}/auth/oauth2/callback";
+              originLanding = url;
+              preferShortUsername = true;
+              allowInsecureClientDisablePkce = true;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/hedgedoc/client-secret".path;
+              scopeMaps = makeScopeMaps "hedgedoc";
+            };
 
-          mealie = {
-            displayName = "Mealie";
-            originUrl = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/mealie/client-secret".path;
-            scopeMaps = makeScopeMaps "mealie";
-          };
+          # Mealie finishes the OIDC flow on its /login page and matches users
+          # by email.
+          mealie =
+            let
+              url = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Mealie";
+              originUrl = "${url}/login";
+              originLanding = url;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/mealie/client-secret".path;
+              scopeMaps = makeScopeMaps "mealie";
+            };
 
-          miniflux = {
-            displayName = "Miniflux RSS Reader";
-            originUrl = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/miniflux/client-secret".path;
-            scopeMaps = makeScopeMaps "miniflux";
-          };
+          miniflux =
+            let
+              url = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Miniflux RSS Reader";
+              originUrl = "${url}/oauth2/oidc/callback";
+              originLanding = url;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/miniflux/client-secret".path;
+              scopeMaps = makeScopeMaps "miniflux";
+            };
 
-          paperless = {
-            displayName = "Paperless-ngx";
-            originUrl = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/paperless/client-secret".path;
-            scopeMaps = makeScopeMaps "paperless";
-          };
+          # django-allauth's callback path contains the provider_id set in
+          # paperless.nix ("kanidm").
+          paperless =
+            let
+              url = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Paperless-ngx";
+              originUrl = "${url}/accounts/oidc/kanidm/login/callback/";
+              originLanding = url;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/paperless/client-secret".path;
+              scopeMaps = makeScopeMaps "paperless";
+            };
 
-          karakeep = {
-            displayName = "KaraKeep Karaoke";
-            originUrl = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/karakeep/client-secret".path;
-            scopeMaps = makeScopeMaps "karakeep";
-          };
+          # Karakeep (next-auth + openid-client) keeps the RS256 default for ID
+          # tokens, hence legacy crypto (RS256) for this client.
+          karakeep =
+            let
+              url = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Karakeep Bookmarks";
+              originUrl = "${url}/api/auth/callback/custom";
+              originLanding = url;
+              enableLegacyCrypto = true;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/karakeep/client-secret".path;
+              scopeMaps = makeScopeMaps "karakeep";
+            };
 
           # Immich only supports one OAuth provider at a time. Switching from
           # Authentik: set Immich's signing algorithm to ES256 (Kanidm's
@@ -356,29 +443,57 @@ in
             scopeMaps = makeScopeMaps "podfetch";
           };
 
+          # Kavita's OIDC callback is the fixed path /signin-oidc, and Kanidm
+          # matches redirect URIs exactly.
           kavita = {
             displayName = "Kavita Reader";
-            originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
+            originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}/signin-oidc";
             originLanding = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavita/client-secret".path;
             scopeMaps = makeScopeMaps "kavita";
           };
 
+          # Served on the personal domain (see estel's caddy.nix), not homeDomain.
           kavitan = {
             displayName = "Kavita N";
-            originUrl = "https://${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.kavitan}.${configVars.homeDomain}";
+            originUrl = "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}/signin-oidc";
+            originLanding = "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}";
             basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/kavitan/client-secret".path;
             scopeMaps = makeScopeMaps "kavitan";
           };
 
-          openwebui = {
-            displayName = "Open WebUI";
-            originUrl = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
-            originLanding = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
-            basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/openwebui/client-secret".path;
-            scopeMaps = makeScopeMaps "openwebui";
-          };
+          # Served on the personal domain (see estel's caddy.nix), not homeDomain.
+          openwebui =
+            let
+              url = "https://${configVars.networking.subdomains.openwebui}.${configVars.domain}";
+            in
+            {
+              displayName = "Open WebUI";
+              originUrl = "${url}/oauth/oidc/callback";
+              originLanding = url;
+              basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/openwebui/client-secret".path;
+              scopeMaps = makeScopeMaps "openwebui";
+            };
+
+          # Audiobookshelf keeps its OIDC settings in its own database (set in
+          # its admin UI), so this client has no basicSecretFile: Kanidm
+          # generates the secret, read it with
+          # `kanidm system oauth2 show-basic-secret audiobookshelf`.
+          # The mobile app comes back through the server's mobile-redirect.
+          audiobookshelf =
+            let
+              url = "https://${configVars.networking.subdomains.audiobookshelf}.${configVars.homeDomain}";
+            in
+            {
+              displayName = "Audiobookshelf";
+              originUrl = [
+                "${url}/auth/openid/callback"
+                "${url}/auth/openid/mobile-redirect"
+              ];
+              originLanding = url;
+              preferShortUsername = true;
+              scopeMaps = makeScopeMaps "audiobookshelf";
+            };
 
           nas = {
             displayName = "Cirdan NAS (DSM)";

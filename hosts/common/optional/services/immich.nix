@@ -24,8 +24,7 @@
 
   # Public traffic arrives via estel's Caddy; trust its X-Forwarded-For so
   # Immich logs and rate-limits real client IPs rather than estel's.
-  services.immich.environment.IMMICH_TRUSTED_PROXIES =
-    lib.mkDefault configVars.networking.subnets.estel.ip;
+  services.immich.environment.IMMICH_TRUSTED_PROXIES = lib.mkDefault configVars.networking.subnets.estel.ip;
 
   # VAAPI transcoding and ML on an iGPU (accelerationDevices = null allows
   # all devices; these groups grant the device-node permissions).

@@ -140,8 +140,6 @@ in
     "-Xmx256m"
   ];
 
-
-
   # OpenSSH
   services.openssh.ports = [
     configVars.networking.ports.tcp.remoteSsh # Only accessible via remote SSH port

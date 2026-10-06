@@ -99,6 +99,13 @@ in
           }
         ''
     );
+    # Services read this file only at start, so a changed secret must restart them.
+    restartUnits = [
+      "paperless-web.service"
+      "paperless-scheduler.service"
+      "paperless-task-queue.service"
+      "paperless-consumer.service"
+    ];
   };
   services.paperless.environmentFile =
     lib.mkDefault

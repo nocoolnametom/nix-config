@@ -37,6 +37,7 @@
     hideMounts = true;
     directories = [
       "/var/db/sudo/lectured"
+      "/var/lib/audiobookshelf" # library DB (users, listening progress) + metadata/covers
       "/var/lib/autocaliweb" # config (app.db, acw.db) + ingest; library is in Syncthing
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/btrfs" # scrub status/history for `btrfs scrub status`
@@ -44,6 +45,8 @@
       "/var/lib/docker" # container images + volumes
       "/var/lib/jellyfin" # library DB, metadata, user state
       "/var/lib/kanidm" # SSO database: users, passwords, passkeys, sessions
+      "/var/lib/kavita" # comics reader DB, covers, progress
+      "/var/lib/kavitan" # limited-access reader DB (holds the Kavita+ licence)
       "/var/cache/immich" # ML models (~1 GB); re-downloaded on every boot otherwise
       "/var/lib/immich"
       "/var/lib/nfs" # NFS server state, so clients recover cleanly after reboot

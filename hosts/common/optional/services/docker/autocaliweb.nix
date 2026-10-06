@@ -22,6 +22,13 @@
 #  The container only sees the three mounts above, regardless of what groups
 #  `user` has on the host.
 #
+#  OAuth/OIDC settings live in app.db (Admin > Configuration > OAuth). The
+#  app does read OAUTH_* environment variables in cps/oauth_bb.py, but the
+#  image's s6 services start cps.py with a clean environment, so container
+#  `environment` / `env_file` values never reach it (checked 2026-10-05).
+#  Logins match existing users by preferred_username, so the Kanidm client
+#  sends short usernames (see kanidm.nix).
+#
 ###############################################################################
 
 {
@@ -82,6 +89,7 @@ in
       default = "autocaliweb";
       description = "Host group the container runs as (PGID). Must have a fixed gid.";
     };
+
   };
 
   config = {
@@ -105,8 +113,12 @@ in
       "d ${cfg.stateDir} 0750 ${cfg.user} ${cfg.group} -"
       "d ${cfg.stateDir}/config 0750 ${cfg.user} ${cfg.group} -"
     ]
-    ++ lib.optional (cfg.ingestDir == defaultIngestDir) "d ${cfg.ingestDir} 2770 ${cfg.user} ${cfg.group} -"
-    ++ lib.optional (cfg.libraryDir == defaultLibraryDir) "d ${cfg.libraryDir} 2775 ${cfg.user} ${cfg.group} -";
+    ++ lib.optional (
+      cfg.ingestDir == defaultIngestDir
+    ) "d ${cfg.ingestDir} 2770 ${cfg.user} ${cfg.group} -"
+    ++ lib.optional (
+      cfg.libraryDir == defaultLibraryDir
+    ) "d ${cfg.libraryDir} 2775 ${cfg.user} ${cfg.group} -";
 
     virtualisation.arion.backend = "docker";
     services.arion-container-cleanup.projects.autocaliweb = { };

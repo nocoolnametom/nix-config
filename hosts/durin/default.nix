@@ -67,6 +67,9 @@ in
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Native OIDC login through Kanidm (Authentik retires with cirdan).
+  services.ssoProvider.miniflux = "kanidm-oidc";
+
   # Miniflux has write errors trying to connect to Postgresql
   # Easiest right now to just turn it off
   services.miniflux.enable = false;

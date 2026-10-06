@@ -10,8 +10,9 @@
 #  ---------------------------------------------------------------------------
 #  Phase 1 (this file)   Base system, storage, Jellyfin native, Komodo for the
 #                        hand-managed container layer.
-#  Phase 2               Take over SMB serving from cirdan; repoint the
-#                        consumers in hosts/common/optional/cirdan-smb-shares.nix.
+#  Phase 2               Take over SMB serving from cirdan (done 2026-10-05:
+#                        clients mount feanor-smb-shares.nix; the cirdan
+#                        mounts were removed).
 #  Phase 3               Move the remaining cirdan docker stacks into Komodo.
 #  Phase 4               Retire Authentik. Kanidm runs alongside it throughout
 #                        (hosts/common/optional/services/kanidm.nix is already
@@ -71,6 +72,7 @@ in
     #################### Required Configs ####################
     "hosts/common/core"
     "hosts/common/optional/headless-server.nix"
+    "hosts/common/optional/nas-status"
 
     #################### Hardware ####################
     "hosts/common/optional/io-latency-tuning.nix" # Keep reads responsive during writes
@@ -84,8 +86,10 @@ in
     "hosts/common/optional/services/docker/podfetch.nix"
     "hosts/common/optional/services/docker/autocaliweb.nix"
     "hosts/common/optional/services/docker/tubearchivist.nix"
+    "hosts/common/optional/services/audiobookshelf.nix"
     "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/jellyfin.nix"
+    "hosts/common/optional/services/kavita.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
@@ -213,6 +217,10 @@ in
   # also write, so it joins `media` and creates files group-writable. Gated
   # folders stay protected by their 0750 parents, not by file modes.
   users.users.syncthing.extraGroups = [ "media" ];
+  # The syncthing module makes dataDir the user's home (createHome), and NixOS
+  # re-applies homeMode on every activation - default 700, which would undo
+  # the 0751 gate below and lock out the datadat SMB share.
+  users.users.syncthing.homeMode = "751";
   systemd.services.syncthing.serviceConfig.UMask = "0002";
 
   services.syncthing = {
@@ -221,7 +229,6 @@ in
     group = "datadat";
     dataDir = "${dataRoot}/syncthing";
   };
-
 
   ############################ Container services #############################
   # Modules live in hosts/common/optional/services/docker/; only where their
@@ -253,6 +260,31 @@ in
   # Migrated from cirdan 2026-10-03 (stack stopped; es/, cache/ and the Redis
   # dump.rdb copied into /var/lib); never run a second copy against this index.
   services.tubearchivist.mediaDir = "${dataRoot}/tubearchivist/media";
+
+  # Audiobookshelf moved from estel 2026-10-05 (state copied with it stopped).
+  # Its database stored the libraries' estel SMB paths; those were rewritten
+  # to the local ones (Audiobooks: Syncthing Family/Audiobooks/Audiobooks,
+  # Podcasts: ${dataRoot}/music/Podcasts), keeping item ids and so every
+  # user's listening progress. It downloads new podcast episodes itself.
+
+  # Kavita (general comics) and Kavitan (limited-access library) moved from
+  # estel 2026-10-05, configs copied with both stopped. Kavitan's database
+  # holds the Kavita+ licence (tied to its install id), so keep that database
+  # rather than starting fresh. Kavitan reads the datadat-gated Syncthing
+  # folder; kavita.nix puts it in the datadat group.
+  # Kavitan's library paths in its database still say /var/lib/kavitan-library
+  # (estel's old local copy), so that path is bind-mounted from the Syncthing
+  # folder instead of rewriting the database. Read-only: Syncthing owns it.
+  fileSystems."/var/lib/kavitan-library" = {
+    device = "${dataRoot}/syncthing/Sync/Library/Private";
+    fsType = "none";
+    options = [
+      "bind"
+      "ro"
+      "nofail"
+      "x-systemd.requires-mounts-for=${dataRoot}/syncthing"
+    ];
+  };
 
   ######################## Container Layer (Komodo) ###########################
   #
@@ -286,6 +318,11 @@ in
   #   - homelab-ssl/feanor/{cert,key} (Kanidm's TLS cert; see kanidm.nix)
   services.kanidmSso.enable = true;
 
+  # Services here that log in through Kanidm's native OIDC (others choose
+  # their provider in their own module options).
+  services.ssoProvider.kavita = "kanidm-oidc";
+  services.ssoProvider.kavitan = "kanidm-oidc";
+
   ############################### Network #####################################
   #
   # Public services reach the Internet via bombadil → estel (WireGuard).
@@ -306,7 +343,6 @@ in
 
   # Firewall stays on: nothing is port-forwarded to this machine.
   networking.firewall.enable = true;
-
 
   ############################### Alerting ####################################
 
@@ -347,6 +383,51 @@ in
   ];
 
   services.fail2ban.enable = false; # No direct SSH from outside.
+
+  # Jellyfin's database was migrated from cirdan with its media paths
+  # unchanged, so those Synology paths must keep resolving here. Bind mounts
+  # are the no-risk option; rewriting paths inside Jellyfin's database would
+  # let these go.
+  fileSystems."/volume1/Jellyfin" = {
+    device = "${dataRoot}/jellyfin";
+    fsType = "none";
+    options = [
+      "bind"
+      "nofail"
+      "x-systemd.requires-mounts-for=${dataRoot}/jellyfin"
+    ];
+  };
+  fileSystems."/volumeUSB2/usbshare/docker/tubearchivist/media" = {
+    device = "${dataRoot}/tubearchivist/media";
+    fsType = "none";
+    options = [
+      "bind"
+      "ro" # TubeArchivist owns these files; Jellyfin only reads them
+      "nofail"
+      "x-systemd.requires-mounts-for=${dataRoot}/tubearchivist/media"
+    ];
+  };
+
+  # `nas-status` terminal dashboard, advertised in the SSH login message.
+  services.nasStatus = {
+    enable = true;
+    # The pool root is not itself mounted (its subvolumes are), so point at one.
+    poolPath = "${dataRoot}/jellyfin";
+    poolLabel = dataRoot;
+    mounts = [
+      "/"
+      "/nix"
+      "/persist"
+      "/boot"
+    ];
+    jobs = [
+      "borgbackup-job-local.service"
+      "rclone-offsite.service"
+      "btrfs-scrub-silmaril.service"
+      "postgresqlBackup-podfetch.service"
+      "cirdan-sync.service"
+    ];
+  };
 
   # Links on this host's homelab status page.
   services.homelab-status-page.localServices = [

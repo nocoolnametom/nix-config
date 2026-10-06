@@ -36,7 +36,7 @@
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/actual-budget.nix"
     "hosts/common/optional/services/atuin.nix"
-    "hosts/common/optional/services/audiobookshelf.nix"
+    # Audiobookshelf runs on feanor since 2026-10-05, next to its libraries.
     "hosts/common/optional/services/homelab-beszel-hub.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
     # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
@@ -48,7 +48,7 @@
     # "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/karakeep.nix"
-    "hosts/common/optional/services/kavita.nix" # Turn on and turn off portainers when 0.8.8 is released!
+    # Kavita and Kavitan run on feanor since 2026-10-05, next to their libraries.
     "hosts/common/optional/services/mealie.nix"
     # Disabled 2026-03-04: Navidrome build failure (pkg-config taglib issue), TODO: re-enable when fixed
     # "hosts/common/optional/services/navidrome.nix"
@@ -73,14 +73,11 @@
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
     "actual-budget"
-    "audiobookshelf"
     "caddy"
     "hedgedoc"
     "immich-public-proxy"
     "kanidm"
     "karakeep-web"
-    "kavita"
-    "kavitan"
     "mealie"
     # Disabled 2026-03-04: Navidrome build failure
     # "navidrome"
@@ -112,6 +109,14 @@
   ];
 
   ## Imports overrides
+  # Native OIDC logins through Kanidm (Authentik retires with cirdan).
+  services.ssoProvider = {
+    budget = "kanidm-oidc";
+    hedgedoc = "kanidm-oidc";
+    karakeep = "kanidm-oidc";
+    mealie = "kanidm-oidc";
+    paperless = "kanidm-oidc";
+  };
   services.atuin.openRegistration = true;
   # Pinned to unstable 2026-09-07: 26.05's karakeep builds against nodejs 24.19.0, whose
   # node::ObjectWrap cleanup-hook change aborts better-sqlite3's Statement destructor
@@ -123,17 +128,6 @@
   services.paperless.configureTika = lib.mkForce false; # This requires building libreoffice and that isn't building
 
   # Currently-Docker Stuff
-  # Can replase kavita users below with kavita module when 0.8.8 is released!
-  services.kavita.package = lib.mkForce pkgs.unstable.kavita;
-  services.kavitan.package = lib.mkForce pkgs.unstable.kavita;
-  users.groups.kavita = { };
-  users.users.kavita.isSystemUser = true;
-  users.users.kavita.group = "kavita";
-  users.users.kavita.home = "/var/lib/kavita";
-  users.groups.kavitan = { };
-  users.users.kavitan.isSystemUser = true;
-  users.users.kavitan.group = "kavitan";
-  users.users.kavitan.home = "/var/lib/kavitan";
   users.groups.karakeep = { };
   users.users.karakeep.isSystemUser = true;
   users.users.karakeep.group = "karakeep";

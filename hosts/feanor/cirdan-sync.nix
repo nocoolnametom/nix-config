@@ -29,12 +29,13 @@
 #    ssh-copy-id -i /persist/etc/cirdan-sync-key.pub <username>@cirdan
 #
 #  Mount layout on silmaril:
-#    /silmaril/jellyfin/            <- cirdan /volume1/Jellyfin/
-#    /silmaril/music/               <- cirdan /volume1/Music/
+#    /silmaril/jellyfin/            <- (no longer synced; feanor is authoritative
+#                                       since the 2026-10-05 Sonarr/Radarr cutover)
+#    /silmaril/music/               <- (no longer synced; nothing writes music to cirdan)
 #    /silmaril/comics/              <- cirdan /volume1/Comics/
-#    /silmaril/immich/              <- cirdan /volume1/Immich/
-#    /silmaril/borg/                <- cirdan /volume1/BorgBackup/
-#    /silmaril/netbackup/           <- cirdan /volume1/NetBackup/
+#    /silmaril/immich/              <- (no longer synced; Immich runs on feanor)
+#    /silmaril/borg/                <- (no longer synced; feanor's borg job owns it)
+#    /silmaril/netbackup/           <- (no longer synced; feanor's WebDAV is the target)
 #    /silmaril/syncthing/           <- (now via Syncthing, not rsync)
 #    /silmaril/tubearchivist/media/ <- cirdan /volumeUSB2/usbshare/docker/tubearchivist/media/
 #    /silmaril/cirdan-migration/docker/   <- cirdan /volume1/docker/ (staging)
@@ -82,12 +83,15 @@ let
       echo "=== $(date -Iseconds): finished $src ==="
     }
 
-    sync_one '${configVars.username}@cirdan:/volume1/Jellyfin/'   '/silmaril/jellyfin/'
-    sync_one '${configVars.username}@cirdan:/volume1/Music/'       '/silmaril/music/'
+    # Removed 2026-10-05, now authoritative on feanor (syncing from cirdan could
+    # only bring back stale or deleted files): Jellyfin (Sonarr/Radarr write to
+    # feanor), Immich (runs on feanor), Music (nothing writes it to cirdan).
     sync_one '${configVars.username}@cirdan:/volume1/Comics/'      '/silmaril/comics/'
-    sync_one '${configVars.username}@cirdan:/volume1/Immich/'      '/silmaril/immich/'
-    sync_one '${configVars.username}@cirdan:/volume1/BorgBackup/'  '/silmaril/borg/'
-    sync_one '${configVars.username}@cirdan:/volume1/NetBackup/'   '/silmaril/netbackup/'
+    # BorgBackup removed 2026-10-05: feanor's borg job now writes its own copy of
+    # this repository (same repository id), and cirdan's borgmatic is off.
+    # Copying cirdan's files over it would mix two diverged histories.
+    # NetBackup removed 2026-10-05: GrapheneOS/Seedvault now writes to feanor's
+    # WebDAV directly (webdav.<homeDomain>/NetBackup -> /silmaril/netbackup).
     # /volume1/syncthing/ is no longer rsynced: since 2026-10-03 feanor is a
     # Syncthing peer of cirdan for all of those folders, and rsync writing into
     # Syncthing-managed folders would show up as local changes / conflicts.

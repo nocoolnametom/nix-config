@@ -53,6 +53,8 @@ in
         ''
     );
     owner = config.systemd.services.actual.serviceConfig.User;
+    # Services read this file only at start, so a changed secret must restart them.
+    restartUnits = [ "actual.service" ];
   };
   systemd.services.actual.serviceConfig.EnvironmentFile =
     config.sops.templates."actual-oidc-keys.env".path;

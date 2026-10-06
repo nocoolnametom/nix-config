@@ -49,6 +49,11 @@ in
         ''
     );
     owner = if config.services.karakeep.enable then "karakeep" else "root";
+    # Services read this file only at start, so a changed secret must restart them.
+    restartUnits = [
+      "karakeep-web.service"
+      "karakeep-workers.service"
+    ];
   };
   services.karakeep.enable = lib.mkDefault true;
   services.karakeep.browser.enable = lib.mkDefault true;
@@ -61,7 +66,9 @@ in
   services.karakeep.extraEnvironment.OAUTH_WELLKNOWN_URL = wellknownURL;
   services.karakeep.extraEnvironment.OAUTH_PROVIDER_NAME =
     if useKanidm then "Kanidm" else "authentik";
-  services.karakeep.extraEnvironment.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKIN = "true";
+  # Lets an OIDC login attach to the existing account with the same email,
+  # which is how accounts survive a change of identity provider.
+  services.karakeep.extraEnvironment.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING = "true";
   services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}";
   services.karakeep.extraEnvironment.OLLAMA_KEEP_ALIVE = "5m";
   services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = "llama3.2:latest";

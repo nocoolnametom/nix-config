@@ -1,6 +1,6 @@
 { lib, config, ... }:
 let
-  jellyfinTubeDirectory = "/mnt/cirdan/smb/Jellyfin/TV_Shows/Tube";
+  jellyfinTubeDirectory = "/mnt/feanor/smb/Jellyfin/TV_Shows/Tube";
   my = rec {
     base = "mybase";
     short_show = "My Short Term Show";

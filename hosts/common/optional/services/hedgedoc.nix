@@ -8,9 +8,10 @@
 let
   ssoProvider = config.services.ssoProvider.hedgedoc or "authentik";
   useKanidm = ssoProvider == "kanidm-oidc";
+  kanidmURL = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}";
   baseURL =
     if useKanidm then
-      "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/hedgedoc/"
+      "${kanidmURL}/oauth2/openid/hedgedoc/"
     else
       "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/hedgedoc/";
 in
@@ -45,14 +46,16 @@ in
         "${baseURL}userinfo"
       else
         "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/userinfo/";
+    # Kanidm's authorize and token endpoints are global, not per client
+    # (see its .well-known/openid-configuration); only userinfo is per client.
     tokenURL =
       if useKanidm then
-        "${baseURL}token"
+        "${kanidmURL}/oauth2/token"
       else
         "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/token/";
     authorizationURL =
       if useKanidm then
-        "${baseURL}authorize"
+        "${kanidmURL}/ui/oauth2"
       else
         "https://${configVars.networking.subdomains.authentik}.${configVars.homeDomain}/application/o/authorize/";
     userProfileUsernameAttr = "preferred_username";
@@ -84,6 +87,8 @@ in
         ''
     );
     owner = config.systemd.services.hedgedoc.serviceConfig.User;
+    # Services read this file only at start, so a changed secret must restart them.
+    restartUnits = [ "hedgedoc.service" ];
   };
   services.hedgedoc.environmentFile = config.sops.templates."hedgedoc-secrets.env".path;
 }

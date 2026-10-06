@@ -25,7 +25,10 @@ in
   services.mealie.enable = lib.mkDefault true;
   services.mealie.port = lib.mkDefault configVars.networking.ports.tcp.mealie;
   services.mealie.database.createLocally = lib.mkDefault true;
-  services.mealie.settings = lib.mkDefault (
+  # Not mkDefault as a whole: the nixpkgs module sets settings itself (the
+  # database URL, under database.createLocally) at normal priority, which
+  # would discard this entire attrset. Plain attrsets merge key by key.
+  services.mealie.settings = (
     {
       BASE_URL = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
       ALLOW_PASSWORD_LOGIN = "true"; # Turn off once OIDC is confirmed working!
@@ -45,8 +48,11 @@ in
           # Kanidm OIDC configuration
           OIDC_PROVIDER_NAME = "Kanidm";
           OIDC_CONFIGURATION_URL = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/mealie/.well-known/openid-configuration";
-          OIDC_USER_GROUP = "service_users";
-          OIDC_ADMIN_GROUP = "kanidm_admins";
+          # No OIDC_USER_GROUP / OIDC_ADMIN_GROUP: Kanidm's scope map already
+          # decides who may log in, and Kanidm only sends a groups claim when
+          # the `groups` scope is granted, which makeScopeMaps does not do.
+          # With OIDC_ADMIN_GROUP set and no groups claim, every login would
+          # strip the admin flag.
         }
       else
         {
@@ -80,6 +86,8 @@ in
           OIDC_CLIENT_SECRET=${config.sops.placeholder."homelab/oidc/mealie/authentik/client-secret"}
         ''
     );
+    # Services read this file only at start, so a changed secret must restart them.
+    restartUnits = [ "mealie.service" ];
   };
   services.mealie.credentialsFile = lib.mkDefault config.sops.templates."mealie-secrets.env".path;
 }

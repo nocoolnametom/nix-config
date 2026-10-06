@@ -6,7 +6,8 @@
 #  same split Synology used:
 #
 #    1. borg  -> local repo at /silmaril/borg/local.borg
-#    2. rclone -> pushes that repo (and two plain directories) to Google Drive
+#    2. rclone -> pushes that repo, the Seedvault phone backups and
+#                 FamilyBackup to Google Drive
 #
 #  Borg cannot write to Google Drive itself - it needs POSIX semantics or a
 #  `borg serve` SSH endpoint - which is exactly why DSM ran Cloud Sync as a
@@ -30,6 +31,9 @@
 let
   pool = "/silmaril";
   repo = "${pool}/borg/local.borg";
+
+  # Needs `rclone/gdrive/full-config` in nix-secrets (see Offsite below).
+  offsiteEnabled = true;
 in
 {
   ############################## Borg ########################################
@@ -56,7 +60,7 @@ in
   services.borgbackup.jobs.local = {
     paths = [
       "${pool}/syncthing/Sync/Library/Calibre/Library"
-      "${pool}/netbackup"
+      "${pool}/netbackup" # FamilyBackup etc.; Seedvault is excluded below
       "${pool}/jellyfin/Backups"
 
       # Immich originals, under services.immich.mediaLocation (default.nix).
@@ -81,6 +85,12 @@ in
       # Small app state that lives only on this host:
       "/var/lib/autocaliweb/config" # app.db (users, shelves, progress), acw.db
       "/var/lib/redis-tubearchivist" # TubeArchivist's app settings (dump.rdb)
+      # Audiobookshelf's own scheduled backups (database + metadata).
+      "/var/lib/audiobookshelf/metadata/backups"
+      # Kavita's own nightly backups: database, covers, bookmarks, themes,
+      # appsettings. Taken by Kavita itself, so the database copy is consistent.
+      "/var/lib/kavita/config/backups"
+      "/var/lib/kavitan/config/backups"
 
       # NOTE: cirdan also backed up /volume1/docker/actual. Actual Budget now
       # runs natively on estel (hosts/common/optional/services/actual-budget.nix),
@@ -88,6 +98,12 @@ in
       # from here. Left out deliberately; re-add if the Docker instance is
       # still authoritative.
     ];
+
+    # Seedvault's phone backups are already encrypted, versioned snapshots, so
+    # borg cannot deduplicate them: every phone backup was stored again in
+    # full, ~2/3 of the repository. They reach Google Drive through rclone
+    # directly instead (see Offsite below).
+    exclude = [ "${pool}/netbackup/.SeedVaultAndroidBackup" ];
 
     repo = repo;
 
@@ -125,57 +141,91 @@ in
 
   ############################ Offsite (rclone) ##############################
   #
-  # BLOCKED: needs the `rclone/gdrive-config` secret, which does not exist yet
-  # because it requires an interactive OAuth grant. Generate it on a machine
-  # with a browser:
+  # Switched by `offsiteEnabled` (top of this file). The config secret
+  # `rclone/gdrive/full-config` came from an interactive OAuth grant on a
+  # machine with a browser (with our own client id/secret, also kept in
+  # nix-secrets as rclone/gdrive/client_{id,secret}):
   #
   #   rclone config            # n) new remote -> name: gdrive -> type: drive
+  #                            #    scope: 1 (full drive), so rclone can see
+  #                            #    the folders DSM's Cloud Sync uploaded
   #   rclone config show gdrive
   #
-  # Paste that whole section (it contains the refresh token) into nix-secrets
-  # as `rclone/gdrive-config`, then uncomment below.
+  # That whole section (it contains the refresh token) is the secret; rerun the
+  # same steps if the token is ever revoked.
   #
-  # Strongly recommended: create your own Google Cloud OAuth client ID rather
-  # than accepting rclone's built-in one. The shared default is heavily rate
-  # limited and you will feel it seeding a repo this size. Google also caps
-  # uploads at ~750 GB/day regardless.
+  # Strongly recommended: your own Google Cloud OAuth client ID instead of
+  # rclone's built-in one, which is heavily rate limited. Google also caps
+  # uploads at ~750 GB/day.
   #
-  # Mappings carried over from DSM's Cloud Sync tasks:
-  #   ${pool}/borg/local.borg                -> gdrive:/borgbackups/feanor
-  #   ${pool}/netbackup/FamilyBackup         -> gdrive:/FamilyBackup
-  #   ${pool}/jellyfin/TV_Shows/Foreign/Australia/Australian Survivor
-  #                                          -> gdrive:/survivor
+  # What goes where:
+  #   ${pool}/borg/local.borg                    -> gdrive:/borgbackups/feanor
+  #   ${pool}/netbackup/.SeedVaultAndroidBackup  -> gdrive:/SeedVaultAndroidBackup
+  #   ${pool}/netbackup/FamilyBackup             -> gdrive:/FamilyBackup
+  # Seedvault skips borg (see `exclude` above) and is copied as-is: it is
+  # already encrypted and keeps its own versions.
   #
-  # (DSM used /borgbackups/cirdan - renaming to feanor keeps the old archive
-  # reachable while the new one seeds. Decide before the first sync runs.)
+  # DSM's old upload (gdrive:/borgbackups/cirdan, ~92 GB with Seedvault) was
+  # deleted 2026-10-06 after the first feanor copy checked out.
   #
-  # sops.secrets."rclone/gdrive-config" = { mode = "0400"; };
-  #
-  # systemd.services.rclone-offsite = {
-  #   description = "Sync backups and selected media to Google Drive";
-  #   after = [ "network-online.target" ];
-  #   wants = [ "network-online.target" ];
-  #   startAt = "daily";
-  #   serviceConfig = {
-  #     Type = "oneshot";
-  #     IOWeight = 30;
-  #     Nice = 15;
-  #   };
-  #   script =
-  #     let
-  #       conf = config.sops.secrets."rclone/gdrive-config".path;
-  #       rclone = lib.getExe pkgs.rclone;
-  #       sync = src: dst: ''
-  #         ${rclone} sync --config ${conf} --fast-list --transfers 4 \
-  #           --bwlimit 8M "${src}" "gdrive:${dst}"
-  #       '';
-  #     in
-  #     lib.concatStringsSep "\n" [
-  #       (sync "${pool}/borg/local.borg" "/borgbackups/feanor")
-  #       (sync "${pool}/netbackup/FamilyBackup" "/FamilyBackup")
-  #       (sync "${pool}/jellyfin/TV_Shows/Foreign/Australia/Australian Survivor" "/survivor")
-  #     ];
-  # };
+  # Checking the Drive copy: `borg with-lock` commits a no-op transaction when
+  # it releases the lock, so the local repository always has one more tiny
+  # commit (hints/index/integrity.N plus a data segment) than Drive. An
+  # `rclone check` reporting only those as missing, with no "md5 differ", is
+  # a good copy; borg restores the Drive copy at its last real commit.
+  sops.secrets."rclone/gdrive/full-config" = lib.mkIf offsiteEnabled { mode = "0400"; };
+
+  systemd.services.rclone-offsite = lib.mkIf offsiteEnabled {
+    description = "Copy backups to Google Drive";
+    after = [ "network-online.target" ];
+    wants = [ "network-online.target" ];
+    # After the midnight borg run and the phone's early-morning Seedvault run.
+    startAt = "*-*-* 06:00:00";
+    environment.BORG_PASSCOMMAND = "cat ${config.sops.secrets."borg/feanor/passphrase".path}";
+    serviceConfig = {
+      Type = "oneshot";
+      # rclone rewrites its config when it refreshes the OAuth token, and the
+      # sops file is read-only, so it works on a private copy.
+      RuntimeDirectory = "rclone-offsite";
+      RuntimeDirectoryMode = "0700";
+      IOWeight = 30;
+      Nice = 15;
+    };
+    script =
+      let
+        rclone = lib.getExe pkgs.rclone;
+        conf = "/run/rclone-offsite/rclone.conf"; # inside RuntimeDirectory
+        # --checksum: Drive keeps MD5s, so unchanged files are skipped by
+        # content, not timestamps. --drive-use-trash=false: borg compaction
+        # deletes old segments, and trashed files still count against quota.
+        sync =
+          src: dst:
+          lib.escapeShellArgs [
+            rclone
+            "sync"
+            "--config=${conf}"
+            "--fast-list"
+            "--checksum"
+            "--transfers=4"
+            "--bwlimit=8M"
+            "--drive-use-trash=false"
+            # with-lock itself creates these; a restored copy must not carry them
+            "--exclude=/lock.exclusive/**"
+            "--exclude=/lock.roster"
+            src
+            "gdrive:${dst}"
+          ];
+      in
+      ''
+        install -m 0600 ${config.sops.secrets."rclone/gdrive/full-config".path} ${conf}
+
+        # Hold borg's lock for the upload so no backup or prune changes the
+        # repository halfway through (a mixed copy may not be restorable).
+        ${lib.getExe pkgs.borgbackup} with-lock --lock-wait 7200 ${repo} ${sync repo "/borgbackups/feanor"}
+        ${sync "${pool}/netbackup/.SeedVaultAndroidBackup" "/SeedVaultAndroidBackup"}
+        ${sync "${pool}/netbackup/FamilyBackup" "/FamilyBackup"}
+      '';
+  };
 
   environment.systemPackages = [
     pkgs.borgbackup

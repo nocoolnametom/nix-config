@@ -54,6 +54,9 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # Native OIDC login through Kanidm (Authentik retires with cirdan).
+  services.ssoProvider.openwebui = "kanidm-oidc";
+
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
     "ollama"

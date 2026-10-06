@@ -1,10 +1,19 @@
 {
   lib,
   config,
+  inputs,
   pkgs,
   ...
 }:
 {
+  # Package AND module from nixos-unstable: 26.05 ships Jellyfin 10.11, while
+  # the 12.x series is in unstable (and a 12.x database cannot go back to
+  # 10.11). The 12.x module also renames encoder options (QsvDevice, 10-bit
+  # HEVC decode). Drop both overrides once the stable branch ships 12.x.
+  disabledModules = [ "services/misc/jellyfin.nix" ];
+  imports = [ "${inputs.nixpkgs-unstable}/nixos/modules/services/misc/jellyfin.nix" ];
+  services.jellyfin.package = lib.mkDefault pkgs.unstable.jellyfin;
+
   services.jellyfin.enable = lib.mkDefault true;
   services.jellyfin.openFirewall = lib.mkDefault true;
 

@@ -240,9 +240,7 @@ in
           # Make smartmontools available in PATH
           Environment = [
             "PATH=${
-              lib.makeBinPath (
-                [ pkgs.smartmontools ] ++ lib.optional cfg.enableIntelGpu pkgs.intel-gpu-tools
-              )
+              lib.makeBinPath ([ pkgs.smartmontools ] ++ lib.optional cfg.enableIntelGpu pkgs.intel-gpu-tools)
             }:/run/current-system/sw/bin"
           ];
 

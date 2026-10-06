@@ -2,16 +2,12 @@
 #
 #  Feanor - file sharing (SMB / NFS / WebDAV)
 #
-#  Replaces cirdan's File Station shares. Share names match the originals so
-#  existing consumers keep working after a DNS/IP change:
-#    - hosts/common/optional/cirdan-smb-shares.nix (estel, durin, desktops)
-#    - Kavita reads Comics over SMB
-#    - GrapheneOS writes mobile backups to NetBackup over WebDAV
-#
-#  TODO before cutover: SMB credentials currently live in sops as
-#  `cirdan-smb-primary-secrets` / `cirdan-smb-secondary-secrets`. Either reuse
-#  those verbatim (simplest - clients need no change) or mint feanor-specific
-#  ones and update the consumer module.
+#  Replaces cirdan's File Station shares, keeping the share names. Consumers:
+#    - hosts/common/optional/feanor-smb-shares.nix (estel, durin), with the
+#      `feanor-smb-{primary,secondary}-secrets` credentials
+#    - GrapheneOS (Seedvault) writes mobile backups to NetBackup over WebDAV
+#  Kavita, Kavitan, Audiobookshelf and Jellyfin run on feanor and read the
+#  pool directly.
 #
 ###############################################################################
 
@@ -25,12 +21,11 @@
 
 let
   pool = "/silmaril";
-  # Literal rather than config.users.groups.datadat.name: this file defines a
-  # user (webdav) in that group, so reading users.groups here is a cycle.
-  dataGroup = "datadat";
 
   # cirdan served two classes of share: world-writable within the household,
   # and datadat-owned. Mirror that split rather than inventing a new scheme.
+  # General shares create files in the general-access `media` group; datadat
+  # is the limited-access group and only the `syncthing` share uses it.
   primaryShare = path: {
     inherit path;
     browseable = "yes";
@@ -38,7 +33,7 @@ let
     "guest ok" = "no";
     "create mask" = "0664";
     "directory mask" = "0775";
-    "force group" = dataGroup;
+    "force group" = "media";
   };
 
   readOnlyShare =
@@ -87,8 +82,9 @@ in
       Immich = primaryShare "${pool}/immich";
 
       # Mirrors cirdan's `syncthing` share: the whole Syncthing tree, limited-access
-      # folders included, so only the datadat login may use it (kavitan and
-      # audiobookshelf on estel mount it as the datadat group). Samba runs
+      # folders included, so only the datadat login may use it (SMB clients
+      # mount it as the datadat group; Kavitan and Audiobookshelf used to,
+      # before moving here). Samba runs
       # file access as the datadat user, which is what the 0751/0750 gates
       # in default.nix let through.
       syncthing = {
@@ -163,9 +159,11 @@ in
 
   ############################## WebDAV #####################################
   #
-  # GrapheneOS mobile backup target. Bound to localhost - it is reached
-  # through the reverse proxy, which is what terminates TLS and where auth
-  # belongs. Never expose this directly.
+  # GrapheneOS mobile backup target (Seedvault writes .SeedVaultAndroidBackup
+  # under NetBackup). Reached as https://webdav.<homeDomain>/NetBackup/ through
+  # estel's Caddy, which terminates TLS, so it listens on the LAN; WebDAV's own
+  # Basic auth is the gate. The /NetBackup prefix keeps the URL clients used
+  # on cirdan, where DSM's WebDAV root listed the shares.
 
   # hacdias/webdav v5 schema: `directory` + `permissions`, NOT the v4
   # `scope` + `modify` pair.
@@ -173,16 +171,20 @@ in
   # No bcrypt hash needed. v5 understands a `{env}VAR` prefix, and the NixOS
   # module explicitly recommends it over putting credentials in settings -
   # anything in `settings` lands in the world-readable Nix store. So the
-  # password comes in through an EnvironmentFile that sops renders at
-  # activation from the plain `webdav` secret.
+  # username and password come in through an EnvironmentFile that sops
+  # renders at activation.
   services.webdav = {
     enable = true;
     user = "webdav";
-    group = dataGroup;
+    # Same group the NetBackup SMB share forces, so files written by either
+    # path stay editable by the other.
+    group = "media";
     environmentFile = config.sops.templates."webdav.env".path;
     settings = {
-      address = "127.0.0.1";
+      address = "0.0.0.0";
       port = configVars.networking.ports.tcp.webdav;
+      prefix = "/NetBackup";
+      behindProxy = true; # log the client address from X-Forwarded-For
       directory = "${pool}/netbackup";
       permissions = "CRUD"; # GrapheneOS needs to create and overwrite backups
       users = [
@@ -194,19 +196,25 @@ in
     };
   };
 
-  sops.secrets."webdav" = { };
+  # Dedicated credentials for the backup share (not the account password),
+  # since the phone stores them.
+  sops.secrets."webdav-feanor/NetBackup/username" = { };
+  sops.secrets."webdav-feanor/NetBackup/password" = { };
   sops.templates."webdav.env".content = ''
-    WEBDAV_USERNAME=${configVars.username}
-    WEBDAV_PASSWORD=${config.sops.placeholder."webdav"}
+    WEBDAV_USERNAME=${config.sops.placeholder."webdav-feanor/NetBackup/username"}
+    WEBDAV_PASSWORD=${config.sops.placeholder."webdav-feanor/NetBackup/password"}
   '';
+  # Read only at start, so a changed password must restart the server.
+  sops.templates."webdav.env".restartUnits = [ "webdav.service" ];
 
   users.users.webdav = {
     isSystemUser = true;
-    group = dataGroup;
+    group = "media";
     home = "${pool}/netbackup";
   };
 
   networking.firewall.allowedTCPPorts = [
+    configVars.networking.ports.tcp.webdav # from estel's Caddy
     2049 # nfsd
     4000
     4001

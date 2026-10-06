@@ -138,29 +138,31 @@ let
   # Non-sensitive lieer configuration. Written declaratively by the activation
   # script. The credentials file (.credentials.gmailieer.json) is NOT managed
   # here — generate it with `cd ~/.mail/work && gmi auth`.
-  gmailieerConfig = pkgs.writeText "gmailieer-config.json" (builtins.toJSON {
-    account = configVars.email.work;
-    replace_slash_with_dot = false;
-    timeout = 600;
-    drop_non_existing_label = false;
-    ignore_empty_history = false;
-    ignore_tags = [ ];
-    # Must match notmuch's Maildir T-flag mapping (T flag → `deleted` tag).
-    # notmuch.maildir.synchronizeFlags maps T → `deleted`, so setting
-    # local_trash_tag = "deleted" ensures gmi push propagates neomutt deletions
-    # to Gmail's \Trash label.
-    local_trash_tag = "deleted";
-    ignore_remote_labels = [
-      "CATEGORY_PERSONAL"
-      "CATEGORY_PROMOTIONS"
-      "CATEGORY_UPDATES"
-      "CATEGORY_SOCIAL"
-      "CATEGORY_FORUMS"
-    ];
-    remove_local_messages = true;
-    file_extension = "";
-    translation_list_overlay = [ ];
-  });
+  gmailieerConfig = pkgs.writeText "gmailieer-config.json" (
+    builtins.toJSON {
+      account = configVars.email.work;
+      replace_slash_with_dot = false;
+      timeout = 600;
+      drop_non_existing_label = false;
+      ignore_empty_history = false;
+      ignore_tags = [ ];
+      # Must match notmuch's Maildir T-flag mapping (T flag → `deleted` tag).
+      # notmuch.maildir.synchronizeFlags maps T → `deleted`, so setting
+      # local_trash_tag = "deleted" ensures gmi push propagates neomutt deletions
+      # to Gmail's \Trash label.
+      local_trash_tag = "deleted";
+      ignore_remote_labels = [
+        "CATEGORY_PERSONAL"
+        "CATEGORY_PROMOTIONS"
+        "CATEGORY_UPDATES"
+        "CATEGORY_SOCIAL"
+        "CATEGORY_FORUMS"
+      ];
+      remove_local_messages = true;
+      file_extension = "";
+      translation_list_overlay = [ ];
+    }
+  );
 
 in
 {

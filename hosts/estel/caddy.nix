@@ -36,7 +36,7 @@ let
   simpleServices = [
     # Services on homeDomain
     {
-      host = "estel";
+      host = "feanor"; # moved from estel 2026-10-05, next to its libraries
       service = "audiobookshelf";
       domain = "homeDomain";
     }
@@ -73,12 +73,12 @@ let
       punchCertName = "wild-immich-punch";
     }
     {
-      host = "cirdan";
+      host = "feanor";
       service = "jellyfin";
       domain = "homeDomain";
     }
     {
-      host = "cirdan";
+      host = "feanor"; # moved from cirdan's DSM WebDAV 2026-10-05
       service = "webdav";
       domain = "homeDomain";
     }
@@ -88,7 +88,7 @@ let
       domain = "homeDomain";
     }
     {
-      host = "estel";
+      host = "feanor"; # moved from estel 2026-10-05, next to its library
       service = "kavita";
       domain = "homeDomain";
     }
@@ -189,7 +189,7 @@ let
       proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
     {
-      host = "estel";
+      host = "feanor"; # moved from estel 2026-10-05, next to its library
       service = "kavitan";
       domain = "domain";
     }

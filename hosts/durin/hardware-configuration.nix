@@ -13,7 +13,7 @@
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
-    ../common/optional/cirdan-smb-shares.nix
+    ../common/optional/feanor-smb-shares.nix
   ];
 
   boot.initrd.availableKernelModules = [

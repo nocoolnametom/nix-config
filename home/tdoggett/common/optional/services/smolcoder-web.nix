@@ -29,6 +29,5 @@
   };
 
   # Quick alias to find the current URL+auth-token from the service journal
-  home.shellAliases.smolcoder-url =
-    "journalctl --user -u smolcoder-web --no-pager | grep 'smolcoder web UI' | tail -1 | grep -oP 'http://\\S+'";
+  home.shellAliases.smolcoder-url = "journalctl --user -u smolcoder-web --no-pager | grep 'smolcoder web UI' | tail -1 | grep -oP 'http://\\S+'";
 }

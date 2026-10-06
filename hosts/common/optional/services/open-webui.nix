@@ -33,6 +33,8 @@ in
         OAUTH_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/openwebui/client-secret"}
         OAUTH_SCOPES=openid email profile
         OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.domain}/oauth/oidc/callback
+        # Kanidm requires PKCE.
+        OAUTH_CODE_CHALLENGE_METHOD=S256
       ''
     else
       ''
@@ -47,5 +49,7 @@ in
         OAUTH_SCOPES=openid email profile
         OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.domain}/oauth/oidc/callback
       '';
+  # Open WebUI reads this file only at start, so a changed secret must restart it.
+  sops.templates."open-webui.conf".restartUnits = [ "open-webui.service" ];
   services.open-webui.environmentFile = lib.mkDefault config.sops.templates."open-webui.conf".path;
 }

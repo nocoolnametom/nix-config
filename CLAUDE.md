@@ -123,6 +123,8 @@ After `nix flake update`, builds often fail. **Resolution steps**:
 
 **Update custom packages**: Many have update scripts (e.g., `cd pkgs/stashapp && ./update_hashes.sh`)
 
+**Kanidm password/MFA reset link**: on feanor run `kanidm-reset <username> [seconds]` (defined in `hosts/common/optional/services/kanidm.nix`, which also documents the password-only vs MFA account policies)
+
 ## Important Notes
 
 **Impermanence**: Several machines wipe root on boot. Only `/nix`, `/boot`, and explicitly persisted directories survive. Check `persistence.nix` files.

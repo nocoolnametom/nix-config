@@ -22,19 +22,19 @@
   home.packages = [ pkgs.smolcoder ];
 
   home.activation.smolcoderRemoteHost = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    CONFIG_FILE="$HOME/.smolcoder.json"
-    if [ ! -f "$CONFIG_FILE" ]; then
-      cat > "$CONFIG_FILE" <<'SMOLCFG'
-{
-  "hosts": [
+        CONFIG_FILE="$HOME/.smolcoder.json"
+        if [ ! -f "$CONFIG_FILE" ]; then
+          cat > "$CONFIG_FILE" <<'SMOLCFG'
     {
-      "address": "barliman.${configVars.homeLanDomain}",
-      "name": "barliman (AI Max 300)"
+      "hosts": [
+        {
+          "address": "barliman.${configVars.homeLanDomain}",
+          "name": "barliman (AI Max 300)"
+        }
+      ]
     }
-  ]
-}
-SMOLCFG
-      $VERBOSE_ECHO "smolcoder: created ~/.smolcoder.json with barliman as remote Ollama host"
-    fi
+    SMOLCFG
+          $VERBOSE_ECHO "smolcoder: created ~/.smolcoder.json with barliman as remote Ollama host"
+        fi
   '';
 }
