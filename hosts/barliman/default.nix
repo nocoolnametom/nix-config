@@ -51,6 +51,7 @@
     "hosts/common/optional/foreign-binaries.nix"
     "hosts/common/optional/llama-cpp.nix" # llama.cpp CLI tools (Vulkan)
     "hosts/common/optional/llmfit.nix" # LLM fit estimates, told the real GPU limit
+    "hosts/common/optional/image-prompt-loop.nix" # ComfyUI/InvokeAI prompt refinement with vision models
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"

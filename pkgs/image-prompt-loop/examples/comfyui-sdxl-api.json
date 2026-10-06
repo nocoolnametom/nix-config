@@ -1,0 +1,41 @@
+{
+  "checkpoint": {
+    "class_type": "CheckpointLoaderSimple",
+    "inputs": { "ckpt_name": "REPLACE_WITH_A_CHECKPOINT.safetensors" }
+  },
+  "positive": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "%PROMPT%", "clip": ["checkpoint", 1] }
+  },
+  "negative": {
+    "class_type": "CLIPTextEncode",
+    "inputs": { "text": "%NEGATIVE%", "clip": ["checkpoint", 1] }
+  },
+  "latent": {
+    "class_type": "EmptyLatentImage",
+    "inputs": { "width": 1024, "height": 1024, "batch_size": 1 }
+  },
+  "sampler": {
+    "class_type": "KSampler",
+    "inputs": {
+      "model": ["checkpoint", 0],
+      "positive": ["positive", 0],
+      "negative": ["negative", 0],
+      "latent_image": ["latent", 0],
+      "seed": "%SEED%",
+      "steps": 25,
+      "cfg": 6.0,
+      "sampler_name": "euler_ancestral",
+      "scheduler": "normal",
+      "denoise": 1.0
+    }
+  },
+  "decode": {
+    "class_type": "VAEDecode",
+    "inputs": { "samples": ["sampler", 0], "vae": ["checkpoint", 2] }
+  },
+  "preview": {
+    "class_type": "PreviewImage",
+    "inputs": { "images": ["decode", 0] }
+  }
+}

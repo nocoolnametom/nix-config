@@ -20,6 +20,7 @@ rec {
   mormoncanon = pkgs.callPackage ./mormoncanon { };
   mormonquotes = pkgs.callPackage ./mormonquotes { };
   journalofdiscourses = pkgs.callPackage ./journalofdiscourses { };
+  image-prompt-loop = pkgs.callPackage ./image-prompt-loop { };
   smolcoder = pkgs.callPackage ./smolcoder { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
   whisparr-eros = pkgs.callPackage ./whisparr-eros { };
