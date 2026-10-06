@@ -9,7 +9,7 @@ let
   authentikHost = "cirdan";
 
   # Simple service definitions - just the essentials!
-  # These will be automatically converted to both regular and punch-through hosts
+  # Each one becomes a Caddy virtual host
   #
   # Keys:
   #   host: The actual machine hosting the service
@@ -20,19 +20,20 @@ let
   #     - configVars.proxyTypes.oauth2: Route through OAuth2-proxy (works with any OIDC provider)
   #     - configVars.proxyTypes.oidc: Direct to service (service has native OIDC integration)
   #     - configVars.proxyTypes.none or null/unset: No SSO, direct to service
+  #   healthCheck: (optional) for services behind a login proxy that have no
+  #     health URL of their own the proxy can let through. /healthz then
+  #     fetches this path straight from the service (skipping the login) and
+  #     answers a bare "OK" if it succeeds, so the uptime monitor on bombadil
+  #     can see the service without the page's content being exposed.
   #
-  # When proxy = configVars.proxyTypes.authentik:
-  #   - Regular domain: service.domain → caddy → authentik → host:service (SSO authentication)
-  #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses Authentik for monitoring)
+  # authentik/oauth2 send requests through that proxy for login first; oidc
+  # and none go straight to the service, which handles logins itself.
   #
-  # When proxy = configVars.proxyTypes.oauth2:
-  #   - Regular domain: service.domain → caddy → oauth2-proxy → host:service (SSO via OAuth2-proxy)
-  #   - Punch domain: service.punch.domain → caddy → host:service (basic auth, bypasses OAuth2-proxy)
-  #
-  # When proxy = configVars.proxyTypes.oidc or proxy is not set:
-  #   - Both regular and punch domains go directly to service
-  #   - Punch domain adds basic auth for monitoring
-  #   - (OIDC services handle authentication internally)
+  # Every hostname is a single label under homeDomain or domain, so the two
+  # top-level wildcard certs cover all of them. A wildcard matches exactly one
+  # label: "*.domain" does not cover "a.b.domain", which would need its own
+  # certificate, and every certificate's names are published in the public
+  # Certificate Transparency logs. The assertion below keeps it that way.
   simpleServices = [
     # Services on homeDomain
     {
@@ -69,8 +70,6 @@ let
       host = "estel";
       service = "immich-share";
       domain = "homeDomain";
-      certName = "wild-immich";
-      punchCertName = "wild-immich-punch";
     }
     {
       host = "feanor";
@@ -139,16 +138,13 @@ let
       host = "smeagol";
       service = "archerstash";
       domain = "domain";
-      certName = "wild-stash";
-      punchCertName = "wild-stash-punch";
     }
     {
       host = "smeagol";
       service = "archerstashvr";
       domain = "domain";
       proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
-      certName = "wild-stash-vr";
-      punchCertName = "wild-stash-vr-punch";
+      healthCheck = "/"; # stash-vr has no health endpoint
     }
     {
       host = "durin";
@@ -160,8 +156,7 @@ let
       service = "stashvr";
       domain = "domain";
       proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
-      certName = "wild-${configVars.domain}";
-      punchCertName = "wild-${configVars.networking.subdomains.punch}.${configVars.domain}";
+      healthCheck = "/"; # stash-vr has no health endpoint
     }
     {
       host = "smeagol";
@@ -265,7 +260,7 @@ let
     }
   ];
 
-  # Function to generate both regular and punch-through virtual hosts from simple service definitions
+  # Function to generate virtual hosts from simple service definitions
   makeServiceHosts =
     serviceList:
     let
@@ -274,9 +269,8 @@ let
           host,
           service,
           domain,
-          certName ? null,
-          punchCertName ? null,
           proxy ? null,
+          healthCheck ? null,
         }:
         let
           # The actual service host and port
@@ -313,48 +307,47 @@ let
           # Routes through Authentik, OAuth2-proxy, or direct to service based on proxy setting
           regularHost = {
             "${subdomain}.${baseDomain}" = {
-              useACMEHost = if certName == null then "wild-${baseDomain}" else certName;
+              useACMEHost = "wild-${baseDomain}";
               # For oauth2-proxy routes, overwrite X-Forwarded-Uri with the real
               # request URI: oauth2-proxy evaluates skip-auth rules against that
               # header, so a client-supplied value could otherwise bypass login
               # (CVE-2026-40575 / GHSA-7x63-xv5r-3p2x; 7.15.2-7.15.4 still need it).
               extraConfig =
-                if useOAuth2 then
-                  ''
-                    reverse_proxy ${proxyTarget} {
-                      header_up X-Forwarded-Uri {uri}
+                lib.optionalString (healthCheck != null) ''
+                  handle /healthz {
+                    rewrite * ${healthCheck}
+                    reverse_proxy ${serviceHostIp}:${servicePortNum} {
+                      @up status 2xx
+                      handle_response @up {
+                        respond "OK" 200
+                      }
                     }
-                  ''
-                else
-                  ''
-                    reverse_proxy ${proxyTarget}
-                  '';
-            };
-          };
-
-          # Punch-through host configuration
-          # Always goes directly to the service (bypassing SSO proxies) with basic auth
-          punchHost = {
-            "${subdomain}.${configVars.networking.subdomains.punch}.${baseDomain}" = {
-              useACMEHost =
-                if punchCertName == null then
-                  "wild-${configVars.networking.subdomains.punch}.${baseDomain}"
-                else
-                  punchCertName;
-              extraConfig = ''
-                basic_auth {
-                  ${configVars.networking.caddy.basic_auth.punch}
-                }
-                reverse_proxy ${serviceHostIp}:${servicePortNum}
-              '';
+                  }
+                ''
+                + (
+                  if useOAuth2 then
+                    ''
+                      handle {
+                        reverse_proxy ${proxyTarget} {
+                          header_up X-Forwarded-Uri {uri}
+                        }
+                      }
+                    ''
+                  else
+                    ''
+                      handle {
+                        reverse_proxy ${proxyTarget}
+                      }
+                    ''
+                );
             };
           };
         in
-        regularHost // punchHost;
+        regularHost;
     in
     lib.foldl' (acc: service: acc // (makeHost service)) { } serviceList;
 
-  # Generate all simple service hosts (both regular and punch-through)
+  # Generate all simple service hosts
   generatedHosts = makeServiceHosts simpleServices;
 in
 {
@@ -373,6 +366,11 @@ in
       ) simpleServices
     )
   );
+
+  assertions = map (svc: {
+    assertion = !lib.hasInfix "." configVars.networking.subdomains.${svc.service};
+    message = "caddy: subdomain for ${svc.service} has a dot; the wildcard certs only cover one label (see simpleServices).";
+  }) simpleServices;
 
   services.homelab-status-page.localServices = map (svc: svc.service) (
     lib.filter (svc: svc.host == config.networking.hostName) simpleServices
@@ -428,10 +426,14 @@ in
         redir https://${configVars.networking.subdomains.seerr}.${configVars.homeDomain}{uri}
       '';
     };
-    "requests.${configVars.networking.subdomains.punch}.${configVars.homeDomain}" = {
-      useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
+    # Legacy: Immich share links sent before 2026-10-06 used
+    # share.<immich>.<homeDomain>. Kept so those links keep working; the
+    # "wild-immich" cert below exists only for this. Drop both once old
+    # links no longer matter.
+    "share.${configVars.networking.subdomains.immich}.${configVars.homeDomain}" = {
+      useACMEHost = "wild-immich";
       extraConfig = ''
-        redir https://${configVars.networking.subdomains.seerr}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}{uri}
+        redir https://${configVars.networking.subdomains.immich-share}.${configVars.homeDomain}{uri} permanent
       '';
     };
 
@@ -459,27 +461,6 @@ in
         }
       '';
     };
-
-    # Punch-through version of authentik (with basic auth for monitoring)
-    "${configVars.networking.subdomains.authentik}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}" =
-      {
-        useACMEHost = "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
-        extraConfig = ''
-          basic_auth {
-            ${configVars.networking.caddy.basic_auth.punch}
-          }
-          @websockets {
-            header Connection *Upgrade*
-            header Upgrade websocket
-          }
-          reverse_proxy @websockets ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-          reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik} {
-            header_up Host {host}
-            header_up X-Real-IP {remote_host}
-            header_up X-Forwarded-Proto {scheme}
-          }
-        '';
-      };
 
     # Kanidm SSO server - hosted on feanor, proxied from estel over the LAN.
     # Uses wildcard cert so sso.<homeDomain> never appears in CT logs.
@@ -525,38 +506,9 @@ in
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
+    # Only for the legacy share-link redirect above.
     "wild-immich" = {
       domain = "*.${configVars.networking.subdomains.immich}.${configVars.homeDomain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-immich-punch" = {
-      domain = "*.${configVars.networking.subdomains.immich}.${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-stash" = {
-      domain = "*.${configVars.networking.subdomains.stash}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-stash-punch" = {
-      domain = "*.${configVars.networking.subdomains.stash}.${configVars.networking.subdomains.punch}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-stash-vr" = {
-      domain = "*.${configVars.networking.subdomains.stashvr}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-stash-vr-punch" = {
-      domain = "*.${configVars.networking.subdomains.stashvr}.${configVars.networking.subdomains.punch}.${configVars.domain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
@@ -564,18 +516,6 @@ in
     "wild-${configVars.homeDomain}" = {
       domain = "*.${configVars.homeDomain}";
       extraDomainNames = [ configVars.homeDomain ];
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-${configVars.networking.subdomains.punch}.${configVars.domain}" = {
-      domain = "*.${configVars.networking.subdomains.punch}.${configVars.domain}";
-      group = "caddy";
-      dnsProvider = "porkbun";
-      environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
-    };
-    "wild-${configVars.networking.subdomains.punch}.${configVars.homeDomain}" = {
-      domain = "*.${configVars.networking.subdomains.punch}.${configVars.homeDomain}";
       group = "caddy";
       dnsProvider = "porkbun";
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;

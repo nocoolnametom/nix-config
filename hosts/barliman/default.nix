@@ -43,11 +43,13 @@
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
+    "hosts/common/optional/amd-unified-memory.nix" # GPU memory limit (option set below)
     "hosts/common/optional/amdgpu_top.nix"
     "hosts/common/optional/cross-compiling.nix"
     "hosts/common/optional/nvtop.nix"
     "hosts/common/optional/bluetooth.nix"
     "hosts/common/optional/foreign-binaries.nix"
+    "hosts/common/optional/llama-cpp.nix" # llama.cpp CLI tools (Vulkan)
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
@@ -73,12 +75,17 @@
   services.open-webui.package = pkgs.open-webui;
   services.ollama.package = pkgs.ollama-rocm;
   services.ollama.models = "/var/lib/ai-models/ollama";
-  services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
-  services.ollama.environmentVariables.OLLAMA_GPU_OVERHEAD = "1";
-  services.ollama.environmentVariables.HCC_AMDGPU_TARGET = "gfx1151";
+  # Removed 2026-10-06 as no-ops: OLLAMA_LLAMA_GPU_LAYERS (not an Ollama
+  # variable; Ollama already offloads every layer that fits), OLLAMA_GPU_OVERHEAD="1"
+  # (1 byte, same as the default), HCC_AMDGPU_TARGET (a build-time setting), and
+  # serviceConfig.UnsetEnvironment (discarded by the lib.mkForce in ollama.nix).
   services.ollama.environmentVariables.LD_LIBRARY_PATH = "/run/current-system/sw/lib";
   services.ollama.rocmOverrideGfx = "11.5.1";
-  systemd.services.ollama.serviceConfig.UnsetEnvironment = "HIP_VISIBLE_DEVICES ROCR_VISIBLE_DEVICES";
+
+  # Let the iGPU borrow most of system RAM. ONLY enable this together with
+  # setting the BIOS iGPU memory (UMA frame buffer) to its minimum - see
+  # hosts/common/optional/amd-unified-memory.nix for the reasoning.
+  hardware.amdUnifiedMemory.gpuMemoryGiB = 52;
 
   # Bluetooth - Framework Desktop extras (base settings from bluetooth.nix)
   hardware.bluetooth.settings.General.Experimental = true;

@@ -14,11 +14,18 @@
     lib.attrByPath [ config.networking.hostName ] [ ] pkgs.my-sd-models.machineLLMs
   );
   services.ollama.environmentVariables.OLLAMA_KEEP_ALIVE = "900";
-  services.ollama.environmentVariables.OLLAMA_LLAMA_GPU_LAYERS = "100";
-  # The existing systemd job is SO tightened down that it can't read the WSL drivers AT ALL
+  # Flash attention is required for a quantized KV cache. q8_0 roughly halves
+  # the memory each token of context costs versus the f16 default, with
+  # negligible quality loss, so longer contexts (or bigger models) fit.
+  services.ollama.environmentVariables.OLLAMA_FLASH_ATTENTION = lib.mkDefault "1";
+  services.ollama.environmentVariables.OLLAMA_KV_CACHE_TYPE = lib.mkDefault "q8_0";
+  # The upstream unit's sandboxing originally blocked access to the WSL GPU
+  # drivers, so it's replaced wholesale. That also discards any other
+  # serviceConfig a host sets, so ExecStart must honor services.ollama.package
+  # itself rather than hardcoding pkgs.ollama.
   systemd.services.ollama.serviceConfig = lib.mkForce {
     Type = "exec";
-    ExecStart = "${pkgs.ollama}/bin/ollama serve";
+    ExecStart = "${config.services.ollama.package}/bin/ollama serve";
     WorkingDirectory = "/var/lib/ollama";
   };
   systemd.tmpfiles.rules = [

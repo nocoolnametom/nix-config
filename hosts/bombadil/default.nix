@@ -42,6 +42,7 @@ in
     "hosts/common/optional/services/haproxy-sni-router.nix"
     "hosts/common/optional/services/ntfy-sh.nix"
     "hosts/common/optional/services/openssh.nix"
+    "hosts/common/optional/homelab-jump-host.nix"
     "hosts/common/optional/services/mastodon.nix"
     "hosts/common/optional/services/mormonsites.nix"
     "hosts/common/optional/services/postgresql.nix"

@@ -34,7 +34,7 @@ Tom Doggett's NixOS/Nix-Darwin flake configuration for managing multiple machine
 | Machine | GUI | Power | RAM | Best For |
 |---------|-----|-------|-----|----------|
 | pangolin11 | ✓ | High | 32GB | Primary dev, testing new features |
-| barliman | ✓ | High | 32GB | Testbed, gaming |
+| barliman | ✓ | High | 64GB (unified; GPU borrows up to 52GB) | Testbed, gaming, local LLMs |
 | smeagol | ✓ | High | 32GB | GPU/AI workloads, Docker |
 | durin | ✗ | Low | 8GB | Lightweight services |
 | estel | ✗ | Med | 16GB | Media, 24/7 automation |
