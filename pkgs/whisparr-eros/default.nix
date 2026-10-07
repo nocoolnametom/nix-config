@@ -29,8 +29,8 @@
 }:
 
 let
-  pkgVersion = "3.5.0";
-  pkgBuild = "1585";
+  pkgVersion = "3.6.2";
+  pkgBuild = "1727";
   version = "${pkgVersion}.${pkgBuild}";
 
   # Upstream tags and release assets carry the build channel as an infix, e.g.
@@ -40,19 +40,19 @@ let
   platforms = {
     aarch64-darwin = {
       name = "osx-arm64";
-      hash = "sha256-J/r5MNuPUSah7LvnhYuC7wJCK3udF94+GI68VmBXpXE=";
+      hash = "sha256-0VW+/TGOG+rEXjyJ2AZoaTdPefymg1AaocZ7kRLE9Fk=";
     };
     aarch64-linux = {
       name = "linux-arm64";
-      hash = "sha256-ijhKAZwQcRkyVeaF9fVX1fOp5fxKlsWxDKp0Tt23A8w=";
+      hash = "sha256-Fbyo8g/UGFw3deJnR98pPiMukFCeds/R0jvPTb/o1CQ=";
     };
     x86_64-darwin = {
       name = "osx-x64";
-      hash = "sha256-3ujmQIVBYWyRgtfueDmF28wRwK5p5m7kASmUSQ8RzuM=";
+      hash = "sha256-FcCkWQT3FJ0gflWwvsfemSIokFaWiwnINEpUscy2W88=";
     };
     x86_64-linux = {
       name = "linux-x64";
-      hash = "sha256-TCk8wXMqeHO8rklcoWuxEsXGCT53x0lUXh2i0YCdpr0=";
+      hash = "sha256-6MZ0j1ljMhMr+J0ABs/pVRTN+QPlrGCQOPZOtBLHK8A=";
     };
   };
 

@@ -120,6 +120,12 @@ in
   services.stash.vr-helper.hosts.external.port = configVars.networking.ports.tcp.stashvr;
 
   # Stash library paths configuration
+  #
+  # NOTE: the upstream module's ExecStartPre only writes /var/lib/stash/config.yml
+  # when that file does not already exist, so edits here are silently ignored on a
+  # host where Stash has already run. After changing this list, also apply it at
+  # runtime with the `configureGeneral` GraphQL mutation (it replaces the whole
+  # list, and uses camelCase excludeVideo/excludeImage).
   services.stash.settings.stash =
     let
       regularPaths = paths: map (path: { inherit path; }) paths;
@@ -144,6 +150,9 @@ in
     ])
     ++ (videoOnlyPaths [
       "${stashPath}/library/anime"
+      # Whisparr-Eros owns this directory: it imports and lays out scenes here
+      # itself, so Stash should scan it but never reorganize it.
+      "${stashPath}/library/scenes"
       "${stashPath}/library/unorganized"
       "${stashPath}/library/videos"
       "${stashPath}/library/vr"
@@ -221,6 +230,14 @@ in
     "d /arkenstone/nzbget/dest 2775 nzbget media -"
     "d /arkenstone/nzbget/nzb 2775 nzbget media -"
     "d /arkenstone/nzbget/scripts 2775 nzbget media -"
+    # Landing dir for the "schematics" NZBGet category, which Whisparr-Eros
+    # imports from. Deliberately outside the Stash library so Stash doesn't
+    # index the raw download before Eros has organised it.
+    "d /arkenstone/nzbget/dest/schematics 2775 nzbget media -"
+    # Whisparr-Eros root folder and recycle bin. The recycle bin lives outside
+    # the Stash library so deleted scenes aren't re-scanned as new content.
+    "d /arkenstone/stash/library/scenes 2775 whisparr-eros media -"
+    "d /arkenstone/whisparr-eros/recyclebin 2775 whisparr-eros media -"
     # Add any other download/media directories that need shared access
   ];
 
