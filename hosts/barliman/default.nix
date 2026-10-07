@@ -44,6 +44,8 @@
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/services/work-block.nix"
+    "hosts/common/optional/home-wifi.nix" # Declarative home Wi-Fi profile (secrets from nix-secrets)
+    "hosts/common/optional/wifi-watchdog.nix" # Reconnect Wi-Fi (no Ethernet here); options set below
     "hosts/common/optional/amd-unified-memory.nix" # GPU memory limit (option set below)
     "hosts/common/optional/amdgpu_top.nix"
     "hosts/common/optional/cross-compiling.nix"
@@ -121,6 +123,17 @@
     enableIPv6 = true;
     firewall.enable = true;
     firewall.allowPing = true;
+  };
+
+  # barliman has no Ethernet cable, so a dropped Wi-Fi link means it is
+  # unreachable. Its MediaTek MT7925 card is known to drop and stay down on
+  # Linux; turn off its PCIe power saving and let the watchdog recover it.
+  networking.wifiWatchdog = {
+    driverModule = "mt7925e";
+    disableDriverAspm = true;
+    # With no country set, the card keeps trying the router's 6 GHz access
+    # points, fails, and resets its firmware (hundreds of times per boot)
+    regulatoryDomain = "US";
   };
 
   # Prevent network disruption during system rebuilds
