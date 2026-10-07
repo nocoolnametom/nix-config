@@ -63,6 +63,8 @@ in
           # 0 = retry forever. The default gives up after 4 failed attempts,
           # which leaves a Wi-Fi-only machine offline until someone intervenes.
           autoconnect-retries = 0;
+          # Beat any hand-made profile for the same network (their default is 0)
+          autoconnect-priority = 10;
         };
         wifi = {
           mode = "infrastructure";

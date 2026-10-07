@@ -134,7 +134,15 @@
     # With no country set, the card keeps trying the router's 6 GHz access
     # points, fails, and resets its firmware (hundreds of times per boot)
     regulatoryDomain = "US";
+    # This box serves externally reachable UIs, so recover sooner: two
+    # reconnect tries (checks 2 and 3), then reload the driver at check 4
+    driverReloadAfter = 4;
   };
+
+  # Stay on 5 GHz. Even with the country set, every connection roamed to
+  # 6 GHz and the first login there went unanswered (up to minutes offline).
+  # An LLM box doesn't need 6 GHz bandwidth; staying up matters more.
+  networking.homeWifi.band = "a";
 
   # Prevent network disruption during system rebuilds
   systemd.services.NetworkManager.restartIfChanged = false;

@@ -168,6 +168,27 @@ in
       };
     };
 
+    # homebrew.onActivation.upgrade can replace brew's openssh during a
+    # rebuild, but the agent's launchd plist doesn't change, so launchd keeps
+    # the old agent running. That agent then can't use the YubiKey ("agent
+    # refused operation"): FIDO keys go through ssh-sk-helper, which it looks
+    # for in the old version's Cellar directory, now deleted. Restart the agent
+    # when its program is no longer the installed one. Keys come back on next
+    # use (AddKeysToAgent). postActivation runs after the homebrew step.
+    system.activationScripts.postActivation.text = ''
+      ssh_agent_uid=$(/usr/bin/id -u ${configVars.username})
+      ssh_agent_label="gui/$ssh_agent_uid/com.homebrew.ssh-agent"
+      ssh_agent_pid=$(/bin/launchctl print "$ssh_agent_label" 2>/dev/null | /usr/bin/awk '$1 == "pid" { print $3; exit }' || true)
+      if [ -n "$ssh_agent_pid" ]; then
+        ssh_agent_running=$(/usr/sbin/lsof -a -p "$ssh_agent_pid" -d txt -Fn 2>/dev/null | /usr/bin/sed -n 's/^n//p' | /usr/bin/grep '/bin/ssh-agent$' | /usr/bin/head -n 1 || true)
+        ssh_agent_installed=$(/bin/realpath ${config.homebrew.prefix}/bin/ssh-agent 2>/dev/null || true)
+        if [ -n "$ssh_agent_installed" ] && [ "$ssh_agent_running" != "$ssh_agent_installed" ]; then
+          echo "restarting ssh-agent (running: ''${ssh_agent_running:-unknown}, installed: $ssh_agent_installed)..." >&2
+          /bin/launchctl kickstart -k "$ssh_agent_label" || true
+        fi
+      fi
+    '';
+
     environment.variables.SSH_ASKPASS = "${config.homebrew.prefix}/bin/ssh-askpass";
     environment.variables.DISPLAY = ":0";
   };

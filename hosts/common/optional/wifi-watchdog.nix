@@ -74,7 +74,9 @@ let
         sleep 5
         # An explicit "connect" also clears NetworkManager's autoconnect block,
         # which otherwise stays in place after its retries run out
-        nmcli --wait 30 device connect "$wifi_device" || true
+        # A slow login can take most of a minute; a shorter wait reports
+        # failure for attempts that go on to succeed
+        nmcli --wait 60 device connect "$wifi_device" || true
       fi
     '';
   };
@@ -159,6 +161,9 @@ in
       serviceConfig = {
         Type = "oneshot";
         ExecStart = lib.getExe watchdogScript;
+        # A reconnect run can take ~75s (ping + rescan + 60s wait); the 90s
+        # default would kill it partway through on a bad day
+        TimeoutStartSec = "3min";
       };
     };
 
