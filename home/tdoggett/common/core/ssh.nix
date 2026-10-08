@@ -128,6 +128,12 @@ in
         Port = configVars.networking.ports.tcp.localSsh;
         IdentityFile = identityFilePaths;
       };
+      "feanor" = {
+        header = "Host ${configVars.networking.subnets.feanor.name} ${configVars.networking.subnets.feanor.name}.${configVars.homeDomain}";
+        HostName = configVars.networking.subnets.feanor.ip;
+        Port = configVars.networking.ports.tcp.localSsh;
+        IdentityFile = identityFilePaths;
+      };
     };
 
   };
