@@ -36,9 +36,13 @@ in
       OIDC_SIGNUP_ENABLED = "true";
       OIDC_AUTO_REDIRECT = "true";
       OIDC_REMEMBER_ME = "true";
-      OPENAI_BASE_URL = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}/v1";
+      # barliman's Ollama (smeagol stopped running Ollama in 2026-08). "_qwen3.5"
+      # is the abliterated Qwen3.5-35B-A3B that Hermes keeps loaded, so this
+      # shares it instead of loading another model. The OpenAI-style endpoint
+      # doesn't send a context size, so the loaded one is reused as is.
+      OPENAI_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}/v1";
       OPENAI_API_KEY = "1234567890123456"; # Ollama doesn't care about api keys
-      OPENAI_MODEL = "llama3.2:latest";
+      OPENAI_MODEL = "_qwen3.5";
       OPENAI_ENABLE_IMAGE_SERVICES = "false";
       OPENAI_REQUEST_TIMEOUT = "180";
     }

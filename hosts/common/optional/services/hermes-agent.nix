@@ -67,8 +67,10 @@ in
       provider = "custom";
       base_url = "http://127.0.0.1:${toString ollamaPort}/v1";
       # MoE 35B / 3B active; tools + vision + thinking, so images sent from
-      # Conduit work too
-      default = "qwen3.5:35b";
+      # Conduit work too. "_qwen3.5" is barliman's name for the abliterated
+      # build (huihui_ai/qwen3.5-abliterated:35b), set up by ollama.nix from
+      # my-sd-models' machineLLMs/barliman.nix
+      default = "_qwen3.5";
       context_length = contextLength;
     };
 

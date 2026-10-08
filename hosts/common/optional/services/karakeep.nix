@@ -69,8 +69,18 @@ in
   # Lets an OIDC login attach to the existing account with the same email,
   # which is how accounts survive a change of identity provider.
   services.karakeep.extraEnvironment.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING = "true";
-  services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.smeagol.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}";
-  services.karakeep.extraEnvironment.OLLAMA_KEEP_ALIVE = "5m";
-  services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = "llama3.2:latest";
+  # AI tagging and summaries run on barliman's Ollama (smeagol stopped running
+  # Ollama in 2026-08). "_qwen3.5" is barliman's name for the abliterated
+  # Qwen3.5-35B-A3B (my-sd-models' machineLLMs/barliman.nix). Hermes keeps it
+  # loaded, so sharing it costs no extra memory and handles images too.
+  services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}";
+  services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = "_qwen3.5";
+  services.karakeep.extraEnvironment.INFERENCE_IMAGE_MODEL = "_qwen3.5";
+  # Karakeep sends this as Ollama's num_ctx. Any value other than the size the
+  # model is already loaded with (barliman's OLLAMA_CONTEXT_LENGTH, ollama.nix)
+  # makes Ollama reload it, which drops Hermes's cached conversation; keep the two equal.
+  services.karakeep.extraEnvironment.INFERENCE_CONTEXT_LENGTH = "196608";
+  # No OLLAMA_KEEP_ALIVE: each request resets the model's idle timer to the
+  # value it sends, so a short one here would unload the shared model early.
   services.karakeep.extraEnvironment.INFERENCE_ENABLE_AUTO_SUMMARIZATION = "true";
 }

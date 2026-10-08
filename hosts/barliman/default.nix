@@ -61,6 +61,11 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # barliman's Ollama lists these models under "_" names (my-sd-models'
+  # machineLLMs/barliman.nix); the original names are removed after copying
+  programs.image-prompt-loop.captionModel = "_llama-joycaption-beta-one-hf-llava";
+  programs.image-prompt-loop.criticModel = "_qwen3-vl";
+
   # Native OIDC login through Kanidm (Authentik retires with cirdan).
   services.ssoProvider.openwebui = "kanidm-oidc";
 

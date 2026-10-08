@@ -4,12 +4,17 @@ Local, self-correcting image generation. It renders a prompt on ComfyUI or
 InvokeAI, shows the result to a vision model running in Ollama, and lets that
 model list what's wrong and rewrite the prompt. Then it renders again.
 
-The models are set in `my-sd-models/machineLLMs/barliman.nix`:
+It uses two Ollama models:
 
-- `qwen3-vl:30b-a3b-instruct` reviews images and rewrites prompts (the critic)
-- `aha2025/llama-joycaption-beta-one-hf-llava:Q6_K` turns an image into a prompt
+- a critic that reviews images and rewrites prompts: Qwen3-VL 30B-A3B Instruct
+  (`--critic-model`, default `qwen3-vl:30b-a3b-instruct`)
+- a captioner that turns an image into a prompt: JoyCaption Beta One
+  (`--caption-model`, default `aha2025/llama-joycaption-beta-one-hf-llava:Q6_K`)
 
-Server URLs come from `hosts/common/optional/image-prompt-loop.nix`, through
+barliman downloads them through `my-sd-models/machineLLMs/barliman.nix`, which
+can list them under other names (e.g. `_qwen3-vl`). Those names, and the server
+URLs, are set in `hosts/common/optional/image-prompt-loop.nix` (the
+`programs.image-prompt-loop.*` options), which passes them on through
 `IMAGE_PROMPT_LOOP_*` environment variables. Command-line flags override them.
 
 ## Image to prompt

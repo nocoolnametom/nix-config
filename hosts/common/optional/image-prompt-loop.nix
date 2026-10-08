@@ -30,6 +30,18 @@ in
       default = "http://${smeagolLan}:${toString configVars.networking.ports.tcp.invokeai}";
       description = "InvokeAI server used by `refine --backend invokeai`.";
     };
+    # Defaults match the script's own. Set these when the Ollama server lists the
+    # models under other names (services.ollama.namedModels in ollama.nix).
+    captionModel = lib.mkOption {
+      type = lib.types.str;
+      default = "aha2025/llama-joycaption-beta-one-hf-llava:Q6_K";
+      description = "Ollama model that writes the first prompt from a reference image.";
+    };
+    criticModel = lib.mkOption {
+      type = lib.types.str;
+      default = "qwen3-vl:30b-a3b-instruct";
+      description = "Ollama vision model that reviews each image and rewrites the prompt.";
+    };
   };
 
   config = {
@@ -38,6 +50,8 @@ in
       IMAGE_PROMPT_LOOP_OLLAMA_URL = cfg.ollamaUrl;
       IMAGE_PROMPT_LOOP_COMFYUI_URL = cfg.comfyuiUrl;
       IMAGE_PROMPT_LOOP_INVOKEAI_URL = cfg.invokeaiUrl;
+      IMAGE_PROMPT_LOOP_CAPTION_MODEL = cfg.captionModel;
+      IMAGE_PROMPT_LOOP_CRITIC_MODEL = cfg.criticModel;
     };
   };
 }
