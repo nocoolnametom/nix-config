@@ -94,63 +94,6 @@ in
       rm -f /arkenstone/nzbget/scripts/nzbToStashApp.sh && ln -s ${nzbToStashApp}/bin/nzbToStashApp.sh /arkenstone/nzbget/scripts/nzbToStashApp.sh;
     '';
 
-  # @TODO: Check if the NZBget timers are working, if so we can get rid of this refresh timer
-  systemd.timers.nzbget-morning-refresh = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "*-*-* 06:45:00";
-      Unit = "nzbget-morning-refresh.service";
-    };
-  };
-  systemd.services.nzbget-morning-refresh = {
-    script = "systemctl restart nzbget.service";
-    serviceConfig = {
-      Type = "oneshot";
-    };
-  };
-  systemd.timers.stash-morning-software-update = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "*-*-* 06:55:00";
-      Unit = "stash-morning-software-update.service";
-    };
-  };
-  systemd.timers.stash-morning-unknown-update = {
-    wantedBy = [ "timers.target" ];
-    timerConfig = {
-      OnCalendar = "*-*-* 06:56:00";
-      Unit = "stash-morning-unknown-update.service";
-    };
-  };
-  systemd.services.stash-morning-software-update = {
-    environment = {
-      NZBPO_STASHHOST = "127.0.0.1";
-      NZBPO_STASHPORT = "9999";
-    };
-    script = "${
-      updateStashScript config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path [
-        "/arkenstone/stash/library/unorganized/"
-      ]
-    }/bin/updateStash.sh";
-    serviceConfig = {
-      Type = "oneshot";
-    };
-  };
-  systemd.services.stash-morning-unknown-update = {
-    environment = {
-      NZBPO_STASHHOST = "127.0.0.1";
-      NZBPO_STASHPORT = "9999";
-    };
-    script = "${
-      updateStashScript config.sops.secrets."${stashApiKeySecretName}-for-nzbget".path [
-        "/arkenstone/stash/library/needswork"
-      ]
-    }/bin/updateStash.sh";
-    serviceConfig = {
-      Type = "oneshot";
-    };
-  };
-
   # Ensure the nzbget user is in the shared media group
   users.groups.media = { };
   users.users.nzbget.extraGroups = [ "media" ];

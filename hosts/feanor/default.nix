@@ -95,6 +95,7 @@ in
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/foreign-binaries.nix"
 
     #################### Users to Create ####################
@@ -357,6 +358,7 @@ in
     "immich-machine-learning"
     "immich-server"
     "jellyfin"
+    "jellyfin-backup"
     "postgresql"
     "smartd"
   ];
@@ -431,6 +433,7 @@ in
       "rclone-offsite.service"
       "btrfs-scrub-silmaril.service"
       "postgresqlBackup-podfetch.service"
+      "jellyfin-backup.service"
       "cirdan-sync.service"
     ];
   };

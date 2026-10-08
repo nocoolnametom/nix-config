@@ -238,6 +238,8 @@ in
     # the Stash library so deleted scenes aren't re-scanned as new content.
     "d /arkenstone/stash/library/scenes 2775 whisparr-eros media -"
     "d /arkenstone/whisparr-eros/recyclebin 2775 whisparr-eros media -"
+    # StashApp needs write access to delete files in the stash library
+    "d /arkenstone/stash/library/scenes 2775 tdoggett media -"
     # Add any other download/media directories that need shared access
   ];
 

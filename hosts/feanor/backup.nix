@@ -57,11 +57,74 @@ in
     startAt = "*-*-* 01:30:00"; # before borg's daily run
   };
 
+  # Jellyfin is the one database here with no scheduled backup of its own, so
+  # this drives its backup API (12.x) nightly. The archive it writes is a
+  # logical dump - JSON per table, plus Config/ and the library Root/ - and is
+  # restorable from Dashboard > Backups or POST /Backup/Restore. Same rule as
+  # every other database on this host: borg holds the dump, never the live
+  # jellyfin.db, which is 300 MB of mid-write SQLite that may not restore.
+  #
+  # Media artefacts (Metadata, Trickplay, Subtitles) are left out: they are
+  # tens of GB and Jellyfin regenerates them. Plugin settings are not in the
+  # archive at all, so plugins/configurations is backed up directly below.
+  #
+  # The API needs a token and Jellyfin keeps its own in jellyfin.db, so the
+  # key is read from there rather than duplicated into nix-secrets. The key
+  # named "Automated Backup" (Dashboard > API Keys, created 2026-10-09) is
+  # preferred; delete it and the oldest key is used instead. With no keys at
+  # all this fails loudly - the unit is in systemd-failure-alert, see
+  # hosts/feanor/default.nix.
+  systemd.services.jellyfin-backup = {
+    description = "Nightly Jellyfin backup archive";
+    after = [ "jellyfin.service" ];
+    requires = [ "jellyfin.service" ];
+    # 30 minutes ahead of borg's daily 00:00 run, so each archive is picked up
+    # the same night it is taken.
+    startAt = "*-*-* 23:30:00";
+    path = [
+      pkgs.curl
+      pkgs.sqlite.bin
+    ];
+    serviceConfig = {
+      Type = "oneshot";
+      IOWeight = 30;
+      Nice = 15;
+    };
+    script = ''
+      set -euo pipefail
+      dir=/var/lib/jellyfin/data/backups
+
+      token=$(sqlite3 "file:/var/lib/jellyfin/data/jellyfin.db?mode=ro" \
+        "select AccessToken from ApiKeys order by Name <> 'Automated Backup', Id limit 1")
+      if [ -z "$token" ]; then
+        echo "no Jellyfin API key found; create one in Dashboard > API Keys" >&2
+        exit 1
+      fi
+
+      # 8096 is hardcoded by the Jellyfin module, not an option - see the note
+      # in hosts/common/optional/services/jellyfin.nix.
+      curl -fsS --max-time 1800 -X POST \
+        -H "Authorization: MediaBrowser Token=$token" \
+        -H "Content-Type: application/json" \
+        -d '{"Database":true,"Metadata":false,"Trickplay":false,"Subtitles":false}' \
+        http://127.0.0.1:8096/Backup/Create >/dev/null
+
+      # Keep a week on disk; borg's prune.keep below is the real history.
+      ls -1t "$dir"/jellyfin-backup-*.zip | tail -n +8 | xargs -r rm -f
+    '';
+  };
+
   services.borgbackup.jobs.local = {
     paths = [
       "${pool}/syncthing/Sync/Library/Calibre/Library"
       "${pool}/netbackup" # FamilyBackup etc.; Seedvault is excluded below
-      "${pool}/jellyfin/Backups"
+
+      # NOTE: ${pool}/jellyfin/Backups was backed up here until 2026-10-09. It
+      # is the Playback Reporting plugin's export directory, and that plugin
+      # was uninstalled 2026-10-05, so it holds nothing newer than a TSV from
+      # 2026-09-13. Jellyfin's real state is covered by jellyfin-backup above.
+      # The files are still on disk, and in archives until they age out of
+      # prune.keep - move them somewhere live if that history is wanted.
 
       # Immich originals, under services.immich.mediaLocation (default.nix).
       # backups/ holds Immich's own nightly database dumps.
@@ -81,6 +144,13 @@ in
       # Nightly pg_dump of databases without their own dump job (see
       # services.postgresqlBackup below). Immich dumps itself into upload/backups.
       config.services.postgresqlBackup.location
+
+      # Jellyfin's nightly archives (jellyfin-backup above): users and their
+      # permissions, watch state, collections, playlists, library definitions.
+      "/var/lib/jellyfin/data/backups"
+      # Plugin settings are not in those archives, and they are where the SSO
+      # providers, metadata providers and Intro Skipper config live.
+      "/var/lib/jellyfin/plugins/configurations"
 
       # Small app state that lives only on this host:
       "/var/lib/autocaliweb/config" # app.db (users, shelves, progress), acw.db
