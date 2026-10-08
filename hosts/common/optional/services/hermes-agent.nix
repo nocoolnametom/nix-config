@@ -102,11 +102,21 @@ in
     environmentFiles = [ config.sops.templates."hermes-agent.env".path ];
   };
 
-  # Ollama has to actually serve the window Hermes is told about. This beats the
-  # 32K default in ollama.nix; a host can still lib.mkForce its own value.
-  services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH = lib.mkIf config.services.ollama.enable (
-    toString contextLength
-  );
+  # Ollama has to actually serve the window Hermes is told about. This only
+  # checks the value instead of setting it, so ollama.nix (or the host) stays the
+  # one place that picks the context size. It must be set explicitly: when it's
+  # unset, Ollama picks 4K, 32K or 256K depending on how much GPU memory it sees.
+  assertions = lib.optional config.services.ollama.enable {
+    assertion =
+      lib.toInt (config.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "0")
+      >= contextLength;
+    message = ''
+      hermes-agent needs services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH
+      set to at least ${toString contextLength} (currently ${
+        config.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "unset"
+      }).
+    '';
+  };
 
   networking.firewall.allowedTCPPorts = [
     apiPort

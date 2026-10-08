@@ -97,8 +97,10 @@
   # Two slots per loaded model, so Open WebUI's background requests (titles,
   # tags, follow-up suggestions) run in their own slot. They don't queue behind
   # the chat or overwrite its cached history, which would force the next prompt
-  # to re-read the whole conversation. Costs one extra KV cache per model
-  # (~2.7 GiB for a 24B model at 32k context).
+  # to re-read the whole conversation, which takes minutes at long context
+  # (~300 tokens/s). It also lets an agent and a chat use the same model at
+  # once. Costs one extra KV cache per model, the full context size each: at
+  # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
   services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
 
   # Bluetooth - Framework Desktop extras (base settings from bluetooth.nix)
