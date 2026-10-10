@@ -6,7 +6,12 @@
 }:
 let
   # Authentik proxy host (change here if Authentik moves to a different machine)
-  authentikHost = "cirdan";
+  # Moved off cirdan 2026-10-10 as part of retiring that NAS. Authentik now runs
+  # as a plain-Docker stack in /silmaril/authentik on feanor (postgres 16 +
+  # redis + server/worker, restored from a pg_dump of cirdan's database); it is
+  # deliberately not an arion/Nix service because it is a staging step toward
+  # dropping Authentik for Kanidm entirely.
+  authentikHost = "feanor";
 
   # Simple service definitions - just the essentials!
   # Each one becomes a Caddy virtual host

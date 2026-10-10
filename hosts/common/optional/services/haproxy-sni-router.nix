@@ -65,6 +65,13 @@ in
           acl is_fmd_home     hdr(host) -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
           acl is_devices_home hdr(host) -i devices.${configVars.homeDomain}
           acl is_ntfy_home    hdr(host) -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
+          # Uptime Kuma runs here on the VPS deliberately: a status page hosted at
+          # home goes dark exactly when home does. Without this ACL the name fell
+          # through to estel, which has no vhost for it (empty 200) - and, worse,
+          # estel also answered the ACME http-01 challenge, so bombadil's cert for
+          # this name last renewed 2026-01-25 while fmd/devices/push (which do have
+          # ACLs) kept renewing fine.
+          acl is_status_home  hdr(host) -i ${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}
 
           # Route friend domains to local nginx
           use_backend bombadil_http if is_exmormon_social
@@ -81,6 +88,7 @@ in
           use_backend bombadil_http if is_fmd_home
           use_backend bombadil_http if is_devices_home
           use_backend bombadil_http if is_ntfy_home
+          use_backend bombadil_http if is_status_home
 
           # All other traffic goes to homelab (estel)
           default_backend homelab_http
@@ -113,6 +121,8 @@ in
           acl is_fmd_home     req_ssl_sni -i ${configVars.networking.subdomains.fmd}.${configVars.homeDomain}
           acl is_devices_home req_ssl_sni -i devices.${configVars.homeDomain}
           acl is_ntfy_home    req_ssl_sni -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
+          # See the matching note in http_frontend above.
+          acl is_status_home  req_ssl_sni -i ${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}
 
           # Route friend domains to local nginx
           use_backend bombadil_https if is_exmormon_social
@@ -129,6 +139,7 @@ in
           use_backend bombadil_https if is_fmd_home
           use_backend bombadil_https if is_devices_home
           use_backend bombadil_https if is_ntfy_home
+          use_backend bombadil_https if is_status_home
 
           # All other traffic goes to homelab (estel)
           default_backend homelab_https
