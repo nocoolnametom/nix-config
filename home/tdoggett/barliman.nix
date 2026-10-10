@@ -31,10 +31,25 @@
     inputs.hermes-agent.homeManagerModules.default
   ];
 
-  # Define the hermeswebui secret for home-manager sops-nix
+  # Hermes needs the same two secrets the retired system-level service used
+  # (hosts/common/optional/services/hermes-agent.nix, kept for reference).
+  sops.secrets."homelab/hermes/api-server-key" = {
+    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
+  };
   sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret" = {
     sopsFile = "${inputs.nix-secrets}/secrets.yaml";
   };
+
+  # These have to arrive as values, not paths, and they have to reach the
+  # systemd *user* units. home.sessionVariables does neither: it only exports
+  # into interactive shells, so hermes-backend never saw the client secret and
+  # came up with no auth provider at all.
+  sops.templates."hermes-agent.env".content = ''
+    API_SERVER_KEY=${config.sops.placeholder."homelab/hermes/api-server-key"}
+    HERMES_DASHBOARD_OIDC_CLIENT_SECRET=${
+      config.sops.placeholder."homelab/kanidm/oidc/hermeswebui/client-secret"
+    }
+  '';
 
   # Hermes Agent configuration - runs under tdoggett user via home-manager
   services.hermes-agent = {
@@ -48,13 +63,41 @@
     # Hermes is primarily a coding tool - code generation, refactoring, debugging
     settings.model.default = "ollama/${pkgs.my-sd-models.machinePrimaryLLMs.barliman.coding}";
 
-    # The hermeswebui client secret is provided by the system-level sops config
-    # In home-manager, we reference it differently
-  };
+    # Web dashboard. The module defaults to mode "none" on 127.0.0.1:9119, and
+    # upstream only starts the dashboard's authentication gate for a
+    # *non-loopback* bind - so the loopback default silently produced a
+    # dashboard with auth_required=false and no providers, on a port estel's
+    # Caddy does not proxy. Bind the LAN address on the hermeswebui port.
+    backend = {
+      mode = "dashboard";
+      host = "0.0.0.0";
+      port = configVars.networking.ports.tcp.hermeswebui;
+    };
+    settings.dashboard = {
+      # Builds the OIDC callback (<public_url>/auth/callback) and is the only
+      # Host header the DNS-rebinding guard accepts besides the bind address,
+      # which is why proxying from estel needs both of these set.
+      public_url = "https://${configVars.networking.subdomains.hermeswebui}.${configVars.domain}";
+      trusted_proxies = [ configVars.networking.subnets.estel.ip ];
+      oauth = {
+        provider = "self-hosted";
+        self_hosted = {
+          issuer = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/hermeswebui";
+          client_id = "hermeswebui";
+        };
+      };
+    };
 
-  # Hermes dashboard secret - passed via environment variable
-  home.sessionVariables.HERMES_DASHBOARD_OIDC_CLIENT_SECRET =
-    config.sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret".path;
+    # Gateway's OpenAI-style API, published by estel at <subdomains.hermes>.
+    # Every client presents the same bearer API_SERVER_KEY; deliberately not
+    # behind SSO because a login redirect would break Conduit.
+    environment = {
+      API_SERVER_ENABLED = "true";
+      API_SERVER_HOST = "0.0.0.0";
+      API_SERVER_PORT = toString configVars.networking.ports.tcp.hermes;
+    };
+    environmentFiles = [ config.sops.templates."hermes-agent.env".path ];
+  };
 
   programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${
     toString configVars.networking.ports.tcp."atuin-sync"

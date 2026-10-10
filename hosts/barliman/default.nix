@@ -127,6 +127,14 @@
     enableIPv6 = true;
     firewall.enable = true;
     firewall.allowPing = true;
+    # Hermes runs as a home-manager user service (home/tdoggett/barliman.nix),
+    # and home-manager cannot touch the system firewall, so its two ports have
+    # to be opened here: the gateway's bearer-key API and the dashboard that
+    # estel's Caddy proxies.
+    firewall.allowedTCPPorts = [
+      configVars.networking.ports.tcp.hermes
+      configVars.networking.ports.tcp.hermeswebui
+    ];
   };
 
   # barliman has no Ethernet cable, so a dropped Wi-Fi link means it is
