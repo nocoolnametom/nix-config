@@ -935,8 +935,19 @@ in
       (lib.mkIf (inactiveClients != [ ]) {
         systemd.services.kanidm-inactive-clients = {
           description = "Remove scope maps from Kanidm clients of disabled services";
-          after = [ "kanidm.service" ];
+          # The CLI dials client.settings.uri, which is the *public* origin
+          # (https://sso.<homeDomain>), so it hairpins out to bombadil and back
+          # in through estel even though kanidm is on this very host. Ordering
+          # after kanidm.service alone therefore is not enough: without
+          # nss-lookup.target this loses the race on every boot with
+          # "failed to lookup address information: Name or service not known".
+          after = [
+            "kanidm.service"
+            "network-online.target"
+            "nss-lookup.target"
+          ];
           requires = [ "kanidm.service" ];
+          wants = [ "network-online.target" ];
           wantedBy = [
             "kanidm.service"
             "multi-user.target"
@@ -946,9 +957,20 @@ in
             config.services.kanidm.package
             pkgs.gawk
           ];
+          # Correct ordering still cannot guarantee the whole hairpin path
+          # (WAN -> bombadil -> estel -> WireGuard -> here) is carrying traffic
+          # the instant nss-lookup.target is reached, so retry rather than
+          # leaving the unit failed until the next manual start. Ten tries at
+          # 30s covers ~5 minutes of post-boot settling.
+          unitConfig = {
+            StartLimitIntervalSec = "10min";
+            StartLimitBurst = 10;
+          };
           serviceConfig = {
             Type = "oneshot";
             RemainAfterExit = true;
+            Restart = "on-failure";
+            RestartSec = "30s";
             User = "kanidm";
             Group = "kanidm";
             RuntimeDirectory = "kanidm-inactive-clients";
@@ -993,8 +1015,17 @@ in
         {
           systemd.services.kanidm-branding = {
             description = "Apply Kanidm domain display name and logo";
-            after = [ "kanidm.service" ];
+            # `kanidm login` below dials the public origin (see the matching
+            # note on kanidm-inactive-clients), so this needs name resolution
+            # up, not just kanidm.service. Ordering only after kanidm.service
+            # failed on every boot with "failed to lookup address information".
+            after = [
+              "kanidm.service"
+              "network-online.target"
+              "nss-lookup.target"
+            ];
             requires = [ "kanidm.service" ];
+            wants = [ "network-online.target" ];
             # Re-apply whenever Kanidm (re)starts, and when the branding changes.
             wantedBy = [ "kanidm.service" ];
             restartTriggers = [
@@ -1005,9 +1036,19 @@ in
               config.services.kanidm.package
               pkgs.openssl
             ];
+            # Retry for the same reason as kanidm-inactive-clients. Safe to
+            # repeat: each attempt recovers `admin` to a fresh random password
+            # and re-applies the same two settings, so a partial run leaves
+            # nothing behind that the next attempt cannot redo.
+            unitConfig = {
+              StartLimitIntervalSec = "10min";
+              StartLimitBurst = 10;
+            };
             serviceConfig = {
               Type = "oneshot";
               RemainAfterExit = true;
+              Restart = "on-failure";
+              RestartSec = "30s";
               User = "kanidm";
               Group = "kanidm";
               RuntimeDirectory = "kanidm-branding";

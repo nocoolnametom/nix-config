@@ -37,7 +37,8 @@
 #    /silmaril/borg/                <- (no longer synced; feanor's borg job owns it)
 #    /silmaril/netbackup/           <- (no longer synced; feanor's WebDAV is the target)
 #    /silmaril/syncthing/           <- (now via Syncthing, not rsync)
-#    /silmaril/tubearchivist/media/ <- cirdan /volumeUSB2/usbshare/docker/tubearchivist/media/
+#    /silmaril/tubearchivist/media/ <- (no longer synced; the USB disk itself moved
+#                                       to feanor on 2026-10-10)
 #    /silmaril/cirdan-migration/docker/   <- cirdan /volume1/docker/ (staging)
 #    /silmaril/cirdan-migration/family/   <- cirdan /volume1/Family_Data/ (staging)
 #
@@ -100,17 +101,12 @@ let
     # SQL dump, podfetch started fresh, standardnotes stays with Proton.
     sync_one '${configVars.username}@cirdan:/volume1/docker/'      '/silmaril/cirdan-migration/docker/' \
       --exclude='/authentik/' --exclude='/immich/db/' --exclude='/podfetch/db/' --exclude='/standardnotes/'
-    # docker/tubearchivist on cirdan is a symlink to this USB disk, so the
-    # line above only copies the link. Media only; the ES index and Redis are
-    # copied once at cutover with the stack stopped.
-    # Guarded: the pool mount is nofail, and an unmounted target would send
-    # 286 GB onto the ephemeral root SSD instead.
-    if ${pkgs.util-linux}/bin/mountpoint -q /silmaril/tubearchivist; then
-      sync_one '${configVars.username}@cirdan:/volumeUSB2/usbshare/docker/tubearchivist/media/' '/silmaril/tubearchivist/media/'
-    else
-      failed+=("tubearchivist (pool not mounted)")
-      echo "!!! /silmaril/tubearchivist is not mounted; skipping" >&2
-    fi
+    # TubeArchivist removed 2026-10-10: the USB disk that held this media was
+    # physically moved out of cirdan's cabinet and attached to feanor, so
+    # cirdan:/volumeUSB2 no longer exists and every run failed on it. The
+    # 286 GB of media was already copied to /silmaril/tubearchivist/media.
+    # (docker/tubearchivist on cirdan was only ever a symlink to that disk, so
+    # the /volume1/docker/ sync above copied the link, not the contents.)
     sync_one '${configVars.username}@cirdan:/volume1/Family_Data/' '/silmaril/cirdan-migration/family/'
 
     if [ "''${#failed[@]}" -gt 0 ]; then

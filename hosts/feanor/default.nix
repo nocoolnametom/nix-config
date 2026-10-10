@@ -95,6 +95,7 @@ in
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/ups-server.nix" # USB-attached CP1500; estel subscribes
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/foreign-binaries.nix"
 

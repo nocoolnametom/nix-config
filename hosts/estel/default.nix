@@ -58,6 +58,7 @@
     "hosts/common/optional/services/paperless.nix"
     "hosts/common/optional/services/seerr.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
+    "hosts/common/optional/services/ups-client.nix" # shares feanor's CP1500
     "hosts/common/optional/services/wireguard-bombadil-estel.nix"
     "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/dns-over-tls.nix" # TODO: band-aid for DNS failures — investigate root cause and remove
