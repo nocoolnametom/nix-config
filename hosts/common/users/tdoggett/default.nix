@@ -64,5 +64,9 @@ in
       "dialout" # serial ports for arduino
       "datadat" # stash data managment
     ];
+
+    # Enable systemd user manager linger so services continue running after logout
+    # Required for hermes-agent service running under home-manager
+    linger = true;
   };
 }

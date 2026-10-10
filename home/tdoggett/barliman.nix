@@ -26,7 +26,35 @@
     common/optional/services/gpg-agent.nix
     common/optional/services/smolcoder-web.nix
     common/optional/services/syncthing.nix
+
+    # Hermes Agent - must be imported after inputs are available
+    inputs.hermes-agent.homeManagerModules.default
   ];
+
+  # Define the hermeswebui secret for home-manager sops-nix
+  sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret" = {
+    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
+  };
+
+  # Hermes Agent configuration - runs under tdoggett user via home-manager
+  services.hermes-agent = {
+    enable = true;
+    gateway.enable = true;
+
+    # Use model definitions from my-sd-models' machineLLMs/barliman.nix
+    # This ensures Hermes uses the same models as Ollama
+    # Default to _qwen3.5 which is barliman's main model (qwen3.5-abliterated:35b)
+    # Use primary coding model from my-sd-models' machinePrimaryLLMs/barliman.nix
+    # Hermes is primarily a coding tool - code generation, refactoring, debugging
+    settings.model.default = "ollama/${pkgs.my-sd-models.machinePrimaryLLMs.barliman.coding}";
+
+    # The hermeswebui client secret is provided by the system-level sops config
+    # In home-manager, we reference it differently
+  };
+
+  # Hermes dashboard secret - passed via environment variable
+  home.sessionVariables.HERMES_DASHBOARD_OIDC_CLIENT_SECRET =
+    config.sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret".path;
 
   programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${
     toString configVars.networking.ports.tcp."atuin-sync"

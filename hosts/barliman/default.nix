@@ -37,13 +37,11 @@
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/services/flatpak.nix"
-    "hosts/common/optional/services/hermes-agent.nix" # Hermes Agent API for Conduit
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/open-webui.nix"
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
-    "hosts/common/optional/services/work-block.nix"
     "hosts/common/optional/home-wifi.nix" # Declarative home Wi-Fi profile (secrets from nix-secrets)
     "hosts/common/optional/wifi-watchdog.nix" # Reconnect Wi-Fi (no Ethernet here); options set below
     "hosts/common/optional/amd-unified-memory.nix" # GPU memory limit (option set below)
@@ -73,7 +71,6 @@
   services.systemd-failure-alert.additional-services = [
     "ollama"
     "open-webui"
-    "hermes-agent"
   ];
 
   # Using Rocm instead of Cuda since AMD APU/GPU
