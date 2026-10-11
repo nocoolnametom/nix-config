@@ -521,8 +521,17 @@ in
                   scopeMaps = makeScopeMaps "openwebui";
                 };
 
-              # Hermes Agent's web dashboard (hermes-agent.nix on barliman). Hermes
-              # does PKCE and also sends this secret. Served on `domain`.
+              # Hermes Agent's web dashboard (home/tdoggett/barliman.nix). This
+              # must be a *public* client: Hermes 0.21.5's bundled self-hosted
+              # OIDC provider (plugins/dashboard_auth/self_hosted) is
+              # authorization-code + PKCE only, and upstream documents exactly
+              # three knobs for it - HERMES_DASHBOARD_OIDC_{ISSUER,CLIENT_ID,
+              # SCOPES}. There is no client-secret setting at all, so it never
+              # authenticates at the token endpoint. Provisioning this as a
+              # confidential client made Kanidm demand client auth and answer
+              # the code exchange with 401, which surfaced in the browser as
+              # "Provider unreachable: OIDC token endpoint returned 401".
+              # (`public` enforces PKCE and forbids basicSecretFile.)
               hermeswebui =
                 let
                   url = "https://${configVars.networking.subdomains.hermeswebui}.${configVars.domain}";
@@ -531,7 +540,7 @@ in
                   displayName = "Hermes Agent";
                   originUrl = "${url}/auth/callback";
                   originLanding = url;
-                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret".path;
+                  public = true;
                   scopeMaps = makeScopeMaps "hermeswebui";
                 };
 
@@ -798,9 +807,8 @@ in
         sops.secrets."homelab/kanidm/oidc/openwebui/client-secret" = {
           owner = "kanidm";
         };
-        sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret" = {
-          owner = "kanidm";
-        };
+        # No hermeswebui secret: that client is public (PKCE only), so Kanidm
+        # has no basic secret to be provisioned with. See its definition above.
         sops.secrets."homelab/kanidm/oidc/nas/client-secret" = {
           owner = "kanidm";
         };

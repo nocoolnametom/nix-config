@@ -31,24 +31,22 @@
     inputs.hermes-agent.homeManagerModules.default
   ];
 
-  # Hermes needs the same two secrets the retired system-level service used
-  # (hosts/common/optional/services/hermes-agent.nix, kept for reference).
+  # Only the gateway's bearer key is secret. The dashboard's Kanidm login is a
+  # public OIDC client (authorization-code + PKCE), so there is deliberately no
+  # client secret here: upstream exposes only HERMES_DASHBOARD_OIDC_{ISSUER,
+  # CLIENT_ID,SCOPES} for that provider. The old system module set a
+  # HERMES_DASHBOARD_OIDC_CLIENT_SECRET, but no such variable exists in 0.21.5
+  # - it was silently ignored while Kanidm, provisioned as a confidential
+  # client, rejected the unauthenticated code exchange with 401.
   sops.secrets."homelab/hermes/api-server-key" = {
     sopsFile = "${inputs.nix-secrets}/secrets.yaml";
   };
-  sops.secrets."homelab/kanidm/oidc/hermeswebui/client-secret" = {
-    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
-  };
 
-  # These have to arrive as values, not paths, and they have to reach the
-  # systemd *user* units. home.sessionVariables does neither: it only exports
-  # into interactive shells, so hermes-backend never saw the client secret and
-  # came up with no auth provider at all.
+  # The value has to reach the systemd *user* unit, which home.sessionVariables
+  # cannot do (it only exports into interactive shells). Hermes reads this file
+  # through environmentFiles, which activation folds into $HERMES_HOME/.env.
   sops.templates."hermes-agent.env".content = ''
     API_SERVER_KEY=${config.sops.placeholder."homelab/hermes/api-server-key"}
-    HERMES_DASHBOARD_OIDC_CLIENT_SECRET=${
-      config.sops.placeholder."homelab/kanidm/oidc/hermeswebui/client-secret"
-    }
   '';
 
   # Hermes Agent configuration - runs under tdoggett user via home-manager
