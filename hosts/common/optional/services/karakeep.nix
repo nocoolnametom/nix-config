@@ -14,13 +14,16 @@ let
 
   # Semantic search. Karakeep compares every returned vector against
   # EMBEDDING_DIMENSIONS and throws on a mismatch, so the width below is part of
-  # the model choice rather than a tuneable: nomic-embed-text emits 768.
+  # the model choice rather than a tuneable: qwen3-embedding:0.6b emits 1024.
   embeddingModel = pkgs.my-sd-models.machinePrimaryLLMs.barliman.embedding;
-  embeddingDimensions = 768;
-  # The model's own input limit (nomic-bert.context_length). Karakeep's default
-  # is 8000, and Ollama is asked to truncate, so a larger value here would not
-  # error - it would just ship text that is silently discarded.
-  embeddingContextLength = 2048;
+  embeddingDimensions = 1024;
+  # How much of a bookmark is folded into its one vector. The model accepts
+  # 32768 tokens, so this is a judgement call rather than a limit: the whole
+  # excerpt becomes a single point in vector space, and stretching it over a
+  # book's worth of text makes that point describe nothing in particular.
+  # Karakeep's own default is the sane middle, and unlike with the 2024-era
+  # embedders it is now reachable without being truncated away.
+  embeddingContextLength = 8000;
 
   ssoProvider = config.services.ssoProvider.karakeep or "authentik";
   useKanidm = ssoProvider == "kanidm-oidc";
