@@ -218,6 +218,9 @@ let
       # Pass HTTP Basic Auth to upstream (NZBGet requires it)
       basicAuthUsernameFile = secret "homelab/nzbget-durin/username";
       basicAuthPasswordFile = secret "homelab/nzbget-durin/password";
+      skipAuthRegex = [
+        "^/jsonrpc$"
+      ];
     };
 
     nzbhydra = {

@@ -116,8 +116,22 @@
         };
       };
 
-  # UptimeKuma
+  # UptimeKuma - Home Domain
   services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}" =
+    lib.mkIf config.services.uptime-kuma.enable {
+      enableACME = true;
+      http2 = true;
+      forceSSL = true;
+      locations = {
+        "/" = {
+          proxyPass = "http://127.0.0.1:${builtins.toString configVars.networking.ports.tcp.uptime-kuma}";
+          proxyWebsockets = true;
+        };
+      };
+    };
+
+  # UptimeKuma - Regular Domain
+  services.nginx.virtualHosts."${configVars.networking.subdomains.uptime-kuma}.${configVars.domain}" =
     lib.mkIf config.services.uptime-kuma.enable {
       enableACME = true;
       http2 = true;
