@@ -63,10 +63,15 @@ in
     ####################### Borg + offsite sync ###############################
     ./backup.nix
 
-    ################### cirdan data migration (temporary) #####################
-    # Rsync service + timer that copies all cirdan shares to the silmaril pool.
-    # Remove this import once cirdan is retired and all data is verified.
-    ./cirdan-sync.nix
+    ################### cirdan data migration (retired) #######################
+    # Removed 2026-10-11, exactly as the old note here instructed: cirdan is
+    # powered off for good and the data is verified across. Comics 6.8G ->
+    # 6.8G and docker 204G -> 205G matched; Family_Data held only .DS_Store
+    # and @eaDir, both of which the sync excluded, so its 0 bytes on this side
+    # was correct rather than a gap. Left in place the timer would have fired
+    # nightly at 03:00 against a machine that no longer answers and tripped
+    # systemd-failure-alert every morning.
+    # ./cirdan-sync.nix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################

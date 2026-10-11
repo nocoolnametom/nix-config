@@ -83,6 +83,12 @@ let
     podfetch = arionProjects ? podfetch;
     tubearchivist = arionProjects ? tubearchivist;
     komodo = arionProjects ? komodo;
+    # Not a local service: cirdan's DSM, retired 2026-10-11 when that NAS was
+    # powered off for good. Listed as false purely so it lands in
+    # inactiveClients and has its scope maps stripped - the client itself must
+    # stay defined, because removing a provisioned client leaves a placeholder
+    # uuid that Kanidm rejects on startup (see the note below).
+    nas = false;
   };
 
   # Disabled clients stay in Kanidm with no scope map, so nobody may use them

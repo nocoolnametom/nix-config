@@ -11,7 +11,16 @@ let
   # redis + server/worker, restored from a pg_dump of cirdan's database); it is
   # deliberately not an arion/Nix service because it is a staging step toward
   # dropping Authentik for Kanidm entirely.
+  #
+  # Two places need this, and until 2026-10-11 only one of them honoured it:
+  # the per-service `proxyTarget` below (services routed *through* Authentik)
+  # read authentikHost, while the Authentik UI's own vhost further down
+  # hardcoded cirdan's IP. Flipping authentikHost therefore moved the
+  # forward-auth targets but left login.<homeDomain> pointing at the old NAS,
+  # so the cutover looked applied and wasn't. Both now derive from here.
   authentikHost = "feanor";
+  authentikIp = configVars.networking.subnets.${authentikHost}.ip;
+  authentikPort = builtins.toString configVars.networking.ports.tcp.authentik;
 
   # Simple service definitions - just the essentials!
   # Each one becomes a Caddy virtual host
@@ -101,11 +110,11 @@ let
       service = "mealie";
       domain = "homeDomain";
     }
-    {
-      host = "cirdan";
-      service = "nas";
-      domain = "homeDomain";
-    }
+    # Removed 2026-10-11: cirdan is being powered off permanently and its drives
+    # pulled, so DSM goes with it. (Its Kanidm client is retired via
+    # localServiceEnabled in kanidm.nix rather than deleted - deleting a
+    # provisioned client stops kanidm.service from starting.)
+    # { host = "cirdan"; service = "nas"; domain = "homeDomain"; }
     {
       host = "feanor"; # back 2026-10-06, moved from estel next to the music
       service = "navidrome";
@@ -128,11 +137,9 @@ let
       service = "podfetch";
       domain = "homeDomain";
     }
-    {
-      host = "cirdan";
-      service = "portainer";
-      domain = "homeDomain";
-    }
+    # Removed 2026-10-11: Portainer was cirdan's container manager; Komodo on
+    # feanor replaced it, and cirdan is being retired.
+    # { host = "cirdan"; service = "portainer"; domain = "homeDomain"; }
     {
       host = "estel";
       service = "atuin-sync";
@@ -198,11 +205,9 @@ let
       domain = "domain";
       proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
     }
-    {
-      host = "cirdan";
-      service = "mylar";
-      domain = "domain";
-    }
+    # Removed 2026-10-11: Mylar was an abandoned experiment and is retired with
+    # cirdan rather than migrated to feanor.
+    # { host = "cirdan"; service = "mylar"; domain = "domain"; }
     {
       host = "durin";
       service = "miniflux";
@@ -297,8 +302,8 @@ let
 
           # Authentik proxy (if enabled)
           useAuthentik = proxy == configVars.proxyTypes.authentik;
-          authentikIp = configVars.networking.subnets.${authentikHost}.ip;
-          authentikPort = builtins.toString configVars.networking.ports.tcp.authentik;
+          # authentikIp / authentikPort now come from the top-level let, so the
+          # UI vhost and these forward-auth targets cannot drift apart again.
 
           # OAuth2-proxy (if enabled) - generic reverse proxy for OIDC providers
           useOAuth2 = proxy == configVars.proxyTypes.oauth2;
@@ -471,8 +476,8 @@ in
           header Connection *Upgrade*
           header Upgrade websocket
         }
-        reverse_proxy @websockets ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik}
-        reverse_proxy ${configVars.networking.subnets.cirdan.ip}:${builtins.toString configVars.networking.ports.tcp.authentik} {
+        reverse_proxy @websockets ${authentikIp}:${authentikPort}
+        reverse_proxy ${authentikIp}:${authentikPort} {
           header_up Host {host}
           header_up X-Real-IP {remote_host}
           header_up X-Forwarded-Proto {scheme}
