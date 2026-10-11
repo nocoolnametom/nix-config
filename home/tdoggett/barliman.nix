@@ -126,6 +126,19 @@ in
       API_SERVER_ENABLED = "true";
       API_SERVER_HOST = "0.0.0.0";
       API_SERVER_PORT = toString configVars.networking.ports.tcp.hermes;
+      # Without this the agent cannot execute shell commands over the
+      # api_server path: execute_code refuses subprocess calls that bypass
+      # shell-string approval in an unattended session, and - worse - the
+      # model then narrates a plausible failure rather than surfacing the
+      # refusal. Set it and the same probes return real output, or an honest
+      # NOT_RUN. Lived in ~/.hermes/.env until 2026-10-11, where every
+      # home-manager activation silently reverted it.
+      #
+      # This is a deliberate security tradeoff: it disables dangerous-command
+      # approval on a service published at <subdomains.hermes>.<domain> behind
+      # one bearer key, which also reaches feanor over SSH. NoNewPrivileges on
+      # the unit still blocks sudo, so a leaked key is not root.
+      HERMES_YOLO_MODE = "1";
     };
     environmentFiles = [ config.sops.templates."hermes-agent.env".path ];
   };
