@@ -7,6 +7,11 @@
   inputs,
   ...
 }:
+let
+  # Ollama's OpenAI-compatible endpoint, shared by the provider declaration
+  # and anything else that needs to reach it.
+  ollamaUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.ollama}/v1";
+in
 {
   imports = [
     ########################## Required Configs ###########################
@@ -54,12 +59,40 @@
     enable = true;
     gateway.enable = true;
 
-    # Use model definitions from my-sd-models' machineLLMs/barliman.nix
-    # This ensures Hermes uses the same models as Ollama
-    # Default to _qwen3.5 which is barliman's main model (qwen3.5-abliterated:35b)
-    # Use primary coding model from my-sd-models' machinePrimaryLLMs/barliman.nix
-    # Hermes is primarily a coding tool - code generation, refactoring, debugging
-    settings.model.default = "ollama/${pkgs.my-sd-models.machinePrimaryLLMs.barliman.coding}";
+    # Local Ollama through its OpenAI-compatible endpoint.
+    #
+    # `provider` and `base_url` are both required. A bare
+    # `default = "ollama/<model>"` is parsed as the short provider/model alias
+    # form, and Hermes's built-in "ollama" provider means *ollama.com* - it
+    # looks for OLLAMA_API_KEY and fails with "Hermes is not connected to any
+    # AI provider yet", never touching the local server. "custom" plus an
+    # explicit base_url is what points it at this machine.
+    #
+    # Model name comes from my-sd-models' machinePrimaryLLMs/barliman.nix;
+    # Hermes is primarily a coding tool here, so it tracks the coding model.
+    # Declare the endpoint as a named provider rather than leaning on the
+    # inline `provider = "custom"` + base_url form. That inline form routes the
+    # *default* model fine, but "custom" is not a declared provider, so picking
+    # any other model in the dashboard failed with "Unknown provider 'custom'.
+    # ... define it in config.yaml under 'providers:'". A real entry gives every
+    # model on this endpoint a resolvable route, not just the startup default.
+    # `discover_models` defaults to true, which is what populates the picker
+    # from Ollama's live /v1/models list.
+    settings.providers.ollama-local.api = ollamaUrl;
+
+    settings.model = {
+      provider = "ollama-local";
+      default = pkgs.my-sd-models.machinePrimaryLLMs.barliman.coding;
+      # Track whatever Ollama actually serves rather than restating it. The
+      # retired system module used a 65536 constant, but there it was the
+      # *floor* for an assertion ("Hermes refuses local model servers offering
+      # under 64K tokens") - as a context_length it would instead cap Hermes at
+      # a third of barliman's real 196608 window. Reading it from osConfig
+      # keeps the two from drifting apart.
+      context_length = lib.toInt (
+        osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
+      );
+    };
 
     # Web dashboard. The module defaults to mode "none" on 127.0.0.1:9119, and
     # upstream only starts the dashboard's authentication gate for a
