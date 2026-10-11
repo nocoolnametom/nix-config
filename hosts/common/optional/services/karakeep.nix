@@ -1,10 +1,27 @@
 {
   lib,
+  pkgs,
   configVars,
   config,
   ...
 }:
 let
+  # Karakeep tags and summarises both text and images, so it needs a model that
+  # accepts image input; barliman's "visual" role is exactly that. Taking it from
+  # my-sd-models rather than hardcoding a name also gets eval-time validation
+  # that the model is actually installed there (machinePrimaryLLMs in its flake).
+  visualModel = pkgs.my-sd-models.machinePrimaryLLMs.barliman.visual;
+
+  # Semantic search. Karakeep compares every returned vector against
+  # EMBEDDING_DIMENSIONS and throws on a mismatch, so the width below is part of
+  # the model choice rather than a tuneable: nomic-embed-text emits 768.
+  embeddingModel = pkgs.my-sd-models.machinePrimaryLLMs.barliman.embedding;
+  embeddingDimensions = 768;
+  # The model's own input limit (nomic-bert.context_length). Karakeep's default
+  # is 8000, and Ollama is asked to truncate, so a larger value here would not
+  # error - it would just ship text that is silently discarded.
+  embeddingContextLength = 2048;
+
   ssoProvider = config.services.ssoProvider.karakeep or "authentik";
   useKanidm = ssoProvider == "kanidm-oidc";
   wellknownURL =
@@ -70,17 +87,60 @@ in
   # which is how accounts survive a change of identity provider.
   services.karakeep.extraEnvironment.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING = "true";
   # AI tagging and summaries run on barliman's Ollama (smeagol stopped running
-  # Ollama in 2026-08). "_qwen3.5" is barliman's name for the abliterated
-  # Qwen3.5-35B-A3B (my-sd-models' machineLLMs/barliman.nix). Hermes keeps it
-  # loaded, so sharing it costs no extra memory and handles images too.
+  # Ollama in 2026-08).
+  #
+  # Both model slots get barliman's visual primary. It must NOT be a thinking
+  # model: Karakeep calls Ollama's native /api/generate with `format` set to a
+  # JSON schema and never sends `think: false`, and under that grammar a
+  # thinking model puts its whole answer in the separate `thinking` field,
+  # leaving `response` empty. Karakeep reads only `response`, so every job dies
+  # with "The model ignored our prompt and didn't respond with the expected
+  # JSON" and a blank excerpt. This is why "_qwen3.5" was wrong here despite
+  # being vision-capable, and why Hermes is unaffected by the same model: it
+  # talks to /v1, where Ollama folds thinking back into content.
   services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}";
-  services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = "_qwen3.5";
-  services.karakeep.extraEnvironment.INFERENCE_IMAGE_MODEL = "_qwen3.5";
-  # Karakeep sends this as Ollama's num_ctx. Any value other than the size the
-  # model is already loaded with (barliman's OLLAMA_CONTEXT_LENGTH, ollama.nix)
-  # makes Ollama reload it, which drops Hermes's cached conversation; keep the two equal.
-  services.karakeep.extraEnvironment.INFERENCE_CONTEXT_LENGTH = "196608";
+  services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = visualModel;
+  services.karakeep.extraEnvironment.INFERENCE_IMAGE_MODEL = visualModel;
+  # Karakeep sends this as Ollama's num_ctx. It no longer has to match
+  # barliman's OLLAMA_CONTEXT_LENGTH: that rule existed when this shared
+  # Hermes's model, where a differing num_ctx forced a reload and threw away
+  # Hermes's cached conversation. The visual model is Karakeep's alone, so it
+  # simply loads once at whatever size is asked for here.
+  #
+  # It is a cap on real work, though: Karakeep tokenises the page and keeps
+  # only (this - prompt) tokens, so anything longer is dropped before the model
+  # sees it. 64K leaves room for roughly 49,000 words, far past any ordinary
+  # article; an image costs about 1,000 tokens, so pictures are not a factor.
+  #
+  # The ceiling is memory. Measured on barliman 2026-10-11, this model resident:
+  # 20.6 GB at 32K, 22.3 GB at 64K, 29.5 GB at 192K. Hermes keeps its own model
+  # loaded next to it (hermes-agent.nix, _qwen3.8, 18 GB at 192K), and the pair
+  # has to fit: 64K leaves about 9 GB spare, while 192K makes Ollama evict one
+  # to load the other. Raising this means re-checking that sum - and note it
+  # scales with whatever Hermes's "planning" model costs, not just this one.
+  services.karakeep.extraEnvironment.INFERENCE_CONTEXT_LENGTH = "65536";
   # No OLLAMA_KEEP_ALIVE: each request resets the model's idle timer to the
-  # value it sends, so a short one here would unload the shared model early.
+  # value it sends, so a short one here would unload the model early.
   services.karakeep.extraEnvironment.INFERENCE_ENABLE_AUTO_SUMMARIZATION = "true";
+
+  # Embeddings, which back semantic search (SEMANTIC_SEARCH_ENABLED is already
+  # true by default). All four of these have to be set together:
+  #
+  #   * EMBEDDING_TEXT_MODEL otherwise defaults to OpenAI's name
+  #     "text-embedding-3-small", which Karakeep then asks *Ollama* for, and
+  #     every job fails with 'model not found, try pulling it first'.
+  #   * EMBEDDING_DIMENSIONS otherwise defaults to 1536 (that OpenAI model's
+  #     width) and Karakeep rejects nomic's 768-wide vectors outright.
+  #   * EMBEDDING_ENABLE_AUTO_INDEXING, left unset, resolves to
+  #     "!OLLAMA_BASE_URL && !OPENAI_BASE_URL && !!OPENAI_API_KEY" - which is
+  #     false precisely because OLLAMA_BASE_URL is set. Ollama users have to
+  #     opt in explicitly or nothing is ever indexed.
+  #   * EMBEDDING_CONTEXT_LENGTH: see embeddingContextLength above.
+  #
+  # Changing the model later means changing the width to match and reindexing,
+  # since stored vectors of the old width are not comparable.
+  services.karakeep.extraEnvironment.EMBEDDING_TEXT_MODEL = embeddingModel;
+  services.karakeep.extraEnvironment.EMBEDDING_DIMENSIONS = builtins.toString embeddingDimensions;
+  services.karakeep.extraEnvironment.EMBEDDING_CONTEXT_LENGTH = builtins.toString embeddingContextLength;
+  services.karakeep.extraEnvironment.EMBEDDING_ENABLE_AUTO_INDEXING = "true";
 }

@@ -11,6 +11,15 @@ let
   # Ollama's OpenAI-compatible endpoint, shared by the provider declaration
   # and anything else that needs to reach it.
   ollamaUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.ollama}/v1";
+
+  # Hermes's model, taken from this machine's primaries in my-sd-models. See
+  # the note at services.hermes-agent.settings.model for why it is the
+  # "planning" role.
+  hostName = osConfig.networking.hostName;
+  hostPrimaryLLMs = pkgs.my-sd-models.machinePrimaryLLMs.${hostName} or { };
+  hermesModel =
+    hostPrimaryLLMs.planning
+      or (throw "barliman.nix: ${hostName} has no 'planning' model in my-sd-models' machinePrimaryLLMs/${hostName}.nix");
 in
 {
   imports = [
@@ -68,8 +77,14 @@ in
     # AI provider yet", never touching the local server. "custom" plus an
     # explicit base_url is what points it at this machine.
     #
-    # Model name comes from my-sd-models' machinePrimaryLLMs/barliman.nix;
-    # Hermes is primarily a coding tool here, so it tracks the coding model.
+    # Model name comes from this machine's file in my-sd-models'
+    # machinePrimaryLLMs/, keyed by hostname rather than spelled "barliman" so
+    # a copy of this config on another host picks up that host's model. It
+    # tracks the "planning" role: Hermes needs tools plus reasoning over them,
+    # and that role's model also takes images, which the coding model does not,
+    # so pictures sent from Conduit work. A thinking model is fine here because
+    # Hermes talks to Ollama's /v1 endpoint, which folds thinking back into the
+    # reply - the native API does not, which is what broke Karakeep.
     # Declare the endpoint as a named provider rather than leaning on the
     # inline `provider = "custom"` + base_url form. That inline form routes the
     # *default* model fine, but "custom" is not a declared provider, so picking
@@ -82,7 +97,7 @@ in
 
     settings.model = {
       provider = "ollama-local";
-      default = pkgs.my-sd-models.machinePrimaryLLMs.barliman.coding;
+      default = hermesModel;
       # Track whatever Ollama actually serves rather than restating it. The
       # retired system module used a 65536 constant, but there it was the
       # *floor* for an assertion ("Hermes refuses local model servers offering

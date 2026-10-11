@@ -26,6 +26,7 @@
 {
   config,
   lib,
+  pkgs,
   inputs,
   configVars,
   ...
@@ -35,9 +36,26 @@ let
   dashboardPort = configVars.networking.ports.tcp.hermeswebui;
   dashboardUrl = "https://${configVars.networking.subdomains.hermeswebui}.${configVars.domain}";
   ollamaPort = configVars.networking.ports.tcp.ollama;
+
+  # Hermes queries the Ollama on its own machine (base_url is loopback below),
+  # so the model comes from this host's entry in my-sd-models rather than a
+  # named one: any host importing this gets its own primary without editing
+  # here. The "planning" role is the fit - Hermes needs tools, and reasoning
+  # over them, and its /v1 transport means a thinking model is fine (unlike
+  # Karakeep, see karakeep.nix).
+  hostName = config.networking.hostName;
+  hostPrimaryLLMs = pkgs.my-sd-models.machinePrimaryLLMs.${hostName} or { };
+  defaultModel =
+    hostPrimaryLLMs.planning
+      or (throw "hermes-agent.nix: ${hostName} has no 'planning' model in my-sd-models' machinePrimaryLLMs/${hostName}.nix");
+
   # Hermes rejects local model servers that serve less than 64K tokens of
-  # context: its system prompt and tool schemas alone need a large share.
-  contextLength = 65536;
+  # context: its system prompt and tool schemas alone need a large share. Read
+  # what Ollama actually serves so the two cannot drift, with the 64K floor as
+  # the fallback for a host that has not set it.
+  contextLength = lib.toInt (
+    config.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
+  );
 in
 {
   imports = [ inputs.hermes-agent.nixosModules.default ];
@@ -66,11 +84,11 @@ in
     settings.model = {
       provider = "custom";
       base_url = "http://127.0.0.1:${toString ollamaPort}/v1";
-      # MoE 35B / 3B active; tools + vision + thinking, so images sent from
-      # Conduit work too. "_qwen3.5" is barliman's name for the abliterated
-      # build (huihui_ai/qwen3.5-abliterated:35b), set up by ollama.nix from
-      # my-sd-models' machineLLMs/barliman.nix
-      default = "_qwen3.5";
+      # This host's "planning" primary; on barliman that is "_qwen3.5", the
+      # abliterated Qwen3.5-35B-A3B (tools + vision + thinking, so images sent
+      # from Conduit work too), which ollama.nix installs under that name from
+      # my-sd-models' machineLLMs/<host>.nix.
+      default = defaultModel;
       context_length = contextLength;
     };
 
