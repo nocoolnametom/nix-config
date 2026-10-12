@@ -82,10 +82,11 @@
     eden.inputs.nixpkgs.follows = "nixpkgs";
 
     # Hermes Agent (Nous Research): self-hosted personal agent, used through its
-    # own NixOS module. Pinned to a release tag because main moves several times
-    # a day. nixpkgs is deliberately NOT followed: the package is built with
-    # uv2nix against upstream's own lock, and following ours risks breaking it.
-    hermes-agent.url = "github:NousResearch/hermes-agent/v2026.9.24";
+    # own NixOS module. Updating will probably always update the lockfile as
+    # main moves several times a day. nixpkgs is deliberately NOT followed:
+    # the package is built with uv2nix against upstream's own lock, and
+    # following ours risks breaking it.
+    hermes-agent.url = "github:NousResearch/hermes-agent";
 
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
