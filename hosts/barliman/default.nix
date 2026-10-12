@@ -83,9 +83,11 @@
   # Open-WebUI is a web-frontend for chatting with ollama
   services.open-webui.package = pkgs.open-webui;
   # bleeding (nixpkgs master) since 2026-10-12: _qwen3.8's manifest asks for
-  # the "qwen3.8" renderer, which Ollama only added after 0.32.3 (unstable's
-  # version then); 0.32.3 answers every request with HTTP 500 "unknown
-  # renderer". Go back to pkgs.ollama-rocm once unstable reaches 0.40+.
+  # the "qwen3.8" renderer, which Ollama 0.32.3 - the default channel's
+  # version (nixos-26.05) - doesn't have, so it answers every request with
+  # HTTP 500 "unknown renderer". The renderer exists by 0.34.4, so
+  # pkgs.unstable.ollama-rocm (0.40.0 then) would also do. Go back to
+  # pkgs.ollama-rocm once 26.05 ships 0.34.4 or newer.
   services.ollama.package = pkgs.bleeding.ollama-rocm;
   services.ollama.models = "/var/lib/ai-models/ollama";
   # Removed 2026-10-06 as no-ops: OLLAMA_LLAMA_GPU_LAYERS (not an Ollama

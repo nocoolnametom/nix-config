@@ -262,11 +262,23 @@ in
         cwd = "${osConfig.services.agent-worker.home}/nix-config";
       };
       approvals.mode = "off";
+
+      # Waiting for barliman's GPU is normal (my own chats, Karakeep, ...)
+      # and must never quietly end a task. Hermes's default local ceiling is
+      # 900 s with no first token; T1 (2026-10-12) hit it twice while I was
+      # chatting. Raised to 12 h so that in the "waiting for a turn" case
+      # Hermes never gives up first. The deadline that does fire, and alerts,
+      # belongs to whatever runs the task (PLAN.md: a systemd unit with
+      # RuntimeMaxSec=12h on the systemd-failure-alert list).
+      agent.local_stream_stale_timeout = 43200;
     };
 
     hermesHomeFiles."profiles/worker/SOUL.md" = ''
-      You are a coding worker for a NixOS flake repository. Read the repo's
-      CLAUDE.md before changing anything, and follow its conventions.
+      You are a coding worker for a NixOS flake repository. If the repository
+      has an AGENTS.md at its root, read it before changing anything and
+      follow its conventions. (Hermes's automatic context-file discovery looks
+      in its own working directory, which is not the repository: your tools
+      run over SSH in a different place, so read it yourself.)
 
       Hard rules:
       - Edit files and `git add` them. Never `git commit`, `git push`, or
