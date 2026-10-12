@@ -47,7 +47,10 @@ in
     account default
     host ${smtpPlaceholder "host"}
     port ${smtpPlaceholder "port"}
-    auth on
+    # With `auth on` msmtp picks the strongest advertised method; smtp2go offers SCRAM-SHA-256
+    # but rejects it ("GNU SASL: Error authenticating user"), while PLAIN works. PLAIN only ever
+    # travels inside the TLS session.
+    auth plain
     user ${smtpPlaceholder "username"}
     password ${smtpPlaceholder "password"}
     tls on
