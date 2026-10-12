@@ -132,15 +132,45 @@ and later the Codex runtime.
       `_qwen3-coder-next`, `approvals.mode: off` inside the box
 - [x] File tools confirmed in source to run through the backend (they are
       shell commands via `execute()`); `execute_code` still to check live
-- [ ] Manual steps (mine):
-  1. on barliman: `ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_agent_worker -C "hermes worker"`
-  2. copy `~/.ssh/id_agent_worker.pub` to
-     `hosts/common/users/tdoggett/agent-worker-keys/barliman.pub` (NOT
-     `keys/`, which authorizes a key for my user on every host), commit, switch
-  3. `sudo -u agent-worker git clone https://github.com/<me>/nix-config /var/lib/agent-worker/nix-config`
-- [ ] Smoke test: `hermes -p worker chat -q "run whoami, pwd and head -3 CLAUDE.md"`
-      must answer `agent-worker` and `/var/lib/agent-worker/nix-config`; then
-      ask it to `cat ~tdoggett/.ssh/id_agent_worker` and confirm Permission denied
+- [x] Deployed 2026-10-12 (commit e8c6fe5). Verified on barliman:
+  - `agent-worker` is uid 1001, in its own group only; home 0700
+  - its key carries `from="127.0.0.1,::1"` and no forwarding
+  - loopback login works with `~/.ssh/id_agent_worker`; from there it gets
+    Permission denied on `/home/tdoggett`, can't list `/run/secrets`, and has no sudo
+  - `hermes` is on PATH with `HERMES_HOME` set; `profiles/worker/` installed
+  - Ollama 0.40.2; `_qwen3.8` answers
+- [x] Private flake inputs need no GitHub credentials while barliman's store
+      already holds the locked revisions: as `agent-worker`, a fresh public
+      clone with `GIT_SSH_COMMAND=false` evaluated barliman to the same .drv.
+      Credentials (one read-only deploy key per private repo) are only needed
+      if the worker must fetch revisions barliman never built; until then,
+      rebuild barliman or `nix flake archive` there first.
+- [x] No sops key is ever needed: system secrets decrypt at activation on the
+      target with its host key, Home Manager secrets with the target user's
+      age key. Note `/nix/store` is world-readable, so the worker can read the
+      *plain* Nix values in nix-secrets (domains, ports, IPs) but never the
+      encrypted values.
+- [x] Clone made (over https; the scp-style `github.com:` form tries SSH and
+      is refused, since the worker has no GitHub key)
+- [x] Smoke test 2026-10-12 (session `20261012_121640_a54db8`, 3m54s, mostly
+      loading the model). Checked against sshd's log and the session's
+      state.db, not just the report:
+  - three loopback logins as agent-worker, one per tool: terminal,
+    execute_code and read_file all run in the sandbox
+  - terminal: `agent-worker`, `/var/lib/agent-worker/nix-config`
+  - read_file on `~tdoggett/.ssh/id_agent_worker` got nothing (Hermes reports
+    the remote permission error as "File not found")
+  - execute_code refused: no python3 for the worker → added `python3` to the
+    worker's packages (not deployed)
+  - the model rewrote `head -3 CLAUDE.md` into `/home/tdoggett/.hermes/CLAUDE.md`
+    by itself (wrong guess, blocked by permissions). Its report quoted the tool
+    output accurately.
+  - each tool call first offered the agent's `personal_ed25519` key, and the
+    `*` block asked for agent forwarding (refused only by the key's
+    `no-agent-forwarding`) → added a `Match host 127.0.0.1 user agent-worker`
+    block with IdentitiesOnly/IdentityAgent none/ForwardAgent no (not deployed)
+- [ ] After deploying the two fixes: rerun the smoke test; expect execute_code to
+      print uid 1001, and no "Failed publickey" lines in sshd's log
 - [ ] Kanban workspaces are made on the dispatcher's side (under my home), where
       agent-worker can't see them; check how a Kanban run behaves with the
       SSH backend before relying on it

@@ -80,8 +80,12 @@ in
         ripgrep
         jq
         nixfmt
+        # Hermes's execute_code runs Python on the remote side of its SSH
+        # backend, and refuses ("Python 3 is not available in the ssh terminal
+        # environment") when the worker has none.
+        python3
       ];
-      defaultText = lib.literalExpression "with pkgs; [ git opencode ripgrep jq nixfmt ]";
+      defaultText = lib.literalExpression "with pkgs; [ git opencode ripgrep jq nixfmt python3 ]";
       description = "Tools on the worker's PATH. nix and nixos-rebuild come from the system.";
     };
   };

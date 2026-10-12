@@ -283,6 +283,19 @@ in
     '';
   };
 
+  # The worker profile's SSH connection to agent-worker. Without this, ssh also
+  # offers every key in the agent first (logged as "Failed publickey" for
+  # personal_ed25519 on each tool call), and the core config's "*" block asks
+  # to forward the agent - which only the key's no-agent-forwarding option on
+  # the server side was refusing. `user` in Match is the remote user.
+  programs.ssh.settings."agent-worker" = {
+    header = "Match host 127.0.0.1,::1 user ${osConfig.services.agent-worker.user}";
+    IdentityFile = "${config.home.homeDirectory}/.ssh/id_agent_worker";
+    IdentitiesOnly = true;
+    IdentityAgent = "none";
+    ForwardAgent = false;
+  };
+
   # Turn off upstream's "managed mode". The module tags the install as owned
   # by home-manager twice: HERMES_MANAGED=home-manager in both units, and a
   # ~/.hermes/.managed marker for interactive shells. Either one makes Hermes
