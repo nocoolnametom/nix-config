@@ -29,7 +29,6 @@
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
-      "/home/tdogget/.hermes" # Hermes Agent: memory, skills, sessions, cron jobs (home-manager)
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];
