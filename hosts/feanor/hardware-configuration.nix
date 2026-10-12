@@ -28,28 +28,27 @@
 #      left out of the pool so a failure can't take data with it.
 #
 #  SATA bays -> label `silmaril`  (btrfs data pool)
-#      Mounted at /silmaril. Drive inventory grows in phases:
+#      Mounted at /silmaril.
 #
-#      CURRENT (two drives, JBOD, no redundancy):
-#        1x 26TB HDD (sda) - primary data drive
-#        1x 20TB HDD (sdb) - added 2026-09-24 for cirdan migration staging;
-#                            future RAID1 candidate once second 20TB arrives
+#      CURRENT (four drives, RAID1 pending balance):
+#        1x 26TB HDD (sdb, bay 1) - feanor's original 23TB WD drive
+#        1x 20TB HDD (sdc, bay 3) - cirdan's old 20TB Seagate, reformatted for feanor
+#        1x 26TB HDD (sda, bay 2) - cirdan's replacement 23TB WD; added 2026-10-11
+#        1x 20TB HDD (sdd, bay 4) - cirdan's second 20TB Seagate; added 2026-10-11
 #
-#        Total usable: ~43.6 TiB. No redundancy until PHASE A.
+#        Note: bay 1 → sdb, bay 2 → sda (backplane wiring does not follow port order).
+#
+#        All four are in the pool. Data profile is still SINGLE until the balance
+#        below completes (run once; safe to interrupt and resume):
+#          sudo btrfs balance start -dconvert=raid1 -mconvert=raid1 /silmaril/jellyfin
+#          sudo btrfs balance status /silmaril/jellyfin   # monitor progress
+#
+#        After balance: ~46 TiB usable, any single drive failure = no data loss.
+#        Recovery: btrfs replace + new drive.
 #
 #        Note: btrfs device add requires a mounted btrfs path; /silmaril itself
 #        is not mounted (only its subvolumes are), so use any subvol:
 #          sudo btrfs device add /dev/sdX /silmaril/jellyfin
-#
-#      PHASE A - add second 26TB (after cirdan data verified and stable):
-#        btrfs device add /dev/sdY /silmaril/jellyfin
-#        btrfs balance start -dconvert=raid1 -mconvert=raid1 /silmaril/jellyfin
-#        # Three drives (26+26+20 TB) in RAID1: ~36 TB usable with redundancy.
-#
-#      PHASE B - fold in second 20TB from retired cirdan:
-#        btrfs device add /dev/sdW /silmaril/jellyfin
-#        btrfs balance start /silmaril/jellyfin  # days at this size; safe to resume
-#        # Four drives (26+26+20+20 TB) in RAID1: ~46 TB usable with redundancy.
 #
 #      btrfs RAID1 usable space with mixed drives is min(sum/2, sum - largest),
 #      so unlike ZFS mirrors (which cap each vdev at its smallest member and

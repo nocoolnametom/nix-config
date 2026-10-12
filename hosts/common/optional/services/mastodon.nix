@@ -62,9 +62,55 @@ in
       }
     else
       { };
-  services.mastodon.extraConfig.EMAIL_DOMAIN_DENYLIST = lib.concatStringsSep "," (
-    lib.splitString "\n" (builtins.readFile emailDomainBlocklist)
-  );
+  # Disposable email domains are loaded into Mastodon's database (EmailDomainBlock, the same thing
+  # the admin UI's "E-mail domain blocks" page manages) rather than the EMAIL_DOMAIN_DENYLIST env var.
+  # The env var stopped working for two reasons:
+  #   * The list grew past 128 KiB, and Linux refuses to exec a process with any single environment
+  #     string larger than that (MAX_ARG_STRLEN), so every Mastodon unit failed with
+  #     "Argument list too long".
+  #   * Mastodon expects the value to be pipe-separated (it is pasted into a regex alternation);
+  #     the comma-joined value we used never matched any address anyway.
+  # Only the difference from the last applied list is sent to tootctl, so domains that upstream
+  # drops get unblocked and nightly runs are quick. Type=exec keeps the first, slow import of
+  # ~10k domains from holding up nixos-rebuild switch; RemainAfterExit + restartTriggers re-runs
+  # it whenever the flake input changes.
+  systemd.services.mastodon-email-domain-blocks =
+    let
+      mastodonTootctl = lib.findFirst (
+        package: (package.name or "") == "mastodon-tootctl"
+      ) (throw "mastodon-tootctl wrapper not found in environment.systemPackages") config.environment.systemPackages;
+      appliedListPath = "/var/lib/mastodon/email-domain-blocklist.applied";
+    in
+    lib.mkIf config.services.mastodon.enable {
+      description = "Sync disposable email domain blocks into Mastodon";
+      after = [ "mastodon-web.service" ];
+      wants = [ "mastodon-web.service" ];
+      wantedBy = [ "mastodon.target" ];
+      restartTriggers = [ emailDomainBlocklist ];
+      serviceConfig = {
+        Type = "exec";
+        RemainAfterExit = true;
+        User = config.services.mastodon.user;
+        Group = config.services.mastodon.group;
+      };
+      script = ''
+        set -euo pipefail
+        desiredList=$(mktemp)
+        appliedList=$(mktemp)
+        trap 'rm -f "$desiredList" "$appliedList"' EXIT
+
+        grep -v -e '^#' -e '^[[:space:]]*$' ${emailDomainBlocklist} | sort -u > "$desiredList"
+        if [ -f ${appliedListPath} ]; then
+          sort -u ${appliedListPath} > "$appliedList"
+        fi
+
+        # xargs splits long lists into several tootctl runs, keeping each command line small
+        comm -23 "$appliedList" "$desiredList" | xargs -r ${mastodonTootctl}/bin/mastodon-tootctl email-domain-blocks remove
+        comm -13 "$appliedList" "$desiredList" | xargs -r ${mastodonTootctl}/bin/mastodon-tootctl email-domain-blocks add
+
+        cp "$desiredList" ${appliedListPath}
+      '';
+    };
 
   # If PostgreSql backup is enabled, make sure to backup the Mastodon database (expected name is `mastodon`)
   services.postgresqlBackup.databases = [ config.services.mastodon.database.name ];

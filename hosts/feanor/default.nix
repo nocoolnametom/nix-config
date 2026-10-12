@@ -138,8 +138,10 @@ in
   # layout and the two-phase build). 33 TB usable while cirdan still holds a
   # copy, 46 TB once its last drive is folded in.
   #
-  # Monthly scrub is the whole point of choosing a checksumming filesystem -
-  # it is what turns "silent bitrot" into "repaired from the mirror".
+  # Monthly scrub is the backstop for cold data that RAID1's checksum-on-read
+  # doesn't catch (data nobody accesses regularly). Active data is protected by
+  # BTRFS self-healing from the RAID1 mirror on every read, so monthly is
+  # sufficient. Each scrub takes ~5-6 hours at this pool size.
 
   services.btrfs.autoScrub = {
     enable = true;
