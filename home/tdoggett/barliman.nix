@@ -31,17 +31,66 @@ let
   #    plumbing that has to match the rest of this repo goes there: the Ollama
   #    endpoint, its context size, and the dashboard's Kanidm login.
   #
-  #  * This seed is written only when config.yaml does not exist yet (a fresh
-  #    ~/.hermes). After that the file belongs to Hermes, so choices made in
-  #    the dashboard, like picking another model, survive switches. This also
-  #    means a new "planning" model in my-sd-models does NOT reach an existing
-  #    install; pick it in the dashboard.
-  hermesSeedConfig = (pkgs.formats.yaml { }).generate "hermes-seed-config.yaml" {
+  #  * hermesDefaultConfig only fills in keys that config.yaml does not have
+  #    yet, on every switch; any value already in the file (set from the
+  #    dashboard, `hermes config set`, or by hand) is left alone. So a fresh
+  #    ~/.hermes starts out with these, a key added here later reaches an
+  #    existing install, and nothing set by hand gets reverted. A *changed*
+  #    value here does not reach an existing install: e.g. a new "planning"
+  #    model in my-sd-models has to be picked in the dashboard.
+  hermesDefaultConfig = (pkgs.formats.json { }).generate "hermes-default-config.json" {
     model = {
       provider = "ollama-local";
       default = hermesModel;
     };
+
+    # Dangerous-command approvals. `approvals.mode: off` is the config-file
+    # spelling of YOLO mode, and stays available to turn on by hand. Defaults:
+    # "manual" rather than upstream's "smart", because smart lets an auxiliary
+    # LLM auto-approve commands it judges low-risk - one more model a hostile
+    # page could talk into saying yes. The *_mode keys cover sessions with no
+    # human to ask (API server/Conduit, cron, -q): refuse at once instead of
+    # waiting out the timeout.
+    approvals = {
+      mode = "manual";
+      unattended_mode = "deny";
+      cron_mode = "deny";
+      single_query_mode = "deny";
+    };
   };
+
+  # The reverse of upstream's configMergeScript: the file on disk wins, the
+  # defaults only fill gaps. Like upstream's, it rewrites the file with
+  # yaml.dump, so hand-written YAML comments do not survive a switch.
+  hermesFillDefaults = pkgs.writeScript "hermes-fill-config-defaults" ''
+    #!${pkgs.python3.withPackages (ps: [ ps.pyyaml ])}/bin/python3
+    import json, sys, yaml
+    from pathlib import Path
+
+    defaults_path, config_path = sys.argv[1], Path(sys.argv[2])
+    with open(defaults_path) as f:
+        defaults = json.load(f)
+    existing = {}
+    if config_path.exists():
+        with open(config_path) as f:
+            existing = yaml.safe_load(f) or {}
+
+    def fill_missing(on_disk, fallback):
+        result = dict(on_disk)
+        for key, value in fallback.items():
+            if key not in result:
+                result[key] = value
+            elif isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = fill_missing(result[key], value)
+        return result
+
+    merged = fill_missing(existing, defaults)
+    if merged != existing:
+        config_path.parent.mkdir(parents=True, exist_ok=True)
+        with open(config_path, "w") as f:
+            yaml.dump(merged, f, default_flow_style=False, sort_keys=False)
+        config_path.chmod(0o600)
+  '';
 in
 {
   imports = [
@@ -117,7 +166,7 @@ in
     # from Ollama's live /v1/models list.
     settings.providers.ollama-local.api = ollamaUrl;
 
-    # model.provider and model.default are only seeded (see hermesSeedConfig),
+    # model.provider and model.default are only defaults (see hermesDefaultConfig),
     # so the dashboard's model picker sticks.
     settings.model = {
       # Track whatever Ollama actually serves rather than restating it. The
@@ -156,6 +205,9 @@ in
       };
     };
 
+    # Approvals (YOLO on/off) are a default, not a pinned setting, so they can
+    # be changed from the dashboard - see hermesDefaultConfig.
+
     # Gateway's OpenAI-style API, published by estel at <subdomains.hermes>.
     # Every client presents the same bearer API_SERVER_KEY; deliberately not
     # behind SSO because a login redirect would break Conduit.
@@ -163,19 +215,16 @@ in
       API_SERVER_ENABLED = "true";
       API_SERVER_HOST = "0.0.0.0";
       API_SERVER_PORT = toString configVars.networking.ports.tcp.hermes;
-      # Without this the agent cannot execute shell commands over the
-      # api_server path: execute_code refuses subprocess calls that bypass
-      # shell-string approval in an unattended session, and - worse - the
-      # model then narrates a plausible failure rather than surfacing the
-      # refusal. Set it and the same probes return real output, or an honest
-      # NOT_RUN. Lived in ~/.hermes/.env until 2026-10-11, where every
-      # home-manager activation silently reverted it.
+      # HERMES_YOLO_MODE is deliberately NOT set (turned off 2026-10-12).
+      # It disabled dangerous-command approval, so anyone holding the one
+      # bearer key - or any web page or document whose text steered the model -
+      # could run shell commands as tdoggett here, and reach feanor over SSH.
       #
-      # This is a deliberate security tradeoff: it disables dangerous-command
-      # approval on a service published at <subdomains.hermes>.<domain> behind
-      # one bearer key, which also reaches feanor over SSH. NoNewPrivileges on
-      # the unit still blocks sudo, so a leaked key is not root.
-      HERMES_YOLO_MODE = "1";
+      # Expected consequence: over the api_server path (Conduit) there is no
+      # one to approve a command, so execute_code refuses shell calls, and the
+      # model tends to narrate a plausible-sounding failure rather than say it
+      # was refused. Hermes is meant to be the conversation and memory layer;
+      # code changes belong to a separate, sandboxed worker.
     };
     environmentFiles = [ config.sops.templates."hermes-agent.env".path ];
   };
@@ -192,12 +241,10 @@ in
   systemd.user.services.hermes-backend.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
 
   home.activation = {
-    # Before upstream's hermesAgentSetup, which merges `settings` into
-    # config.yaml and would otherwise create the file itself.
-    hermesAgentSeedConfig = lib.hm.dag.entryBetween [ "hermesAgentSetup" ] [ "writeBoundary" ] ''
-      if [ ! -e ${lib.escapeShellArg "${hermesHome}/config.yaml"} ]; then
-        run install -D -m 0600 ${hermesSeedConfig} ${lib.escapeShellArg "${hermesHome}/config.yaml"}
-      fi
+    # Before upstream's hermesAgentSetup, so its pinned `settings` still land
+    # on top of these defaults.
+    hermesAgentFillDefaults = lib.hm.dag.entryBetween [ "hermesAgentSetup" ] [ "writeBoundary" ] ''
+      run ${hermesFillDefaults} ${hermesDefaultConfig} ${lib.escapeShellArg "${hermesHome}/config.yaml"}
     '';
 
     # hermesAgentSetup rewrites .managed as "home-manager" on every switch;
