@@ -44,11 +44,15 @@ All of these are in `home/tdoggett/barliman.nix` and `hosts/barliman/persistence
       plus `deny` for unattended/cron/single-query, and can still be changed
       by hand (`hermes config set approvals.mode off`, or `/yolo` per session)
 - [x] Remove the misspelled `/home/tdogget/.hermes` persistence entry
-- [ ] Deploy to barliman, then check:
-  - `systemctl --user show hermes-agent -p Environment` ends with `HERMES_MANAGED=false`
-  - `cat ~/.hermes/.managed` prints `false`
+- [x] Deployed to barliman 2026-10-12 (commit 7abc857). Verified:
+  - both units and the running gateway process have `HERMES_MANAGED=false`
+  - `~/.hermes/.managed` is `false`
   - `~/.hermes/.env` no longer contains `HERMES_YOLO_MODE`
-  - a model change in the dashboard lands in `config.yaml` and survives a second switch
+  - `approvals` defaults were filled in (`mode: manual`, three `deny`s)
+  - `hermes config set` / `unset` now write `config.yaml`
+- [ ] Change the model in the dashboard and confirm it survives the next switch
+- [ ] Optional: the `hermes` CLI is not on PATH (the HM module only installs
+      it into the units); `programs.hermes-agent` or `home.packages` would add it
 - [ ] Take `~/.ssh/id_hermes` (feanor access) out of the front desk's reach
 - [ ] Update the comment on `linger = true` in `hosts/common/users/tdoggett/default.nix`
       if the user units ever go away

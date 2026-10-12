@@ -134,6 +134,12 @@ in
     API_SERVER_KEY=${config.sops.placeholder."homelab/hermes/api-server-key"}
   '';
 
+  # The `hermes` CLI on PATH. Upstream's switch for it: it adds the same build
+  # the services run (extraPythonPackages included) to home.packages and
+  # exports HERMES_HOME, so `hermes config set ...` in a shell edits the
+  # services' state. services.hermes-agent alone installs nothing on PATH.
+  programs.hermes-agent.enable = true;
+
   # Hermes Agent configuration - runs under tdoggett user via home-manager
   services.hermes-agent = {
     enable = true;
