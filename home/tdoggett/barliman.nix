@@ -248,7 +248,8 @@ in
       providers.ollama-local.api = ollamaUrl;
       model = {
         provider = "ollama-local";
-        default = "_qwen3-coder-next";
+        # The worker-only variant with an output cap (hosts/barliman/default.nix)
+        default = "_qwen3-coder-next-worker";
         context_length = lib.toInt (
           osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
         );

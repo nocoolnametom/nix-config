@@ -112,6 +112,23 @@
   # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
   services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
 
+  # The coder model as the unattended worker uses it (PLAN.md, T4). Same
+  # weights; two settings differ:
+  #  - num_predict: the base model has no output cap, so one reply could run
+  #    to the 196K context. In T4 (2026-10-12) a reply generated ~52,800
+  #    tokens for 30 min (most likely a looping tool call) before a request
+  #    timeout ended it. 16384 bounds that at ~6 min at barliman's ~46 tok/s,
+  #    far above any real reply seen so far.
+  #  - top_p: the GGUF's own default is 0.95; requests ran at 1.0.
+  # Context size stays at the global value: T2's prompts reached ~70K.
+  services.ollama.modelVariants."_qwen3-coder-next-worker" = {
+    from = "_qwen3-coder-next";
+    parameters = {
+      num_predict = 16384;
+      top_p = "0.95"; # a string: Nix would print the float as 0.950000
+    };
+  };
+
   # The Hermes "worker" profile logs in as agent-worker with this key. It is
   # kept out of hosts/common/users/<user>/keys on purpose: every file there
   # becomes a login key for the main user on every host.

@@ -22,6 +22,20 @@ let
   namesToHide = lib.subtractLists (lib.attrNames cfg.namedModels) (
     lib.unique (lib.attrValues aliases)
   );
+
+  # One Modelfile per variant: FROM the base model (which brings its weights,
+  # template and existing parameters along), plus one PARAMETER line each.
+  variantModelfiles = lib.mapAttrs (
+    name: variant:
+    pkgs.writeText "ollama-variant-${lib.strings.sanitizeDerivationName name}.Modelfile" (
+      ''
+        FROM ${variant.from}
+      ''
+      + lib.concatStrings (
+        lib.mapAttrsToList (key: value: "PARAMETER ${key} ${toString value}\n") variant.parameters
+      )
+    )
+  ) cfg.modelVariants;
 in
 {
   options.services.ollama.namedModels = lib.mkOption {
@@ -38,6 +52,38 @@ in
       actualName is removed, so tools only ever see intendedName. Prefix such
       names with "_" so they can't collide with a real library model.
       Defaults to this host's file in my-sd-models' machineLLMs/.
+    '';
+  };
+
+  options.services.ollama.modelVariants = lib.mkOption {
+    type = lib.types.attrsOf (
+      lib.types.submodule {
+        options = {
+          from = lib.mkOption {
+            type = lib.types.str;
+            description = "Installed model to build on (an intended name from namedModels works).";
+          };
+          parameters = lib.mkOption {
+            type = lib.types.attrsOf (lib.types.either lib.types.str lib.types.number);
+            default = { };
+            description = "Modelfile PARAMETERs that override the base model's.";
+          };
+        };
+      }
+    );
+    default = { };
+    example = {
+      "_qwen3-coder-next-worker" = {
+        from = "_qwen3-coder-next";
+        parameters.num_predict = 16384;
+      };
+    };
+    description = ''
+      Extra models made with `ollama create` from a generated Modelfile, for
+      when one client needs different settings than everyone else using the
+      same weights (e.g. an output cap for an unattended agent). They share
+      the base model's files, so they cost no extra disk. Recreated after
+      every model-loader run; prefix the names with "_" like namedModels.
     '';
   };
 
@@ -61,8 +107,9 @@ in
     # Upstream's ollama-model-loader pulls loadModels in the background
     # (Type=exec), so the copies are made when it exits: ExecStopPost runs only
     # after every pull has finished. If a pull failed, the loader restarts and
-    # this runs again after the retry.
-    systemd.services.ollama-model-loader.postStop = lib.mkIf (aliases != { }) ''
+    # this runs again after the retry. Variants come last, since their base may
+    # be one of the renamed models.
+    systemd.services.ollama-model-loader.postStop = lib.mkIf (aliases != { } || cfg.modelVariants != { }) ''
       if [ "$SERVICE_RESULT" != success ]; then
         echo "Model loader ended with '$SERVICE_RESULT'; renaming models after it succeeds"
         exit 0
@@ -83,6 +130,16 @@ in
             || echo "Warning: could not remove ${actualName}"
         fi
       '') namesToHide}
+      ${lib.concatStrings (
+        lib.mapAttrsToList (name: modelfile: ''
+          if ${ollamaExe} show ${lib.escapeShellArg cfg.modelVariants.${name}.from} >/dev/null 2>&1; then
+            ${ollamaExe} create ${lib.escapeShellArg name} -f ${modelfile} \
+              || echo "Warning: could not create variant ${name}"
+          else
+            echo "Warning: base model ${cfg.modelVariants.${name}.from} for variant ${name} is not installed"
+          fi
+        '') variantModelfiles
+      )}
     '';
     # How long an idle model stays loaded. Reloading costs several seconds plus
     # re-reading the whole chat history, so keep it well past a coffee break.
