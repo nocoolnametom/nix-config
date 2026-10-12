@@ -158,6 +158,17 @@ treats `.#` as a path flake).
 
 | T4 | 2026-10-12 | ✅ identical to 03ace36 (all 5 references, both files) | ✅ `nix eval` of smeagol's substituters | ✅ accurate | ✅ clean | 34m / ~4m of work | 1 |
 
+| T4 run 2 | 2026-10-12 | ✅ identical to 03ace36 again | ⚠️ grep for leftovers (valid here); its `nix flake check` failed on an unrelated package and `nix eval .` evaluated nothing | ⚠️ said "flake evaluation passes"; true only that the error was unrelated | ✅ clean | **3m01s** (was 34m) | 1 |
+
+T4 run 2 (base 6687b29, worker model `_qwen3-coder-next-worker`): replies
+were 267-441 generated tokens at most, far under the 16384 cap; no runaway
+this time, so the cap itself wasn't exercised (a 30-min runaway may be rare).
+19 tool calls vs 23. Side finding: **`nix flake check` fails on Linux for
+this repo** - `pkgs/default.nix` exports `display-info` for every system but
+its `meta.platforms` is darwin-only. Any agent's natural first check hits
+that. Fix: only export packages available on the system (e.g. filter with
+`lib.meta.availableOn`).
+
 T4 notes:
 - **One request ran 30m32s: a runaway generation, not a stall.** llama.cpp
   task 317 started at 29,113 tokens of context and was cancelled at 81,932,
@@ -194,9 +205,16 @@ From T4 on (base e0610b9): `AGENTS.md` is in the repo and the worker's
 `SOUL.md` says to read it, so fixtures need no extra patches. T1-T3 ran
 with the old `CLAUDE.md` (T2-T3 with the eval hint patched in).
 
-- [ ] SOUL.md: add "never connect to other machines except the given test
-      targets" (T3's `ssh feanor`); the sharper diagnosis / verification /
-      honesty rules from the T2 review are also still to write
+- [x] SOUL.md revision (written 2026-10-12, not deployed): read AGENTS.md
+      first with read_file; never connect to other machines (T3); name the
+      program behind an error before editing, change only what the symptom
+      points at (T2); verify with `nix eval` of the option, parse checks don't
+      count (T1, T2); never call a failed check a pass (T4 run 2), own your
+      mid-task breakage (T2), show the final diff
+- [x] `nix flake check` fixed for Linux: the flake's `packages` output now only
+      exports packages available on the system (drops darwin-only
+      display-info and yknotify on Linux). Verified on barliman: exit 0
+- [ ] After deploy: rerun T2 (same prompt, fresh fixture) and compare
 
 T3 notes: an easier case than T2, because the identical fix (with comment)
 already existed in the other hosts' `persistence.nix` (dc9520e), and the

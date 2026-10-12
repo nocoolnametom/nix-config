@@ -174,13 +174,19 @@
       # Custom modifications/overrides to upstream packages.
       overlays = import ./overlays { inherit inputs outputs; };
 
-      # Custom packages to be shared or upstreamed.
+      # Custom packages to be shared or upstreamed. Only the ones whose
+      # meta.platforms include this system: without the filter, `nix flake
+      # check` on Linux fails on the darwin-only display-info and yknotify.
+      # (The overlay still offers every package; this is only the flake output.)
       packages = forAllSystems (
         system:
         let
           pkgs = nixpkgs.legacyPackages.${system};
         in
-        import ./pkgs { inherit inputs pkgs; }
+        nixpkgs.lib.filterAttrs (
+          _name: package:
+          nixpkgs.lib.isDerivation package && nixpkgs.lib.meta.availableOn pkgs.stdenv.hostPlatform package
+        ) (import ./pkgs { inherit inputs pkgs; })
       );
 
       checks = forAllSystems (
