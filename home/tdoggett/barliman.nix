@@ -20,6 +20,28 @@ let
   hermesModel =
     hostPrimaryLLMs.planning
       or (throw "barliman.nix: ${hostName} has no 'planning' model in my-sd-models' machinePrimaryLLMs/${hostName}.nix");
+
+  hermesHome = config.services.hermes-agent.hermesHome;
+
+  # Hermes's config.yaml has two layers:
+  #
+  #  * services.hermes-agent.settings (below) is re-applied on every switch.
+  #    Upstream's activation deep-merges it over the file on disk, so those
+  #    keys always win and the dashboard cannot keep a change to them. Only
+  #    plumbing that has to match the rest of this repo goes there: the Ollama
+  #    endpoint, its context size, and the dashboard's Kanidm login.
+  #
+  #  * This seed is written only when config.yaml does not exist yet (a fresh
+  #    ~/.hermes). After that the file belongs to Hermes, so choices made in
+  #    the dashboard, like picking another model, survive switches. This also
+  #    means a new "planning" model in my-sd-models does NOT reach an existing
+  #    install; pick it in the dashboard.
+  hermesSeedConfig = (pkgs.formats.yaml { }).generate "hermes-seed-config.yaml" {
+    model = {
+      provider = "ollama-local";
+      default = hermesModel;
+    };
+  };
 in
 {
   imports = [
@@ -95,9 +117,9 @@ in
     # from Ollama's live /v1/models list.
     settings.providers.ollama-local.api = ollamaUrl;
 
+    # model.provider and model.default are only seeded (see hermesSeedConfig),
+    # so the dashboard's model picker sticks.
     settings.model = {
-      provider = "ollama-local";
-      default = hermesModel;
       # Track whatever Ollama actually serves rather than restating it. The
       # retired system module used a 65536 constant, but there it was the
       # *floor* for an assertion ("Hermes refuses local model servers offering
@@ -156,6 +178,33 @@ in
       HERMES_YOLO_MODE = "1";
     };
     environmentFiles = [ config.sops.templates."hermes-agent.env".path ];
+  };
+
+  # Turn off upstream's "managed mode". The module tags the install as owned
+  # by home-manager twice: HERMES_MANAGED=home-manager in both units, and a
+  # ~/.hermes/.managed marker for interactive shells. Either one makes Hermes
+  # refuse every config.yaml and .env write - and the dashboard's version of
+  # that refusal is silent: save_config() prints to stderr and returns, so the
+  # UI reports success while nothing is saved. "false" is upstream's explicit
+  # opt-out value (HERMES_MANAGED=false). systemd uses the last assignment of
+  # a repeated variable, hence mkAfter.
+  systemd.user.services.hermes-agent.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
+  systemd.user.services.hermes-backend.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
+
+  home.activation = {
+    # Before upstream's hermesAgentSetup, which merges `settings` into
+    # config.yaml and would otherwise create the file itself.
+    hermesAgentSeedConfig = lib.hm.dag.entryBetween [ "hermesAgentSetup" ] [ "writeBoundary" ] ''
+      if [ ! -e ${lib.escapeShellArg "${hermesHome}/config.yaml"} ]; then
+        run install -D -m 0600 ${hermesSeedConfig} ${lib.escapeShellArg "${hermesHome}/config.yaml"}
+      fi
+    '';
+
+    # hermesAgentSetup rewrites .managed as "home-manager" on every switch;
+    # overwrite it afterwards so the `hermes` CLI in a shell is unlocked too.
+    hermesAgentUnmanage = lib.hm.dag.entryAfter [ "hermesAgentSetup" ] ''
+      run install -m 0600 ${pkgs.writeText "hermes-unmanaged" "false"} ${lib.escapeShellArg "${hermesHome}/.managed"}
+    '';
   };
 
   programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${

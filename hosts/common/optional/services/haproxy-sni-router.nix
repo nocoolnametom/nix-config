@@ -72,6 +72,8 @@ in
           # this name last renewed 2026-01-25 while fmd/devices/push (which do have
           # ACLs) kept renewing fine.
           acl is_status_home  hdr(host) -i ${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}
+          # Same Uptime Kuma, under the regular domain (nginx has a vhost for both names)
+          acl is_status_nct   hdr(host) -i ${configVars.networking.subdomains.uptime-kuma}.${configVars.domain}
 
           # Route friend domains to local nginx
           use_backend bombadil_http if is_exmormon_social
@@ -89,6 +91,7 @@ in
           use_backend bombadil_http if is_devices_home
           use_backend bombadil_http if is_ntfy_home
           use_backend bombadil_http if is_status_home
+          use_backend bombadil_http if is_status_nct
 
           # All other traffic goes to homelab (estel)
           default_backend homelab_http
@@ -123,6 +126,7 @@ in
           acl is_ntfy_home    req_ssl_sni -i ${configVars.networking.subdomains.ntfy}.${configVars.homeDomain}
           # See the matching note in http_frontend above.
           acl is_status_home  req_ssl_sni -i ${configVars.networking.subdomains.uptime-kuma}.${configVars.homeDomain}
+          acl is_status_nct   req_ssl_sni -i ${configVars.networking.subdomains.uptime-kuma}.${configVars.domain}
 
           # Route friend domains to local nginx
           use_backend bombadil_https if is_exmormon_social
@@ -140,6 +144,7 @@ in
           use_backend bombadil_https if is_devices_home
           use_backend bombadil_https if is_ntfy_home
           use_backend bombadil_https if is_status_home
+          use_backend bombadil_https if is_status_nct
 
           # All other traffic goes to homelab (estel)
           default_backend homelab_https

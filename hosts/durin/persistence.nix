@@ -52,7 +52,11 @@
       "/etc/machine-info"
       "/etc/nix/id_rsa"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
-      "/var/lib/logrotate.status"
+      # logrotate.status is NOT bind-mounted: logrotate writes via atomic rename
+      # (write temp, rename into place) which fails on a bind-mount target with
+      # "Device or resource busy". Losing it on reboot is harmless: logrotate
+      # recreates it and may re-rotate a few logs once. (Same fix as feanor.)
+      # "/var/lib/logrotate.status"
       "/var/lib/nzbget/nzbget.conf"
       "/var/lib/stashapp/.stash/config.yml"
       "/var/lib/systemd/tpm2-srk-public-key.pem"
