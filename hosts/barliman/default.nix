@@ -36,6 +36,7 @@
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
+    "hosts/common/optional/services/agent-worker.nix" # Low-privilege user for the coding agent's shell (PLAN.md)
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/openssh.nix"
@@ -108,6 +109,15 @@
   # once. Costs one extra KV cache per model, the full context size each: at
   # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
   services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
+
+  # The Hermes "worker" profile logs in as agent-worker with this key. It is
+  # kept out of hosts/common/users/<user>/keys on purpose: every file there
+  # becomes a login key for the main user on every host.
+  services.agent-worker.dispatcherKeys =
+    let
+      keyFile = configLib.relativeToRoot "hosts/common/users/${configVars.username}/agent-worker-keys/barliman.pub";
+    in
+    lib.optional (builtins.pathExists keyFile) (builtins.readFile keyFile);
 
   # Bluetooth - Framework Desktop extras (base settings from bluetooth.nix)
   hardware.bluetooth.settings.General.Experimental = true;

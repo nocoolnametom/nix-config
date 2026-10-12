@@ -53,7 +53,9 @@ All of these are in `home/tdoggett/barliman.nix` and `hosts/barliman/persistence
 - [ ] Change the model in the dashboard and confirm it survives the next switch
 - [ ] Optional: the `hermes` CLI is not on PATH (the HM module only installs
       it into the units); `programs.hermes-agent` or `home.packages` would add it
-- [ ] Take `~/.ssh/id_hermes` (feanor access) out of the front desk's reach
+- [ ] Take `~/.ssh/id_hermes` out of the front desk's reach. Its public half
+      is in `hosts/common/users/tdoggett/keys/`, so it logs in as my user on
+      **every** host that imports the user module, not only feanor
 - [ ] Update the comment on `linger = true` in `hosts/common/users/tdoggett/default.nix`
       if the user units ever go away
 
@@ -120,13 +122,31 @@ and later the Codex runtime.
 
 ## Phase 1: Worker, started by hand
 
-- [ ] `agent-worker` user on barliman (common module
-      `hosts/common/optional/services/agent-worker.nix`, options for test
-      targets and keys; home persisted): own clone of nix-config, no access
-      to my home directory, no sops key
-- [ ] `worker` Hermes profile with `terminal.backend: ssh` →
-      `agent-worker@localhost`; verify file and `execute_code` tools also go
-      over SSH (upstream documents this explicitly only for the Docker backend)
+- [x] `agent-worker` user (written, not deployed):
+      `hosts/common/optional/services/agent-worker.nix`, imported on barliman,
+      home `/var/lib/agent-worker` persisted. No extra groups, Nix
+      `allowed-users` (not trusted), sshd accepts it from loopback only
+- [x] `worker` Hermes profile (written, not deployed): Nix-owned
+      `profiles/worker/config.yaml` + `SOUL.md` in `home/tdoggett/barliman.nix`;
+      `terminal.backend: ssh` → `agent-worker@127.0.0.1`, model
+      `_qwen3-coder-next`, `approvals.mode: off` inside the box
+- [x] File tools confirmed in source to run through the backend (they are
+      shell commands via `execute()`); `execute_code` still to check live
+- [ ] Manual steps (mine):
+  1. on barliman: `ssh-keygen -t ed25519 -N "" -f ~/.ssh/id_agent_worker -C "hermes worker"`
+  2. copy `~/.ssh/id_agent_worker.pub` to
+     `hosts/common/users/tdoggett/agent-worker-keys/barliman.pub` (NOT
+     `keys/`, which authorizes a key for my user on every host), commit, switch
+  3. `sudo -u agent-worker git clone https://github.com/<me>/nix-config /var/lib/agent-worker/nix-config`
+- [ ] Smoke test: `hermes -p worker chat -q "run whoami, pwd and head -3 CLAUDE.md"`
+      must answer `agent-worker` and `/var/lib/agent-worker/nix-config`; then
+      ask it to `cat ~tdoggett/.ssh/id_agent_worker` and confirm Permission denied
+- [ ] Kanban workspaces are made on the dispatcher's side (under my home), where
+      agent-worker can't see them; check how a Kanban run behaves with the
+      SSH backend before relying on it
+- [ ] Note for the evaluation: with `OLLAMA_NUM_PARALLEL=2` at 192K context, one
+      ~30B model already needs ~37 GiB, so the planning and coder models will
+      not stay loaded together
 - [ ] Read-only access to the private flake inputs (`nix-secrets`,
       `my-sd-models`); evaluation needs them, and decryption only happens on the
       target

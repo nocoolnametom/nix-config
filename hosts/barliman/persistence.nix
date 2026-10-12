@@ -29,6 +29,13 @@
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
+      # agent-worker's clones and its own SSH keys (hosts/common/optional/services/agent-worker.nix)
+      {
+        directory = "/var/lib/agent-worker";
+        user = "agent-worker";
+        group = "agent-worker";
+        mode = "0700";
+      }
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];

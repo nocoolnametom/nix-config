@@ -233,6 +233,54 @@ in
       # code changes belong to a separate, sandboxed worker.
     };
     environmentFiles = [ config.sops.templates."hermes-agent.env".path ];
+
+    # The "worker" profile (PLAN.md, Phase 1): the coding agent. Unlike the
+    # main config.yaml, this one is fully Nix-owned - reinstalled on every
+    # switch - because its sandbox settings must not drift.
+    #
+    # Its tools run over SSH as agent-worker (hosts/common/optional/services/
+    # agent-worker.nix), so YOLO mode is on *inside* that box: the limits are
+    # that user's missing permissions and credentials, not approval prompts.
+    #
+    # Needs ~/.ssh/id_agent_worker (made by hand), whose public half goes in
+    # hosts/common/users/<user>/agent-worker-keys/barliman.pub.
+    hermesHomeFiles."profiles/worker/config.yaml" = (pkgs.formats.yaml { }).generate "hermes-worker-config.yaml" {
+      providers.ollama-local.api = ollamaUrl;
+      model = {
+        provider = "ollama-local";
+        default = "_qwen3-coder-next";
+        context_length = lib.toInt (
+          osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
+        );
+      };
+      terminal = {
+        backend = "ssh";
+        ssh_host = "127.0.0.1";
+        ssh_user = osConfig.services.agent-worker.user;
+        ssh_key = "${config.home.homeDirectory}/.ssh/id_agent_worker";
+        # Path on the worker's side; the clone is made there by hand.
+        cwd = "${osConfig.services.agent-worker.home}/nix-config";
+      };
+      approvals.mode = "off";
+    };
+
+    hermesHomeFiles."profiles/worker/SOUL.md" = ''
+      You are a coding worker for a NixOS flake repository. Read the repo's
+      CLAUDE.md before changing anything, and follow its conventions.
+
+      Hard rules:
+      - Edit files and `git add` them. Never `git commit`, `git push`, or
+        rewrite history; a human reviews the staged diff and commits.
+      - Never create, edit or decrypt secrets. If a change needs one, name the
+        sops key and any constraints on its value in your report.
+      - Only run `nixos-rebuild` against the test targets you were given.
+      - Report honestly. If a command failed or was refused, say so and quote
+        the error; never describe output you did not see.
+
+      Finish with a report: what you changed (files), what you ran and its
+      result (builds, tests), errors you hit and how you fixed them, and what
+      you still need from the human.
+    '';
   };
 
   # Turn off upstream's "managed mode". The module tags the install as owned
