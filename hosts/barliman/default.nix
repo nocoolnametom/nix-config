@@ -129,6 +129,17 @@
     };
   };
 
+  # The reasoning model as the worker uses it, and the worker's model since
+  # T2 runs 3-4 (2026-10-12): the only model to fix T2, and the only one
+  # that followed the worker's SOUL.md. Its own sampling defaults (top_p
+  # 0.95, top_k 20) are already right; only an output cap is added, larger
+  # than the coder's because the reasoning counts too. The longest reply in
+  # those runs was ~7K tokens; 32768 bounds a loop at ~12 min.
+  services.ollama.modelVariants."_qwen3.8-worker" = {
+    from = "_qwen3.8";
+    parameters.num_predict = 32768;
+  };
+
   # The Hermes "worker" profile logs in as agent-worker with this key. It is
   # kept out of hosts/common/users/<user>/keys on purpose: every file there
   # becomes a login key for the main user on every host.

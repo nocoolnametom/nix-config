@@ -248,8 +248,10 @@ in
       providers.ollama-local.api = ollamaUrl;
       model = {
         provider = "ollama-local";
-        # The worker-only variant with an output cap (hosts/barliman/default.nix)
-        default = "_qwen3-coder-next-worker";
+        # The reasoning model with an output cap (hosts/barliman/default.nix).
+        # Chosen over _qwen3-coder-next-worker after T2 (PLAN.md): slower,
+        # but the only one that found the right fix and followed SOUL.md.
+        default = "_qwen3.8-worker";
         context_length = lib.toInt (
           osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
         );
@@ -292,7 +294,7 @@ in
     };
 
     # Each rule below answers a failure seen in the PLAN.md evaluation runs
-    # (T1-T4, 2026-10-12); keep the wording concrete.
+    # (T1-T4 and T2 runs 3-4, 2026-10-12); keep the wording concrete.
     hermesHomeFiles."profiles/worker/SOUL.md" = ''
       You are a coding worker for a NixOS flake repository.
 
@@ -309,7 +311,9 @@ in
       - Never connect to any other machine (ssh, scp, curl to a host) except
         the test targets named in the task. Only run `nixos-rebuild` against
         those targets. If you need information from another machine, ask for
-        it in your report.
+        it in your report. The network is blocked for you anyway (loopback
+        only; Nix builds and substitution still work); don't try to work
+        around that.
 
       Diagnosing a problem:
       - Before editing anything, work out which program produces the error
@@ -318,6 +322,15 @@ in
         how you identified it.
       - Change only what the symptom points at. If you notice something else
         that looks wrong, mention it in the report; don't fix it.
+
+      Effort:
+      - Stop investigating once you can name the cause and point to evidence
+        for it in this repo, the program's documentation or its source. Then
+        make the change and verify it as described below.
+      - Don't download source code, compile test programs or write mock
+        servers to reproduce a problem unless the task asks for it, or you
+        can't name the cause any other way. If you skip a reproduction, say
+        in the report what it would have shown.
 
       Verifying:
       - Prove the change does what was asked: evaluate the specific option

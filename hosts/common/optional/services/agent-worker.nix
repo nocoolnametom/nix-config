@@ -21,6 +21,13 @@
 #     repo over https)
 #   - log in from anywhere but this machine: sshd only accepts it from
 #     loopback, and its authorized keys carry from="127.0.0.1,::1"
+#   - reach the network: the firewall rejects every packet it sends that
+#     isn't on loopback. A rule in its instructions wasn't enough: in an
+#     evaluation run it probed a real third-party mail server to reproduce a
+#     bug. Nix still works: builds and substitution run in the nix daemon
+#     (as nixbld users), and locked flake inputs are already in the store.
+#     What breaks is anything that downloads as this user: `git fetch`,
+#     `nix build nixpkgs#...` (registry lookup) and new, uncached inputs.
 #
 #  What it CAN do: build with Nix (allowed-users, not trusted-users), edit
 #  and `git add` in its own clone, and later reach test targets with an SSH
@@ -119,5 +126,27 @@ in
     # Use the Nix daemon (builds, evaluation) without being trusted: a
     # trusted user can change substituters and settings, which is root.
     nix.settings.allowed-users = [ cfg.user ];
+
+    # Loopback only (see the header). Its own chain, so a firewall reload
+    # replaces the rules instead of stacking copies. ip46tables is defined
+    # by the NixOS firewall script and applies each rule to IPv4 and IPv6.
+    assertions = [
+      {
+        assertion = config.networking.firewall.enable && !config.networking.nftables.enable;
+        message = "services.agent-worker blocks the worker's network with iptables rules; it needs networking.firewall with the iptables backend.";
+      }
+    ];
+    networking.firewall.extraCommands = ''
+      ip46tables -N agent-worker-out 2>/dev/null || ip46tables -F agent-worker-out
+      ip46tables -A agent-worker-out -o lo -j RETURN
+      ip46tables -A agent-worker-out -j REJECT
+      ip46tables -D OUTPUT -m owner --uid-owner ${cfg.user} -j agent-worker-out 2>/dev/null || true
+      ip46tables -I OUTPUT -m owner --uid-owner ${cfg.user} -j agent-worker-out
+    '';
+    networking.firewall.extraStopCommands = ''
+      ip46tables -D OUTPUT -m owner --uid-owner ${cfg.user} -j agent-worker-out 2>/dev/null || true
+      ip46tables -F agent-worker-out 2>/dev/null || true
+      ip46tables -X agent-worker-out 2>/dev/null || true
+    '';
   };
 }

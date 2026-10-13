@@ -320,6 +320,26 @@ T2 run 4 notes (56 tool calls, was 199):
   `meta skuid agent-worker oifname != "lo" reject` (plus an exception per
   test target in Phase 2). `git clone` of the repo would then be done by the
   harness, or allowed to GitHub only.
+- [x] Drafted (not deployed), after the tool allow-list went live
+      2026-10-13:
+  - `agent-worker.nix`: own iptables chain `agent-worker-out` (IPv4 and
+    IPv6), rejecting everything the worker uid sends except on loopback,
+    with an assertion that the iptables firewall is in use. Tested on
+    barliman with the same rules applied by hand, then removed: the worker's
+    curl and `git ls-remote` were refused; `nix eval` of the T2 option and
+    `nix flake check --no-build` still passed; my own traffic unaffected.
+  - Worker model switched to `_qwen3.8-worker`, now a Nix `modelVariants`
+    entry (FROM `_qwen3.8`, `num_predict 32768`; the longest reply in runs
+    3-4 was ~7K tokens, no length cutoffs). The coder variant stays for now,
+    to allow switching back.
+  - Worker SOUL.md in Nix gets the Effort section from run 4, plus a line
+    saying the network is blocked so it doesn't spend turns on it.
+  - After deploy: delete the hand-made `wthink` profile; the Nix-run
+    `ollama create` replaces the hand-made `_qwen3.8-worker`.
+- [x] Harness: `run_task.sh` lists the worker's files in `/tmp` into
+      `tmp_before.txt`/`tmp_after.txt` and deletes them (option (b) below);
+      `score.sh` reports network attempts in tool calls and the firewall's
+      reject counters, and its diff ignores `result*`.
 - score.sh should also grep tool calls for network use (`s_client`,
   `socket.create_connection`, `curl`, `wget`, `nc`, `msmtp` runs) until the
   firewall rule exists.
