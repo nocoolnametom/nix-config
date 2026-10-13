@@ -7,8 +7,10 @@
 #  where its tools run: the profile uses Hermes's SSH terminal backend pointed
 #  at this user on loopback. Hermes runs terminal calls and its file tools
 #  (read, write, patch, search are shell commands through the backend's
-#  execute()) over that connection, so they happen as this user.
-#  execute_code has not been checked yet: verify it on the first live run.
+#  execute()) over that connection, so they happen as this user. So does
+#  execute_code (Python on this side, file RPC back to Hermes). Tools that run
+#  inside Hermes itself (web, browser, cron, memory) are outside this
+#  confinement; the worker profile turns them off.
 #
 #  What this user can NOT do, by construction rather than by instruction:
 #   - read the normal user's home (~/.ssh, ~/.hermes, repos): those are 0700

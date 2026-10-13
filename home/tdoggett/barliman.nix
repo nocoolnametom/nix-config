@@ -264,6 +264,23 @@ in
       };
       approvals.mode = "off";
 
+      # Only tools that run over the SSH backend, as the worker. Hermes's
+      # default CLI set also has tools that run in the Hermes process itself,
+      # i.e. as me and outside the sandbox: web search/fetch and a browser (a
+      # way out to the internet, and a way in for prompt injection), cron jobs
+      # (work that outlives the task), and memory, skills and session search
+      # (what one task learns would leak into the next and spoil the evals).
+      # T2 run 3 (2026-10-12) used web_search and web_extract. An explicit
+      # list also keeps toolsets added by future Hermes updates switched off.
+      # execute_code is safe here: with a remote backend it runs Python on the
+      # worker's side and talks back over file RPC (code_execution_tool.py).
+      platform_toolsets.cli = [
+        "terminal"
+        "file"
+        "code_execution"
+        "todo"
+      ];
+
       # Waiting for barliman's GPU is normal (my own chats, Karakeep, ...)
       # and must never quietly end a task. Hermes's default local ceiling is
       # 900 s with no first token; T1 (2026-10-12) hit it twice while I was
