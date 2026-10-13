@@ -281,7 +281,22 @@ in
         "file"
         "code_execution"
         "todo"
+        # fix_done, from the plugin below. An enabled plugin's tools show up
+        # even when not listed; listed anyway, so this list stays complete.
+        "extra_work_budget"
       ];
+
+      # Bounds the work after the fix (home/tdoggett/hermes-plugins/
+      # extra-work-budget): once the worker calls fix_done, 25 more tool
+      # calls with reminders of the original task, edits to unrelated files
+      # refused; without fix_done, 60 calls after the first passing Nix check
+      # following an edit. T6 (2026-10-13) went from 100 min / 104 calls to
+      # 33 min / 32 calls with it.
+      plugins.enabled = [ "extra-work-budget" ];
+      # Hermes hides plugin tools behind its tool_search bridge, so the
+      # first fix_done call failed with "does not exist". With ~8 tools
+      # there's nothing worth deferring.
+      tools.tool_search.enabled = "off";
 
       # Waiting for barliman's GPU is normal (my own chats, Karakeep, ...)
       # and must never quietly end a task. Hermes's default local ceiling is
@@ -295,6 +310,11 @@ in
 
     # Each rule below answers a failure seen in the PLAN.md evaluation runs
     # (T1-T4 and T2 runs 3-4, 2026-10-12); keep the wording concrete.
+    hermesHomeFiles."profiles/worker/plugins/extra-work-budget/__init__.py" =
+      ./hermes-plugins/extra-work-budget/__init__.py;
+    hermesHomeFiles."profiles/worker/plugins/extra-work-budget/plugin.yaml" =
+      ./hermes-plugins/extra-work-budget/plugin.yaml;
+
     hermesHomeFiles."profiles/worker/SOUL.md" = ''
       You are a coding worker for a NixOS flake repository.
 
@@ -351,6 +371,11 @@ in
         original code.
       - Show the final change: `git diff` (staged and unstaged); in a copy
         without git, list every file you changed with the changed lines.
+
+      When every part of the task is done and checked, call the fix_done tool
+      with a summary, then write your report. After fix_done you have a few
+      tool calls left for extra checking, and edits to other files are
+      refused.
 
       End with a report: what you changed, how you identified the cause, the
       exact verification commands and their results, anything that failed,
