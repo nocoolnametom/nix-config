@@ -134,11 +134,19 @@ def _handle_fix_done(args: dict, session_id: str = "", **_: Any) -> str:
     state = _state(session_id)
     if state["phase"] == "extra":
         return json.dumps({"result": "fix_done was already called; carry on with your report."})
-    _start_budget(state, "extra", BUDGET)
+    # From the fallback, only what is left of it: in T7 (2026-10-13) a worker
+    # that had used up its fallback budget called fix_done and got 25 more.
+    budget = BUDGET if state["phase"] == "fixing" else min(BUDGET, state["budget"] - state["used"])
+    _start_budget(state, "extra", budget)
+    if budget <= 0:
+        state["final_sent"] = True
+        return json.dumps(
+            {"result": "[extra-work budget] Noted, but the budget is already used up. Write your report now.\n" + _summary(state)}
+        )
     return json.dumps(
         {
             "result": (
-                f"[extra-work budget] Noted. You have {_calls(BUDGET)} for any extra checking that "
+                f"[extra-work budget] Noted. You have {_calls(budget)} for any extra checking that "
                 "would change your confidence in the fix; edits to files you haven't changed are now "
                 "refused. If nothing more is needed, write your report now.\n" + _summary(state)
             )
@@ -163,7 +171,7 @@ def _on_pre_tool_call(tool_name: str = "", args: Any = None, session_id: str = "
         return {
             "action": "block",
             "message": (
-                f"Not run: the budget for work after the fix ({_calls(state['budget'])}) is used up. "
+                "Not run: the budget for work after the fix is used up. "
                 "Write your report now. Include what you were checking when the budget ran out "
                 "and why it is unfinished.\n\n" + _summary(state)
             ),
