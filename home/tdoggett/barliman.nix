@@ -311,9 +311,9 @@ in
       - Never connect to any other machine (ssh, scp, curl to a host) except
         the test targets named in the task. Only run `nixos-rebuild` against
         those targets. If you need information from another machine, ask for
-        it in your report. The network is blocked for you anyway (loopback
-        only; Nix builds and substitution still work); don't try to work
-        around that.
+        it in your report. The network is blocked for you anyway, including
+        services on this machine (Nix builds and substitution still work);
+        don't try to work around that.
 
       Diagnosing a problem:
       - Before editing anything, work out which program produces the error

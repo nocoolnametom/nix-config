@@ -336,6 +336,26 @@ T2 run 4 notes (56 tool calls, was 199):
     saying the network is blocked so it doesn't spend turns on it.
   - After deploy: delete the hand-made `wthink` profile; the Nix-run
     `ollama create` replaces the hand-made `_qwen3.8-worker`.
+  - Deployed 2026-10-13 and checked live (chain present for IPv4 and IPv6;
+    worker curl refused; worker profile on `_qwen3.8-worker` with the new
+    SOUL.md). `wthink` deleted.
+- **Loopback was still open, and it mattered.** Read-only probes as the
+  worker: **Caddy's admin API (127.0.0.1:2019) answers with no login**
+  (anyone who reaches it can replace the web server config, e.g. serve
+  files the caddy user can read), and **Ollama (:11434) has no login** (load
+  or delete models, take the GPU, pull models through Ollama's own network
+  access). Protected: Hermes API server (`API_SERVER_KEY`, 401), dashboard
+  sessions (401; `/api/status` is open but only shows versions and state),
+  Open WebUI (401), Syncthing (CSRF), smolcoder on :8091 (session key).
+  - [x] Drafted (not deployed): only `ESTABLISHED,RELATED` packets on lo
+        are allowed, so the worker can answer the SSH session made to it but
+        can't open any connection itself. Tested by hand, then restored with
+        a firewall reload: SSH login and a real Hermes worker turn worked
+        (`whoami` → agent-worker), `nix flake check` passed, Caddy admin,
+        Ollama and the internet were refused.
+  - [ ] Separately: Caddy's admin API is open to every local user, not just
+        the worker. Consider `services.caddy.globalConfig = "admin off"` or
+        a Unix socket (check what reloads use first).
 - [x] Harness: `run_task.sh` lists the worker's files in `/tmp` into
       `tmp_before.txt`/`tmp_after.txt` and deletes them (option (b) below);
       `score.sh` reports network attempts in tool calls and the firewall's

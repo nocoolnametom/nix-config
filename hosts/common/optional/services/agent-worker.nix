@@ -21,10 +21,14 @@
 #     repo over https)
 #   - log in from anywhere but this machine: sshd only accepts it from
 #     loopback, and its authorized keys carry from="127.0.0.1,::1"
-#   - reach the network: the firewall rejects every packet it sends that
-#     isn't on loopback. A rule in its instructions wasn't enough: in an
-#     evaluation run it probed a real third-party mail server to reproduce a
-#     bug. Nix still works: builds and substitution run in the nix daemon
+#   - reach the network, or any service on this machine: the firewall rejects
+#     every connection it opens, loopback included, and lets through only its
+#     replies on connections made to it (the SSH session the agent drives it
+#     over). Loopback matters too: Caddy's admin API and Ollama listen there
+#     without a login, so a worker allowed on lo could rewrite the web server
+#     config or load and delete models. A rule in its instructions wasn't
+#     enough: in an evaluation run it probed a real third-party mail server
+#     to reproduce a bug. Nix still works: builds and substitution run in the nix daemon
 #     (as nixbld users), and locked flake inputs are already in the store.
 #     What breaks is anything that downloads as this user: `git fetch`,
 #     `nix build nixpkgs#...` (registry lookup) and new, uncached inputs.
@@ -127,8 +131,10 @@ in
     # trusted user can change substituters and settings, which is root.
     nix.settings.allowed-users = [ cfg.user ];
 
-    # Loopback only (see the header). Its own chain, so a firewall reload
-    # replaces the rules instead of stacking copies. ip46tables is defined
+    # Replies only (see the header). sshd's per-session process runs as the
+    # worker, so the SSH session's own packets carry its uid; they belong to
+    # a connection someone else opened, hence ESTABLISHED. Its own chain, so
+    # a firewall reload replaces the rules instead of stacking copies. ip46tables is defined
     # by the NixOS firewall script and applies each rule to IPv4 and IPv6.
     assertions = [
       {
@@ -138,7 +144,7 @@ in
     ];
     networking.firewall.extraCommands = ''
       ip46tables -N agent-worker-out 2>/dev/null || ip46tables -F agent-worker-out
-      ip46tables -A agent-worker-out -o lo -j RETURN
+      ip46tables -A agent-worker-out -o lo -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
       ip46tables -A agent-worker-out -j REJECT
       ip46tables -D OUTPUT -m owner --uid-owner ${cfg.user} -j agent-worker-out 2>/dev/null || true
       ip46tables -I OUTPUT -m owner --uid-owner ${cfg.user} -j agent-worker-out
