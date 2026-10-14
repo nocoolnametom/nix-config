@@ -15,7 +15,8 @@
 #  What this user can NOT do, by construction rather than by instruction:
 #   - read the normal user's home (~/.ssh, ~/.hermes, repos): those are 0700
 #   - read group-shared data: it is in no extra groups (not wheel = no sudo,
-#     not users, not docker = not root via the socket)
+#     not users, not docker = not root via the socket). The one exception,
+#     with vmTests.enable, is kvm: it may run VMs, which doesn't make it root
 #   - decrypt secrets: it holds no sops/age key
 #   - push to GitHub: it is given no credentials there (it clones the public
 #     repo over https)
@@ -93,6 +94,20 @@ in
       '';
     };
 
+    vmTests.enable = lib.mkOption {
+      type = lib.types.bool;
+      default = false;
+      description = ''
+        Let the worker user run KVM virtual machines (adds it to the kvm
+        group). The eval harness boots each changed host's config as a
+        throwaway VM (`config.system.build.vm`) to check it. It does that as
+        this user, not as the main user, because the VM's runner script is
+        built from the worker's own config: whatever that config puts in it
+        then runs with the worker's limits (no network, no secrets, no other
+        homes).
+      '';
+    };
+
     dispatcherKeys = lib.mkOption {
       type = lib.types.listOf lib.types.str;
       default = [ ];
@@ -124,9 +139,10 @@ in
   config = lib.mkIf cfg.enable {
     users.groups.${cfg.user} = { };
     users.users.${cfg.user} = {
-      # Normal user: SSH login needs a real shell. Deliberately no
+      # Normal user: SSH login needs a real shell. Deliberately no other
       # extraGroups - see the header.
       isNormalUser = true;
+      extraGroups = lib.optional cfg.vmTests.enable "kvm";
       group = cfg.user;
       home = cfg.home;
       createHome = true;

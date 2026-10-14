@@ -678,6 +678,62 @@ Original sketch (pass = credentials stop it, whatever the model does):
 
 ## Phase 2: Test deploys
 
+**Decided 2026-10-14:** a VM on barliman. **Design draft** (to review):
+
+Two ways to do it:
+- (A) As sketched below: a long-lived VM (microvm.nix, a new flake input)
+  that the worker deploys into with `nixos-rebuild test --target-host`.
+  Needs a writable store in the guest, a bridge and private subnet, an SSH
+  key for the worker, a firewall exception for it, and an auto-revert
+  (restart the VM: `test` never touches the bootloader).
+- **(B) Recommended: a disposable VM built from the host's own config.**
+  Every NixOS config already has `config.system.build.vm` (what `nixos-rebuild
+  build-vm` uses; the qemu-vm module swaps in the VM's own disks, boot and
+  network). Checked 2026-10-14: estel, bombadil, feanor and durin all
+  evaluate as VMs. Flow:
+  1. the worker finishes and calls fix_done as now
+  2. the harness builds `.#nixosConfigurations.<host>.config.system.build.vm`
+     from the worker's work dir (as agent-worker; builds run in the nix
+     daemon, so no network needed)
+  3. the harness boots it (qemu with user-mode networking, ports forwarded
+     to localhost only), waits for boot, and runs health checks: failed
+     units, `systemctl is-active` for the changed services, an HTTP request
+     to each changed vhost/port
+  4. the results go in facts.txt; the VM is deleted (its disk is a fresh
+     temporary file each time, so there's nothing to revert)
+
+  Why B: the worker never gets a deploy key, root anywhere, or a network
+  exception. Nothing persists between tasks, and no new flake input is
+  needed. Costs: the VM's RAM while it runs (estel-sized, ~4 GB; started only
+  for the check, and not while a model needs the memory), and it tests the
+  config in a VM, not on the host's real hardware or data.
+
+**Decided 2026-10-14:** (B); secrets: accept, report failures caused by
+missing secrets apart from the rest; the VM runs **as agent-worker**, which
+is added to `kvm` (`services.agent-worker.vmTests.enable`, barliman only;
+drafted). First recommendation was "harness runs it as me". That was wrong: the
+VM's runner script (`run-<host>-vm`) is built from the worker's config, so
+the worker could change the qemu arguments (share my home into the VM, give
+it network). Run as agent-worker, that code keeps the worker's limits, and
+qemu's user-mode networking goes through the worker's firewall rule. The
+model can now start VMs too.
+
+Open questions for B (as first written):
+- **Secrets.** The VM has no age key, so sops-nix can't decrypt and services
+  that need secrets fail. Options: (1) accept it: report only units that
+  fail for other reasons (failures caused by missing secrets are listed
+  separately); (2) a test-only age key and a secrets file of fake values with
+  the same key names, used only in the VM variant: you create both (the
+  "never create secrets" rule), and Clod writes the wiring.
+- impermanence and lanzaboote under the VM variant: they evaluate, but
+  whether they boot needs a first real try (estel first).
+- KVM: the VM needs `/dev/kvm`. Running qemu as agent-worker means adding it to
+  the `kvm` group (a VM, not host root), or the harness runs it as me.
+- Later, for real hosts (not the VM): the snapshot/revert items below still
+  apply if test deploys to real machines ever happen.
+
+Original sketch:
+
 - [ ] `nixos-rebuild test --flake .#<host> --target-host <host>` from the
       worker's checkout. The target never reads its own repo, so no auto-pull
       timer is needed

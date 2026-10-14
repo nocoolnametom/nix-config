@@ -148,6 +148,9 @@
       keyFile = configLib.relativeToRoot "hosts/common/users/${configVars.username}/agent-worker-keys/barliman.pub";
     in
     lib.optional (builtins.pathExists keyFile) (builtins.readFile keyFile);
+  # The harness boots changed hosts as throwaway VMs to check them (PLAN.md,
+  # Phase 2).
+  services.agent-worker.vmTests.enable = true;
 
   # Bluetooth - Framework Desktop extras (base settings from bluetooth.nix)
   hardware.bluetooth.settings.General.Experimental = true;
