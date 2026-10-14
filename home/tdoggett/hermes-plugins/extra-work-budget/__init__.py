@@ -2,8 +2,10 @@
 
 The worker's run has three phases:
 
-  fixing  No limit of its own. Ends when the worker calls the `fix_done` tool
-          (every part of the task is done and checked).
+  fixing  Ends when the worker calls the `fix_done` tool (every part of the
+          task is done and checked). Capped at EXTRA_WORK_FIXING_BUDGET tool
+          calls (default 150): T7 (2026-10-13) spent 3 hours here. At the cap
+          the worker is told to wrap up, and the fallback budget below starts.
   extra   After `fix_done`: further tool calls count against EXTRA_WORK_BUDGET
           (default 25), counted in calls rather than minutes so that waiting
           for the GPU is free. Every EXTRA_WORK_REMIND_EVERY calls (default 5)
@@ -42,6 +44,7 @@ def _int_env(name: str, default: int) -> int:
         return default
 
 
+FIXING_BUDGET = _int_env("EXTRA_WORK_FIXING_BUDGET", 150)
 BUDGET = _int_env("EXTRA_WORK_BUDGET", 25)
 FALLBACK_BUDGET = _int_env("EXTRA_WORK_FALLBACK_BUDGET", 60)
 REMIND_EVERY = _int_env("EXTRA_WORK_REMIND_EVERY", 5)
@@ -76,6 +79,8 @@ def _state(session_id: str) -> dict[str, Any]:
             "task": "",
             "edited": [],
             "phase": "fixing",  # fixing | fallback | extra
+            "fixing_used": 0,
+            "fixing_cap_hit": False,
             "budget": 0,
             "used": 0,
             "remind_due": False,
@@ -162,7 +167,10 @@ def _on_pre_llm_call(session_id: str = "", user_message: Any = None, **_: Any) -
 
 def _on_pre_tool_call(tool_name: str = "", args: Any = None, session_id: str = "", **_: Any) -> Optional[dict[str, str]]:
     state = _state(session_id)
-    if state["phase"] == "fixing" or tool_name == "fix_done":
+    if tool_name == "fix_done":
+        return None
+    if state["phase"] == "fixing":
+        state["fixing_used"] += 1
         return None
 
     if state["used"] >= state["budget"]:
@@ -171,7 +179,7 @@ def _on_pre_tool_call(tool_name: str = "", args: Any = None, session_id: str = "
         return {
             "action": "block",
             "message": (
-                "Not run: the budget for work after the fix is used up. "
+                "Not run: this run's tool-call budget is used up. "
                 "Write your report now. Include what you were checking when the budget ran out "
                 "and why it is unfinished.\n\n" + _summary(state)
             ),
@@ -208,7 +216,16 @@ def _on_transform_tool_result(
             state["edited"].append(path)
 
     note = ""
-    if state["phase"] == "fixing" and state["edited"] and tool_name == "terminal" and succeeded:
+    if state["phase"] == "fixing" and state["fixing_used"] >= FIXING_BUDGET and not state["fixing_cap_hit"]:
+        state["fixing_cap_hit"] = True
+        _start_budget(state, "fallback", FALLBACK_BUDGET)
+        note = (
+            f"[extra-work budget] {_calls(FIXING_BUDGET)} so far without a passing fix. Wrap up: "
+            "finish the step you're on, and if you can't get to a checked fix soon, stop and "
+            "report what you found, what you tried, and what's left. From here, the rest of this "
+            f"run has {_calls(FALLBACK_BUDGET)}.\n" + _summary(state)
+        )
+    elif state["phase"] == "fixing" and state["edited"] and tool_name == "terminal" and succeeded:
         command = str(args.get("command", "")) if isinstance(args, dict) else ""
         if any(check in command for check in NIX_CHECKS):
             _start_budget(state, "fallback", FALLBACK_BUDGET)

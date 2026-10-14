@@ -290,7 +290,8 @@ in
       # extra-work-budget): once the worker calls fix_done, 25 more tool
       # calls with reminders of the original task, edits to unrelated files
       # refused; without fix_done, 60 calls after the first passing Nix check
-      # following an edit. T6 (2026-10-13) went from 100 min / 104 calls to
+      # following an edit; and the fixing itself is capped at 150 calls (T7
+      # spent 3 h there). T6 (2026-10-13) went from 100 min / 104 calls to
       # 33 min / 32 calls with it.
       plugins.enabled = [ "extra-work-budget" ];
       # Hermes hides plugin tools behind its tool_search bridge, so the
@@ -306,6 +307,11 @@ in
       # belongs to whatever runs the task (PLAN.md: a systemd unit with
       # RuntimeMaxSec=12h on the systemd-failure-alert list).
       agent.local_stream_stale_timeout = 43200;
+      # Last-resort backstop under that deadline: at 80% of 8 h Hermes tells the
+      # worker to stop and deliver, and past it a model request gets no more
+      # time than is left. It counts GPU waits too, so it sits well above what
+      # the extra-work-budget plugin's tool-call caps normally allow.
+      agent.run_budget_seconds = 28800;
     };
 
     # Each rule below answers a failure seen in the PLAN.md evaluation runs

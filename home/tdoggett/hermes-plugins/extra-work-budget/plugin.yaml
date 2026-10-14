@@ -1,5 +1,5 @@
 name: extra-work-budget
-version: "0.2.1"
+version: "0.3.0"
 description: "Bound a coding worker's work after its fix: once it calls fix_done (or, as a fallback, once a Nix check passes after an edit), further tool calls get a small budget with reminders of the original task, edits to unrelated files are refused, and the budget ends in a report."
 provides_hooks:
   - pre_llm_call
