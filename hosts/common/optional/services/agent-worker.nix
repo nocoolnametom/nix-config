@@ -42,12 +42,30 @@
 
 {
   config,
+  inputs,
   lib,
   pkgs,
   ...
 }:
 let
   cfg = config.services.agent-worker;
+
+  # Every input of this flake, and their inputs in turn, once each. self is
+  # left out: it is this repo, and its `inputs` would lead straight back here.
+  flakeInputSources = map (item: item.key) (
+    builtins.genericClosure {
+      startSet = map (input: {
+        key = input.outPath;
+        inherit input;
+      }) (builtins.attrValues (builtins.removeAttrs inputs [ "self" ]));
+      operator =
+        item:
+        map (input: {
+          key = input.outPath;
+          inherit input;
+        }) (builtins.attrValues (item.input.inputs or { }));
+    }
+  );
 
   # Login from this machine only, and nothing tunnelled through it.
   keyOptions = ''from="127.0.0.1,::1",no-agent-forwarding,no-port-forwarding,no-X11-forwarding'';
@@ -126,6 +144,17 @@ in
       "${cfg.user}@127.0.0.1"
       "${cfg.user}@::1"
     ];
+
+    # The worker evaluates this flake but can't download (see the header), so
+    # every input has to be in the store already. The nightly GC deleted the
+    # ones the system doesn't reference (2026-10-14: 211,341 paths), and after
+    # that bombadil no longer evaluated for the worker ("unable to download
+    # ...haskell-flake..."). Keeping them all in the system closure makes them
+    # GC roots. A task whose flake.lock adds a new input still needs it
+    # fetched once by someone with network access. Private inputs (nix-secrets)
+    # are in this list too: fine while the host serves and pushes no binary
+    # cache, which barliman doesn't.
+    system.extraDependencies = flakeInputSources;
 
     # Use the Nix daemon (builds, evaluation) without being trusted: a
     # trusted user can change substituters and settings, which is root.

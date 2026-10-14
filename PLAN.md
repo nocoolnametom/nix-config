@@ -377,6 +377,36 @@ T8 notes:
   finding showing up as expected: reports stay private, and anything
   published from them (PR text, issues) needs a pass with
   the "no identifying values" rule.
+- [x] **Harness-built facts** (`~/agent-evals/facts/facts.sh <task> <host>...`,
+      run by `run_task.sh` after each task for the hosts in `<task>/hosts`;
+      output in `<task>/facts.txt`). Runs as me, but every Nix evaluation
+      runs as agent-worker, since it's the worker's code. Sections:
+      1. files changed
+      2. `lib.`/`builtins.` names in added lines that don't exist
+      3. per host: does the system evaluate
+      4. per host: every option the changed files define, **each forced on
+         its own** (`defined-options.nix` lists them from each option's
+         `files`, only under the subtrees the changed files assign to;
+         `force-option.nix` forces the value, skipping catchable "no value
+         defined" throws from unset sub-options)
+      5. `nix flake check --no-build`
+      Tested on a T6 copy with planted bugs: a lazy `lib.mkAppend` on an
+      option bombadil never reads passed sections 3 and 5 (bombadil
+      evaluates, flake check exit 0) and was caught by 2 and 4. A clean T6:
+      18 options ok, nothing flagged. Real T8: flags `lib.mkAppend` and shows
+      estel failing on the missing nix-secrets keys.
+  - Not covered: Home Manager options (inside `home-manager.users`, a
+    submodule: only the containing option is forced), and a definition that
+    deliberately `throw`s is skipped. Rule audit still lives in score.sh.
+- **GC broke the worker's evaluations.** barliman's nightly GC (03:15)
+  deleted 211,341 paths on 2026-10-14, including flake inputs nothing
+  references (arion's haskell-flake, flake-parts). With no network the worker
+  can't fetch them again, so bombadil stopped evaluating for it. Restored by
+  `nix flake archive` as me.
+  - [x] Drafted (not deployed): `agent-worker.nix` puts every flake input,
+        recursively (85 sources), in `system.extraDependencies`, so GC keeps
+        them. Includes the private inputs; fine because barliman runs no
+        binary cache and no post-build hook (checked).
 - It tried to fetch the private repo over SSH. That's reasonable given its
   goal, and it was stopped by having no keys or network. Worth a SOUL.md
   line ("private inputs: use what's in the store; never try to fetch or
