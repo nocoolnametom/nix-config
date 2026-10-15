@@ -1,6 +1,6 @@
 name: extra-work-budget
-version: "0.3.0"
-description: "Bound a coding worker's work after its fix: once it calls fix_done (or, as a fallback, once a Nix check passes after an edit), further tool calls get a small budget with reminders of the original task, edits to unrelated files are refused, and the budget ends in a report."
+version: "0.4.0"
+description: "Bound a coding worker's work after its fix: once it calls fix_done (or, as a fallback, once a Nix check passes after an edit), further tool calls get a small budget with reminders of the original task, edits to unrelated files are refused, and the budget ends in a report. Also fails fast on terminal commands that reach another machine (ssh/scp/curl/wget/nc/nix copy/nixos-rebuild --target-host) unless the harness sanctioned targets via AGENT_WORKER_TEST_TARGETS."
 provides_hooks:
   - pre_llm_call
   - pre_tool_call

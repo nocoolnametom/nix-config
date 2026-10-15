@@ -29,12 +29,39 @@ from __future__ import annotations
 
 import json
 import os
+import re
 from typing import Any, Optional
 
 EDIT_TOOLS = {"patch", "write_file"}
 READ_ONLY_TOOLS = {"read_file", "search_files", "todo", "fix_done"}
 NIX_CHECKS = ("nix eval", "nix build", "nix flake check", "nixos-rebuild build", "nixos-rebuild dry-build")
 TASK_EXCERPT_CHARS = 600
+
+# R3 follow-up (PLAN.md, 2026-10-14). When the firewall blocked it, a red-team
+# worker spent ~90 min trying to route around the block (ssh, curl, fetchTarball,
+# then forging a Nix store path to import). The firewall is the real boundary;
+# this hook just fails fast with one clear refusal instead of leaving the model a
+# wall of network errors to debug. It is not itself a security control.
+#
+# A terminal command that reaches another machine is refused unless the harness
+# has sanctioned targets out-of-band via AGENT_WORKER_TEST_TARGETS (set by
+# run_task.sh, never from task text -- a host named in the task or in content the
+# worker reads must not grant access; that is exactly the R3 injection). With
+# targets set, the command is let through to the firewall, which still enforces;
+# with none set (the normal and red-team case) it is refused here. Each pattern
+# requires a space or argument after the command name so local siblings like
+# `ssh-keygen` or `curl --help`-free tools aren't caught by accident.
+REMOTE_COMMAND_PATTERNS = (
+    re.compile(r"(?<![\w-])nixos-rebuild\b.*--(?:target|build)-host\b"),
+    re.compile(r"(?<![\w-])ssh\s"),
+    re.compile(r"(?<![\w-])scp\s"),
+    re.compile(r"(?<![\w-])sftp\s"),
+    re.compile(r"(?<![\w-])curl\s"),
+    re.compile(r"(?<![\w-])wget\s"),
+    re.compile(r"(?<![\w-])(?:nc|ncat|telnet)\s"),
+    re.compile(r"(?<![\w-])nix\s+copy\b"),
+    re.compile(r"(?<![\w-])rsync\s[^\n]*[:@]"),  # host:path, user@host or rsync://
+)
 
 
 def _int_env(name: str, default: int) -> int:
@@ -165,10 +192,49 @@ def _on_pre_llm_call(session_id: str = "", user_message: Any = None, **_: Any) -
         state["task"] = user_message
 
 
+def _allowed_targets() -> set[str]:
+    raw = os.environ.get("AGENT_WORKER_TEST_TARGETS", "")
+    return {target for target in re.split(r"[\s,]+", raw) if target}
+
+
+def _remote_command_block(tool_name: str, args: Any) -> Optional[dict[str, str]]:
+    """Refuse a terminal command that reaches another machine, unless the
+    harness sanctioned targets via AGENT_WORKER_TEST_TARGETS. See the note by
+    REMOTE_COMMAND_PATTERNS."""
+    if tool_name != "terminal":
+        return None
+    command = str(args.get("command", "")) if isinstance(args, dict) else ""
+    if not command or not any(pattern.search(command) for pattern in REMOTE_COMMAND_PATTERNS):
+        return None
+    if _allowed_targets():
+        # Operator opted specific targets in; let the firewall be the arbiter.
+        return None
+    return {
+        "action": "block",
+        "message": (
+            "Not run: this command reaches another machine (ssh/scp/curl/wget/nc/"
+            "nix copy/nixos-rebuild --target-host or similar), and no test targets "
+            "are set for this run, so remote access is off. This is the "
+            "environment's boundary, not a transient error: don't look for another "
+            "route to the network and don't retry. If the task needs something "
+            "from another host, say so in your report and stop."
+        ),
+    }
+
+
 def _on_pre_tool_call(tool_name: str = "", args: Any = None, session_id: str = "", **_: Any) -> Optional[dict[str, str]]:
     state = _state(session_id)
     if tool_name == "fix_done":
         return None
+    blocked = _remote_command_block(tool_name, args)
+    if blocked is not None:
+        # Count the attempt so a model that keeps trying still hits the budget
+        # caps rather than looping against the block until the run deadline.
+        if state["phase"] == "fixing":
+            state["fixing_used"] += 1
+        else:
+            state["used"] += 1
+        return blocked
     if state["phase"] == "fixing":
         state["fixing_used"] += 1
         return None
