@@ -244,75 +244,77 @@ in
     #
     # Needs ~/.ssh/id_agent_worker (made by hand), whose public half goes in
     # hosts/common/users/<user>/agent-worker-keys/barliman.pub.
-    hermesHomeFiles."profiles/worker/config.yaml" = (pkgs.formats.yaml { }).generate "hermes-worker-config.yaml" {
-      providers.ollama-local.api = ollamaUrl;
-      model = {
-        provider = "ollama-local";
-        # The reasoning model with an output cap (hosts/barliman/default.nix).
-        # Chosen over _qwen3-coder-next-worker after T2 (PLAN.md): slower,
-        # but the only one that found the right fix and followed SOUL.md.
-        default = "_qwen3.8-worker";
-        context_length = lib.toInt (
-          osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
-        );
-      };
-      terminal = {
-        backend = "ssh";
-        ssh_host = "127.0.0.1";
-        ssh_user = osConfig.services.agent-worker.user;
-        ssh_key = "${config.home.homeDirectory}/.ssh/id_agent_worker";
-        # Path on the worker's side; the clone is made there by hand.
-        cwd = "${osConfig.services.agent-worker.home}/nix-config";
-      };
-      approvals.mode = "off";
+    hermesHomeFiles."profiles/worker/config.yaml" =
+      (pkgs.formats.yaml { }).generate "hermes-worker-config.yaml"
+        {
+          providers.ollama-local.api = ollamaUrl;
+          model = {
+            provider = "ollama-local";
+            # The reasoning model with an output cap (hosts/barliman/default.nix).
+            # Chosen over _qwen3-coder-next-worker after T2 (PLAN.md): slower,
+            # but the only one that found the right fix and followed SOUL.md.
+            default = "_qwen3.8-worker";
+            context_length = lib.toInt (
+              osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
+            );
+          };
+          terminal = {
+            backend = "ssh";
+            ssh_host = "127.0.0.1";
+            ssh_user = osConfig.services.agent-worker.user;
+            ssh_key = "${config.home.homeDirectory}/.ssh/id_agent_worker";
+            # Path on the worker's side; the clone is made there by hand.
+            cwd = "${osConfig.services.agent-worker.home}/nix-config";
+          };
+          approvals.mode = "off";
 
-      # Only tools that run over the SSH backend, as the worker. Hermes's
-      # default CLI set also has tools that run in the Hermes process itself,
-      # i.e. as me and outside the sandbox: web search/fetch and a browser (a
-      # way out to the internet, and a way in for prompt injection), cron jobs
-      # (work that outlives the task), and memory, skills and session search
-      # (what one task learns would leak into the next and spoil the evals).
-      # T2 run 3 (2026-10-12) used web_search and web_extract. An explicit
-      # list also keeps toolsets added by future Hermes updates switched off.
-      # execute_code is safe here: with a remote backend it runs Python on the
-      # worker's side and talks back over file RPC (code_execution_tool.py).
-      platform_toolsets.cli = [
-        "terminal"
-        "file"
-        "code_execution"
-        "todo"
-        # fix_done, from the plugin below. An enabled plugin's tools show up
-        # even when not listed; listed anyway, so this list stays complete.
-        "extra_work_budget"
-      ];
+          # Only tools that run over the SSH backend, as the worker. Hermes's
+          # default CLI set also has tools that run in the Hermes process itself,
+          # i.e. as me and outside the sandbox: web search/fetch and a browser (a
+          # way out to the internet, and a way in for prompt injection), cron jobs
+          # (work that outlives the task), and memory, skills and session search
+          # (what one task learns would leak into the next and spoil the evals).
+          # T2 run 3 (2026-10-12) used web_search and web_extract. An explicit
+          # list also keeps toolsets added by future Hermes updates switched off.
+          # execute_code is safe here: with a remote backend it runs Python on the
+          # worker's side and talks back over file RPC (code_execution_tool.py).
+          platform_toolsets.cli = [
+            "terminal"
+            "file"
+            "code_execution"
+            "todo"
+            # fix_done, from the plugin below. An enabled plugin's tools show up
+            # even when not listed; listed anyway, so this list stays complete.
+            "extra_work_budget"
+          ];
 
-      # Bounds the work after the fix (home/tdoggett/hermes-plugins/
-      # extra-work-budget): once the worker calls fix_done, 25 more tool
-      # calls with reminders of the original task, edits to unrelated files
-      # refused; without fix_done, 60 calls after the first passing Nix check
-      # following an edit; and the fixing itself is capped at 150 calls (T7
-      # spent 3 h there). T6 (2026-10-13) went from 100 min / 104 calls to
-      # 33 min / 32 calls with it.
-      plugins.enabled = [ "extra-work-budget" ];
-      # Hermes hides plugin tools behind its tool_search bridge, so the
-      # first fix_done call failed with "does not exist". With ~8 tools
-      # there's nothing worth deferring.
-      tools.tool_search.enabled = "off";
+          # Bounds the work after the fix (home/tdoggett/hermes-plugins/
+          # extra-work-budget): once the worker calls fix_done, 25 more tool
+          # calls with reminders of the original task, edits to unrelated files
+          # refused; without fix_done, 60 calls after the first passing Nix check
+          # following an edit; and the fixing itself is capped at 150 calls (T7
+          # spent 3 h there). T6 (2026-10-13) went from 100 min / 104 calls to
+          # 33 min / 32 calls with it.
+          plugins.enabled = [ "extra-work-budget" ];
+          # Hermes hides plugin tools behind its tool_search bridge, so the
+          # first fix_done call failed with "does not exist". With ~8 tools
+          # there's nothing worth deferring.
+          tools.tool_search.enabled = "off";
 
-      # Waiting for barliman's GPU is normal (my own chats, Karakeep, ...)
-      # and must never quietly end a task. Hermes's default local ceiling is
-      # 900 s with no first token; T1 (2026-10-12) hit it twice while I was
-      # chatting. Raised to 12 h so that in the "waiting for a turn" case
-      # Hermes never gives up first. The deadline that does fire, and alerts,
-      # belongs to whatever runs the task (PLAN.md: a systemd unit with
-      # RuntimeMaxSec=12h on the systemd-failure-alert list).
-      agent.local_stream_stale_timeout = 43200;
-      # Last-resort backstop under that deadline: at 80% of 8 h Hermes tells the
-      # worker to stop and deliver, and past it a model request gets no more
-      # time than is left. It counts GPU waits too, so it sits well above what
-      # the extra-work-budget plugin's tool-call caps normally allow.
-      agent.run_budget_seconds = 28800;
-    };
+          # Waiting for barliman's GPU is normal (my own chats, Karakeep, ...)
+          # and must never quietly end a task. Hermes's default local ceiling is
+          # 900 s with no first token; T1 (2026-10-12) hit it twice while I was
+          # chatting. Raised to 12 h so that in the "waiting for a turn" case
+          # Hermes never gives up first. The deadline that does fire, and alerts,
+          # belongs to whatever runs the task (PLAN.md: a systemd unit with
+          # RuntimeMaxSec=12h on the systemd-failure-alert list).
+          agent.local_stream_stale_timeout = 43200;
+          # Last-resort backstop under that deadline: at 80% of 8 h Hermes tells the
+          # worker to stop and deliver, and past it a model request gets no more
+          # time than is left. It counts GPU waits too, so it sits well above what
+          # the extra-work-budget plugin's tool-call caps normally allow.
+          agent.run_budget_seconds = 28800;
+        };
 
     # Each rule below answers a failure seen in the PLAN.md evaluation runs
     # (T1-T4 and T2 runs 3-4, 2026-10-12); keep the wording concrete.

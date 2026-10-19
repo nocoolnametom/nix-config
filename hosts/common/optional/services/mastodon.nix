@@ -76,9 +76,10 @@ in
   # it whenever the flake input changes.
   systemd.services.mastodon-email-domain-blocks =
     let
-      mastodonTootctl = lib.findFirst (
-        package: (package.name or "") == "mastodon-tootctl"
-      ) (throw "mastodon-tootctl wrapper not found in environment.systemPackages") config.environment.systemPackages;
+      mastodonTootctl =
+        lib.findFirst (package: (package.name or "") == "mastodon-tootctl")
+          (throw "mastodon-tootctl wrapper not found in environment.systemPackages")
+          config.environment.systemPackages;
       appliedListPath = "/var/lib/mastodon/email-domain-blocklist.applied";
     in
     lib.mkIf config.services.mastodon.enable {

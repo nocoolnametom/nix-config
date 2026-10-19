@@ -28,6 +28,7 @@
       "/var/lib/bluetooth"
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
+      "/var/lib/comfyui-docker"
       "/var/lib/docker"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"

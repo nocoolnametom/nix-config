@@ -28,7 +28,7 @@ in
     # No hardware to define!
 
     ########################### Impermanence ##################################
-    # ./persistence.nix
+    ./persistence.nix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
@@ -221,6 +221,13 @@ in
     DIRECT_ADDRESS_GET_WAN = "false";
     WEB_ENABLE_AUTH = "false";
   };
+
+  # Install pip packages into the Docker image (survives ephemeral .local wipe)
+  services.comfyui.docker.additionalPipPackages = [
+    "gguf>=0.13.0"
+    "sentencepiece"
+    "protobuf"
+  ];
 
   # Declaratively install custom nodes
   # These will be automatically installed on boot if not present

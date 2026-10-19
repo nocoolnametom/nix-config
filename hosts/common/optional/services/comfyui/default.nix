@@ -206,6 +206,23 @@ in
               ensuring compatibility with AMD GPUs while preserving all other functionality.
             '';
           };
+
+          additionalPipPackages = mkOption {
+            type = types.listOf types.str;
+            default = [ ];
+            example = [
+              "gguf>=0.13.0"
+              "sentencepiece"
+              "protobuf"
+            ];
+            description = ''
+              List of pip packages to install in the Docker image at build time.
+              These packages are baked into the image so they survive the ephemeral
+              .local wipe on each boot, unlike packages installed by ComfyUI-Manager.
+
+              Automatically enables buildFromSource.
+            '';
+          };
         };
       };
       default = { };
@@ -219,8 +236,10 @@ in
       services.comfyui.docker.gpuType = mkDefault (
         if config.nixpkgs.config.rocmSupport or false then "amd-rocm" else "nvidia"
       );
-      # Disable custom build for now - use base image with environment overrides
-      services.comfyui.docker.buildFromSource = mkDefault false;
+      # Enable building from source if ROCm or if additional pip packages are specified
+      services.comfyui.docker.buildFromSource = mkDefault (
+        cfg.docker.gpuType == "amd-rocm" || cfg.docker.additionalPipPackages != [ ]
+      );
     })
 
     # GPU-specific and common configuration
@@ -675,35 +694,56 @@ in
             image = "${cfg.docker.image}:${cfg.docker.version}";
           })
 
-          # Build from Dockerfile with ROCm support (default for AMD)
+          # Build from Dockerfile with optional ROCm support and additional pip packages
           (mkIf cfg.docker.buildFromSource (
             let
-              # Create a Dockerfile that extends the official image with ROCm support
-              # Using official ComfyUI instructions for RDNA 3.5 (Strix Halo / gfx1151)
-              # Source: https://github.com/comfyanonymous/ComfyUI#amd-gpus-experimental-windows-and-linux-rdna-3-35-and-4-only
-              rocmDockerfile = pkgs.writeText "Dockerfile.comfyui-rocm" ''
+              # Generate pip install command for additional packages
+              pipInstallCmd =
+                if cfg.docker.additionalPipPackages != [ ] then
+                  "pip install --no-cache-dir ${lib.concatStringsSep " " cfg.docker.additionalPipPackages}"
+                else
+                  "echo 'No additional pip packages to install'";
+
+              # Create a Dockerfile that extends the official image
+              dockerfile = pkgs.writeText "Dockerfile.comfyui-custom" ''
                 FROM ${cfg.docker.image}:${cfg.docker.version}
 
-                # Install ROCm-compatible PyTorch for RDNA 3.5 (Strix Halo / Ryzen AI Max+ 365)
-                # This replaces the CUDA PyTorch with the correct ROCm version for gfx1151
                 USER root
-                RUN pip uninstall -y torch torchvision torchaudio && \
-                    pip install --pre torch torchvision torchaudio \
-                      --index-url https://rocm.nightlies.amd.com/v2/gfx1151/
 
-                # Set environment for Strix Halo (gfx1151)
-                ENV HSA_OVERRIDE_GFX_VERSION=11.5.1
-                ENV ROCM_HOME=/opt/rocm
+                # Install additional pip packages (baked into image, survives ephemeral wipe)
+                ${
+                  if cfg.docker.additionalPipPackages != [ ] then
+                    "RUN ${pipInstallCmd}"
+                  else
+                    "# No additional pip packages specified"
+                }
 
-                # Disable cuDNN for better AMD/ROCm performance
-                ENV PYTORCH_CUDNN_ENABLED=0
+                ${
+                  if cfg.docker.gpuType == "amd-rocm" then
+                    ''
+                      # Install ROCm-compatible PyTorch for RDNA 3.5 (Strix Halo / Ryzen AI Max+ 365)
+                      # This replaces the CUDA PyTorch with the correct ROCm version for gfx1151
+                      RUN pip uninstall -y torch torchvision torchaudio && \
+                          pip install --pre torch torchvision torchaudio \
+                            --index-url https://rocm.nightlies.amd.com/v2/gfx1151/
+
+                      # Set environment for Strix Halo (gfx1151)
+                      ENV HSA_OVERRIDE_GFX_VERSION=11.5.1
+                      ENV ROCM_HOME=/opt/rocm
+
+                      # Disable cuDNN for better AMD/ROCm performance
+                      ENV PYTORCH_CUDNN_ENABLED=0
+                    ''
+                  else
+                    ""
+                }
 
                 USER comfyui
               '';
 
-              buildContext = pkgs.runCommand "comfyui-rocm-context" { } ''
+              buildContext = pkgs.runCommand "comfyui-custom-context" { } ''
                 mkdir -p $out
-                cp ${rocmDockerfile} $out/Dockerfile
+                cp ${dockerfile} $out/Dockerfile
               '';
             in
             {

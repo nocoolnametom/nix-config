@@ -109,38 +109,40 @@ in
     # after every pull has finished. If a pull failed, the loader restarts and
     # this runs again after the retry. Variants come last, since their base may
     # be one of the renamed models.
-    systemd.services.ollama-model-loader.postStop = lib.mkIf (aliases != { } || cfg.modelVariants != { }) ''
-      if [ "$SERVICE_RESULT" != success ]; then
-        echo "Model loader ended with '$SERVICE_RESULT'; renaming models after it succeeds"
-        exit 0
-      fi
-      ${lib.concatStrings (
-        lib.mapAttrsToList (intendedName: actualName: ''
-          if ${ollamaExe} show ${lib.escapeShellArg actualName} >/dev/null 2>&1; then
-            ${ollamaExe} cp ${lib.escapeShellArg actualName} ${lib.escapeShellArg intendedName} \
-              || echo "Warning: could not copy ${actualName} to ${intendedName}"
-          elif ! ${ollamaExe} show ${lib.escapeShellArg intendedName} >/dev/null 2>&1; then
-            echo "Warning: neither ${actualName} nor ${intendedName} is installed"
+    systemd.services.ollama-model-loader.postStop =
+      lib.mkIf (aliases != { } || cfg.modelVariants != { })
+        ''
+          if [ "$SERVICE_RESULT" != success ]; then
+            echo "Model loader ended with '$SERVICE_RESULT'; renaming models after it succeeds"
+            exit 0
           fi
-        '') aliases
-      )}
-      ${lib.concatMapStrings (actualName: ''
-        if ${ollamaExe} show ${lib.escapeShellArg actualName} >/dev/null 2>&1; then
-          ${ollamaExe} rm ${lib.escapeShellArg actualName} \
-            || echo "Warning: could not remove ${actualName}"
-        fi
-      '') namesToHide}
-      ${lib.concatStrings (
-        lib.mapAttrsToList (name: modelfile: ''
-          if ${ollamaExe} show ${lib.escapeShellArg cfg.modelVariants.${name}.from} >/dev/null 2>&1; then
-            ${ollamaExe} create ${lib.escapeShellArg name} -f ${modelfile} \
-              || echo "Warning: could not create variant ${name}"
-          else
-            echo "Warning: base model ${cfg.modelVariants.${name}.from} for variant ${name} is not installed"
-          fi
-        '') variantModelfiles
-      )}
-    '';
+          ${lib.concatStrings (
+            lib.mapAttrsToList (intendedName: actualName: ''
+              if ${ollamaExe} show ${lib.escapeShellArg actualName} >/dev/null 2>&1; then
+                ${ollamaExe} cp ${lib.escapeShellArg actualName} ${lib.escapeShellArg intendedName} \
+                  || echo "Warning: could not copy ${actualName} to ${intendedName}"
+              elif ! ${ollamaExe} show ${lib.escapeShellArg intendedName} >/dev/null 2>&1; then
+                echo "Warning: neither ${actualName} nor ${intendedName} is installed"
+              fi
+            '') aliases
+          )}
+          ${lib.concatMapStrings (actualName: ''
+            if ${ollamaExe} show ${lib.escapeShellArg actualName} >/dev/null 2>&1; then
+              ${ollamaExe} rm ${lib.escapeShellArg actualName} \
+                || echo "Warning: could not remove ${actualName}"
+            fi
+          '') namesToHide}
+          ${lib.concatStrings (
+            lib.mapAttrsToList (name: modelfile: ''
+              if ${ollamaExe} show ${lib.escapeShellArg cfg.modelVariants.${name}.from} >/dev/null 2>&1; then
+                ${ollamaExe} create ${lib.escapeShellArg name} -f ${modelfile} \
+                  || echo "Warning: could not create variant ${name}"
+              else
+                echo "Warning: base model ${cfg.modelVariants.${name}.from} for variant ${name} is not installed"
+              fi
+            '') variantModelfiles
+          )}
+        '';
     # How long an idle model stays loaded. Reloading costs several seconds plus
     # re-reading the whole chat history, so keep it well past a coffee break.
     services.ollama.environmentVariables.OLLAMA_KEEP_ALIVE = lib.mkDefault "1h";
