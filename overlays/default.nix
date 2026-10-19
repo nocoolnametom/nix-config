@@ -127,6 +127,27 @@ in
       #     be intentional upstream (e.g. they switched to env-var lookup).
       gamescope = fixShadersPath prev.gamescope;
       gamescope-wsi = fixShadersPath prev.gamescope-wsi;
+    }
+    # jovian's overlay is applied *before* this one, and it doesn't touch the
+    # top-level `gamescope` attr — it vendors its own copy inside the
+    # `jovianPackages` scope (`gamescope' = prev.gamescope` + overrideAttrs to
+    # bump the version, currently 3.16.23 -> 3.16.30). That copy therefore picks
+    # up pristine nixpkgs attrs and hits the same `shaders-path.patch` failure
+    # the fix above exists for. Patching the top-level attrs doesn't help: the
+    # jovian NixOS module consumes `pkgs.jovianPackages.gamescope{,-wsi}`.
+    #
+    # `gamescope-wsi` is defined in the scope as `self.gamescope.override {...}`,
+    # so overriding `gamescope` via `overrideScope` propagates to it through the
+    # scope's own fixpoint — no separate entry needed.
+    #
+    # Guarded on the attr existing so this overlay stays a no-op on the
+    # non-jovian machines that share it.
+    // prev.lib.optionalAttrs (prev ? jovianPackages) {
+      jovianPackages = prev.jovianPackages.overrideScope (
+        _jfinal: jprev: {
+          gamescope = fixShadersPath jprev.gamescope;
+        }
+      );
     };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will
