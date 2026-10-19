@@ -29,6 +29,7 @@
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/comfyui-docker"
+      "/var/lib/comfyui-docker/work"
       "/var/lib/docker"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
