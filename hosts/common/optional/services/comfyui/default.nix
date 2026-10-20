@@ -622,7 +622,6 @@ in
                     # 5. Keep Python packages persistent (don't wipe .local), only reset cache
                     echo "$ENTRYPOINT" | \
                       sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
-                      sed 's/ln -s/ln -sf/g' | \
                       sed 's/for dir in models output input;/for dir in models output input user;/' | \
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
@@ -662,7 +661,6 @@ in
               "${cfg.docker.workingDir}/models:/data/models"
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
-              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
               "${cfg.docker.workingDir}/user:/data/user"
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
