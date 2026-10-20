@@ -30,7 +30,6 @@
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/comfyui-docker"
       "/var/lib/docker"
-      "/var/lib/docker/volumes/comfyui-custom-nodes/_data"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];
