@@ -616,13 +616,13 @@ in
 
                     # Apply minimal patch:
                     # 1. Comment out setup_custom_nodes call to skip pip installs
-                    # 2. Add 'user' to the symlinked directories (originally only models/output/input)
+                    # 2. Add 'user' and 'custom_nodes' to symlinked directories
                     # 3. Add --base-directory and --listen flags for proper remote access
                     # 4. Skip automatic installation of recommended custom nodes
-                    # 5. Make Python packages ephemeral by removing .local and .cache on each boot
+                    # 5. Keep Python packages persistent (don't wipe .local), only reset cache
                     echo "$ENTRYPOINT" | \
                       sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
-                      sed 's/for dir in models output input;/for dir in models output input user;/' | \
+                      sed 's/for dir in models output input;/for dir in models output input user custom_nodes;/' | \
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
                       sed '/^# Main execution$/a\
