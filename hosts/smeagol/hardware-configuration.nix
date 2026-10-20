@@ -150,6 +150,12 @@
     options = [
       "subvol=comfyui-docker"
       "users"
+      # "users" implies noexec, which stops the kernel mapping .so files with
+      # PROT_EXEC. ComfyUI's pip --user tree lives on this subvolume so that
+      # custom node dependencies persist, and every compiled extension in it
+      # ("failed to map segment from shared object") fails to import without
+      # this. nosuid and nodev, the other two "users" implies, still apply.
+      "exec"
       "auto"
       "compress=zstd"
       "nofail"

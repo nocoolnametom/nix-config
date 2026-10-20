@@ -214,7 +214,17 @@ in
   services.comfyui.customNodes = lib.mkForce [ ];
 
   # Docker-specific configuration
+  # jamesbrink/comfyui was abandoned at ComfyUI 0.3.34 (May 2025), which is old
+  # enough that node packs now fail on it (kjnodes wants comfy_api.latest).
+  # mmartial's image keeps ComfyUI as a git checkout in the run volume instead
+  # of baking it in, so the app updates independently of the image.
+  services.comfyui.docker.image = "mmartial/comfyui-nvidia-docker";
+  services.comfyui.docker.version = "ubuntu24_cuda12.9-latest";
   services.comfyui.docker.workingDir = "/var/lib/comfyui-docker";
+
+  # Single-user box behind oauth2-proxy, so let the Manager UI install freely.
+  services.comfyui.docker.allowGitUrlInstall = true;
+  services.comfyui.docker.allowPipInstall = true;
   services.comfyui.docker.environment = {
     CLI_ARGS = "--preview-method auto";
     DIRECT_ADDRESS = "${configVars.networking.subnets.smeagol.ip}:${builtins.toString config.services.comfyui.docker.port}";
@@ -222,17 +232,13 @@ in
     WEB_ENABLE_AUTH = "false";
   };
 
-  # Install pip packages into the Docker image (survives ephemeral .local wipe)
-  # These are commonly needed by custom nodes to avoid corruption from conflicting versions
-  services.comfyui.docker.additionalPipPackages = [
-    "gguf>=0.13.0"
-    "sentencepiece"
-    "protobuf"
-    "numpy<2"
-    "opencv-python-headless"
-    "scikit-image"
-    "scipy"
-  ];
+  # Deliberately empty. The current image runs ComfyUI out of a venv created in
+  # the run volume with a plain `python3 -m venv` - no --system-site-packages -
+  # so anything baked into the image's own site-packages is invisible to it.
+  # Custom node dependencies now install into that venv, which persists on the
+  # host, so the problem this list used to work around is gone. Leaving it empty
+  # also keeps buildFromSource off and uses the upstream image unmodified.
+  services.comfyui.docker.additionalPipPackages = [ ];
 
   # Declaratively install custom nodes
   # These will be automatically installed on boot if not present

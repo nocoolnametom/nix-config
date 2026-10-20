@@ -14,6 +14,35 @@ let
   # Container name. The arion- prefix marks it in Komodo's container list as
   # managed here; project, unit, user and paths keep the comfyui-docker name.
   containerName = "arion-comfyui";
+
+  # Model categories the symlinker publishes under sharedModelsPath.
+  modelTypes = [
+    "checkpoints"
+    "clip_vision"
+    "controlnet"
+    "diffusion_models"
+    "embeddings"
+    "loras"
+    "text_encoders"
+    "unet"
+    "upscale_models"
+    "vae"
+  ];
+
+  # Where the read-only shared model tree is mounted in the container. It has to
+  # sit outside BASE_DIRECTORY: the image walks every directory under
+  # <base>/models, insists each is owned by the container user, and write-tests
+  # it with a touch - none of which a read-only Nix store mount can satisfy.
+  sharedModelsMount = "/shared-models";
+
+  # ComfyUI's native mechanism for additional model search paths. Points at the
+  # mount above, so the Nix-managed models stay read-only and shared with other
+  # services (InvokeAI mounts the same directories) rather than being copied in.
+  extraModelPaths = pkgs.writeText "comfyui-extra-model-paths.yaml" ''
+    nix_store:
+      base_path: ${sharedModelsMount}
+    ${lib.concatMapStrings (t: "  ${t}: ${t}\n") modelTypes}'';
+
 in
 {
   imports = [
@@ -133,7 +162,7 @@ in
                   };
                   destination = mkOption {
                     type = types.str;
-                    description = "Destination path relative to /data inside container";
+                    description = "Destination path relative to the ComfyUI base directory inside the container";
                     example = "models/diffusion_models/hunyuan_video_720_cfgdistill_fp8_e4m3fn.safetensors";
                   };
                   sha256 = mkOption {
@@ -164,10 +193,10 @@ in
             type = types.bool;
             default = false;
             description = ''
-              Automatically check for ComfyUI updates daily.
-              When enabled, a systemd timer will check for updates once per day.
-              Updates are applied automatically with automatic rollback on failure.
-              Backups are kept in /var/lib/comfyui-backups (last 3 backups retained).
+              Automatically pull a newer ComfyUI container image daily.
+              ComfyUI ships in the image, so an update is an image pull plus a
+              restart; it rolls back automatically if ComfyUI fails to come back.
+              The superseded image is retained tagged `:nixos-rollback`.
 
               Manual commands:
               - Update now: sudo systemctl start comfyui-update.service
@@ -207,6 +236,51 @@ in
             '';
           };
 
+          securityLevel = mkOption {
+            type = types.enum [
+              "strong"
+              "normal"
+              "normal-"
+              "weak"
+            ];
+            default = "normal";
+            description = ''
+              ComfyUI-Manager's security level, passed to the image as
+              SECURITY_LEVEL. 'normal' permits installing packs from the
+              registry; installing straight from a git URL additionally needs
+              allowGitUrlInstall (which forces this to 'weak').
+            '';
+          };
+
+          allowGitUrlInstall = mkOption {
+            type = types.bool;
+            default = false;
+            description = ''
+              Let ComfyUI-Manager install custom nodes from arbitrary git URLs,
+              not just the registry. The image implements this by forcing
+              securityLevel to 'weak' and proxying the UI through socat, so only
+              enable it where the UI is already behind authentication.
+            '';
+          };
+
+          allowPipInstall = mkOption {
+            type = types.bool;
+            default = false;
+            description = ''
+              Let ComfyUI-Manager install arbitrary pip packages from the UI.
+              Carries the same relaxation as allowGitUrlInstall.
+            '';
+          };
+
+          useNewManager = mkOption {
+            type = types.bool;
+            default = false;
+            description = ''
+              Use ComfyUI's built-in manager (--enable-manager) instead of the
+              ComfyUI-Manager custom node. Requires a recent ComfyUI core.
+            '';
+          };
+
           additionalPipPackages = mkOption {
             type = types.listOf types.str;
             default = [ ];
@@ -217,10 +291,12 @@ in
             ];
             description = ''
               List of pip packages to install in the Docker image at build time.
-              These packages are baked into the image so they survive the ephemeral
-              .local wipe on each boot, unlike packages installed by ComfyUI-Manager.
-
               Automatically enables buildFromSource.
+
+              Only useful for images that run ComfyUI from the image's own
+              Python. An image that builds a venv without --system-site-packages
+              (as mmartial/comfyui-nvidia-docker does) cannot see these; install
+              into its persistent venv instead.
             '';
           };
         };
@@ -363,6 +439,15 @@ in
         in
         [
           "d ${cfg.docker.workingDir} 0775 ${uid} ${gid} - -"
+          # The image's run directory: it clones ComfyUI and builds the venv in
+          # here, so it must be writable by the container user and on a mount
+          # that permits exec (see the subvolume options in smeagol's hardware
+          # configuration - a venv's .so files are mmapped PROT_EXEC).
+          "d ${cfg.docker.workingDir}/run 0775 ${uid} ${gid} - -"
+          # ComfyUI's --base-directory. Its subdirectories are bind-mounted over
+          # the top, but the parent itself has to exist and be writable or the
+          # image's init refuses to start.
+          "d ${cfg.docker.workingDir}/basedir 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/models 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/outputs 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/inputs 0775 ${uid} ${gid} - -"
@@ -371,154 +456,144 @@ in
           "d ${cfg.docker.workingDir}/user/default 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/user/default/workflows 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/user/default/temp 0775 ${uid} ${gid} - -"
-          "d /var/lib/comfyui-backups 0755 root root - -"
         ];
 
-      # Systemd service to update ComfyUI to latest version
+      # Two things can be stale. ComfyUI itself is a git checkout the image made
+      # in the run volume and never updates on its own, so it needs a pull; the
+      # runtime around it (CUDA, Python, torch) comes from the image, so that
+      # needs a docker pull. Do both. Rolling back restores the image tag and the
+      # ComfyUI commit recorded before the update; user data is untouched either
+      # way, and the venv is rebuilt by the image's init when the base changes.
       systemd.services.comfyui-update = {
-        description = "Update ComfyUI Docker container to latest version";
+        description = "Update the ComfyUI container image to the latest version";
 
-        serviceConfig = {
-          Type = "oneshot";
-        };
+        serviceConfig.Type = "oneshot";
 
-        script = ''
-          BACKUP_DIR="/var/lib/comfyui-backups"
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+        path = [ pkgs.git ];
 
-          # Create backup directory if it doesn't exist
-          mkdir -p "$BACKUP_DIR"
+        script =
+          let
+            docker = "${pkgs.docker}/bin/docker";
+            baseImage = "${cfg.docker.image}:${cfg.docker.version}";
+            rollbackImage = "${cfg.docker.image}:nixos-rollback";
+            # Image docker compose builds for us when buildFromSource is set,
+            # named <project>-<service>. Removing it forces `arion up` to rebuild.
+            builtImage = "comfyui-docker-comfyui-docker";
+          in
+          ''
+            set -euo pipefail
 
-          # Function to create backup
-          create_backup() {
-            echo "Creating backup of current ComfyUI version..."
-            ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
-              tar -czf /tmp/comfyui-backup-$TIMESTAMP.tar.gz -C /data work
-            "
-            ${pkgs.docker}/bin/docker cp ${containerName}:/tmp/comfyui-backup-$TIMESTAMP.tar.gz "$BACKUP_DIR/"
-            ${pkgs.docker}/bin/docker exec ${containerName} rm /tmp/comfyui-backup-$TIMESTAMP.tar.gz
-            echo "✓ Backup created: comfyui-backup-$TIMESTAMP.tar.gz"
+            restart_comfyui() {
+              systemctl stop arion-comfyui-docker.service || true
+              ${lib.optionalString cfg.docker.buildFromSource ''
+                # Drop the derived image so the new base layer is picked up.
+                ${docker} image rm -f ${builtImage} || true
+              ''}
+              systemctl start arion-comfyui-docker.service
+            }
 
-            # Keep only the last 3 backups
-            cd "$BACKUP_DIR"
-            ls -t comfyui-backup-*.tar.gz | tail -n +4 | xargs -r rm
-            echo "✓ Old backups cleaned (keeping last 3)"
-          }
+            comfyui_responds() {
+              for _ in $(seq 1 60); do
+                if ${pkgs.curl}/bin/curl -sf http://localhost:${toString cfg.docker.port}/system_stats >/dev/null; then
+                  return 0
+                fi
+                sleep 5
+              done
+              return 1
+            }
 
-          # Function to restore from backup
-          restore_backup() {
-            local backup_file="$1"
-            echo "⚠️  Update failed! Restoring from backup: $backup_file"
+            comfy_src=${cfg.docker.workingDir}/run/ComfyUI
 
-            ${pkgs.docker}/bin/docker cp "$backup_file" ${containerName}:/tmp/restore.tar.gz
-            ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
-              cd /data
-              rm -rf work
-              tar -xzf /tmp/restore.tar.gz -C /data
-              rm /tmp/restore.tar.gz
-            "
+            OLD_ID="$(${docker} image inspect --format '{{.Id}}' ${baseImage} 2>/dev/null || true)"
+            OLD_COMMIT="$(git -C "$comfy_src" rev-parse HEAD 2>/dev/null || true)"
 
-            echo "✓ Restored from backup"
-            systemctl restart arion-comfyui-docker.service
-            echo "✓ ComfyUI restarted with previous version"
-          }
+            echo "Pulling ${baseImage}..."
+            ${docker} pull ${baseImage}
 
-          # Function to test if ComfyUI starts successfully
-          test_comfyui() {
-            echo "Testing if ComfyUI starts successfully..."
-            for i in {1..30}; do
-              if curl -s http://localhost:8188/object_info >/dev/null 2>&1; then
-                echo "✓ ComfyUI is responding!"
-                return 0
-              fi
-              sleep 2
-            done
-            echo "✗ ComfyUI failed to start within 60 seconds"
-            return 1
-          }
-        ''
-        + ''
-          echo "========================================"
-          echo "ComfyUI Update Service"
-          echo "========================================"
+            NEW_ID="$(${docker} image inspect --format '{{.Id}}' ${baseImage})"
 
-          # Wait for container to be fully started
-          echo "Waiting for ComfyUI container to be ready..."
-          for i in {1..30}; do
-            if ${pkgs.docker}/bin/docker exec ${containerName} test -d /data/work 2>/dev/null; then
-              echo "Container is ready!"
-              break
+            # ComfyUI is a checkout the image made in the run volume and never
+            # refreshes, so pull it here. Done with the container stopped so
+            # nothing is importing from the tree mid-update.
+            systemctl stop arion-comfyui-docker.service || true
+            if [ -d "$comfy_src/.git" ]; then
+              echo "Updating the ComfyUI checkout..."
+              git -C "$comfy_src" pull --ff-only || echo "Warning: ComfyUI pull failed, keeping $OLD_COMMIT"
             fi
-            echo "Waiting... ($i/30)"
-            sleep 2
-          done
+            NEW_COMMIT="$(git -C "$comfy_src" rev-parse HEAD 2>/dev/null || true)"
 
-          # Check current version
-          CURRENT_VERSION=$(${pkgs.docker}/bin/docker exec ${containerName} cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "Unable to determine")
-          echo "Current version: $CURRENT_VERSION"
+            if [ "$OLD_ID" = "$NEW_ID" ] && [ "$OLD_COMMIT" = "$NEW_COMMIT" ]; then
+              echo "Image and ComfyUI checkout both already current."
+              systemctl start arion-comfyui-docker.service
+              exit 0
+            fi
 
-          # Check latest version on GitHub
-          echo "Checking for updates..."
-          LATEST_COMMIT=$(${pkgs.docker}/bin/docker exec ${containerName} bash -c "git ls-remote https://github.com/comfyanonymous/ComfyUI.git refs/heads/master | cut -f1 | head -c7" 2>/dev/null || echo "unknown")
-          echo "Latest commit on GitHub: $LATEST_COMMIT"
+            if [ -n "$OLD_ID" ] && [ "$OLD_ID" != "$NEW_ID" ]; then
+              echo "Tagging the previous image as ${rollbackImage}"
+              ${docker} tag "$OLD_ID" ${rollbackImage}
+            fi
+            [ -n "$OLD_COMMIT" ] && echo "$OLD_COMMIT" > ${cfg.docker.workingDir}/run/.rollback-commit
 
-          # Create backup before updating
-          create_backup
-          BACKUP_FILE="$BACKUP_DIR/comfyui-backup-$TIMESTAMP.tar.gz"
+            restart_comfyui
 
-          # Stop ComfyUI process
-          echo "Stopping ComfyUI..."
-          ${pkgs.docker}/bin/docker exec ${containerName} pkill -f "python3 main.py" || true
-          sleep 2
+            if comfyui_responds; then
+              echo "ComfyUI updated and responding on port ${toString cfg.docker.port}."
+            else
+              echo "ComfyUI did not come back after the update."
+              if [ -n "$OLD_ID" ] || [ -n "$OLD_COMMIT" ]; then
+                echo "Rolling back..."
+                [ -n "$OLD_ID" ] && ${docker} tag "$OLD_ID" ${baseImage}
+                [ -n "$OLD_COMMIT" ] && git -C "$comfy_src" reset --hard "$OLD_COMMIT"
+                restart_comfyui
+              fi
+              exit 1
+            fi
+          '';
+      };
 
-          # Clone latest ComfyUI to temp location
-          echo "Downloading latest ComfyUI from GitHub..."
-          if ! ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
-            rm -rf /tmp/comfyui-update
-            git clone --depth 1 https://github.com/comfyanonymous/ComfyUI.git /tmp/comfyui-update
-          "; then
-            echo "✗ Failed to download latest ComfyUI"
-            restore_backup "$BACKUP_FILE"
-            exit 1
-          fi
+      # Manual rollback: systemctl start comfyui-rollback.service
+      systemd.services.comfyui-rollback = {
+        description = "Roll the ComfyUI container image back to the previous version";
 
-          # Update the working directory (preserve custom_nodes, models, etc.)
-          echo "Updating ComfyUI files..."
-          if ! ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
-            cd /data/work
-            # Remove old symlinks and copy new files
-            # Only exclude TOP-LEVEL directories, not nested ones (ldm/models/ contains Python code!)
-            find . -maxdepth 1 -type l -delete
-            rsync -av --exclude='/custom_nodes' --exclude='/models' --exclude='/input' --exclude='/output' --exclude='/user' /tmp/comfyui-update/ /data/work/
-            rm -rf /tmp/comfyui-update
-          "; then
-            echo "✗ Failed to update files"
-            restore_backup "$BACKUP_FILE"
-            exit 1
-          fi
+        serviceConfig.Type = "oneshot";
 
-          # Restart ComfyUI container
-          echo "Restarting ComfyUI container..."
-          systemctl restart arion-comfyui-docker.service
+        path = [ pkgs.git ];
 
-          sleep 15
+        script =
+          let
+            docker = "${pkgs.docker}/bin/docker";
+            baseImage = "${cfg.docker.image}:${cfg.docker.version}";
+            rollbackImage = "${cfg.docker.image}:nixos-rollback";
+            builtImage = "comfyui-docker-comfyui-docker";
+          in
+          ''
+            set -euo pipefail
 
-          # Test if ComfyUI starts successfully
-          if ! test_comfyui; then
-            echo "✗ ComfyUI failed to start after update"
-            restore_backup "$BACKUP_FILE"
-            exit 1
-          fi
+            comfy_src=${cfg.docker.workingDir}/run/ComfyUI
+            commit_file=${cfg.docker.workingDir}/run/.rollback-commit
 
-          # Verify update
-          NEW_VERSION=$(${pkgs.docker}/bin/docker exec ${containerName} cat /data/work/comfyui_version.py 2>/dev/null | grep __version__ || echo "unknown")
-          echo "========================================"
-          echo "✓ ComfyUI updated successfully!"
-          echo "New version: $NEW_VERSION"
-          echo "Backup saved: $BACKUP_FILE"
-          echo "Access ComfyUI at: http://smeagol:8188"
-          echo "========================================"
-        '';
+            if ! ${docker} image inspect ${rollbackImage} >/dev/null 2>&1 && [ ! -f "$commit_file" ]; then
+              echo "Nothing to roll back to: no ${rollbackImage} image and no recorded commit."
+              exit 1
+            fi
+
+            if ${docker} image inspect ${rollbackImage} >/dev/null 2>&1; then
+              ${docker} tag ${rollbackImage} ${baseImage}
+            fi
+
+            systemctl stop arion-comfyui-docker.service || true
+
+            if [ -f "$commit_file" ]; then
+              echo "Restoring the ComfyUI checkout to $(cat "$commit_file")"
+              git -C "$comfy_src" reset --hard "$(cat "$commit_file")" || true
+            fi
+            ${lib.optionalString cfg.docker.buildFromSource ''
+              ${docker} image rm -f ${builtImage} || true
+            ''}
+            systemctl start arion-comfyui-docker.service
+
+            echo "Rolled back to ${rollbackImage}; check journalctl -u arion-comfyui-docker.service"
+          '';
       };
 
       # Systemd timer for automatic daily update checks
@@ -532,116 +607,6 @@ in
         };
       };
 
-      # Manual rollback service
-      systemd.services.comfyui-rollback = {
-        description = "Rollback ComfyUI to previous backup";
-
-        serviceConfig = {
-          Type = "oneshot";
-        };
-
-        script = ''
-          BACKUP_DIR="/var/lib/comfyui-backups"
-
-          # Find the most recent backup
-          LATEST_BACKUP=$(ls -t "$BACKUP_DIR"/comfyui-backup-*.tar.gz 2>/dev/null | head -1)
-
-          if [ -z "$LATEST_BACKUP" ]; then
-            echo "✗ No backups found in $BACKUP_DIR"
-            exit 1
-          fi
-
-          echo "========================================"
-          echo "ComfyUI Rollback Service"
-          echo "========================================"
-          echo "Rolling back to: $(basename "$LATEST_BACKUP")"
-
-          # Stop ComfyUI
-          ${pkgs.docker}/bin/docker exec ${containerName} pkill -f "python3 main.py" || true
-          sleep 2
-
-          # Restore backup
-          ${pkgs.docker}/bin/docker cp "$LATEST_BACKUP" ${containerName}:/tmp/restore.tar.gz
-          ${pkgs.docker}/bin/docker exec ${containerName} bash -c "
-            cd /data
-            rm -rf work
-            tar -xzf /tmp/restore.tar.gz -C /data
-            rm /tmp/restore.tar.gz
-          "
-
-          echo "✓ Backup restored"
-
-          # Restart ComfyUI
-          systemctl restart arion-comfyui-docker.service
-
-          sleep 15
-
-          # Test if it works
-          for i in {1..30}; do
-            if curl -s http://localhost:8188/object_info >/dev/null 2>&1; then
-              echo "========================================"
-              echo "✓ Rollback successful!"
-              echo "ComfyUI is running"
-              echo "========================================"
-              exit 0
-            fi
-            sleep 2
-          done
-
-          echo "⚠️  Rollback completed but ComfyUI may not be responding"
-          echo "Check logs: journalctl -u arion-comfyui-docker.service -f"
-        '';
-      };
-
-      # Patch the original entrypoint from jamesbrink/comfyui Docker image
-      # Extract at runtime and patch to skip automatic pip installs while preserving all other setup
-      systemd.services.comfyui-patch-entrypoint = {
-        description = "Extract and patch ComfyUI entrypoint to skip auto pip install";
-        before = [ "arion-comfyui-docker.service" ];
-        wantedBy = [ "multi-user.target" ];
-
-        serviceConfig = {
-          Type = "oneshot";
-          RemainAfterExit = true;
-        };
-
-        script = ''
-                    # Ensure directory exists and clean up any old file/directory
-                    mkdir -p /etc/comfyui
-                    rm -rf /etc/comfyui/custom-entrypoint.sh
-
-                    # Extract entrypoint from the Docker image (override entrypoint to use sh for file extraction)
-                    echo "Extracting entrypoint from ${cfg.docker.image}:${cfg.docker.version}..."
-                    ENTRYPOINT=$(${pkgs.docker}/bin/docker run --rm --entrypoint cat ${cfg.docker.image}:${cfg.docker.version} /usr/local/bin/entrypoint.sh)
-
-                    # Apply minimal patch:
-                    # 1. Comment out setup_custom_nodes call to skip pip installs
-                    # 2. Add 'user' to symlinked directories
-                    # 3. Add --base-directory and --listen flags for proper remote access
-                    # 4. Skip automatic installation of recommended custom nodes
-                    # 5. Keep Python packages persistent (don't wipe .local), only reset cache
-                    # 6. Skip rsync of custom_nodes since they're already bind-mounted from host
-                    echo "$ENTRYPOINT" | \
-                      sed '2s/^set -e$/set +e/' | \
-                      sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
-                      sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
-                      sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
-                      sed 's/rsync -av "\''${DATA_PATH}\/custom_nodes\/" "\''$work_dir\/custom_nodes\/" 2>\/dev\/null || true/: # PATCHED: Skipped rsync; custom_nodes is bind-mounted from host for persistence/' | \
-                      sed '/^# Main execution$/a\
-          # PATCHED: Only reset cache, keep Python packages persistent\
-          echo "Resetting ephemeral cache only..."\
-          rm -rf /data/user/.cache 2>/dev/null || true\
-          # Disable pip user installation mode - forces packages to system site-packages\
-          export PIP_USER=0' | \
-                      sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
-                      > /etc/comfyui/custom-entrypoint.sh
-
-                    chmod +x /etc/comfyui/custom-entrypoint.sh
-
-                    echo "✓ Patched entrypoint created successfully at /etc/comfyui/custom-entrypoint.sh"
-        '';
-      };
-
       # Arion project for Docker ComfyUI
       virtualisation.arion.projects."comfyui-docker".settings = {
         services."comfyui-docker".service = mkMerge [
@@ -649,30 +614,62 @@ in
           {
             container_name = containerName;
             labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
-            environment = cfg.docker.environment;
+            environment = {
+              # Remap the image's user onto the host's comfyui-docker account so
+              # everything it writes to the volumes lands with the right owner.
+              WANTED_UID = toString config.users.users.comfyui-docker.uid;
+              WANTED_GID = toString config.users.groups.comfyui-docker.gid;
+              # Everything mutable lives under ComfyUI's --base-directory.
+              BASE_DIRECTORY = "/basedir";
+              SECURITY_LEVEL = cfg.docker.securityLevel;
+              ALLOW_GIT_URL_INSTALL = lib.boolToString cfg.docker.allowGitUrlInstall;
+              ALLOW_PIP_INSTALL = lib.boolToString cfg.docker.allowPipInstall;
+              USE_NEW_MANAGER = lib.boolToString cfg.docker.useNewManager;
+              # The bind mounts are already owned correctly; a recursive chown
+              # over the model trees would be slow and would fail on read-only
+              # mounts anyway.
+              FORCE_CHOWN = "false";
+            }
+            # Extra ComfyUI flags go through the image's own variable rather
+            # than `command`, which would replace its init script's argv.
+            // {
+              COMFY_CMDLINE_EXTRA = lib.concatStringsSep " " (
+                [ "--extra-model-paths-config /basedir/extra_model_paths.yaml" ]
+                ++ lib.optional (cfg.docker.environment ? CLI_ARGS) cfg.docker.environment.CLI_ARGS
+              );
+            }
+            // lib.removeAttrs cfg.docker.environment [ "CLI_ARGS" ];
             env_file = lib.optionals (cfg.docker.additionalEnvironmentFile != null) [
               "${cfg.docker.additionalEnvironmentFile}"
             ];
-            # Override entrypoint to use our custom script that skips pip install
-            entrypoint = "/etc/comfyui/custom-entrypoint.sh";
-            command = lib.optionalString (cfg.docker.environment ? CLI_ARGS) cfg.docker.environment.CLI_ARGS;
+            # No entrypoint override: the image's /comfyui-nvidia_init.bash
+            # checks out ComfyUI, builds the venv and remaps the container user,
+            # and is mount-aware (it won't chown or chmod a bind mount).
             ports = [ "${builtins.toString cfg.docker.port}:8188" ];
+            # Two mounts carry everything. /comfy/mnt is the run directory: the
+            # ComfyUI checkout, the venv and the pip/HF caches, all of which the
+            # image creates and owns. /basedir is ComfyUI's --base-directory,
+            # holding the data we care about; its subdirectories are mounted on
+            # top so the existing host layout is reused as-is.
             volumes = [
+              # Model symlinks under sharedModelsPath point into the store. The
+              # image has no /nix of its own, so mounting the host store here
+              # shadows nothing - no need for symlinker's /mnt-translated
+              # -arion variants, which are for nix-built images.
               "/nix/store:/nix/store:ro"
-              "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
-              "${cfg.docker.workingDir}:/data/work"
-              # Mount declaratively managed models from Nix store (via symlinker) - overlaid on /data/work/models
-              "${cfg.docker.sharedModelsPath}/checkpoints:/data/work/models/checkpoints:ro"
-              "${cfg.docker.sharedModelsPath}/loras:/data/work/models/loras:ro"
-              "${cfg.docker.sharedModelsPath}/vae:/data/work/models/vae:ro"
-              "${cfg.docker.sharedModelsPath}/clip_vision:/data/work/models/clip_vision:ro"
-              "${cfg.docker.sharedModelsPath}/text_encoders:/data/work/models/text_encoders:ro"
-              "${cfg.docker.sharedModelsPath}/diffusion_models:/data/work/models/diffusion_models:ro"
-              "${cfg.docker.sharedModelsPath}/unet:/data/work/models/unet:ro"
-              "${cfg.docker.sharedModelsPath}/controlnet:/data/work/models/controlnet:ro"
-              "${cfg.docker.sharedModelsPath}/embeddings:/data/work/models/embeddings:ro"
-              "${cfg.docker.sharedModelsPath}/upscale_models:/data/work/models/upscale_models:ro"
-            ];
+              "${cfg.docker.workingDir}/run:/comfy/mnt"
+              "${cfg.docker.workingDir}/basedir:/basedir"
+              "${cfg.docker.workingDir}/custom_nodes:/basedir/custom_nodes"
+              "${cfg.docker.workingDir}/models:/basedir/models"
+              "${cfg.docker.workingDir}/inputs:/basedir/input"
+              "${cfg.docker.workingDir}/outputs:/basedir/output"
+              "${cfg.docker.workingDir}/user:/basedir/user"
+              # Declaratively managed models from the Nix store (via symlinker),
+              # reached through extra_model_paths.yaml rather than being mounted
+              # under /basedir - see sharedModelsMount.
+              "${extraModelPaths}:/basedir/extra_model_paths.yaml:ro"
+            ]
+            ++ map (t: "${cfg.docker.sharedModelsPath}/${t}:${sharedModelsMount}/${t}:ro") modelTypes;
             restart = "unless-stopped";
             devices =
               if cfg.docker.gpuType == "nvidia" then
@@ -694,10 +691,14 @@ in
           # Build from Dockerfile with optional ROCm support and additional pip packages
           (mkIf cfg.docker.buildFromSource (
             let
-              # Generate pip install command for additional packages
+              # Generate pip install command for additional packages. RUN is
+              # shell-form, so version specifiers have to be quoted or the shell
+              # eats '<' and '>' as redirections and the pins silently vanish.
               pipInstallCmd =
                 if cfg.docker.additionalPipPackages != [ ] then
-                  "pip install --no-cache-dir ${lib.concatStringsSep " " cfg.docker.additionalPipPackages}"
+                  "pip install --no-cache-dir ${
+                    lib.concatMapStringsSep " " lib.escapeShellArg cfg.docker.additionalPipPackages
+                  }"
                 else
                   "echo 'No additional pip packages to install'";
 
@@ -782,16 +783,16 @@ in
                     in
                     ''
                       echo "Managing custom node: ${nodeName}..."
-                      if ! ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} [ -d /data/custom_nodes/${nodeName}/.git ]; then
+                      if ! ${pkgs.docker}/bin/docker exec -u comfy ${containerName} [ -d /basedir/custom_nodes/${nodeName}/.git ]; then
                         echo "  → Cloning ${nodeName} from ${nodeUrl}..."
-                        ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} bash -c "
-                          cd /data/custom_nodes && \
+                        ${pkgs.docker}/bin/docker exec -u comfy ${containerName} bash -c "
+                          cd /basedir/custom_nodes && \
                           git clone ${nodeUrl}
                         " && echo "  ✓ Successfully cloned ${nodeName}" || echo "  ✗ Failed to clone ${nodeName}"
                       else
                         echo "  → Updating ${nodeName}..."
-                        ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} bash -c "
-                          cd /data/custom_nodes/${nodeName} && \
+                        ${pkgs.docker}/bin/docker exec -u comfy ${containerName} bash -c "
+                          cd /basedir/custom_nodes/${nodeName} && \
                           git fetch origin && \
                           if ! git diff --quiet HEAD origin/HEAD 2>/dev/null; then
                             echo '  → Changes detected, updating...' && \
@@ -810,7 +811,7 @@ in
                 workflowInstallScript = concatStringsSep "\n" (
                   mapAttrsToList (filename: url: ''
                     echo "Checking workflow: ${filename}..."
-                    if ! ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} [ -f /data/user/default/workflows/${filename} ]; then
+                    if ! ${pkgs.docker}/bin/docker exec -u comfy ${containerName} [ -f /basedir/user/default/workflows/${filename} ]; then
                       echo "  → Downloading ${filename}..."
 
                       # Build curl command with authentication if needed
@@ -828,7 +829,7 @@ in
 
                       # Download workflow
                       eval "$CURL_CMD \"${url}\" -o /tmp/${filename}" && \
-                      ${pkgs.docker}/bin/docker cp /tmp/${filename} ${containerName}:/data/user/default/workflows/${filename} && \
+                      ${pkgs.docker}/bin/docker cp /tmp/${filename} ${containerName}:/basedir/user/default/workflows/${filename} && \
                       rm /tmp/${filename} && \
                       echo "  ✓ Successfully downloaded ${filename}" || \
                       echo "  ✗ Failed to download ${filename}"
@@ -845,7 +846,7 @@ in
                 echo "========================================"
                 echo "Waiting for container..."
                 for i in {1..30}; do
-                  if ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} test -d /data/custom_nodes; then
+                  if ${pkgs.docker}/bin/docker exec -u comfy ${containerName} test -d /basedir/custom_nodes; then
                     echo "✓ Container is ready!"
                     break
                   fi
@@ -923,12 +924,12 @@ in
                   echo "Checking model: ${filename}"
                   echo "Destination: ${model.destination}"
 
-                  if ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} [ -f /data/${model.destination} ]; then
+                  if ${pkgs.docker}/bin/docker exec -u comfy ${containerName} [ -f /basedir/${model.destination} ]; then
                     echo "${filename} already exists, skipping..."
                   else
                     MODELS_DOWNLOADED=true
                     echo "Creating destination directory if needed..."
-                    ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} mkdir -p /data/${dirname}
+                    ${pkgs.docker}/bin/docker exec -u comfy ${containerName} mkdir -p /basedir/${dirname}
 
                     echo "Downloading ${filename} from ${model.url}"
                     echo "This may take a while for large models..."
@@ -962,7 +963,7 @@ in
                     ${sha256Check}
 
                     echo "Copying ${filename} to container..."
-                    ${pkgs.docker}/bin/docker cp /tmp/${filename} ${containerName}:/data/${model.destination} && \
+                    ${pkgs.docker}/bin/docker cp /tmp/${filename} ${containerName}:/basedir/${model.destination} && \
                     rm /tmp/${filename} && \
                     echo "Successfully installed ${filename}" || {
                       echo "ERROR: Failed to copy ${filename} to container"
@@ -985,7 +986,7 @@ in
             # Wait for container to be fully ready
             echo "Waiting for ComfyUI container to be ready..."
             for i in {1..30}; do
-              if ${pkgs.docker}/bin/docker exec -u comfyui ${containerName} test -d /data/models; then
+              if ${pkgs.docker}/bin/docker exec -u comfy ${containerName} test -d /basedir/models; then
                 echo "Container is ready!"
                 break
               fi
