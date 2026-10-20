@@ -22,6 +22,7 @@
   environment.persistence."${configVars.persistFolder}" = {
     enable = lib.mkDefault true;
     hideMounts = true;
+    neededForBoot = true;
     directories = [
       "/etc/NetworkManager/system-connections"
       "/var/db/sudo/lectured"
