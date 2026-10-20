@@ -631,12 +631,15 @@ in
           rm -rf /data/user/.cache 2>/dev/null || true\
           # Disable pip user installation mode - forces packages to system site-packages\
           export PIP_USER=0\
-          # Seed default custom nodes to persistent mount on first boot\
-          if ! [ -f /data/work/custom_nodes/.seeded ]; then\
-            echo "Seeding default custom nodes to persistent storage..."\
-            cp -r /data/work/custom_nodes/* /data/work/custom_nodes/ 2>/dev/null || true\
-            touch /data/work/custom_nodes/.seeded\
-          fi' | \
+          # Setup persistent custom nodes: copy defaults on first boot, then symlink\
+          if ! [ -f /data/persistent_nodes/.seeded ]; then\
+            echo "Copying default custom nodes to persistent storage..."\
+            cp -r /data/work/custom_nodes/* /data/persistent_nodes/ 2>/dev/null || true\
+            touch /data/persistent_nodes/.seeded\
+          fi\
+          # Remove ephemeral custom_nodes dir and replace with symlink to persistent mount\
+          rm -rf /data/work/custom_nodes\
+          ln -sf /data/persistent_nodes /data/work/custom_nodes' | \
                       sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
                       > /etc/comfyui/custom-entrypoint.sh
 
@@ -668,7 +671,7 @@ in
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
               "${cfg.docker.workingDir}/user:/data/user"
-              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
+              "${cfg.docker.workingDir}/custom_nodes:/data/persistent_nodes"
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
               "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
