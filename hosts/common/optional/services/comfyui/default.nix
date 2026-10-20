@@ -363,7 +363,6 @@ in
         in
         [
           "d ${cfg.docker.workingDir} 0775 ${uid} ${gid} - -"
-          "d ${cfg.docker.workingDir}/work 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/models 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/outputs 0775 ${uid} ${gid} - -"
           "d ${cfg.docker.workingDir}/inputs 0775 ${uid} ${gid} - -"
@@ -660,11 +659,10 @@ in
             volumes = [
               "/nix/store:/nix/store:ro"
               "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
-              "${cfg.docker.workingDir}/work:/data/work"
               "${cfg.docker.workingDir}/models:/data/models"
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
-              "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
+              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
               "${cfg.docker.workingDir}/user:/data/user"
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"

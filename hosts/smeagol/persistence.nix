@@ -33,6 +33,7 @@
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];
+    # Note: /var/lib/comfyui-docker/custom_nodes is persisted as part of /var/lib/comfyui-docker
     files = [
       "/etc/machine-id"
       "/etc/machine-info"
