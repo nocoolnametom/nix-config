@@ -616,13 +616,13 @@ in
 
                     # Apply minimal patch:
                     # 1. Comment out setup_custom_nodes call to skip pip installs
-                    # 2. Add 'user' and 'custom_nodes' to symlinked directories
+                    # 2. Add 'user' to symlinked directories
                     # 3. Add --base-directory and --listen flags for proper remote access
                     # 4. Skip automatic installation of recommended custom nodes
                     # 5. Keep Python packages persistent (don't wipe .local), only reset cache
                     echo "$ENTRYPOINT" | \
                       sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
-                      sed 's/for dir in models output input;/for dir in models output input user custom_nodes;/' | \
+                      sed 's/for dir in models output input;/for dir in models output input user;/' | \
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
                       sed '/^# Main execution$/a\
@@ -661,10 +661,8 @@ in
               "${cfg.docker.workingDir}/models:/data/models"
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
-              "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
+              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
               "${cfg.docker.workingDir}/user:/data/user"
-              # Note: /data/work is from the image (not mounted), but /data/custom_nodes
-              # is mounted and will be symlinked from /data/work/custom_nodes by entrypoint
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
               "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
