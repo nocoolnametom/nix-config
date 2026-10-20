@@ -662,8 +662,10 @@ in
               "${cfg.docker.workingDir}/models:/data/models"
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
-              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
+              "${cfg.docker.workingDir}/custom_nodes:/data/custom_nodes"
               "${cfg.docker.workingDir}/user:/data/user"
+              # Note: /data/work is from the image (not mounted), but /data/custom_nodes
+              # is mounted and will be symlinked from /data/work/custom_nodes by entrypoint
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
               "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
