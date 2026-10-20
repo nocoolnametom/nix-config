@@ -623,10 +623,10 @@ in
                     # 6. Skip rsync of custom_nodes since they're already bind-mounted from host
                     echo "$ENTRYPOINT" | \
                       sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
-                      sed 's/^[[:space:]]*for dir in models output input user;/# PATCHED: Skipped symlink creation - directories mounted separately/' | \
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
                       sed 's/rsync -av "\''${DATA_PATH}\/custom_nodes\/" "\''$work_dir\/custom_nodes\/" 2>\/dev\/null || true/: # PATCHED: Skipped rsync; custom_nodes is bind-mounted from host for persistence/' | \
+                      sed 's/set -e/set +e # PATCHED: Continue on errors (symlinks may fail if dirs are mounts)/' | \
                       sed '/^# Main execution$/a\
           # PATCHED: Only reset cache, keep Python packages persistent\
           echo "Resetting ephemeral cache only..."\
@@ -660,7 +660,6 @@ in
             volumes = [
               "/nix/store:/nix/store:ro"
               "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
-              "${cfg.docker.workingDir}/models:/data/models"
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
               "${cfg.docker.workingDir}/user:/data/user"
