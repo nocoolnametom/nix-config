@@ -628,6 +628,7 @@ in
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
                       sed 's/rsync -av "\''${DATA_PATH}\/custom_nodes\/" "\''$work_dir\/custom_nodes\/" 2>\/dev\/null || true/: # PATCHED: Skipped rsync; custom_nodes is bind-mounted from host for persistence/' | \
+                      sed '/Create symlinks for data directories/i\    # PATCHED: Ensure /data/work is writable by comfyui user for symlink creation\n    chmod 0755 "''${DATA_PATH}/work" 2>\/dev\/null || true\n    if [ ! -w "''${DATA_PATH}/work" ]; then\n        # If still not writable, data might be on read-only filesystem\n        echo "Warning: /data/work is not writable, symlinks may fail"\n    fi' | \
                       sed '/^# Main execution$/a\
           # PATCHED: Only reset cache, keep Python packages persistent\
           echo "Resetting ephemeral cache only..."\
