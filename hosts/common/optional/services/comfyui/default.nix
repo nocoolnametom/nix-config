@@ -630,7 +630,13 @@ in
           echo "Resetting ephemeral cache only..."\
           rm -rf /data/user/.cache 2>/dev/null || true\
           # Disable pip user installation mode - forces packages to system site-packages\
-          export PIP_USER=0' | \
+          export PIP_USER=0\
+          # Seed default custom nodes to persistent mount on first boot\
+          if ! [ -f /data/work/custom_nodes/.seeded ]; then\
+            echo "Seeding default custom nodes to persistent storage..."\
+            cp -r /data/work/custom_nodes/* /data/work/custom_nodes/ 2>/dev/null || true\
+            touch /data/work/custom_nodes/.seeded\
+          fi' | \
                       sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
                       > /etc/comfyui/custom-entrypoint.sh
 
@@ -662,6 +668,7 @@ in
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
               "${cfg.docker.workingDir}/user:/data/user"
+              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
               "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
