@@ -30,10 +30,10 @@
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/comfyui-docker"
       "/var/lib/docker"
+      "/var/lib/docker/volumes/comfyui-custom-nodes/_data"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];
-    # Note: /var/lib/comfyui-docker/custom_nodes is persisted as part of /var/lib/comfyui-docker
     files = [
       "/etc/machine-id"
       "/etc/machine-info"

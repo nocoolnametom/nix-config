@@ -662,6 +662,7 @@ in
               "${cfg.docker.workingDir}/outputs:/data/output"
               "${cfg.docker.workingDir}/inputs:/data/input"
               "${cfg.docker.workingDir}/user:/data/user"
+              "comfyui-custom-nodes:/data/work/custom_nodes"
               # Mount declaratively managed models from Nix store (via symlinker)
               "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
               "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
@@ -752,6 +753,8 @@ in
             }
           ))
         ];
+
+        volumes.comfyui-custom-nodes = { };
       };
 
       # Systemd service to install declared custom nodes and workflows
