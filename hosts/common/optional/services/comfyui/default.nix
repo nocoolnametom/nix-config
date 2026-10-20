@@ -628,7 +628,9 @@ in
                       sed '/^# Main execution$/a\
           # PATCHED: Only reset cache, keep Python packages persistent\
           echo "Resetting ephemeral cache only..."\
-          rm -rf /data/user/.cache 2>/dev/null || true' | \
+          rm -rf /data/user/.cache 2>/dev/null || true\
+          # Disable pip user installation mode - forces packages to system site-packages\
+          export PIP_USER=0' | \
                       sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
                       > /etc/comfyui/custom-entrypoint.sh
 
