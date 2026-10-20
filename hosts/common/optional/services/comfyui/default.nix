@@ -624,7 +624,7 @@ in
                     echo "$ENTRYPOINT" | \
                       sed 's/^setup_custom_nodes$/# setup_custom_nodes # PATCHED: Managed declaratively by NixOS/' | \
                       sed 's/for dir in models output input;/for dir in models output input user;/' | \
-                      sed 's/rm -rf "\$work_dir\/\$dir"/# rm -rf "$work_dir\/$dir" # PATCHED: Skipped removal; dirs may be bind-mounts/' | \
+                      sed 's/rm -rf "\$work_dir\/\$dir"/: # PATCHED: Skipped removal; dirs may be bind-mounts/' | \
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
                       sed 's/rsync -av "\''${DATA_PATH}\/custom_nodes\/" "\''$work_dir\/custom_nodes\/" 2>\/dev\/null || true/: # PATCHED: Skipped rsync; custom_nodes is bind-mounted from host for persistence/' | \
