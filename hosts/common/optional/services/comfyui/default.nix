@@ -626,12 +626,9 @@ in
                       sed 's/flags="--listen --port 8188 --preview-method auto --multi-user"/flags="--listen 0.0.0.0 --port 8188 --preview-method auto --multi-user --base-directory \/data\/work"/' | \
                       sed 's/comfy node install --mode remote/# comfy node install --mode remote # PATCHED: Skipped automatic node installation/' | \
                       sed '/^# Main execution$/a\
-          # PATCHED: Make Python user packages ephemeral to prevent corruption\
-          # Remove ALL user-installed packages on each boot to avoid corrupted shared objects\
-          # ComfyUI-Manager will reinstall them automatically, but they will be fresh\
-          echo "Resetting ephemeral Python packages..."\
-          rm -rf /data/user/.local /data/user/.cache 2>/dev/null || true\
-          echo "Python packages will be reinstalled fresh on this boot"' | \
+          # PATCHED: Only reset cache, keep Python packages persistent\
+          echo "Resetting ephemeral cache only..."\
+          rm -rf /data/user/.cache 2>/dev/null || true' | \
                       sed 's/exec python3 main.py "\$@"/exec python3 main.py --listen 0.0.0.0 --port 8188 --base-directory \/data\/work "\$@"/' \
                       > /etc/comfyui/custom-entrypoint.sh
 
