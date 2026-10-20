@@ -223,10 +223,15 @@ in
   };
 
   # Install pip packages into the Docker image (survives ephemeral .local wipe)
+  # These are commonly needed by custom nodes to avoid corruption from conflicting versions
   services.comfyui.docker.additionalPipPackages = [
     "gguf>=0.13.0"
     "sentencepiece"
     "protobuf"
+    "numpy<2"
+    "opencv-python-headless"
+    "scikit-image"
+    "scipy"
   ];
 
   # Declaratively install custom nodes
