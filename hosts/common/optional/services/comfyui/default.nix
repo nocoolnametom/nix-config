@@ -660,21 +660,18 @@ in
             volumes = [
               "/nix/store:/nix/store:ro"
               "/etc/comfyui/custom-entrypoint.sh:/etc/comfyui/custom-entrypoint.sh:ro"
-              "${cfg.docker.workingDir}/outputs:/data/output"
-              "${cfg.docker.workingDir}/inputs:/data/input"
-              "${cfg.docker.workingDir}/user:/data/user"
-              "${cfg.docker.workingDir}/custom_nodes:/data/work/custom_nodes"
-              # Mount declaratively managed models from Nix store (via symlinker)
-              "${cfg.docker.sharedModelsPath}/checkpoints:/data/models/checkpoints:ro"
-              "${cfg.docker.sharedModelsPath}/loras:/data/models/loras:ro"
-              "${cfg.docker.sharedModelsPath}/vae:/data/models/vae:ro"
-              "${cfg.docker.sharedModelsPath}/clip_vision:/data/models/clip_vision:ro"
-              "${cfg.docker.sharedModelsPath}/text_encoders:/data/models/text_encoders:ro"
-              "${cfg.docker.sharedModelsPath}/diffusion_models:/data/models/diffusion_models:ro"
-              "${cfg.docker.sharedModelsPath}/unet:/data/models/unet:ro"
-              "${cfg.docker.sharedModelsPath}/controlnet:/data/models/controlnet:ro"
-              "${cfg.docker.sharedModelsPath}/embeddings:/data/models/embeddings:ro"
-              "${cfg.docker.sharedModelsPath}/upscale_models:/data/models/upscale_models:ro"
+              "${cfg.docker.workingDir}:/data/work"
+              # Mount declaratively managed models from Nix store (via symlinker) - overlaid on /data/work/models
+              "${cfg.docker.sharedModelsPath}/checkpoints:/data/work/models/checkpoints:ro"
+              "${cfg.docker.sharedModelsPath}/loras:/data/work/models/loras:ro"
+              "${cfg.docker.sharedModelsPath}/vae:/data/work/models/vae:ro"
+              "${cfg.docker.sharedModelsPath}/clip_vision:/data/work/models/clip_vision:ro"
+              "${cfg.docker.sharedModelsPath}/text_encoders:/data/work/models/text_encoders:ro"
+              "${cfg.docker.sharedModelsPath}/diffusion_models:/data/work/models/diffusion_models:ro"
+              "${cfg.docker.sharedModelsPath}/unet:/data/work/models/unet:ro"
+              "${cfg.docker.sharedModelsPath}/controlnet:/data/work/models/controlnet:ro"
+              "${cfg.docker.sharedModelsPath}/embeddings:/data/work/models/embeddings:ro"
+              "${cfg.docker.sharedModelsPath}/upscale_models:/data/work/models/upscale_models:ro"
             ];
             restart = "unless-stopped";
             devices =
