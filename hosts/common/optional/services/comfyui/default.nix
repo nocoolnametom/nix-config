@@ -663,6 +663,19 @@ in
               # shadows nothing - no need for symlinker's /mnt-translated
               # -arion variants, which are for nix-built images.
               "/nix/store:/nix/store:ro"
+              # ...but /nix/store alone isn't enough. my-sd-models' localModel
+              # entries (Patreon downloads that can't be fetched by hash) become
+              # store paths that are themselves symlinks back out to the on-disk
+              # model tree, so the second hop needs the same absolute path in
+              # here or it dangles - and a dangling model path reaches loaders as
+              # None, surfacing as a confusing "expected str, bytes or
+              # os.PathLike object, not NoneType" at execution time.
+              (
+                let
+                  localModelsRoot = builtins.dirOf cfg.docker.sharedModelsPath;
+                in
+                "${localModelsRoot}:${localModelsRoot}:ro"
+              )
               "${cfg.docker.workingDir}/run:/comfy/mnt"
               "${cfg.docker.workingDir}/basedir:/basedir"
               "${cfg.docker.workingDir}/custom_nodes:/basedir/custom_nodes"
