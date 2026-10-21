@@ -72,8 +72,17 @@ in
                       model:
                       let
                         modelPath = "${prefix}${model}";
+                        # One file can be the expected name for two tools at
+                        # once - the Z-Image autoencoder is byte-identical to
+                        # FLUX's, and InvokeAI pins the FLUX name by store path.
+                        # extraLinkNames adds aliases beside the canonical link
+                        # so neither side has to compromise.
+                        extraLinkNames = model.passthru.comfyui.extraLinkNames or [ ];
                       in
-                      "ln -sfn ${modelPath} ${targetPath}/\$(basename ${model.name})"
+                      concatStringsSep "\n" (
+                        [ "ln -sfn ${modelPath} ${targetPath}/\$(basename ${model.name})" ]
+                        ++ map (alias: "ln -sfn ${modelPath} ${targetPath}/${alias}") extraLinkNames
+                      )
                     ) modelsForPath
                   )}
                 ''

@@ -82,6 +82,18 @@ let
           port = config.services.stash.settings.port or null;
         }
       ];
+      # stash-start-scheduler is a oneshot that waits for stash's GraphQL API
+      # and then exits, so it has no port and wants no placeholder page - it
+      # can't ride the services list above, which enabledServices filters down
+      # to entries with a non-null port. Left unguarded it starts anyway during
+      # a session, polls a stash that work-block has already stopped, and fails
+      # after its 60s timeout on every boot inside a window.
+      companions = [
+        {
+          name = "stash-start-scheduler";
+          enabled = config.services.stash.enable or false;
+        }
+      ];
     };
 
     stashvr = {
@@ -206,6 +218,22 @@ let
 
   # Get unique service names
   uniqueServiceNames = unique (map (s: s.name) enabledServices);
+
+  # Portless helper units belonging to a requested group. These get the start
+  # guard but deliberately stay out of uniqueServiceNames: they have no port to
+  # serve a placeholder on, and no Conflicts= either, since being killed
+  # mid-start is what leaves a unit sitting in the failed state.
+  requestedCompanions = flatten (
+    map (
+      friendlyName:
+      if serviceRegistry ? ${friendlyName} then serviceRegistry.${friendlyName}.companions or [ ] else [ ]
+    ) cfg.services
+  );
+
+  enabledCompanionNames = unique (map (s: s.name) (filter (s: s.enabled) requestedCompanions));
+
+  # Everything that must refuse to start while a session is in effect.
+  guardedServiceNames = unique (uniqueServiceNames ++ enabledCompanionNames);
 
   # Service names with .service suffix for systemd directives
   uniqueServiceNamesWithSuffix = map (name: "${name}.service") uniqueServiceNames;
@@ -1060,7 +1088,7 @@ in
     # owning service's enable option, so these names always refer to units some
     # other module already defines.
     {
-      systemd.services = genAttrs uniqueServiceNames (_: {
+      systemd.services = genAttrs guardedServiceNames (_: {
         serviceConfig.ExecCondition = [ "${blockGuardScript}" ];
       });
     }
