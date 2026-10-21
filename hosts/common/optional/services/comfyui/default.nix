@@ -415,6 +415,12 @@ in
 
       networking.firewall.allowedTCPPorts = mkIf (cfg.docker.port != null) [ cfg.docker.port ];
 
+      # Refuse to start unless the working directory's filesystem is actually
+      # mounted. Where workingDir is its own volume a silent mount failure would
+      # otherwise leave the container writing a fresh venv and model tree onto
+      # the root filesystem, which is slow to notice and fills the disk.
+      systemd.services.arion-comfyui-docker.unitConfig.RequiresMountsFor = cfg.docker.workingDir;
+
       # Define comfyui-docker group for jamesbrink/comfyui image (uses UID/GID 10001)
       users.groups.comfyui-docker.gid = 10001;
       users.users.comfyui-docker = {

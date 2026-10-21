@@ -28,8 +28,13 @@
       "/var/lib/bluetooth"
       "/var/lib/chrony"
       # "/var/lib/cups" # Handling via NixOS options
-      "/var/lib/comfyui-docker"
-      "/var/lib/docker"
+      # NOT /var/lib/docker or /var/lib/comfyui-docker: both already live on
+      # their own btrfs subvolumes of the Insignia array (see
+      # hardware-configuration.nix), so they survive a wipe without
+      # impermanence. Listing them here was actively harmful - the bind mount
+      # this generates overrides the fileSystems entry for the same path
+      # entirely, so the subvolumes never mounted at boot and Docker rebuilt
+      # its image store on the root filesystem until it filled.
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
     ];

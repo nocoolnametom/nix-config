@@ -203,6 +203,11 @@ in
   services.stash-video-conversion.environmentFile =
     config.sops.templates."stash-video-conversion.env".path;
 
+  # /var/lib/docker is a btrfs subvolume on the Insignia array. If it fails to
+  # mount, Docker would happily build a new image store on the root filesystem
+  # instead and fill it, so make the daemon depend on the mount being there.
+  systemd.services.docker.unitConfig.RequiresMountsFor = "/var/lib/docker";
+
   # ComfyUI Configuration
   # Use Docker backend instead of native
   services.comfyui.useDocker = true;
