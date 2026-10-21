@@ -230,6 +230,16 @@ in
   # Single-user box behind oauth2-proxy, so let the Manager UI install freely.
   services.comfyui.docker.allowGitUrlInstall = true;
   services.comfyui.docker.allowPipInstall = true;
+
+  # ComfyUI core's "install missing packs" flow now drives the new Manager
+  # (a comfyui_manager pip package plus --enable-manager) rather than the
+  # ComfyUI-Manager custom node, and refuses to install anything without it.
+  services.comfyui.docker.useNewManager = true;
+
+  # The image only forces SECURITY_LEVEL=weak for the allow* flags above when
+  # useNewManager is false, so state it outright - otherwise enabling the new
+  # Manager would quietly drop us to 'normal' and block git-URL installs.
+  services.comfyui.docker.securityLevel = "weak";
   services.comfyui.docker.environment = {
     CLI_ARGS = "--preview-method auto";
     DIRECT_ADDRESS = "${configVars.networking.subnets.smeagol.ip}:${builtins.toString config.services.comfyui.docker.port}";
