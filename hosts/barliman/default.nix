@@ -21,6 +21,7 @@
 
     ########################## Hardware Modules ###############################
     inputs.hardware.nixosModules.framework-desktop-amd-ai-max-300-series
+    inputs.nix-amd-ai.nixosModules.default
 
     ########################### Impermanence ##################################
     # ./persistence.nix
@@ -79,6 +80,14 @@
   nixpkgs.config.cudaSupport = lib.mkForce false;
   nixpkgs.config.cudnnSupport = lib.mkForce false;
   nixpkgs.config.rocmSupport = true;
+  # nix-amd-ai pins a different whisper-cpp than this nixpkgs ffmpeg-full expects
+  # for --enable-whisper. Disable that ffmpeg feature locally so unrelated
+  # packages (like open-webui) keep building while Lemonade is evaluated.
+  nixpkgs.overlays = [
+    (final: prev: {
+      ffmpeg-full = prev.ffmpeg-full.override { withWhisper = false; };
+    })
+  ];
 
   # Open-WebUI is a web-frontend for chatting with ollama
   services.open-webui.package = pkgs.open-webui;
@@ -89,6 +98,10 @@
   # pkgs.unstable.ollama-rocm (0.40.0 then) would also do. Go back to
   # pkgs.ollama-rocm once 26.05 ships 0.34.4 or newer.
   services.ollama.package = pkgs.bleeding.ollama-rocm;
+  # Keep all local AI payloads under the same root, but still use separate per-
+  # backend directories so Ollama and Lemonade do not try to share the same
+  # runtime metadata/index tree. This avoids double-writing the same model data
+  # while still keeping the storage layout coherent and easy to inspect.
   services.ollama.models = "/var/lib/ai-models/ollama";
   # Removed 2026-10-06 as no-ops: OLLAMA_LLAMA_GPU_LAYERS (not an Ollama
   # variable; Ollama already offloads every layer that fits), OLLAMA_GPU_OVERHEAD="1"
@@ -96,6 +109,11 @@
   # serviceConfig.UnsetEnvironment (discarded by the lib.mkForce in ollama.nix).
   services.ollama.environmentVariables.LD_LIBRARY_PATH = "/run/current-system/sw/lib";
   services.ollama.rocmOverrideGfx = "11.5.1";
+  systemd.tmpfiles.rules = [
+    "d '/var/lib/ai-models' 0755 root root - -"
+    "d '/var/lib/ai-models/ollama' 0777 root root - -"
+    "d '/var/lib/ai-models/lemonade' 0777 root root - -"
+  ];
 
   # Let the iGPU borrow most of system RAM. ONLY enable this together with
   # setting the BIOS iGPU memory (UMA frame buffer) to its minimum - see
@@ -111,6 +129,61 @@
   # once. Costs one extra KV cache per model, the full context size each: at
   # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
   services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
+
+  # Evaluate Lemonade on Strix Halo alongside Ollama. Keep this GPU-only first
+  # (ROCm + Vulkan) to avoid introducing NPU/FLM-specific complexity up front.
+  hardware.amd-npu = {
+    enable = true;
+    gpuTarget = "gfx1151";
+    enableNPU = false;
+    enableFastFlowLM = false;
+    enableLemonade = true;
+    enableROCm = true;
+    enableVulkan = true;
+    enableImageGen = true;
+
+    lemonade = {
+      user = configVars.username;
+      autoStart = true;
+      # Listen on LAN interfaces; firewall rules below keep it private.
+      host = "0.0.0.0";
+      # Keep Lemonade under the shared model root so it sits beside Ollama's cache,
+      # but still keeps its own runtime metadata/index tree instead of sharing a
+      # single model directory between two unrelated backends.
+      cacheDir = "/var/lib/ai-models/lemonade";
+      settings = {
+        max_loaded_models = 2;
+        auto_evict = true;
+      };
+      # Machine-specific model list is tracked in my-sd-models so the same
+      # declarative naming pattern used for Ollama applies here too. Older
+      # my-sd-models revisions don't have the Lemonade registry yet, so fall back
+      # to an empty list rather than crashing the host evaluation.
+      models =
+        let
+          machineLemonadeModels =
+            if builtins.hasAttr "machineLemonadeModels" pkgs.my-sd-models then
+              pkgs.my-sd-models.machineLemonadeModels
+            else
+              { };
+        in
+        lib.attrByPath [ config.networking.hostName ] [ ] machineLemonadeModels;
+      pruneUnlistedModels = false;
+      # Required for browser UI/API access from other machines.
+      allowedOrigins = [
+        "http://${configVars.networking.subnets.barliman.ip}:${toString configVars.networking.ports.tcp.lemonade}"
+        "http://${configVars.networking.subnets.barliman.name}.${configVars.homeLanDomain}:${toString configVars.networking.ports.tcp.lemonade}"
+      ];
+    };
+  };
+
+  # Upstream nix-amd-ai cache to avoid expensive local backend rebuilds.
+  nix.settings = {
+    substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
+    trusted-substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
+    trusted-public-keys =
+      lib.mkAfter [ "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ=" ];
+  };
 
   # The coder model as the unattended worker uses it (PLAN.md, T4). Same
   # weights; two settings differ:
@@ -181,6 +254,7 @@
     firewall.allowedTCPPorts = [
       configVars.networking.ports.tcp.hermes
       configVars.networking.ports.tcp.hermeswebui
+      configVars.networking.ports.tcp.lemonade
     ];
   };
 

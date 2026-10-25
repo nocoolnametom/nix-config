@@ -11,6 +11,9 @@ let
   # Ollama's OpenAI-compatible endpoint, shared by the provider declaration
   # and anything else that needs to reach it.
   ollamaUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.ollama}/v1";
+  # Lemonade's OpenAI-compatible endpoint. Keep this as a second provider so
+  # Hermes can be switched per session/model without disrupting Ollama users.
+  lemonadeUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.lemonade}/api/v1";
 
   # Hermes's model, taken from this machine's primaries in my-sd-models. See
   # the note at services.hermes-agent.settings.model for why it is the
@@ -170,7 +173,10 @@ in
     # model on this endpoint a resolvable route, not just the startup default.
     # `discover_models` defaults to true, which is what populates the picker
     # from Ollama's live /v1/models list.
-    settings.providers.ollama-local.api = ollamaUrl;
+    settings.providers = {
+      ollama-local.api = ollamaUrl;
+      lemonade-local.api = lemonadeUrl;
+    };
 
     # model.provider and model.default are only defaults (see hermesDefaultConfig),
     # so the dashboard's model picker sticks.
@@ -247,7 +253,10 @@ in
     hermesHomeFiles."profiles/worker/config.yaml" =
       (pkgs.formats.yaml { }).generate "hermes-worker-config.yaml"
         {
-          providers.ollama-local.api = ollamaUrl;
+          providers = {
+            ollama-local.api = ollamaUrl;
+            lemonade-local.api = lemonadeUrl;
+          };
           model = {
             provider = "ollama-local";
             # The reasoning model with an output cap (hosts/barliman/default.nix).

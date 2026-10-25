@@ -111,6 +111,7 @@
           ".claude.json"
           ".claude.json.backup"
           ".config/cosmic-initial-setup-done" # Cosmic welcome screen completion
+          ".config/mimeapps.list" # Default browser/app associations
           ".davmail.properties"
           ".ImmersedConf" # immersed
           "intelephense/license.txt"

@@ -15,13 +15,12 @@
 
   boot.initrd.systemd.enable = true;
   boot.initrd.systemd.tpm2.enable = true;
-  boot.initrd.luks.fido2Support = false; # We're using systemd
   boot.initrd.luks.devices."root".device =
-    "/dev/disk/by-partuuid/50870cda-00f6-4e1d-8791-9c5efc872e43";
-  boot.initrd.luks.devices."root".crypttabExtraOpts = [
-    "fido2-device=auto"
-    "tpm2-device=auto"
-  ]; # I added the hardware and TPM keys manually to the encrypted drive using cryptenroll
+    "/dev/disk/by-partuuid/edfd3f34-a952-497b-abec-742ee329981c";
+  boot.initrd.luks.devices."eswap".device =
+    "/dev/disk/by-partuuid/df960652-58dd-40d6-babb-860491d217b9";
+  
+  
 
   boot.initrd.availableKernelModules = [
     "ahci"
@@ -40,34 +39,23 @@
     "nls_iso8859-1"
     "usbhid"
   ];
+
   hardware.system76.enableAll = true;
   services.system76-scheduler.enable = true;
-  hardware.graphics.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # ROCm for OpenCL for AMD GPUs
+  hardware.graphics.extraPackages = [ pkgs.rocmPackages.clr.icd ]; # @TODO Do we still want/need this?
+
   boot.kernelModules = [ "kvm-amd" ];
   boot.extraModulePackages = [ ];
 
-  # TODO Set up encrypted boot stuff
-  # boot.initrd.luks.yubikeySupport = true;
-  # boot.initrd.luks.devices."root".yubikey = {
-  #   slot = 2;
-  #   twoFactor = false; # We want to automatically unlock when key is present at boot
-  #   storage = {
-  #     # store yubikey identifier in the unencrypted boot partition => /boot/crypt-storage/default
-  #     device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
-  #     fsType = "vfat";
-  #     path = "/crypt-storage/default";
-  #   };
-  # };
-
   fileSystems."/boot" = {
-    device = "/dev/disk/by-partuuid/c00b9f98-9e15-496b-9b9d-39f5e8a3ee19";
+    device = "/dev/disk/by-partuuid/2dbbfaf2-79da-4d5b-9605-3e558240a867";
     fsType = "vfat";
     neededForBoot = true; # Not necessary since it shouldn't be encrypted, but good to call it out anyways
     options = [
       "uid=0"
       "gid=0"
-      "fmask=0077"
-      "dmask=0077"
+      "fmask=0077" # Stronger security than the generated 0022
+      "dmask=0077" # Stronger security than the generated 0022
       # Above is to silence journalctl boot warning?
       "noatime"
       "nodiratime"
@@ -75,15 +63,16 @@
     ]; # Supposedly better for the SSD.
   };
 
+  # Will be wiped out on rollback, so don't put anything important here.
   fileSystems."/" = {
-    device = "none";
-    fsType = "tmpfs";
+    device = "/dev/mapper/root";
+    fsType = "btrfs";
     options = [
-      # "size=12G" # Size of root filesystem built in memory, default of 50% of RAM if not present
-      "size=54G" # Size of root filesystem built in memory, default of 50% of RAM if not present
-      "mode=755" # Needed for SSH to be happy!
-      "uid=0" # Root owns base / directory
-      "gid=0" # Root owns base / directory
+      "defaults"
+      "compress-force=zstd"
+      "noatime"
+      "ssd"
+      "subvol=root"
     ];
     neededForBoot = true; # required
   };
@@ -115,11 +104,18 @@
   };
 
   # Not mounting Home so that we use the persist and impermanence instead for home!
-  # fileSystems."/home" =
-  #   { device = "/dev/mapper/root";
-  #     fsType = "btrfs";
-  #     options = [ "defaults" "compress-force=zstd" "noatime" "ssd" "subvol=home" ];
-  #   };
+  # fileSystems."/home" = {
+  #  device = "/dev/mapper/root";
+  #   fsType = "btrfs";
+  #   options = [
+  #     "defaults"
+  #     "compress-force=zstd"
+  #     "noatime"
+  #     "ssd"
+  #     "subvol=home"
+  #   ];
+  #   neededForBoot = true; # required
+  # };
 
   fileSystems."/etc/nixos" = {
     device = "/dev/mapper/root";
@@ -131,24 +127,57 @@
       "ssd"
       "subvol=nixos-config"
     ];
+    neededForBoot = true; # required
   };
+
+  fileSystems."/var/log" =
+    { device = "/dev/mapper/root";
+      fsType = "btrfs";
+      options = [
+        "defaults"
+        "compress-force=zstd"
+        "noatime"
+        "ssd"
+        "subvol=log"
+      ];
+      neededForBoot = true; # required
+    };
 
   swapDevices = [
     {
-      device = "/dev/disk/by-partuuid/a73eac3a-0293-4996-a4c5-7ada673bc4be";
-      randomEncryption.enable = true;
+      device = "/dev/mapper/eswap";
     }
   ];
 
-  # Enables DHCP on each ethernet and wireless interface. In case of scripted networking
-  # (the default) this is the recommended approach. When using systemd-networkd it's
-  # still possible to use this option, but it's recommended to use it in conjunction
-  # with explicit per-interface declarations with `networking.interfaces.<interface>.useDHCP`.
-  networking.useDHCP = lib.mkDefault true;
-  # networking.interfaces.enp2s0.useDHCP = lib.mkDefault true;
-  # networking.interfaces.wlo1.useDHCP = lib.mkDefault true;
+  boot.initrd.systemd.services.rollback-root = {
+    enable = config.environment.persistence."${configVars.persistFolder}".enable;
+    description = "Rollback BTRFS root subvolume to a pristine state";
+    wantedBy = [ "initrd.target" ];
+    after = [ "systemd-cryptsetup@root.service" ];
+    before = [ "sysroot.mount" ];
+    unitConfig.DefaultDependencies = "no";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      mkdir -p /mnt
+      mount -o subvolid=5 /dev/mapper/root /mnt
+
+      btrfs subvolume list -o /mnt/root |
+        cut -f9 -d ' ' |
+        while read -r subvolume; do
+          echo "deleting /$subvolume subvolume..."
+          btrfs subvolume delete "/mnt/$subvolume"
+        done
+
+      echo "deleting /root subvolume..."
+      btrfs subvolume delete /mnt/root
+
+      echo "restoring blank /root subvolume..."
+      btrfs subvolume snapshot /mnt/root-blank /mnt/root
+
+      umount /mnt
+    '';
+  };
 
   nixpkgs.hostPlatform = lib.mkDefault "x86_64-linux";
-
   hardware.cpu.amd.updateMicrocode = lib.mkDefault config.hardware.enableRedistributableFirmware;
 }

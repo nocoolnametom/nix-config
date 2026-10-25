@@ -42,6 +42,8 @@
       "/var/lib/private/flood"
       "/var/lib/radarr/.config/Radarr"
       "/var/lib/sbctl"
+      "/var/lib/auto-cryptenroll"
+      "/var/lib/pcrlock.d"
       "/var/lib/sonarr/.config/NzbDrone"
       "/var/lib/stashapp/.config/chromium"
       "/var/lib/stashapp/.stash"
@@ -51,6 +53,7 @@
       "/etc/machine-id"
       "/etc/machine-info"
       "/etc/nix/id_rsa"
+      "/var/lib/systemd/pcrlock.json"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
       # logrotate.status is NOT bind-mounted: logrotate writes via atomic rename
       # (write temp, rename into place) which fails on a bind-mount target with

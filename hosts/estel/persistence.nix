@@ -57,10 +57,13 @@
       "/var/lib/redis-immich"
       "/var/lib/redis-paperless"
       "/var/lib/sbctl"
+      "/var/lib/auto-cryptenroll"
+      "/var/lib/pcrlock.d"
       "/var/lib/systemd/coredump"
     ];
     files = [
       "/etc/machine-id"
+      "/var/lib/systemd/pcrlock.json"
       # logrotate.status is NOT bind-mounted: logrotate writes via atomic rename
       # (write temp, rename into place) which fails on a bind-mount target with
       # "Device or resource busy". Losing it on reboot is harmless: logrotate

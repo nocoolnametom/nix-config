@@ -13,7 +13,7 @@
     impermanence.url = "github:nix-community/impermanence";
 
     # Lanzaboote Secure Bootloader for NixOS
-    lanzaboote.url = "github:nix-community/lanzaboote/v1.0.0";
+    lanzaboote.url = "github:nix-community/lanzaboote/v1.2.0";
     lanzaboote.inputs.nixpkgs.follows = "nixpkgs";
 
     hardware.url = "github:nixos/nixos-hardware";
@@ -68,6 +68,9 @@
 
     # Nixified.AI
     nixified-ai.url = "github:nixified-ai/flake";
+
+    # AMD-focused Lemonade/ROCm/NPU stack for Strix hardware
+    nix-amd-ai.url = "github:noamsto/nix-amd-ai";
 
     # Declarative Flatpak management (like homebrew on nix-darwin)
     # "latest" should be the most recent released version

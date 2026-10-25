@@ -25,20 +25,23 @@
     directories = [
       "/etc/NetworkManager/system-connections"
       "/var/lib/sbctl"
+      "/var/lib/auto-cryptenroll"
+      "/var/lib/pcrlock.d"
       "/var/db/sudo/lectured"
       "/var/lib/beszel-agent" # Beszel agent fingerprint/identity
       "/var/lib/bluetooth"
+      "/var/lib/cosmic-greeter" # Remembers last-chosen session/user
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
       "/var/lib/fprint"
       "/var/lib/nixos"
       "/var/lib/systemd/coredump"
-      "/var/log"
     ];
     files = [
       "/etc/machine-id"
       "/etc/machine-info"
       "/etc/nix/id_rsa"
+      "/var/lib/systemd/pcrlock.json"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
       # logrotate.status is NOT bind-mounted: logrotate writes via atomic rename
       # (write temp, rename into place) which fails on a bind-mount target with

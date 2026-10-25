@@ -70,6 +70,9 @@
     "hosts/common/users/${configVars.username}"
   ]);
 
+  # We've already set up our own measured boot with signing keys
+  boot.lanzaboote.measuredBoot.enable = false;
+
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
     "actual-budget"
