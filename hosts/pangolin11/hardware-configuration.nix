@@ -19,8 +19,6 @@
     "/dev/disk/by-partuuid/edfd3f34-a952-497b-abec-742ee329981c";
   boot.initrd.luks.devices."eswap".device =
     "/dev/disk/by-partuuid/df960652-58dd-40d6-babb-860491d217b9";
-  
-  
 
   boot.initrd.availableKernelModules = [
     "ahci"
@@ -130,18 +128,18 @@
     neededForBoot = true; # required
   };
 
-  fileSystems."/var/log" =
-    { device = "/dev/mapper/root";
-      fsType = "btrfs";
-      options = [
-        "defaults"
-        "compress-force=zstd"
-        "noatime"
-        "ssd"
-        "subvol=log"
-      ];
-      neededForBoot = true; # required
-    };
+  fileSystems."/var/log" = {
+    device = "/dev/mapper/root";
+    fsType = "btrfs";
+    options = [
+      "defaults"
+      "compress-force=zstd"
+      "noatime"
+      "ssd"
+      "subvol=log"
+    ];
+    neededForBoot = true; # required
+  };
 
   swapDevices = [
     {

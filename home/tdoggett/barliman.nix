@@ -43,7 +43,7 @@ let
   #    model in my-sd-models has to be picked in the dashboard.
   hermesDefaultConfig = (pkgs.formats.json { }).generate "hermes-default-config.json" {
     model = {
-      provider = "ollama-local";
+      provider = "lemonade-local";
       default = hermesModel;
     };
 
@@ -148,7 +148,7 @@ in
     enable = true;
     gateway.enable = true;
 
-    # Local Ollama through its OpenAI-compatible endpoint.
+    # Local Lemonade through its OpenAI-compatible endpoint.
     #
     # `provider` and `base_url` are both required. A bare
     # `default = "ollama/<model>"` is parsed as the short provider/model alias
@@ -174,7 +174,7 @@ in
     # `discover_models` defaults to true, which is what populates the picker
     # from Ollama's live /v1/models list.
     settings.providers = {
-      ollama-local.api = ollamaUrl;
+      ollama-local.api = lemonadeUrl;
       lemonade-local.api = lemonadeUrl;
     };
 
@@ -254,11 +254,11 @@ in
       (pkgs.formats.yaml { }).generate "hermes-worker-config.yaml"
         {
           providers = {
-            ollama-local.api = ollamaUrl;
+            ollama-local.api = lemonadeUrl;
             lemonade-local.api = lemonadeUrl;
           };
           model = {
-            provider = "ollama-local";
+            provider = "lemonade-local";
             # The reasoning model with an output cap (hosts/barliman/default.nix).
             # Chosen over _qwen3-coder-next-worker after T2 (PLAN.md): slower,
             # but the only one that found the right fix and followed SOUL.md.

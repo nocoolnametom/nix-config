@@ -35,9 +35,9 @@ let
   apiPort = configVars.networking.ports.tcp.hermes;
   dashboardPort = configVars.networking.ports.tcp.hermeswebui;
   dashboardUrl = "https://${configVars.networking.subdomains.hermeswebui}.${configVars.domain}";
-  ollamaPort = configVars.networking.ports.tcp.ollama;
+  lemonadePort = configVars.networking.ports.tcp.lemonade;
 
-  # Hermes queries the Ollama on its own machine (base_url is loopback below),
+  # Hermes queries Lemonade on its own machine (base_url is loopback below),
   # so the model comes from this host's entry in my-sd-models rather than a
   # named one: any host importing this gets its own primary without editing
   # here. The "planning" role is the fit - Hermes needs tools, and reasoning
@@ -80,10 +80,10 @@ in
     # they get written into config.yaml as {_type: override, ...} objects. A host
     # overrides a value by simply setting it.
 
-    # Local Ollama through its OpenAI-compatible endpoint ("custom" provider)
+    # Local Lemonade through its OpenAI-compatible endpoint ("custom" provider)
     settings.model = {
       provider = "custom";
-      base_url = "http://127.0.0.1:${toString ollamaPort}/v1";
+      base_url = "http://127.0.0.1:${toString lemonadePort}/api/v1";
       # This host's "planning" primary; on barliman that is "_qwen3.5", the
       # abliterated Qwen3.5-35B-A3B (tools + vision + thinking, so images sent
       # from Conduit work too), which ollama.nix installs under that name from

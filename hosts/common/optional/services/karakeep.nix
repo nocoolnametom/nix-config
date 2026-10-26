@@ -89,19 +89,21 @@ in
   # Lets an OIDC login attach to the existing account with the same email,
   # which is how accounts survive a change of identity provider.
   services.karakeep.extraEnvironment.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING = "true";
-  # AI tagging and summaries run on barliman's Ollama (smeagol stopped running
-  # Ollama in 2026-08).
+  # AI tagging and summaries run on barliman's Lemonade endpoint. Lemonade
+  # keeps the same /api/chat and /api/generate-style compatibility for
+  # Ollama-flavoured clients, but it serves them from the AMD AI stack instead
+  # of the standalone Ollama daemon.
   #
   # Both model slots get barliman's visual primary. It must NOT be a thinking
-  # model: Karakeep calls Ollama's native /api/generate with `format` set to a
-  # JSON schema and never sends `think: false`, and under that grammar a
+  # model: Karakeep calls the native /api/generate-style path with `format` set
+  # to a JSON schema and never sends `think: false`, and under that grammar a
   # thinking model puts its whole answer in the separate `thinking` field,
   # leaving `response` empty. Karakeep reads only `response`, so every job dies
   # with "The model ignored our prompt and didn't respond with the expected
   # JSON" and a blank excerpt. This is why "_qwen3.5" was wrong here despite
   # being vision-capable, and why Hermes is unaffected by the same model: it
-  # talks to /v1, where Ollama folds thinking back into content.
-  services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}";
+  # talks to /api/v1, where the endpoint folds thinking back into content.
+  services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.lemonade}";
   services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = visualModel;
   services.karakeep.extraEnvironment.INFERENCE_IMAGE_MODEL = visualModel;
   # Karakeep sends this as Ollama's num_ctx. It no longer has to match

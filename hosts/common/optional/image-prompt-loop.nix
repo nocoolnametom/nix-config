@@ -17,8 +17,8 @@ in
   options.programs.image-prompt-loop = {
     ollamaUrl = lib.mkOption {
       type = lib.types.str;
-      default = "http://localhost:${toString configVars.networking.ports.tcp.ollama}";
-      description = "Ollama server running the caption and critic models.";
+      default = "http://localhost:${toString configVars.networking.ports.tcp.lemonade}";
+      description = "Lemonade-compatible server running the caption and critic models.";
     };
     comfyuiUrl = lib.mkOption {
       type = lib.types.str;

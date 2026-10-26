@@ -36,13 +36,11 @@ in
       OIDC_SIGNUP_ENABLED = "true";
       OIDC_AUTO_REDIRECT = "true";
       OIDC_REMEMBER_ME = "true";
-      # barliman's Ollama (smeagol stopped running Ollama in 2026-08). "_qwen3.5"
-      # is the abliterated Qwen3.5-35B-A3B that Hermes keeps loaded, so this
-      # shares it instead of loading another model. The OpenAI-style endpoint
-      # doesn't send a context size, so the loaded one is reused as is.
-      OPENAI_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.ollama}/v1";
-      OPENAI_API_KEY = "1234567890123456"; # Ollama doesn't care about api keys
-      OPENAI_MODEL = "_qwen3.5";
+      # barliman's Lemonade endpoint (same OpenAI-compatible API family,
+      # but served by the local AMD AI runtime instead of the Ollama daemon).
+      OPENAI_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.lemonade}/api/v1";
+      OPENAI_API_KEY = "1234567890123456"; # Lemonade accepts a placeholder key here
+      OPENAI_MODEL = "Qwen3.5-4B";
       OPENAI_ENABLE_IMAGE_SERVICES = "false";
       OPENAI_REQUEST_TIMEOUT = "180";
     }

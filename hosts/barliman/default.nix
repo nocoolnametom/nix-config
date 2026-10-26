@@ -73,6 +73,8 @@
   services.systemd-failure-alert.additional-services = [
     "ollama"
     "open-webui"
+    "lemond"
+    "strata-server"
   ];
 
   # Using Rocm instead of Cuda since AMD APU/GPU
@@ -130,17 +132,25 @@
   # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
   services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
 
-  # Evaluate Lemonade on Strix Halo alongside Ollama. Keep this GPU-only first
-  # (ROCm + Vulkan) to avoid introducing NPU/FLM-specific complexity up front.
+  # Full AMD AI stack on Strix Halo: ROCm + Vulkan + XDNA-2 NPU + FLM +
+  # vLLM ROCm + Strata (Qwen3.8-Flash-Next with custom attention). All backends
+  # that nix-amd-ai exposes for gfx1151 are wired; lemond routes each model to
+  # the backend it was trained/quantised for.
   hardware.amd-npu = {
     enable = true;
     gpuTarget = "gfx1151";
-    enableNPU = false;
-    enableFastFlowLM = false;
+    enableNPU = true; # XDNA-2 NPU: kernel module, XRT, udev, memlock
+    enableFastFlowLM = true; # FastFlowLM NPU inference runtime
     enableLemonade = true;
     enableROCm = true;
     enableVulkan = true;
-    enableImageGen = true;
+    enableImageGen = true; # sd-cpp: cpu / rocm / vulkan backends
+    enableVllm = true; # vLLM ROCm (gfx1151 prebuilt from lemonade-sdk)
+
+    # Strata: dedicated Qwen3.8-Flash-Next server optimised for Strix Halo.
+    # strata.prepare auto-runs to pre-pack the model; defaults (UD-IQ4_XS quant,
+    # 128K context, /var/lib/strata pack+mtp paths) are fine for this box.
+    strata.enable = true;
 
     lemonade = {
       user = configVars.username;
@@ -151,9 +161,12 @@
       # but still keeps its own runtime metadata/index tree instead of sharing a
       # single model directory between two unrelated backends.
       cacheDir = "/var/lib/ai-models/lemonade";
+      # No Tauri desktop app: barliman is headless; avoids the Rust+npm build.
+      desktopApp.enable = false;
       settings = {
         max_loaded_models = 2;
         auto_evict = true;
+        auto_evict_threshold_pct = 0.90; # start evicting at 90% VRAM pressure
       };
       # Machine-specific model list is tracked in my-sd-models so the same
       # declarative naming pattern used for Ollama applies here too. Older
@@ -181,8 +194,9 @@
   nix.settings = {
     substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
     trusted-substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
-    trusted-public-keys =
-      lib.mkAfter [ "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ=" ];
+    trusted-public-keys = lib.mkAfter [
+      "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="
+    ];
   };
 
   # The coder model as the unattended worker uses it (PLAN.md, T4). Same
