@@ -34,19 +34,13 @@ with lib;
     { name = "gammons/tap/slk"; }
     # Podman should work better than docker on MacOS
     { name = "podman-desktop"; }
-    # Deskflow
+    # Deskflow - Software KVM between machines
     { name = "deskflow/tap/deskflow"; }
     # Handy - Not available on non-Linux via nixpkgs
     { name = "handy"; }
-    # LoudCue
-    { name = "bnjreece/loudcue/loudcue"; }
     # Notchy
     { name = "vishvavariya/notchy/notchy"; }
     # SwipeAeroSpace
     { name = "mediosz/tap/swipeaerospace"; }
-    # KindaVim
-    { name = "kindavim"; }
-    # Forel Autofiler
-    { name = "lab421/tap/forel"; }
   ];
 }
