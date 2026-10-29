@@ -277,21 +277,28 @@ in
           };
           approvals.mode = "off";
 
-          # Only tools that run over the SSH backend, as the worker. Hermes's
-          # default CLI set also has tools that run in the Hermes process itself,
-          # i.e. as me and outside the sandbox: web search/fetch and a browser (a
-          # way out to the internet, and a way in for prompt injection), cron jobs
-          # (work that outlives the task), and memory, skills and session search
-          # (what one task learns would leak into the next and spoil the evals).
-          # T2 run 3 (2026-10-12) used web_search and web_extract. An explicit
-          # list also keeps toolsets added by future Hermes updates switched off.
-          # execute_code is safe here: with a remote backend it runs Python on the
-          # worker's side and talks back over file RPC (code_execution_tool.py).
+          # The worker remains the strict sandbox for coding tasks, but the
+          # barliman Hermes config is also used for general research and page
+          # understanding, so we intentionally allow the built-in web, browser,
+          # and vision tools here. They are still constrained to the local
+          # Hermes process and not to the SSH sandbox.
+          #
+          # The earlier security rationale still applies to any agent profile that
+          # runs code or shell tools: those remain on the SSH-backed worker. The
+          # point of this change is to let a human-directed model inspect web
+          # pages, read linked images, and reason over their content using the
+          # tools Hermes already exposes.
+          #
+          # An explicit allow-list keeps toolsets added by future Hermes updates
+          # from sneaking in unexpectedly.
           platform_toolsets.cli = [
             "terminal"
             "file"
             "code_execution"
             "todo"
+            "web"
+            "browser"
+            "vision"
             # fix_done, from the plugin below. An enabled plugin's tools show up
             # even when not listed; listed anyway, so this list stays complete.
             "extra_work_budget"
