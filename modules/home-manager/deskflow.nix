@@ -14,8 +14,8 @@ in
 
     extraFlags = lib.mkOption {
       type = lib.types.listOf lib.types.str;
-      default = [ "-f" ];
-      defaultText = lib.literalExpression ''[ "-f" ]'';
+      default = [ ];
+      defaultText = lib.literalExpression ''[ ]'';
       description = ''
         Additional flags to pass to {command}`deskflow-core client`.
         See {command}`deskflow-core --help`.
