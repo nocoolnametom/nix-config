@@ -899,6 +899,50 @@ Original sketch:
 - [ ] Report template: changes, errors hit and fixed, secrets needed, open
       questions
 
+## Phase 5: comin rollout - Hermes first, me only when it fails (started 2026-11-04)
+
+Goal: replace per-host nightly `autoUpgrade` (which never writes the lock back,
+so the repo's `flake.lock` falls behind what's running - the Immich downgrade
+problem) with lock updates in git + comin pulling `main`, without losing
+bombadil's unattended security fixes. Design and the five task prompts:
+`docs/agent-tasks/comin-rollout.md`.
+
+Rule for this phase: **Hermes attempts every step first**, including ones I
+could do faster myself. I help only when it fails, and every assist gets a row
+below: what it was missing (a key, a permission, network, a fact, a config
+value, model skill). That log is the real output - it is the list of what
+the system still lacks.
+
+Order: (1) nightly lock-update Action + auto-merge, (2) comin module +
+`system.preSwitchChecks` guard against older nixpkgs, (3) autoUpgrade becomes a
+stale-lock fallback with an alert, (4) `testing-*` branches must keep main's
+lock, (5) comin on the remaining Linux hosts (not droid). bombadil moves last,
+after a week of lock PRs merging on their own.
+
+Known decisions:
+- Two bot identities: lock-bot (GitHub App; may merge lock-only PRs whose
+  checks pass) and Hermes (PRs always need my approval; no bypass).
+- A testing branch must not change `flake.lock`: `test` is undone by a reboot,
+  database migrations are not.
+- Hermes moving back to a system `hermes:hermes` service is a separate,
+  later change (drops linger, the managed-mode workaround and the firewall
+  split; gets Hermes out of my account).
+
+Expected assists (predicted, to confirm or strike):
+- GitHub web UI: lock-bot App + secrets, allow auto-merge, ruleset on `main`
+- Locking any new flake input (worker has no network)
+- comin's module source: the worker can only read what's in /nix/store, so
+  without a `nix flake prefetch github:nlewo/comin` on barliman it is
+  writing option names from memory
+- Private-input read credentials for the runner and for each host (secrets:
+  never the worker's)
+- First comin deploy on each host
+
+### Assist log
+
+| Date | Task | What Hermes was missing | Kind | What I did | Fix so it isn't needed next time |
+|---|---|---|---|---|---|
+
 ## Phase 4: Only if needed
 
 - [ ] Routing with a decision model (Cloudflare's Clef / Clef-Flash), if the
