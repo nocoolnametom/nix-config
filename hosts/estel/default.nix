@@ -39,6 +39,8 @@
     # Audiobookshelf runs on feanor since 2026-10-05, next to its libraries.
     "hosts/common/optional/services/homelab-beszel-hub.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
+    "hosts/common/optional/services/homelab-smokeping.nix" # Wi-Fi investigation, see docs/wifi-diagnostics.md
+    "hosts/common/optional/services/hue-bridge-watchdog.nix" # power-cycles the Hue bridge via Hubitat when it drops off
     # "hosts/common/optional/services/ddclient.nix" # Disabled - HAProxy routes traffic through bombadil
     "hosts/common/optional/services/docker.nix"
     "hosts/common/optional/services/komodo-periphery.nix" # containers visible in Komodo (feanor)
@@ -49,6 +51,7 @@
     # "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/karakeep.nix"
+    "hosts/common/optional/services/lan-presence-log.nix" # Wi-Fi investigation, see docs/wifi-diagnostics.md
     # Kavita and Kavitan run on feanor since 2026-10-05, next to their libraries.
     "hosts/common/optional/services/mealie.nix"
     # Disabled 2026-03-04: Navidrome build failure (pkg-config taglib issue), TODO: re-enable when fixed
@@ -127,6 +130,64 @@
     paperless = "kanidm-oidc";
   };
   services.atuin.openRegistration = true;
+
+  # Wi-Fi flakiness investigation, started 2026-11-06. estel is wired to the mesh's main hub, so
+  # it watches the wireless devices from the outside: smokeping graphs loss per target, the
+  # presence log records when each MAC drops off and returns, and the watchdog restarts the Hue
+  # bridge when it is the only thing down. Data lives under /var/lib on estel; how to read it and
+  # when to review it is in docs/wifi-diagnostics.md.
+  services.hue-bridge-watchdog.enable = true;
+  services.lan-presence-log = {
+    enable = true;
+    interface = "end0";
+  };
+  services.homelab-smokeping = {
+    enable = true;
+    groups = {
+      smarthome = {
+        title = "Smart home hubs (Wi-Fi)";
+        targets = {
+          hueBridge = {
+            title = "Hue bridge";
+            address = configVars.networking.subnets.hueBridge.ip;
+          };
+          hubitat = {
+            title = "Hubitat";
+            address = configVars.networking.subnets.hubitat.ip;
+          };
+        };
+      };
+      # TODO: once their IPs are in nix-secrets, add each mesh satellite node and two or three
+      # always-home Wi-Fi clients here. Those are what separate "one device" from "one node" from
+      # "the whole radio" when things drop.
+      infrastructure = {
+        title = "Infrastructure (wired)";
+        targets = {
+          router = {
+            title = "Mesh main hub / router";
+            address = configVars.networking.subnets.router.ip;
+          };
+          feanor = {
+            title = "feanor (wired control)";
+            address = configVars.networking.subnets.feanor.ip;
+          };
+        };
+      };
+      internet = {
+        title = "Internet";
+        targets = {
+          cloudflare = {
+            title = "Cloudflare DNS (1.1.1.1)";
+            address = "1.1.1.1";
+          };
+          google = {
+            title = "Google DNS (8.8.8.8)";
+            address = "8.8.8.8";
+          };
+        };
+      };
+    };
+  };
   # Pinned to unstable 2026-09-07: 26.05's karakeep builds against nodejs 24.19.0, whose
   # node::ObjectWrap cleanup-hook change aborts better-sqlite3's Statement destructor
   # ("Assertion failed: (env) != nullptr"), killing karakeep-workers ~4s after start.

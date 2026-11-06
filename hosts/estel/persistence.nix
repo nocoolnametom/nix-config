@@ -33,10 +33,12 @@
       "/var/lib/caddy"
       "/var/lib/docker"
       "/var/lib/hedgedoc"
+      "/var/lib/hue-bridge-watchdog" # outage marker + events.log (Wi-Fi investigation)
       "/var/lib/immich"
       "/var/lib/iwd"
       "/var/lib/kanidm"
       "/var/lib/karakeep"
+      "/var/lib/lan-presence-log" # arp-scan history + events.log (Wi-Fi investigation)
       # Kavita/Kavitan moved to feanor 2026-10-05. Kept so the old state stays
       # mounted for a rollback; TODO: drop these and the /persist copies once
       # feanor has run cleanly for a while.
@@ -57,6 +59,7 @@
       "/var/lib/redis-immich"
       "/var/lib/redis-paperless"
       "/var/lib/sbctl"
+      "/var/lib/smokeping" # latency/loss RRDs (Wi-Fi investigation)
       "/var/lib/auto-cryptenroll"
       "/var/lib/pcrlock.d"
       "/var/lib/systemd/coredump"
