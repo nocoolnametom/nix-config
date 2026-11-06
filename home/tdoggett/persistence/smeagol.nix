@@ -56,9 +56,9 @@
           ".zen"
 
           # Desktop app configs (from feature modules)
-          ".config/BraveSoftware/Brave-Browser" # brave
           ".config/discord" # discord
           ".config/google-chrome" # google-chrome
+          ".config/net.imput.helium" # helium
           ".config/obsidian" # obsidian
           ".config/Slack" # slack
           ".config/vlc" # vlc

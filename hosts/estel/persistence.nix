@@ -46,7 +46,9 @@
       "/var/lib/kavitan"
       "/var/lib/kavitan-library"
       "/var/lib/navidrome" # moved to feanor 2026-10-06; kept for rollback, TODO: drop
+      "/var/lib/comin" # comin deployment state + repo checkout
       "/var/lib/nixos"
+      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
       "/var/lib/paperless"
       "/var/lib/postgresql"
       "/var/lib/private/actual"

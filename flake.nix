@@ -107,6 +107,11 @@
     my-sd-models.inputs.nixpkgs.follows = "nixpkgs";
     my-sd-models.inputs.nixified-ai.follows = "nixified-ai";
 
+    # comin: GitOps deployer. A host polls this repo's main branch and switches to it.
+    # See hosts/common/optional/services/comin.nix and docs/agent-tasks/comin-rollout.md.
+    comin.url = "github:nlewo/comin";
+    comin.inputs.nixpkgs.follows = "nixpkgs";
+
     # Private secrets repo
     # Authenticate via ssh and use shallow clone
     nix-secrets.url = "git+ssh://git@github.com/nocoolnametom/nix-secrets.git?ref=main&shallow=1";

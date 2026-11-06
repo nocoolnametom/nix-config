@@ -50,6 +50,7 @@ in
     "hosts/common/optional/services/nzbget.nix"
     "hosts/common/optional/services/nzbhydra.nix"
     "hosts/common/optional/services/oauth2-proxy.nix"
+    "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/radarr.nix"
     "hosts/common/optional/services/sonarr.nix"

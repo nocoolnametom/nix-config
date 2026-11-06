@@ -34,7 +34,9 @@
       # "/var/lib/cups" # Handling via NixOS options
       "/var/lib/docker"
       "/var/lib/fprint"
+      "/var/lib/comin" # comin deployment state + repo checkout
       "/var/lib/nixos"
+      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
       "/var/lib/systemd/coredump"
     ];
     files = [

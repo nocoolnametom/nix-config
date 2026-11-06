@@ -15,7 +15,7 @@ enough to point at the culprit.
 
 | Module | Unit | Data |
 |---|---|---|
-| `hosts/common/optional/services/homelab-smokeping.nix` | `smokeping.service` | Latency and loss graphs per target, 1-minute steps. Web UI: `http://estel:8089/` on the LAN. RRDs in `/var/lib/smokeping/data`. |
+| `hosts/common/optional/services/homelab-smokeping.nix` | `smokeping.service` | Latency and loss graphs per target, 1-minute steps. Web UI: `http://estel:8089/` on the LAN, served by Caddy (nginx must stay off on estel). RRDs in `/var/lib/smokeping/data`. |
 | `hosts/common/optional/services/lan-presence-log.nix` | `lan-presence-log.timer` (every minute) | `/var/lib/lan-presence-log/events.log` has `appeared` / `vanished` / `moved` lines per MAC. `scans/YYYY-MM-DD.tsv` has every full scan. |
 | `hosts/common/optional/services/hue-bridge-watchdog.nix` | `hue-bridge-watchdog.timer` (every 5 min) | `/var/lib/hue-bridge-watchdog/events.log` records every outage decision: transient blip, general outage, power cycle sent, recovered, gave up. A failed power cycle also sends the usual Pushover service-failure alert. |
 

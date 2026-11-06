@@ -35,7 +35,9 @@
       # this generates overrides the fileSystems entry for the same path
       # entirely, so the subvolumes never mounted at boot and Docker rebuilt
       # its image store on the root filesystem until it filled.
+      "/var/lib/comin" # comin deployment state + repo checkout
       "/var/lib/nixos"
+      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
       "/var/lib/systemd/coredump"
     ];
     files = [

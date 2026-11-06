@@ -39,7 +39,7 @@ let
           "applications:org.kde.konsole.desktop"
           "applications:google-chrome.desktop"
           "applications:firefox.desktop"
-          "applications:brave-browser.desktop"
+          "applications:helium.desktop"
         ];
         config.General.showOnlyCurrentScreen = "true";
       }

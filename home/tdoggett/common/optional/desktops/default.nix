@@ -7,7 +7,6 @@
 {
   imports = [
     # Browsers
-    ./brave.nix
     ./firefox.nix
     ./google-chrome.nix
 

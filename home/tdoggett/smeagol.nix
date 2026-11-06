@@ -39,7 +39,7 @@
   home.packages = with pkgs; [
     bottles
     handbrake
-    # helium-browser-flake
+    helium-browser-flake # replaces Brave, removed from nixpkgs 2026-11
   ];
 
   # Flatpaks

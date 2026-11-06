@@ -97,6 +97,7 @@ in
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/kavita.nix"
     "hosts/common/optional/services/navidrome.nix"
+    "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"

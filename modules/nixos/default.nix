@@ -22,6 +22,7 @@
   stash-video-conversion = import ./stash-video-conversion.nix;
   stash-vr-helper = import ./stash-vr-helper.nix;
   mormonsites = import ./mormonsites.nix;
+  nixpkgs-downgrade-guard = import ./nixpkgs-downgrade-guard.nix;
   systemd-failure-alert = import ./systemd-failure-alert.nix;
   ugreen-nas = import ./ugreen-nas.nix;
   whisparr-eros = import ./whisparr-eros.nix;

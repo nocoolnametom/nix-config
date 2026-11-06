@@ -76,6 +76,13 @@ run); runner disk.
 
 ## Task 2 - comin module + "never go backwards" guard
 
+> **Done 2026-11-06 by Clod, not Hermes** (see PLAN.md Phase 5 update). Module:
+> `hosts/common/optional/services/comin.nix`; guard:
+> `modules/nixos/nixpkgs-downgrade-guard.nix` (tracks `nixpkgs` and
+> `nixpkgs-unstable`, override file
+> `/var/lib/nixpkgs-downgrade-guard/allow-downgrade-once`). The VM checks under
+> "I'll check" have not been run yet.
+
 **Before:** pick the test host (a VM via the VM check, or barliman). Don't
 pre-add the comin input: Hermes adds it to `flake.nix`, and locking it (needs
 network) is the expected first assist - log it.
@@ -144,6 +151,11 @@ changed in headless-server.
 ---
 
 ## Task 5 - enable comin on the remaining Linux hosts
+
+> **Done 2026-11-06 by Clod, not Hermes.** Enabled on feanor too (so bombadil is
+> the only auto-upgrade host). Credential per host: none new; root's existing
+> sops GitHub key fetches the private inputs, and GitHub's host key is now in
+> `programs.ssh.knownHosts`. First deploy on each host is still by hand.
 
 **Prompt:**
 

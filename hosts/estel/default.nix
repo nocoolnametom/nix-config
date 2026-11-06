@@ -57,6 +57,7 @@
     # Disabled 2026-03-04: Navidrome build failure (pkg-config taglib issue), TODO: re-enable when fixed
     # Navidrome runs on feanor since 2026-10-06 (its oauth2-proxy stays here).
     "hosts/common/optional/services/oauth2-proxy.nix"
+    "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/paperless.nix"
     "hosts/common/optional/services/seerr.nix"
@@ -143,6 +144,7 @@
   };
   services.homelab-smokeping = {
     enable = true;
+    webServer = "caddy"; # Caddy owns 80/443 here; nginx must stay off (see the module header)
     groups = {
       smarthome = {
         title = "Smart home hubs (Wi-Fi)";

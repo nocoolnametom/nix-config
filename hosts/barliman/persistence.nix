@@ -36,7 +36,9 @@
         group = "agent-worker";
         mode = "0700";
       }
+      "/var/lib/comin" # comin deployment state + repo checkout
       "/var/lib/nixos"
+      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
       "/var/lib/systemd/coredump"
     ];
     files = [

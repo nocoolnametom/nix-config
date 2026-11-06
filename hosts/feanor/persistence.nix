@@ -51,7 +51,9 @@
       "/var/cache/immich" # ML models (~1 GB); re-downloaded on every boot otherwise
       "/var/lib/immich"
       "/var/lib/nfs" # NFS server state, so clients recover cleanly after reboot
+      "/var/lib/comin" # comin deployment state + repo checkout
       "/var/lib/nixos"
+      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
       "/var/lib/postgresql" # immich + podfetch DBs - on NVMe, not the btrfs HDD pool
       "/var/lib/redis-immich" # Immich job queue
       "/var/backup/postgresql" # nightly pg_dump of podfetch (backed up by borg)

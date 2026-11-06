@@ -938,6 +938,14 @@ Expected assists (predicted, to confirm or strike):
   never the worker's)
 - First comin deploy on each host
 
+**2026-11-06 update:** at my request Clod did tasks 2 and 5 directly, out of
+order and without Hermes: comin input + `hosts/common/optional/services/comin.nix`,
+the downgrade guard as `modules/nixos/nixpkgs-downgrade-guard.nix`, and comin
+enabled on feanor, estel, durin, smeagol, barliman and pangolin11. bombadil keeps
+auto-upgrade. Tasks 1, 3 and 4 (lock-update Action, stale-lock fallback,
+testing-branch lock check) are still open and still Hermes-first. Until task 1
+lands, `main`'s lock only moves when I run `nix flake update` and commit.
+
 ### Assist log
 
 | Date | Task | What Hermes was missing | Kind | What I did | Fix so it isn't needed next time |

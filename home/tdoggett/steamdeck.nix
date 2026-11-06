@@ -19,7 +19,6 @@
     common/optional/git.nix
     common/optional/jj.nix
     common/optional/devenv.nix
-    common/optional/desktops/brave.nix
     common/optional/desktops/kitty.nix
     common/optional/desktops/vscode.nix
     common/optional/wakatime.nix

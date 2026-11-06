@@ -40,6 +40,7 @@
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     "hosts/common/optional/services/homelab-beszel-agent.nix" # Homelab Beszel monitoring agent
     # "hosts/common/optional/services/greetd.nix"
+    "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix" # allow remote SSH access
     "hosts/common/optional/services/pipewire.nix" # audio
     "hosts/common/optional/services/printing.nix"
