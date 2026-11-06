@@ -14,7 +14,7 @@
 .DEFAULT_GOAL := help
 .NOTPARALLEL:   check
 
-.PHONY: help check check-fast check-eval fmt
+.PHONY: help check check-fast check-eval fmt ship
 
 # Auto-derive the per-system `eval-*` hook IDs so `check-fast`/`check` skip
 # the serial pre-commit eval-* hooks (we run them in parallel via
@@ -30,6 +30,7 @@ help:
 	@echo "  make check-fast  Format/lint only — skip the slow per-system eval"
 	@echo "  make check-eval  Per-system nix eval only (parallel; clear failures)"
 	@echo "  make fmt         Auto-format .nix (nixfmt) and shell (shfmt) files"
+	@echo "  make ship        check, rebuild this host (darwin- or nixos-rebuild), move main to @, jj git push"
 
 # Full validation: format/lint first (fast, fails early on format issues),
 # then parallel per-machine eval. `.NOTPARALLEL` above keeps make from
@@ -47,3 +48,18 @@ check-eval:
 fmt:
 	nix fmt -- .
 	-nix develop -c pre-commit run --hook-stage pre-push --all-files shfmt
+
+# "It's good, ship it": the manual pre-push hook. jj still has no hook support
+# (jj-vcs/jj#405), so this chains what would otherwise be typed by hand and stops
+# at the first failure. The rebuild is darwin-rebuild on the Mac and nixos-rebuild
+# elsewhere, both for this host's flake output. On the Linux hosts comin would
+# deploy the same commit a couple of minutes after the push anyway; rebuilding
+# first just surfaces a failure here instead of in a Pushover alert.
+ship: check
+	@if [ "$$(uname -s)" = Darwin ]; then \
+	  sudo darwin-rebuild switch; \
+	else \
+	  sudo nixos-rebuild switch --flake .#$$(hostname); \
+	fi
+	jj bookmark move main
+	jj git push
