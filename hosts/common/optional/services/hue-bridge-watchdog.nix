@@ -29,6 +29,10 @@
 }:
 let
   cfg = config.services.hue-bridge-watchdog;
+  # Tools by store path so the script never depends on the unit's PATH.
+  curl = "${pkgs.curl}/bin/curl";
+  grep = "${pkgs.gnugrep}/bin/grep";
+  coreutils = "${pkgs.coreutils}/bin";
 in
 {
   options.services.hue-bridge-watchdog = {
@@ -95,11 +99,6 @@ in
       description = "Probe the Hue bridge and power-cycle it via Hubitat when it stays unreachable";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
-      path = with pkgs; [
-        curl
-        coreutils
-        gnugrep
-      ];
       serviceConfig = {
         Type = "oneshot";
         StateDirectory = "hue-bridge-watchdog";
@@ -117,37 +116,37 @@ in
         eventsLog="$STATE_DIRECTORY/events.log"
 
         logEvent() {
-          printf '%s %s\n' "$(date -Is)" "$*" | tee -a "$eventsLog"
+          printf '%s %s\n' "$(${coreutils}/date -Is)" "$*" | ${coreutils}/tee -a "$eventsLog"
         }
 
         bridgeIsUp() {
           # The bridge answers this path without an API key. Plain HTTP only 301s to HTTPS,
           # and the HTTPS cert is self-signed, so go straight to HTTPS and skip verification.
-          curl -sk --max-time 5 --fail "https://$bridgeAddress/api/0/config" 2>/dev/null \
-            | grep -q '"bridgeid"'
+          ${curl} -sk --max-time 5 --fail "https://$bridgeAddress/api/0/config" 2>/dev/null \
+            | ${grep} -q '"bridgeid"'
         }
 
         hubitatIsUp() {
-          curl -s --max-time 5 -o /dev/null "http://$hubitatAddress/"
+          ${curl} -s --max-time 5 -o /dev/null "http://$hubitatAddress/"
         }
 
         if bridgeIsUp; then
           if [ -e "$outageMarker" ]; then
-            logEvent "bridge reachable again; outage that began $(cat "$outageMarker") is over"
-            rm -f "$outageMarker"
+            logEvent "bridge reachable again; outage that began $(${coreutils}/cat "$outageMarker") is over"
+            ${coreutils}/rm -f "$outageMarker"
           fi
           exit 0
         fi
 
         if [ -e "$outageMarker" ]; then
           # Already power-cycled this outage and alerted. Stay quiet until it recovers.
-          echo "bridge still unreachable; power cycle already sent $(cat "$outageMarker"), waiting"
+          echo "bridge still unreachable; power cycle already sent $(${coreutils}/cat "$outageMarker"), waiting"
           exit 0
         fi
 
         attempt=1
         while [ "$attempt" -lt ${toString cfg.attempts} ]; do
-          sleep ${toString cfg.retryDelaySeconds}
+          ${coreutils}/sleep ${toString cfg.retryDelaySeconds}
           attempt=$((attempt + 1))
           if bridgeIsUp; then
             logEvent "bridge answered on probe $attempt of ${toString cfg.attempts}; transient blip, no action"
@@ -161,18 +160,18 @@ in
         fi
 
         logEvent "bridge unreachable after ${toString cfg.attempts} probes, Hubitat is up; requesting power cycle"
-        date -Is > "$outageMarker"
+        ${coreutils}/date -Is > "$outageMarker"
 
-        if ! curl -s --fail --max-time 10 -o /dev/null "$(cat ${cfg.powerCycleUrlFile})"; then
+        if ! ${curl} -s --fail --max-time 10 -o /dev/null "$(${coreutils}/cat ${cfg.powerCycleUrlFile})"; then
           logEvent "power cycle request to the Hubitat failed"
           exit 1
         fi
 
-        sleep ${toString cfg.recoveryWaitSeconds}
+        ${coreutils}/sleep ${toString cfg.recoveryWaitSeconds}
 
         if bridgeIsUp; then
           logEvent "bridge recovered ${toString cfg.recoveryWaitSeconds}s after power cycle"
-          rm -f "$outageMarker"
+          ${coreutils}/rm -f "$outageMarker"
           exit 0
         fi
 

@@ -39,25 +39,25 @@ let
     # One alert per commit per phase: comin retries failed builds and would otherwise
     # send the same message several times.
     markerDirectory=/var/lib/comin/alerts
-    mkdir -p "$markerDirectory"
+    ${pkgs.coreutils}/bin/mkdir -p "$markerDirectory"
     marker="$markerDirectory/''${COMIN_PHASE:-unknown}-''${COMIN_GIT_SHA:-unknown}"
     [ -e "$marker" ] && exit 0
 
     hostName=$(${pkgs.hostname}/bin/hostname)
-    shortSha=$(printf '%s' "''${COMIN_GIT_SHA:-}" | cut -c1-10)
+    shortSha=$(printf '%s' "''${COMIN_GIT_SHA:-}" | ${pkgs.coreutils}/bin/cut -c1-10)
     message="Commit $shortSha on ''${COMIN_GIT_REF:-?}: ''${COMIN_GIT_MSG:-}
     ''${COMIN_ERROR_MSG:-no error message}"
     # Pushover rejects messages over 1024 characters.
-    message=$(printf '%s' "$message" | cut -c1-900)
+    message=$(printf '%s' "$message" | ${pkgs.coreutils}/bin/cut -c1-900)
 
     ${pkgs.curl}/bin/curl -s --fail \
-      --form-string "token=$(cat ${alertCfg.pushover.apiTokenFile})" \
-      --form-string "user=$(cat ${alertCfg.pushover.userKeyFile})" \
+      --form-string "token=$(${pkgs.coreutils}/bin/cat ${alertCfg.pushover.apiTokenFile})" \
+      --form-string "user=$(${pkgs.coreutils}/bin/cat ${alertCfg.pushover.userKeyFile})" \
       --form-string "title=[$hostName] comin ''${COMIN_PHASE:-?} failed" \
       --form-string "message=$message" \
       --form-string "priority=${toString alertCfg.pushover.priority}" \
       https://api.pushover.net/1/messages.json \
-      && touch "$marker"
+      && ${pkgs.coreutils}/bin/touch "$marker"
   '';
 in
 {

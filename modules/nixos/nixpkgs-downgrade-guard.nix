@@ -12,9 +12,14 @@
 #   touch /var/lib/nixpkgs-downgrade-guard/allow-downgrade-once
 # The next activation accepts the older input, records it as the new high-water mark,
 # and removes the override file.
+#
+# Every tool is referenced by its store path: the pre-switch check inherits the PATH of
+# whatever started the switch, and under comin's systemd unit that PATH has no coreutils
+# (a bare `cat` broke feanor's deploy on 2026-11-06).
 {
   lib,
   config,
+  pkgs,
   inputs,
   ...
 }:
@@ -23,6 +28,7 @@ let
   stateDirectory = "/var/lib/nixpkgs-downgrade-guard";
   overrideFile = "${stateDirectory}/allow-downgrade-once";
   stampOf = inputName: toString inputs.${inputName}.lastModified;
+  coreutils = "${pkgs.coreutils}/bin";
 in
 {
   options.system.nixpkgsDowngradeGuard = {
@@ -48,7 +54,7 @@ in
         newStamp=${stampOf inputName}
         stateFile="${stateDirectory}/${inputName}.lastModified"
         if [ -r "$stateFile" ]; then
-          oldStamp=$(cat "$stateFile")
+          oldStamp=$(${coreutils}/cat "$stateFile")
           if [ "$newStamp" -lt "$oldStamp" ]; then
             if [ -e "${overrideFile}" ]; then
               echo "nixpkgs-downgrade-guard: '${inputName}' goes back from $oldStamp to $newStamp; allowed once by ${overrideFile}"
@@ -68,16 +74,16 @@ in
     # Raise the high-water marks once the check has passed. With the override present,
     # the older stamp becomes the new baseline so later switches to it need no override.
     system.activationScripts.nixpkgsDowngradeGuard = ''
-      mkdir -p ${stateDirectory}
-      chmod 700 ${stateDirectory}
+      ${coreutils}/mkdir -p ${stateDirectory}
+      ${coreutils}/chmod 700 ${stateDirectory}
       ${lib.concatMapStringsSep "\n" (inputName: ''
         newStamp=${stampOf inputName}
         stateFile="${stateDirectory}/${inputName}.lastModified"
-        if [ ! -r "$stateFile" ] || [ -e "${overrideFile}" ] || [ "$newStamp" -gt "$(cat "$stateFile")" ]; then
+        if [ ! -r "$stateFile" ] || [ -e "${overrideFile}" ] || [ "$newStamp" -gt "$(${coreutils}/cat "$stateFile")" ]; then
           echo "$newStamp" > "$stateFile"
         fi
       '') cfg.trackedInputs}
-      rm -f ${overrideFile}
+      ${coreutils}/rm -f ${overrideFile}
     '';
   };
 }

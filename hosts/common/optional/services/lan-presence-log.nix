@@ -23,6 +23,11 @@
 }:
 let
   cfg = config.services.lan-presence-log;
+  # Tools by store path so the script never depends on the unit's PATH.
+  arpScan = "${pkgs.arp-scan}/bin/arp-scan";
+  awk = "${pkgs.gawk}/bin/awk";
+  find = "${pkgs.findutils}/bin/find";
+  coreutils = "${pkgs.coreutils}/bin";
 in
 {
   options.services.lan-presence-log = {
@@ -55,12 +60,6 @@ in
       description = "Record which devices answer ARP on the LAN";
       after = [ "network-online.target" ];
       wants = [ "network-online.target" ];
-      path = with pkgs; [
-        arp-scan
-        coreutils
-        findutils
-        gawk
-      ];
       serviceConfig = {
         Type = "oneshot";
         StateDirectory = "lan-presence-log";
@@ -69,13 +68,13 @@ in
       script = ''
         set -u
 
-        scanTime=$(date -Is)
-        scanDay=$(date +%F)
+        scanTime=$(${coreutils}/date -Is)
+        scanDay=$(${coreutils}/date +%F)
         scansDirectory="$STATE_DIRECTORY/scans"
         currentTable="$STATE_DIRECTORY/current.tsv"
         previousTable="$STATE_DIRECTORY/previous.tsv"
         eventsLog="$STATE_DIRECTORY/events.log"
-        mkdir -p "$scansDirectory"
+        ${coreutils}/mkdir -p "$scansDirectory"
 
         logEvent() {
           printf '%s %s\n' "$scanTime" "$*" >> "$eventsLog"
@@ -84,43 +83,43 @@ in
         # arp-scan --plain prints "ip<TAB>mac<TAB>vendor" with no header or footer.
         # Re-order to mac first so the diff below keys on the hardware address, and keep
         # one line per MAC (a device answering from two IPs is rare and not what we track).
-        arp-scan --localnet --interface="${cfg.interface}" --plain --retry=3 2>/dev/null \
-          | awk -F'\t' '{ print $2 "\t" $1 "\t" $3 }' \
-          | sort -u -k1,1 > "$currentTable.new"
+        ${arpScan} --localnet --interface="${cfg.interface}" --plain --retry=3 2>/dev/null \
+          | ${awk} -F'\t' '{ print $2 "\t" $1 "\t" $3 }' \
+          | ${coreutils}/sort -u -k1,1 > "$currentTable.new"
 
         if [ ! -s "$currentTable.new" ]; then
           # An empty scan is far more likely to be our own problem than an empty LAN.
           # Do not record a mass vanish; just note it and keep the previous table.
           logEvent "scan returned nothing; skipped (interface ${cfg.interface} down?)"
-          rm -f "$currentTable.new"
+          ${coreutils}/rm -f "$currentTable.new"
           exit 0
         fi
-        mv "$currentTable.new" "$currentTable"
+        ${coreutils}/mv "$currentTable.new" "$currentTable"
 
-        awk -v now="$scanTime" -F'\t' '{ print now "\t" $0 }' "$currentTable" \
+        ${awk} -v now="$scanTime" -F'\t' '{ print now "\t" $0 }' "$currentTable" \
           >> "$scansDirectory/$scanDay.tsv"
 
         if [ -e "$previousTable" ]; then
           # Appeared: in current, not in previous.
-          join -t "$(printf '\t')" -v 2 "$previousTable" "$currentTable" \
+          ${coreutils}/join -t "$(printf '\t')" -v 2 "$previousTable" "$currentTable" \
             | while IFS=$'\t' read -r mac ip vendor; do
                 logEvent "appeared  $mac $ip $vendor"
               done
           # Vanished: in previous, not in current.
-          join -t "$(printf '\t')" -v 1 "$previousTable" "$currentTable" \
+          ${coreutils}/join -t "$(printf '\t')" -v 1 "$previousTable" "$currentTable" \
             | while IFS=$'\t' read -r mac ip vendor; do
                 logEvent "vanished  $mac $ip $vendor"
               done
           # Moved: in both, different IP.
-          join -t "$(printf '\t')" "$previousTable" "$currentTable" \
-            | awk -F'\t' '$2 != $4 { print $1 "\t" $2 "\t" $4 "\t" $5 }' \
+          ${coreutils}/join -t "$(printf '\t')" "$previousTable" "$currentTable" \
+            | ${awk} -F'\t' '$2 != $4 { print $1 "\t" $2 "\t" $4 "\t" $5 }' \
             | while IFS=$'\t' read -r mac oldIp newIp vendor; do
                 logEvent "moved     $mac $oldIp -> $newIp $vendor"
               done
         fi
-        cp "$currentTable" "$previousTable"
+        ${coreutils}/cp "$currentTable" "$previousTable"
 
-        find "$scansDirectory" -name '*.tsv' -mtime +${toString cfg.retentionDays} -delete
+        ${find} "$scansDirectory" -name '*.tsv' -mtime +${toString cfg.retentionDays} -delete
       '';
     };
 

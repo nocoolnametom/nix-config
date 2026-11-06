@@ -157,7 +157,11 @@ in
 
         # Kanidm SSO Provider with declarative provisioning
         services.kanidm = {
-          package = pkgs.kanidmWithSecretProvisioning_1_11;
+          # Kanidm must be upgraded one minor at a time and cannot be downgraded. Before each
+          # bump: `kanidmd domain upgrade-check` on feanor must say PASS (it did for 1.11 -> 1.12
+          # on 2026-11-06), and make sure a fresh backup exists in /var/lib/kanidm/backups.
+          # 1.11 reaches end-of-life 2026-12-01.
+          package = pkgs.kanidmWithSecretProvisioning_1_12;
 
           server.enable = true;
 
