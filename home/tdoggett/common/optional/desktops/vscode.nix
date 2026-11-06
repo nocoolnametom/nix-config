@@ -2,6 +2,16 @@
 {
   programs.vscode = {
     enable = lib.mkDefault true;
+    # 2026-11-06: take the package from nixos-unstable, not the default (stable) set.
+    # nixos-26.05 backported VS Code 1.144.0 (nixpkgs PR #580502) without the matching
+    # generic.nix change, so its patchPhase still deletes
+    # resources/app/node_modules/@vscode/ripgrep/bin/rg, which moved to
+    # @vscode/ripgrep-universal/bin/<platform>/rg in 1.122.0. The stable build therefore
+    # fails with "rm: cannot remove ...ripgrep/bin/rg: No such file or directory".
+    # The unstable recipe handles both layouts. VS Code is unfree, so Hydra never puts it
+    # in cache.nixos.org; every host downloads and patches it locally whichever set we use,
+    # so this costs nothing extra. Revisit once stable's generic.nix catches up.
+    package = lib.mkDefault pkgs.unstable.vscode;
     mutableExtensionsDir = lib.mkDefault true;
     profiles.default = {
       enableUpdateCheck = lib.mkDefault false;
