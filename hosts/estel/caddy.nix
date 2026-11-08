@@ -61,6 +61,17 @@ let
       domain = "homeDomain";
     }
     {
+      host = "feanor";
+      service = "monline";
+      domain = "homeDomain";
+    }
+    {
+      host = "feanor";
+      service = "open-resume";
+      proxy = "oauth2"; # Kanidm via oauth2-proxy on estel (was "authentik")
+      domain = "homeDomain";
+    }
+    {
       host = "estel";
       service = "beszel";
       domain = "homeDomain";
