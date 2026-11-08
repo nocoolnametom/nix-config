@@ -551,6 +551,16 @@ in
                         preferShortUsername = true;
                       };
 
+                    monline =
+                      let
+                        url = "https://${configVars.networking.subdomains.monline}.${configVars.homeDomain}";
+                      in
+                      {
+                        displayName = "Monline";
+                        originUrl = "${url}/oidc/callback";
+                        originLanding = url;
+                      };
+
                     # Shown to everyone now; the redirect is the one the Jellyfin SSO
                     # plugin uses for a provider named "kanidm", ready for when Jellyfin
                     # itself is wired up (its secret is the sops one below).
