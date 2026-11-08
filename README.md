@@ -2,6 +2,8 @@
 
 This repository contains a comprehensive NixOS/Nix-Darwin configuration managing a fleet of heterogeneous machines using Nix flakes. The design emphasizes code reuse, modularity, and clear organization to minimize configuration duplication across systems.
 
+For new services and SSO integrations, see the [service and authentication checklist](docs/service-auth-checklist.md).
+
 ## Quick Start
 
 After cloning this repo, set up the git pre-commit hooks:
