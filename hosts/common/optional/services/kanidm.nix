@@ -89,6 +89,7 @@ let
     # stay defined, because removing a provisioned client leaves a placeholder
     # uuid that Kanidm rejects on startup (see the note below).
     nas = false;
+    mitracal = true;
   };
 
   # Disabled clients stay in Kanidm with no scope map, so nobody may use them
@@ -652,6 +653,20 @@ in
                   scopeMaps = makeScopeMaps "komodo";
                 };
 
+              # Mitracal
+              mitracal =
+                let
+                  url = "https://${configVars.networking.subdomains.mitracal}.${configVars.homeDomain}";
+                in
+                {
+                  displayName = "Mitra Calendar";
+                  originUrl = "${url}/auth/login";
+                  originLanding = url;
+                  preferShortUsername = true;
+                  basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/mitracal/client-secret".path;
+                  scopeMaps = makeScopeMaps "mitracal";
+                };
+
               # Shown to everyone now; the redirect is the one the Jellyfin SSO
               # plugin uses for a provider named "kanidm", ready for when Jellyfin
               # itself is wired up (its secret is the sops one below).
@@ -826,6 +841,9 @@ in
           owner = "kanidm";
         };
         sops.secrets."homelab/kanidm/oidc/komodo/client-secret" = {
+          owner = "kanidm";
+        };
+        sops.secrets."homelab/kanidm/oidc/mitracal/client-secret" = {
           owner = "kanidm";
         };
         sops.secrets."homelab/kanidm/oidc/audiobookshelf/client-secret" = {
