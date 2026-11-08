@@ -28,6 +28,7 @@ let
   homeDomainInstances = [
     "navidrome"
     "seerr"
+    "open-resume"
   ];
   secret = name: config.sops.secrets.${name}.path;
 

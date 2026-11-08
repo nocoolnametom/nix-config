@@ -279,6 +279,7 @@
     "invokeai"
     "nzbget"
     "nzbhydra"
+    "open-resume"
     "radarr"
     "sonarr"
     "navidrome"
