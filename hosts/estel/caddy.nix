@@ -56,6 +56,11 @@ let
       domain = "homeDomain";
     }
     {
+      host = "feanor";
+      service = "mitracal";
+      domain = "homeDomain";
+    }
+    {
       host = "estel";
       service = "beszel";
       domain = "homeDomain";

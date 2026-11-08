@@ -48,6 +48,7 @@
       "/var/lib/navidrome" # music DB: users, playlists, play history
       "/var/lib/kavita" # comics reader DB, covers, progress
       "/var/lib/kavitan" # limited-access reader DB (holds the Kavita+ licence)
+      "/var/lib/mitracal" # multi-user calendaring
       "/var/cache/immich" # ML models (~1 GB); re-downloaded on every boot otherwise
       "/var/lib/immich"
       "/var/lib/nfs" # NFS server state, so clients recover cleanly after reboot
