@@ -120,6 +120,7 @@ let
       callback = "";
     };
     open-resume.displayName = "Open Resume";
+    open-resume.domain = "homeDomain";
     comfyui.displayName = "ComfyUI";
     comfyuimini.displayName = "ComfyUI Mini";
     invokeai.displayName = "InvokeAI";
