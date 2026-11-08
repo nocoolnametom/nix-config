@@ -46,6 +46,7 @@ let
         "flood"
         "nzbget"
         "nzbhydra"
+        "open-resume"
         "pinchflat"
         "radarr"
         "sonarr"
@@ -161,6 +162,15 @@ let
       clientId = "comfyuimini";
       clientSecretFile = secret "homelab/kanidm/oauth2/comfyuimini/client-secret";
       cookieSecretFile = secret "homelab/oauth2/comfyuimini/cookie-secret";
+    };
+
+    open-resume = {
+      port = configVars.networking.ports.tcp.oauth2-open-resume;
+      upstreamUrl = "http://${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.open-resume}";
+      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/open-resume";
+      clientId = "open-resume";
+      clientSecretFile = secret "homelab/kanidm/oauth2/open-resume/client-secret";
+      cookieSecretFile = secret "homelab/oauth2/open-resume/cookie-secret";
     };
 
     invokeai = {
