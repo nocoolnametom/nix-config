@@ -660,7 +660,7 @@ in
                 in
                 {
                   displayName = "Mitra Calendar";
-                  originUrl = "${url}/auth/login";
+                  originUrl = "${url}/auth/callback";
                   originLanding = url;
                   preferShortUsername = true;
                   basicSecretFile = config.sops.secrets."homelab/kanidm/oidc/mitracal/client-secret".path;
