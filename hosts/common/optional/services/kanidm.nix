@@ -107,59 +107,86 @@ let
     lib.nameValuePair (builtins.head (builtins.match "(.*)\\.[^.]+" file)) (./kanidm-icons + "/${file}")
   ) (builtins.readDir ./kanidm-icons);
 
-  # Existing SOPS namespaces distinguish proxy clients from native OIDC apps.
-  proxyClients = {
-    navidrome = {
+  # Helper: generate an OIDC client definition from name + options.
+  # originUrl/originLanding are derived automatically from the service name and domain.
+  makeClient =
+    name: opts:
+    let
+      callbackPath = opts.callbackPath or "/oauth2/callback";
+      domain = opts.domain or "homeDomain";
+      url = "https://${configVars.networking.subdomains.${name}}.${configVars.${domain}}";
+    in
+    builtins.removeAttrs opts [
+      "callbackPath"
+      "domain"
+    ]
+    // {
+      originUrl = "${url}${callbackPath}";
+      originLanding = url;
+    };
+
+  # OAuth2-proxy clients (services without native OIDC support).
+  # Each entry uses makeClient to derive originUrl/originLanding from the name.
+  proxyClientDefinitions = {
+    navidrome = makeClient "navidrome" {
       displayName = "Navidrome Music Server";
-      domain = "homeDomain";
       preferShortUsername = true;
     };
-    seerr = {
+    seerr = makeClient "seerr" {
       displayName = "Seerr Request System";
-      domain = "homeDomain";
-      callback = "";
+      callbackPath = "";
     };
-    open-resume.displayName = "Open Resume";
-    open-resume.domain = "homeDomain";
-    comfyui.displayName = "ComfyUI";
-    comfyuimini.displayName = "ComfyUI Mini";
-    invokeai.displayName = "InvokeAI";
-    archerstashvr.displayName = "Archer Stash VR";
-    delugeweb.displayName = "Deluge Web UI";
-    flood.displayName = "Flood Torrent UI";
-    nzbget.displayName = "NZBGet";
-    nzbhydra.displayName = "NZBHydra2 NZB Search";
-    pinchflat = {
+    open-resume = makeClient "open-resume" {
+      displayName = "Open Resume";
+    };
+    comfyui = makeClient "comfyui" {
+      displayName = "ComfyUI";
+    };
+    comfyuimini = makeClient "comfyuimini" {
+      displayName = "ComfyUI Mini";
+    };
+    invokeai = makeClient "invokeai" {
+      displayName = "InvokeAI";
+    };
+    archerstashvr = makeClient "archerstashvr" {
+      displayName = "Archer Stash VR";
+    };
+    delugeweb = makeClient "delugeweb" {
+      displayName = "Deluge Web UI";
+    };
+    flood = makeClient "flood" {
+      displayName = "Flood Torrent UI";
+    };
+    nzbget = makeClient "nzbget" {
+      displayName = "NZBGet";
+    };
+    nzbhydra = makeClient "nzbhydra" {
+      displayName = "NZBHydra2 NZB Search";
+    };
+    pinchflat = makeClient "pinchflat" {
       displayName = "Pinchflat YouTube Download";
-      domain = "homeDomain";
-      callback = "";
+      callbackPath = "";
     };
-    radarr.displayName = "Radarr Movies";
-    sonarr.displayName = "Sonarr TV";
-    stashvr.displayName = "Stash VR";
-    whisparr.displayName = "Whisparr";
-    whisparr-eros.displayName = "Whisparr Eros";
-    tubearchivist = {
+    radarr = makeClient "radarr" {
+      displayName = "Radarr Movies";
+    };
+    sonarr = makeClient "sonarr" {
+      displayName = "Sonarr TV";
+    };
+    stashvr = makeClient "stashvr" {
+      displayName = "Stash VR";
+    };
+    whisparr = makeClient "whisparr" {
+      displayName = "Whisparr";
+    };
+    whisparr-eros = makeClient "whisparr-eros" {
+      displayName = "Whisparr Eros";
+    };
+    tubearchivist = makeClient "tubearchivist" {
       displayName = "TubeArchivist";
       preferShortUsername = true;
     };
   };
-  proxyClientDefinitions = lib.mapAttrs (
-    name: client:
-    let
-      url = "https://${configVars.networking.subdomains.${name}}.${
-        configVars.${client.domain or "domain"}
-      }";
-    in
-    builtins.removeAttrs client [
-      "domain"
-      "callback"
-    ]
-    // {
-      originLanding = url;
-      originUrl = "${url}${client.callback or "/oauth2/callback"}";
-    }
-  ) proxyClients;
   # Public clients and link-only tiles have no provisioned client secret.
   secretlessClients = [
     "podfetch"
@@ -170,7 +197,7 @@ let
   clientSecretName =
     name:
     "homelab/kanidm/${
-      if builtins.hasAttr name proxyClients then "oauth2" else "oidc"
+      if builtins.hasAttr name proxyClientDefinitions then "oauth2" else "oidc"
     }/${name}/client-secret";
 in
 {
@@ -290,78 +317,48 @@ in
                     # Actual matches users by preferred_username against its own user
                     # names, so send the short name. Its openid-client keeps the RS256
                     # default for ID tokens, hence legacy crypto (RS256) for this client.
-                    actual =
-                      let
-                        url = "https://${configVars.networking.subdomains.budget}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Actual Budget";
-                        originUrl = "${url}/openid/callback";
-                        originLanding = url;
-                        preferShortUsername = true;
-                        enableLegacyCrypto = true;
-                      };
+                    actual = makeClient "budget" {
+                      displayName = "Actual Budget";
+                      callbackPath = "/openid/callback";
+                      preferShortUsername = true;
+                      enableLegacyCrypto = true;
+                    };
 
                     # HedgeDoc's generic OAuth2 login keys accounts on preferred_username
                     # and its passport-oauth2 strategy sends no PKCE.
-                    hedgedoc =
-                      let
-                        url = "https://${configVars.networking.subdomains.hedgedoc}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "HedgeDoc Notes Writer";
-                        originUrl = "${url}/auth/oauth2/callback";
-                        originLanding = url;
-                        preferShortUsername = true;
-                        allowInsecureClientDisablePkce = true;
-                      };
+                    hedgedoc = makeClient "hedgedoc" {
+                      displayName = "HedgeDoc Notes Writer";
+                      callbackPath = "/auth/oauth2/callback";
+                      preferShortUsername = true;
+                      allowInsecureClientDisablePkce = true;
+                    };
 
                     # Mealie finishes the OIDC flow on its /login page and matches users
                     # by email.
-                    mealie =
-                      let
-                        url = "https://${configVars.networking.subdomains.mealie}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Mealie";
-                        originUrl = "${url}/login";
-                        originLanding = url;
-                      };
+                    mealie = makeClient "mealie" {
+                      displayName = "Mealie";
+                      callbackPath = "/login";
+                    };
 
-                    miniflux =
-                      let
-                        url = "https://${configVars.networking.subdomains.miniflux}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Miniflux RSS Reader";
-                        originUrl = "${url}/oauth2/oidc/callback";
-                        originLanding = url;
-                      };
+                    miniflux = makeClient "miniflux" {
+                      displayName = "Miniflux RSS Reader";
+                      callbackPath = "/oauth2/oidc/callback";
+                    };
 
                     # django-allauth's callback path contains the provider_id set in
                     # paperless.nix ("kanidm").
-                    paperless =
-                      let
-                        url = "https://${configVars.networking.subdomains.paperless}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Paperless-ngx";
-                        originUrl = "${url}/accounts/oidc/kanidm/login/callback/";
-                        originLanding = url;
-                      };
+                    paperless = makeClient "paperless" {
+                      displayName = "Paperless-ngx";
+                      callbackPath = "/accounts/oidc/kanidm/login/callback/";
+                    };
 
                     # Karakeep (next-auth + openid-client) keeps the RS256 default for ID
                     # tokens, hence legacy crypto (RS256) for this client.
-                    karakeep =
-                      let
-                        url = "https://${configVars.networking.subdomains.karakeep}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Karakeep Bookmarks";
-                        originUrl = "${url}/api/auth/callback/custom";
-                        originLanding = url;
-                        enableLegacyCrypto = true;
-                      };
+                    karakeep = makeClient "karakeep" {
+                      displayName = "Karakeep Bookmarks";
+                      callbackPath = "/api/auth/callback/custom";
+                      enableLegacyCrypto = true;
+                    };
 
                     # Immich only supports one OAuth provider at a time. Switching from
                     # Authentik: set Immich's signing algorithm to ES256 (Kanidm's
@@ -391,58 +388,47 @@ in
                     # land each person on their existing account. Its OAuth library
                     # (flask-dance) does not send PKCE; this is a confidential client
                     # authenticating with its secret, so PKCE is disabled for it alone.
-                    autocaliweb =
-                      let
-                        url = "https://${configVars.networking.subdomains.calibreweb}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Calibre Web eBooks";
-                        originUrl = "${url}/login/generic/authorized";
-                        originLanding = url;
-                        preferShortUsername = true;
-                        allowInsecureClientDisablePkce = true;
-                      };
+                    autocaliweb = makeClient "calibreweb" {
+                      displayName = "Calibre Web eBooks";
+                      callbackPath = "/login/generic/authorized";
+                      preferShortUsername = true;
+                      allowInsecureClientDisablePkce = true;
+                    };
 
                     # PodFetch's SPA does the code flow in the browser, so this is a
                     # public client (PKCE, no secret). Short usernames make the
                     # preferred_username claim `tdoggett`, which PodFetch matches against
                     # its existing users. See hosts/feanor/podfetch.nix for the
                     # /ui/token rewrite this flow depends on.
-                    podfetch = {
+                    podfetch = makeClient "podfetch" {
                       displayName = "PodFetch Podcasts";
                       public = true;
                       preferShortUsername = true;
                       # Must equal PodFetch's OIDC_REDIRECT_URI exactly (see docker/podfetch.nix
                       # for why it is /ui/ and not /ui/login).
-                      originUrl = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}/ui/";
-                      originLanding = "https://${configVars.networking.subdomains.podfetch}.${configVars.homeDomain}";
+                      callbackPath = "/ui/";
                     };
 
                     # Kavita's OIDC callback is the fixed path /signin-oidc, and Kanidm
                     # matches redirect URIs exactly.
-                    kavita = {
+                    kavita = makeClient "kavita" {
                       displayName = "Kavita Comics";
-                      originUrl = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}/signin-oidc";
-                      originLanding = "https://${configVars.networking.subdomains.kavita}.${configVars.homeDomain}";
+                      callbackPath = "/signin-oidc";
                     };
 
                     # Served on the personal domain (see estel's caddy.nix), not homeDomain.
-                    kavitan = {
+                    kavitan = makeClient "kavitan" {
                       displayName = "Kavita Private Comics";
-                      originUrl = "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}/signin-oidc";
-                      originLanding = "https://${configVars.networking.subdomains.kavitan}.${configVars.domain}";
+                      domain = "domain";
+                      callbackPath = "/signin-oidc";
                     };
 
                     # Served on the personal domain (see estel's caddy.nix), not homeDomain.
-                    openwebui =
-                      let
-                        url = "https://${configVars.networking.subdomains.openwebui}.${configVars.domain}";
-                      in
-                      {
-                        displayName = "Open WebUI";
-                        originUrl = "${url}/oauth/oidc/callback";
-                        originLanding = url;
-                      };
+                    openwebui = makeClient "openwebui" {
+                      displayName = "Open WebUI";
+                      domain = "domain";
+                      callbackPath = "/oauth/oidc/callback";
+                    };
 
                     # Hermes Agent's web dashboard (home/tdoggett/barliman.nix). This
                     # must be a *public* client: Hermes 0.21.5's bundled self-hosted
@@ -455,16 +441,12 @@ in
                     # the code exchange with 401, which surfaced in the browser as
                     # "Provider unreachable: OIDC token endpoint returned 401".
                     # (`public` enforces PKCE and forbids basicSecretFile.)
-                    hermeswebui =
-                      let
-                        url = "https://${configVars.networking.subdomains.hermeswebui}.${configVars.domain}";
-                      in
-                      {
-                        displayName = "Hermes Agent";
-                        originUrl = "${url}/auth/callback";
-                        originLanding = url;
-                        public = true;
-                      };
+                    hermeswebui = makeClient "hermeswebui" {
+                      displayName = "Hermes Agent";
+                      domain = "domain";
+                      callbackPath = "/auth/callback";
+                      public = true;
+                    };
 
                     # Audiobookshelf keeps its OIDC settings in its own database (set in
                     # its admin UI); the secret there must equal this sops one.
@@ -487,80 +469,50 @@ in
                         preferShortUsername = true;
                       };
 
-                    nas = {
+                    nas = makeClient "nas" {
                       displayName = "Cirdan NAS (DSM)";
-                      originUrl = "https://${configVars.networking.subdomains.nas}.${configVars.homeDomain}";
-                      originLanding = "https://${configVars.networking.subdomains.nas}.${configVars.homeDomain}";
                     };
 
                     # Beszel (PocketBase) keeps its OAuth2 provider settings in its own
                     # database; the client secret is the sops one below.
-                    beszel =
-                      let
-                        url = "https://${configVars.networking.subdomains.beszel}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Beszel Dashboards";
-                        originUrl = "${url}/api/oauth2-redirect";
-                        originLanding = url;
-                      };
+                    beszel = makeClient "beszel" {
+                      displayName = "Beszel Dashboards";
+                      callbackPath = "/api/oauth2-redirect";
+                    };
 
                     # Link-only tiles: Kanidm lists only OAuth2 clients, so these exist
                     # to put a launcher on the apps page. Nothing logs in through them
                     # (no basicSecretFile; Kanidm generates an unused secret).
-                    stash =
-                      let
-                        url = "https://${configVars.networking.subdomains.stash}.${configVars.domain}";
-                      in
-                      {
-                        displayName = "Stash";
-                        originUrl = url;
-                        originLanding = url;
-                      };
-                    archerstash =
-                      let
-                        url = "https://${configVars.networking.subdomains.archerstash}.${configVars.domain}";
-                      in
-                      {
-                        displayName = "Archer Stash";
-                        originUrl = url;
-                        originLanding = url;
-                      };
+                    stash = makeClient "stash" {
+                      displayName = "Stash";
+                      domain = "domain";
+                      callbackPath = "";
+                    };
+                    archerstash = makeClient "archerstash" {
+                      displayName = "Archer Stash";
+                      domain = "domain";
+                      callbackPath = "";
+                    };
 
                     # Container manager on feanor, LAN-only behind estel's Caddy.
-                    komodo =
-                      let
-                        url = "https://${configVars.networking.subdomains.komodo}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Komodo Containers";
-                        originUrl = "${url}/auth/oidc/callback";
-                        originLanding = url;
-                        preferShortUsername = true;
-                      };
+                    komodo = makeClient "komodo" {
+                      displayName = "Komodo Containers";
+                      callbackPath = "/auth/oidc/callback";
+                      preferShortUsername = true;
+                    };
 
                     # Mitra's issuer is the client-specific Kanidm URL:
                     # https://<sso>/oauth2/openid/mitracal (not the Kanidm root).
-                    mitracal =
-                      let
-                        url = "https://${configVars.networking.subdomains.mitracal}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Mitra Calendar";
-                        originUrl = "${url}/auth/callback";
-                        originLanding = url;
-                        preferShortUsername = true;
-                      };
+                    mitracal = makeClient "mitracal" {
+                      displayName = "Mitra Calendar";
+                      callbackPath = "/auth/callback";
+                      preferShortUsername = true;
+                    };
 
-                    monline =
-                      let
-                        url = "https://${configVars.networking.subdomains.monline}.${configVars.homeDomain}";
-                      in
-                      {
-                        displayName = "Monline";
-                        originUrl = "${url}/oidc/callback";
-                        originLanding = url;
-                      };
+                    monline = makeClient "monline" {
+                      displayName = "Monline";
+                      callbackPath = "/oidc/callback";
+                    };
 
                     # Shown to everyone now; the redirect is the one the Jellyfin SSO
                     # plugin uses for a provider named "kanidm", ready for when Jellyfin
@@ -621,7 +573,7 @@ in
               value = {
                 owner = "kanidm";
               }
-              // lib.optionalAttrs (builtins.hasAttr name proxyClients && name != "tubearchivist") {
+              // lib.optionalAttrs (builtins.hasAttr name proxyClientDefinitions && name != "tubearchivist") {
                 group = "keys";
                 mode = "0440";
               };

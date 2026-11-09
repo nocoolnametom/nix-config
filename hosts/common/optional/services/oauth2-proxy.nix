@@ -32,97 +32,98 @@ let
   ];
   secret = name: config.sops.secrets.${name}.path;
 
-  # Secrets each instance reads (Kanidm client secret, cookie secret, and any
-  # upstream basic-auth credentials).
-  instanceSecrets =
-    lib.genAttrs
-      [
-        "navidrome"
-        "seerr"
-        "comfyui"
-        "comfyuimini"
-        "invokeai"
-        "archerstashvr"
-        "delugeweb"
-        "flood"
-        "nzbget"
-        "nzbhydra"
-        "open-resume"
-        "pinchflat"
-        "radarr"
-        "sonarr"
-        "stashvr"
-        "whisparr"
-        "whisparr-eros"
-        "tubearchivist"
-      ]
-      (n: [
-        "homelab/kanidm/oauth2/${n}/client-secret"
-        "homelab/oauth2/${n}/cookie-secret"
-      ])
+  # Common OIDC fields shared by all instances (derived from instance name).
+  oidcFields = name: {
+    oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/${name}";
+    clientId = name;
+    clientSecretFile = secret "homelab/kanidm/oauth2/${name}/client-secret";
+    cookieSecretFile = secret "homelab/oauth2/${name}/cookie-secret";
+  };
+
+  # All instances share the same OIDC secret pattern.
+  allInstanceNames = [
+    "navidrome"
+    "seerr"
+    "comfyui"
+    "comfyuimini"
+    "invokeai"
+    "archerstashvr"
+    "delugeweb"
+    "flood"
+    "nzbget"
+    "nzbhydra"
+    "open-resume"
+    "pinchflat"
+    "radarr"
+    "sonarr"
+    "stashvr"
+    "whisparr"
+    "whisparr-eros"
+    "tubearchivist"
+  ];
+
+  # Base secrets for every instance (Kanidm client secret + cookie secret).
+  baseSecrets = name: [
+    "homelab/kanidm/oauth2/${name}/client-secret"
+    "homelab/oauth2/${name}/cookie-secret"
+  ];
+
+  # Additional upstream basic-auth secrets (instances without these use []).
+  extraSecrets = {
+    delugeweb = [ "deluge-password" ];
+    flood = [
+      "flood-user"
+      "flood-pass"
+    ];
+    nzbget = [
+      "homelab/nzbget-durin/username"
+      "homelab/nzbget-durin/password"
+    ];
+    pinchflat = [
+      "pinchflat/username"
+      "pinchflat/password"
+    ];
+    radarr = [
+      "homelab/radarr/username"
+      "homelab/radarr/password"
+    ];
+    sonarr = [
+      "homelab/sonarr/username"
+      "homelab/sonarr/password"
+    ];
+    whisparr = [
+      "homelab/whisparr/username"
+      "homelab/whisparr/password"
+    ];
+    whisparr-eros = [
+      "homelab/whisparr-eros/username"
+      "homelab/whisparr-eros/password"
+    ];
+  };
+
+  # Total secrets for an instance = base + extras (if any).
+  instanceSecrets = lib.genAttrs allInstanceNames (
+    name: baseSecrets name ++ (extraSecrets.${name} or [ ])
+  );
+
+  # Build an instance config from name + host + overrides.
+  # Derives port (oauth2-<name>), upstreamUrl (http://<host>:<name>), and OIDC fields.
+  makeInstance =
+    name: host: overrides:
+    (oidcFields name)
     // {
-      delugeweb = [
-        "homelab/kanidm/oauth2/delugeweb/client-secret"
-        "homelab/oauth2/delugeweb/cookie-secret"
-        "deluge-password"
-      ];
-      flood = [
-        "homelab/kanidm/oauth2/flood/client-secret"
-        "homelab/oauth2/flood/cookie-secret"
-        "flood-user"
-        "flood-pass"
-      ];
-      nzbget = [
-        "homelab/kanidm/oauth2/nzbget/client-secret"
-        "homelab/oauth2/nzbget/cookie-secret"
-        "homelab/nzbget-durin/username"
-        "homelab/nzbget-durin/password"
-      ];
-      pinchflat = [
-        "homelab/kanidm/oauth2/pinchflat/client-secret"
-        "homelab/oauth2/pinchflat/cookie-secret"
-        "pinchflat/username"
-        "pinchflat/password"
-      ];
-      radarr = [
-        "homelab/kanidm/oauth2/radarr/client-secret"
-        "homelab/oauth2/radarr/cookie-secret"
-        "homelab/radarr/username"
-        "homelab/radarr/password"
-      ];
-      sonarr = [
-        "homelab/kanidm/oauth2/sonarr/client-secret"
-        "homelab/oauth2/sonarr/cookie-secret"
-        "homelab/sonarr/username"
-        "homelab/sonarr/password"
-      ];
-      whisparr = [
-        "homelab/kanidm/oauth2/whisparr/client-secret"
-        "homelab/oauth2/whisparr/cookie-secret"
-        "homelab/whisparr/username"
-        "homelab/whisparr/password"
-      ];
-      whisparr-eros = [
-        "homelab/kanidm/oauth2/whisparr-eros/client-secret"
-        "homelab/oauth2/whisparr-eros/cookie-secret"
-        "homelab/whisparr-eros/username"
-        "homelab/whisparr-eros/password"
-      ];
-    };
+      port = configVars.networking.ports.tcp.${"oauth2-" + name};
+      upstreamUrl = "http://${configVars.networking.subnets.${host}.ip}:${
+        toString configVars.networking.ports.tcp.${name}
+      }";
+    }
+    // overrides;
 
   allInstances = {
     # estel services (2)
-    navidrome = {
-      port = configVars.networking.ports.tcp.oauth2-navidrome;
+    navidrome = makeInstance "navidrome" "feanor" {
       # Navidrome runs on feanor (navidrome.nix) and trusts the username
       # header only from estel, where this instance runs.
-      upstreamUrl = "http://${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.navidrome}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/navidrome";
-      clientId = "navidrome";
-      clientSecretFile = secret "homelab/kanidm/oauth2/navidrome/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/navidrome/cookie-secret";
-      # Navidrome reads X-Forwarded-Preferred-Username (short name, see the
-      # Kanidm client).
       passUserHeaders = true;
       setXAuthRequest = true;
       # Health checks and public share links skip the login; so does the
@@ -135,205 +136,78 @@ let
       ];
     };
 
-    seerr = {
-      port = configVars.networking.ports.tcp.oauth2-seerr;
-      upstreamUrl = "http://${configVars.networking.subnets.estel.ip}:${toString configVars.networking.ports.tcp.seerr}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/seerr";
-      clientId = "seerr";
-      clientSecretFile = secret "homelab/kanidm/oauth2/seerr/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/seerr/cookie-secret";
+    seerr = makeInstance "seerr" "estel" {
       # Allow API access for Plex/Jellyfin integration and mobile apps
       skipAuthRegex = [ "^/api/.*" ];
     };
 
-    # smeagol services (4)
-    comfyui = {
-      port = configVars.networking.ports.tcp.oauth2-comfyui;
-      upstreamUrl = "http://${configVars.networking.subnets.smeagol.ip}:${toString configVars.networking.ports.tcp.comfyui}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/comfyui";
-      clientId = "comfyui";
-      clientSecretFile = secret "homelab/kanidm/oauth2/comfyui/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/comfyui/cookie-secret";
-    };
-
-    comfyuimini = {
-      port = configVars.networking.ports.tcp.oauth2-comfyuimini;
-      upstreamUrl = "http://${configVars.networking.subnets.smeagol.ip}:${toString configVars.networking.ports.tcp.comfyuimini}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/comfyuimini";
-      clientId = "comfyuimini";
-      clientSecretFile = secret "homelab/kanidm/oauth2/comfyuimini/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/comfyuimini/cookie-secret";
-    };
-
-    open-resume = {
-      port = configVars.networking.ports.tcp.oauth2-open-resume;
-      upstreamUrl = "http://${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.open-resume}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/open-resume";
-      clientId = "open-resume";
-      clientSecretFile = secret "homelab/kanidm/oauth2/open-resume/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/open-resume/cookie-secret";
-    };
-
-    invokeai = {
-      port = configVars.networking.ports.tcp.oauth2-invokeai;
-      upstreamUrl = "http://${configVars.networking.subnets.smeagol.ip}:${toString configVars.networking.ports.tcp.invokeai}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/invokeai";
-      clientId = "invokeai";
-      clientSecretFile = secret "homelab/kanidm/oauth2/invokeai/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/invokeai/cookie-secret";
-    };
-
-    archerstashvr = {
-      port = configVars.networking.ports.tcp.oauth2-archerstashvr;
-      upstreamUrl = "http://${configVars.networking.subnets.smeagol.ip}:${toString configVars.networking.ports.tcp.archerstashvr}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/archerstashvr";
-      clientId = "archerstashvr";
-      clientSecretFile = secret "homelab/kanidm/oauth2/archerstashvr/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/archerstashvr/cookie-secret";
+    # smeagol services (5)
+    comfyui = makeInstance "comfyui" "smeagol" { };
+    comfyuimini = makeInstance "comfyuimini" "smeagol" { };
+    invokeai = makeInstance "invokeai" "smeagol" { };
+    archerstashvr = makeInstance "archerstashvr" "smeagol" {
       # Allow VR player access (paths from nix-secrets to avoid exposing API key structure)
       skipAuthRegex = configVars.networking.stash.vrProxyPaths;
     };
-
-    # durin services (9)
-    delugeweb = {
-      port = configVars.networking.ports.tcp.oauth2-delugeweb;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.delugeweb}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/delugeweb";
-      clientId = "delugeweb";
-      clientSecretFile = secret "homelab/kanidm/oauth2/delugeweb/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/delugeweb/cookie-secret";
-      # Pass HTTP Basic Auth to upstream (Deluge requires it)
-      # Note: Deluge username is typically in the config, only password from secrets
-      basicAuthPasswordFile = secret "deluge-password";
-    };
-
-    flood = {
-      port = configVars.networking.ports.tcp.oauth2-flood;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.flood}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/flood";
-      clientId = "flood";
-      clientSecretFile = secret "homelab/kanidm/oauth2/flood/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/flood/cookie-secret";
-      # Pass HTTP Basic Auth to upstream
-      basicAuthUsernameFile = secret "flood-user";
-      basicAuthPasswordFile = secret "flood-pass";
-    };
-
-    nzbget = {
-      port = configVars.networking.ports.tcp.oauth2-nzbget;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.nzbget}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/nzbget";
-      clientId = "nzbget";
-      clientSecretFile = secret "homelab/kanidm/oauth2/nzbget/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/nzbget/cookie-secret";
-      # Pass HTTP Basic Auth to upstream (NZBGet requires it)
-      basicAuthUsernameFile = secret "homelab/nzbget-durin/username";
-      basicAuthPasswordFile = secret "homelab/nzbget-durin/password";
-      skipAuthRegex = [
-        "^/jsonrpc$"
-      ];
-    };
-
-    nzbhydra = {
-      port = configVars.networking.ports.tcp.oauth2-nzbhydra;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.nzbhydra}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/nzbhydra";
-      clientId = "nzbhydra";
-      clientSecretFile = secret "homelab/kanidm/oauth2/nzbhydra/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/nzbhydra/cookie-secret";
-      # Allow health check endpoint
-      skipAuthRegex = [ "^/actuator/health/ping$" ];
-    };
-
-    # INACTIVE: Pinchflat is not running anywhere (durin has it disabled) and
-    # its estel route is commented out. Kept for when it comes back.
-    pinchflat = {
-      port = configVars.networking.ports.tcp.oauth2-pinchflat;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.pinchflat}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/pinchflat";
-      clientId = "pinchflat";
-      clientSecretFile = secret "homelab/kanidm/oauth2/pinchflat/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/pinchflat/cookie-secret";
-      # Pass HTTP Basic Auth to upstream
-      basicAuthUsernameFile = secret "pinchflat/username";
-      basicAuthPasswordFile = secret "pinchflat/password";
-    };
-
-    radarr = {
-      port = configVars.networking.ports.tcp.oauth2-radarr;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.radarr}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/radarr";
-      clientId = "radarr";
-      clientSecretFile = secret "homelab/kanidm/oauth2/radarr/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/radarr/cookie-secret";
-      # Allow health check endpoint
-      skipAuthRegex = [ "^/ping$" ];
-      # Pass HTTP Basic Auth to upstream (for API clients)
-      basicAuthUsernameFile = secret "homelab/radarr/username";
-      basicAuthPasswordFile = secret "homelab/radarr/password";
-    };
-
-    sonarr = {
-      port = configVars.networking.ports.tcp.oauth2-sonarr;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.sonarr}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/sonarr";
-      clientId = "sonarr";
-      clientSecretFile = secret "homelab/kanidm/oauth2/sonarr/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/sonarr/cookie-secret";
-      # Allow health check endpoint
-      skipAuthRegex = [ "^/ping$" ];
-      # Pass HTTP Basic Auth to upstream (for API clients)
-      basicAuthUsernameFile = secret "homelab/sonarr/username";
-      basicAuthPasswordFile = secret "homelab/sonarr/password";
-    };
-
-    stashvr = {
-      port = configVars.networking.ports.tcp.oauth2-stashvr;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.stashvr}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/stashvr";
-      clientId = "stashvr";
-      clientSecretFile = secret "homelab/kanidm/oauth2/stashvr/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/stashvr/cookie-secret";
-      # Allow VR player access (paths from nix-secrets to avoid exposing API key structure)
-      skipAuthRegex = configVars.networking.stash.vrProxyPaths;
-    };
-
-    whisparr = {
-      port = configVars.networking.ports.tcp.oauth2-whisparr;
-      upstreamUrl = "http://${configVars.networking.subnets.durin.ip}:${toString configVars.networking.ports.tcp.whisparr}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/whisparr";
-      clientId = "whisparr";
-      clientSecretFile = secret "homelab/kanidm/oauth2/whisparr/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/whisparr/cookie-secret";
-      skipAuthRegex = [ "^/ping$" ];
-      basicAuthUsernameFile = secret "homelab/whisparr/username";
-      basicAuthPasswordFile = secret "homelab/whisparr/password";
-    };
-
-    whisparr-eros = {
-      port = configVars.networking.ports.tcp.oauth2-whisparr-eros;
-      upstreamUrl = "http://${configVars.networking.subnets.smeagol.ip}:${toString configVars.networking.ports.tcp.whisparr-eros}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/whisparr-eros";
-      clientId = "whisparr-eros";
-      clientSecretFile = secret "homelab/kanidm/oauth2/whisparr-eros/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/whisparr-eros/cookie-secret";
+    whisparr-eros = makeInstance "whisparr-eros" "smeagol" {
       skipAuthRegex = [ "^/ping$" ];
       basicAuthUsernameFile = secret "homelab/whisparr-eros/username";
       basicAuthPasswordFile = secret "homelab/whisparr-eros/password";
     };
 
-    # TubeArchivist logs users in from X-Forwarded-Preferred-Username
-    # (TA_LOGIN_AUTH_MODE=forwardauth; see docker/tubearchivist.nix).
-    tubearchivist = {
-      port = configVars.networking.ports.tcp.oauth2-tubearchivist;
-      upstreamUrl = "http://${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.tubearchivist}";
-      oidcIssuerUrl = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/tubearchivist";
-      clientId = "tubearchivist";
-      clientSecretFile = secret "homelab/kanidm/oauth2/tubearchivist/client-secret";
-      cookieSecretFile = secret "homelab/oauth2/tubearchivist/cookie-secret";
+    # feanor services (3)
+    open-resume = makeInstance "open-resume" "feanor" { };
+    tubearchivist = makeInstance "tubearchivist" "feanor" {
       # The API authenticates with TubeArchivist tokens (browser extension,
       # other integrations), so it bypasses the login.
       skipAuthRegex = [ "^/api/" ];
+    };
+
+    # durin services (9)
+    delugeweb = makeInstance "delugeweb" "durin" {
+      # Pass HTTP Basic Auth to upstream (Deluge requires it)
+      basicAuthPasswordFile = secret "deluge-password";
+    };
+    flood = makeInstance "flood" "durin" {
+      # Pass HTTP Basic Auth to upstream
+      basicAuthUsernameFile = secret "flood-user";
+      basicAuthPasswordFile = secret "flood-pass";
+    };
+    nzbget = makeInstance "nzbget" "durin" {
+      # Pass HTTP Basic Auth to upstream (NZBGet requires it)
+      basicAuthUsernameFile = secret "homelab/nzbget-durin/username";
+      basicAuthPasswordFile = secret "homelab/nzbget-durin/password";
+      skipAuthRegex = [ "^/jsonrpc$" ];
+    };
+    nzbhydra = makeInstance "nzbhydra" "durin" {
+      # Allow health check endpoint
+      skipAuthRegex = [ "^/actuator/health/ping$" ];
+    };
+    # INACTIVE: Pinchflat is not running anywhere (durin has it disabled) and
+    # its estel route is commented out. Kept for when it comes back.
+    pinchflat = makeInstance "pinchflat" "durin" {
+      # Pass HTTP Basic Auth to upstream
+      basicAuthUsernameFile = secret "pinchflat/username";
+      basicAuthPasswordFile = secret "pinchflat/password";
+    };
+    radarr = makeInstance "radarr" "durin" {
+      skipAuthRegex = [ "^/ping$" ];
+      basicAuthUsernameFile = secret "homelab/radarr/username";
+      basicAuthPasswordFile = secret "homelab/radarr/password";
+    };
+    sonarr = makeInstance "sonarr" "durin" {
+      skipAuthRegex = [ "^/ping$" ];
+      basicAuthUsernameFile = secret "homelab/sonarr/username";
+      basicAuthPasswordFile = secret "homelab/sonarr/password";
+    };
+    stashvr = makeInstance "stashvr" "durin" {
+      # Allow VR player access (paths from nix-secrets to avoid exposing API key structure)
+      skipAuthRegex = configVars.networking.stash.vrProxyPaths;
+    };
+    whisparr = makeInstance "whisparr" "durin" {
+      skipAuthRegex = [ "^/ping$" ];
+      basicAuthUsernameFile = secret "homelab/whisparr/username";
+      basicAuthPasswordFile = secret "homelab/whisparr/password";
     };
   };
 
