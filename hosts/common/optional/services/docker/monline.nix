@@ -71,7 +71,6 @@ in
           "${cfg.stateDir}:/data"
         ];
         restart = "unless-stopped";
-        user = "${toString uid}:${toString gid}";
       };
     };
 

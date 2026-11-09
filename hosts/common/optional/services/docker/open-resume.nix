@@ -50,7 +50,6 @@ in
         labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
         ports = [ "${toString cfg.port}:3000" ];
         restart = "unless-stopped";
-        user = "${toString uid}:${toString gid}";
       };
     };
 
