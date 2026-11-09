@@ -64,6 +64,7 @@ let
       host = "feanor";
       service = "monline";
       domain = "homeDomain";
+      noXForwardedFor = true; # monline doesn't trust proxy, strip headers
     }
     {
       host = "feanor";
@@ -310,6 +311,7 @@ let
           domain,
           proxy ? null,
           healthCheck ? null,
+          noXForwardedFor ? false,
         }:
         let
           # The actual service host and port
@@ -352,33 +354,42 @@ let
               # header, so a client-supplied value could otherwise bypass login
               # (CVE-2026-40575 / GHSA-7x63-xv5r-3p2x; 7.15.2-7.15.4 still need it).
               extraConfig =
-                lib.optionalString (healthCheck != null) ''
-                  handle /healthz {
-                    rewrite * ${healthCheck}
-                    reverse_proxy ${serviceHostIp}:${servicePortNum} {
-                      @up status 2xx
-                      handle_response @up {
-                        respond "OK" 200
-                      }
+            lib.optionalString (healthCheck != null) ''
+              handle /healthz {
+                rewrite * ${healthCheck}
+                reverse_proxy ${serviceHostIp}:${servicePortNum} {
+                  @up status 2xx
+                  handle_response @up {
+                    respond "OK" 200
+                  }
+                }
+              }
+            ''
+            + lib.optionalString noXForwardedFor ''
+              handle {
+                header_up -X-Forwarded-For
+                header_up -X-Forwarded-Proto
+                reverse_proxy ${proxyTarget}
+              }
+            ''
+            + (
+              if useOAuth2 then
+                ''
+                  handle {
+                    reverse_proxy ${proxyTarget} {
+                      header_up X-Forwarded-Uri {uri}
                     }
                   }
                 ''
-                + (
-                  if useOAuth2 then
-                    ''
-                      handle {
-                        reverse_proxy ${proxyTarget} {
-                          header_up X-Forwarded-Uri {uri}
-                        }
-                      }
-                    ''
-                  else
-                    ''
-                      handle {
-                        reverse_proxy ${proxyTarget}
-                      }
-                    ''
-                );
+              else if noXForwardedFor then
+                ""
+              else
+                ''
+                  handle {
+                    reverse_proxy ${proxyTarget}
+                  }
+                ''
+            );
             };
           };
         in

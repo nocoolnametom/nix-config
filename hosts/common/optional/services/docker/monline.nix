@@ -60,7 +60,6 @@ in
         labels."org.nix-config.managed-by" = "arion: change it in nix-config, not here";
         ports = [ "${toString cfg.port}:3000" ];
         environment = {
-          TRUST_PROXY = "*";
           MONLINE_HOST = "0.0.0.0";
           MONLINE_PORT = "3000";
           MONLINE_DATA_DIR = "/data";
