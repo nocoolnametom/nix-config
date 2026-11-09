@@ -502,7 +502,7 @@ in
     };
 
     # Kanidm SSO server - hosted on feanor, proxied from estel over the LAN.
-    # Uses wildcard cert so sso.<homeDomain> never appears in CT logs.
+    # Uses wildcard cert so kanidm domain never appears in CT logs.
     # Same pattern as every other homelab service: estel terminates TLS, then
     # forwards to the service host's LAN IP.
     "${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}" = {
@@ -560,7 +560,7 @@ in
       environmentFile = config.sops.templates."acme-porkbun-secrets.env".path;
     };
     # Standalone kanidm cert removed: Kanidm runs on feanor and uses feanor's
-    # wildcard cert. The per-subdomain cert here leaked sso.<homeDomain> to CT
+    # wildcard cert. The per-subdomain cert here leaked kanidm subdomain to CT
     # logs and is no longer needed; Caddy's kanidm vhost above uses wild-${configVars.homeDomain}.
   };
 }
