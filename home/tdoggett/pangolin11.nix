@@ -24,15 +24,10 @@
     common/optional/smolcoder.nix
 
     ############### Service Configurations (Enable below) #################
-    common/optional/services/atuin.nix
     common/optional/services/gpg-agent.nix
     common/optional/services/syncthing.nix
     common/optional/desktops/services/deskflow.nix
   ];
-
-  programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${
-    toString configVars.networking.ports.tcp."atuin-sync"
-  }";
 
   services.yubikey-touch-detector.enable = true;
 

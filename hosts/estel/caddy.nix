@@ -157,11 +157,6 @@ let
     # Removed 2026-10-11: Portainer was cirdan's container manager; Komodo on
     # feanor replaced it, and cirdan is being retired.
     # { host = "cirdan"; service = "portainer"; domain = "homeDomain"; }
-    {
-      host = "estel";
-      service = "atuin-sync";
-      domain = "homeDomain";
-    }
     # Services on domain
     {
       host = "smeagol";

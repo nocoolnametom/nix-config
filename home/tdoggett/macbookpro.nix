@@ -21,7 +21,6 @@
     common/optional/docker.nix
     common/optional/docker-darwin.nix
     common/optional/notification-leds.nix
-    common/optional/services/atuin.nix
     common/optional/work-email.nix
     common/optional/smolcoder.nix
   ];

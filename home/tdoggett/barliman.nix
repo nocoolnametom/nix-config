@@ -110,7 +110,6 @@ in
     common/optional/smolcoder.nix
 
     ############### Service Configurations (Enable below) #################
-    common/optional/services/atuin.nix
     common/optional/services/gpg-agent.nix
     common/optional/services/smolcoder-web.nix
     common/optional/services/syncthing.nix
@@ -452,10 +451,6 @@ in
       run install -m 0600 ${pkgs.writeText "hermes-unmanaged" "false"} ${lib.escapeShellArg "${hermesHome}/.managed"}
     '';
   };
-
-  programs.atuin.settings.sync_address = "http://${configVars.networking.subnets.estel.ip}:${
-    toString configVars.networking.ports.tcp."atuin-sync"
-  }";
 
   programs.git.settings.user.email = configVars.gitHubEmail;
 

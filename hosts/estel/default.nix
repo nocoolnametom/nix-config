@@ -35,7 +35,6 @@
     "hosts/common/optional/homelab-status-page.nix" # Homelab status page
     "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/services/actual-budget.nix"
-    "hosts/common/optional/services/atuin.nix"
     # Audiobookshelf runs on feanor since 2026-10-05, next to its libraries.
     "hosts/common/optional/services/homelab-beszel-hub.nix"
     "hosts/common/optional/services/homelab-beszel-agent.nix"
@@ -130,7 +129,6 @@
     mealie = "kanidm-oidc";
     paperless = "kanidm-oidc";
   };
-  services.atuin.openRegistration = true;
 
   # Wi-Fi flakiness investigation, started 2026-11-06. estel is wired to the mesh's main hub, so
   # it watches the wireless devices from the outside: smokeping graphs loss per target, the
