@@ -275,6 +275,7 @@
     "delugeweb"
     "flood"
     "invokeai"
+    "lemonade-api-key-page"
     "nzbget"
     "nzbhydra"
     "open-resume"

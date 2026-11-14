@@ -60,6 +60,7 @@ let
     "whisparr"
     "whisparr-eros"
     "tubearchivist"
+    "lemonade-api-key-page"
   ];
 
   # Base secrets for every instance (Kanidm client secret + cookie secret).
@@ -120,6 +121,9 @@ let
     // overrides;
 
   allInstances = {
+    # Barliman services
+    lemonade-api-key-page = makeInstance "lemonade-api-key-page" "barliman" { };
+
     # estel services (2)
     navidrome = makeInstance "navidrome" "feanor" {
       # Navidrome runs on feanor (navidrome.nix) and trusts the username

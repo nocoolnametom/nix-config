@@ -255,6 +255,12 @@ let
       service = "hermeswebui";
       domain = "domain";
     }
+    {
+      host = "barliman";
+      service = "lemonade-api-key-page";
+      domain = "domain";
+      proxy = "oauth2";
+    }
     # INACTIVE: Pinchflat is not running (disabled on durin); route kept for reference.
     # {
     #   host = "durin";
@@ -432,6 +438,19 @@ in
   # Most services are auto-generated from simpleServices list above
   # Complex configurations (websockets, basic auth, custom certs) are defined manually here
   services.caddy.virtualHosts = generatedHosts // {
+    "${configVars.networking.subdomains.lemonade}.${configVars.domain}" = {
+      useACMEHost = "wild-${configVars.domain}";
+      extraConfig = ''
+        @lemonadeApi path /v1 /v1/* /mcp /mcp/*
+        handle @lemonadeApi {
+          reverse_proxy ${configVars.networking.subnets.barliman.ip}:${toString configVars.networking.ports.tcp.lemonade}
+        }
+        handle {
+          respond "Not Found" 404
+        }
+      '';
+    };
+
     # Special: Bare domain redirect to Kanidm (its apps page after login)
     "${configVars.homeDomain}" = {
       useACMEHost = configVars.homeDomain;

@@ -40,6 +40,7 @@
     "hosts/common/optional/services/agent-worker.nix" # Low-privilege user for the coding agent's shell (PLAN.md)
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
+    "hosts/common/optional/services/lemonade-api-key-page.nix"
     "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/open-webui.nix"
@@ -190,6 +191,24 @@
       ];
     };
   };
+
+  # Lemonade API key. lemond reads LEMONADE_API_KEY and, once set, requires a
+  # matching `Authorization: Bearer <key>` header on every /api/, /v1/, /v0/,
+  # /mcp and /metrics route (lemonade request_middleware.cpp); an empty key
+  # leaves them open. Clients that reach barliman's endpoint across the LAN
+  # must send it; local clients can keep using a placeholder key until they are
+  # updated to send the real one.
+  #
+  # The value reaches lemond through a rendered sops env file rather than the
+  # unit's Environment= block: sops-nix substitutes config.sops.placeholder only
+  # inside sops.templates, and systemd reads the file as root before dropping to
+  # the tdoggett user, so the default 0400 root-owned file is still readable.
+  sops.secrets."homelab/lemonade/api-key" = { };
+  sops.templates."lemonade.env".content = ''
+    LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
+  '';
+  systemd.services.lemond.serviceConfig.EnvironmentFile =
+    config.sops.templates."lemonade.env".path;
 
   # Upstream nix-amd-ai cache to avoid expensive local backend rebuilds.
   nix.settings = {
