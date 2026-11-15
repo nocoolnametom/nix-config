@@ -138,33 +138,11 @@
     ];
   };
 
-  fileSystems."/gaming/pony" = {
-    device = "/dev/disk/by-label/pony";
-    fsType = "btrfs";
-    options = [
-      "subvol=games"
-      "compress=zstd"
-      "noatime"
-      "defaults"
-    ];
-  };
-
   fileSystems."/var/lib/ai-models" = {
-    device = "/dev/disk/by-label/pony";
+    device = "/dev/disk/by-label/prancing";
     fsType = "btrfs";
     options = [
       "subvol=ai-models"
-      "compress=zstd"
-      "noatime"
-      "defaults"
-    ];
-  };
-
-  fileSystems."/var/lib/docker" = {
-    device = "/dev/disk/by-label/pony";
-    fsType = "btrfs";
-    options = [
-      "subvol=docker"
       "compress=zstd"
       "noatime"
       "defaults"

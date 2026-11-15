@@ -35,7 +35,16 @@ let
   huggingfaceHub = pkgs.python3Packages."huggingface-hub";
   snapshotDownloadCommand =
     snapshot:
-    "hf download ${
+    let
+      # Older locked my-sd-models revisions predate these transfer fields.
+      # Until that input is updated, retain hf's defaults for those records.
+      transport = snapshot.transport or "xet";
+      maxWorkers = snapshot.maxWorkers or 8;
+      # Hugging Face Hub uses Xet automatically when hf-xet is installed.
+      # For snapshots marked `http`, disable that backend for this CLI process.
+      transportEnvironment = lib.optionalString (transport == "http") "HF_HUB_DISABLE_XET=1 ";
+    in
+    "${transportEnvironment}hf download ${
       lib.escapeShellArgs (
         [
           snapshot.repo
@@ -43,6 +52,8 @@ let
           snapshot.revision
           "--cache-dir"
           lemonadeHfCacheDir
+          "--max-workers"
+          (toString maxWorkers)
         ]
         ++ lib.concatMap (pattern: [
           "--include"
@@ -117,6 +128,8 @@ in
     "ollama"
     "open-webui"
     "lemond"
+    "lemonade-extra-snapshots"
+    "strata-prepare"
     "strata-server"
   ];
 
@@ -264,10 +277,28 @@ in
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
     path = [ huggingfaceHub ];
+    environment = {
+      # Bound individual Hub HTTP/metadata requests; the outer systemd timeout
+      # below also covers a stalled transfer implementation.
+      HF_HUB_DOWNLOAD_TIMEOUT = "300";
+      HF_HUB_ETAG_TIMEOUT = "60";
+      HF_HUB_DISABLE_UPDATE_CHECK = "1";
+    };
+    unitConfig = {
+      # A successful retry should also re-run Strata prep if its first attempt
+      # failed because a previous download was incomplete.
+      OnSuccess = [ "strata-prepare.service" ];
+      StartLimitIntervalSec = "1d";
+      StartLimitBurst = 3;
+    };
     serviceConfig = {
       Type = "oneshot";
       User = configVars.username;
-      TimeoutStartSec = "infinity";
+      # Large model snapshots can take hours, but must not wait forever. Failed
+      # attempts resume from Hugging Face's .incomplete cache files.
+      TimeoutStartSec = "4h";
+      Restart = "on-failure";
+      RestartSec = "5min";
     };
     script = ''
       set -euo pipefail
