@@ -204,8 +204,10 @@
   # inside sops.templates, and systemd reads the file as root before dropping to
   # the tdoggett user, so the default 0400 root-owned file is still readable.
   sops.secrets."homelab/lemonade/api-key" = { };
+  sops.secrets."homelab/lemonade/admin-key" = { };
   sops.templates."lemonade.env".content = ''
     LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
+    LEMONADE_ADMIN_KEY=${config.sops.placeholder."homelab/lemonade/admin-key"}
   '';
   systemd.services.lemond.serviceConfig.EnvironmentFile =
     config.sops.templates."lemonade.env".path;

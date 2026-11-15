@@ -128,12 +128,16 @@ in
   sops.secrets."homelab/hermes/api-server-key" = {
     sopsFile = "${inputs.nix-secrets}/secrets.yaml";
   };
+  sops.secrets."homelab/lemonade/api-key" = {
+    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
+  };
 
   # The value has to reach the systemd *user* unit, which home.sessionVariables
   # cannot do (it only exports into interactive shells). Hermes reads this file
   # through environmentFiles, which activation folds into $HERMES_HOME/.env.
   sops.templates."hermes-agent.env".content = ''
     API_SERVER_KEY=${config.sops.placeholder."homelab/hermes/api-server-key"}
+    LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
   '';
 
   # The `hermes` CLI on PATH. Upstream's switch for it: it adds the same build
@@ -173,8 +177,14 @@ in
     # `discover_models` defaults to true, which is what populates the picker
     # from Ollama's live /v1/models list.
     settings.providers = {
-      ollama-local.api = lemonadeUrl;
-      lemonade-local.api = lemonadeUrl;
+      ollama-local = {
+        api = lemonadeUrl;
+        key_env = "LEMONADE_API_KEY";
+      };
+      lemonade-local = {
+        api = lemonadeUrl;
+        key_env = "LEMONADE_API_KEY";
+      };
     };
 
     # model.provider and model.default are only defaults (see hermesDefaultConfig),
@@ -253,8 +263,14 @@ in
       (pkgs.formats.yaml { }).generate "hermes-worker-config.yaml"
         {
           providers = {
-            ollama-local.api = lemonadeUrl;
-            lemonade-local.api = lemonadeUrl;
+            ollama-local = {
+              api = lemonadeUrl;
+              key_env = "LEMONADE_API_KEY";
+            };
+            lemonade-local = {
+              api = lemonadeUrl;
+              key_env = "LEMONADE_API_KEY";
+            };
           };
           model = {
             provider = "lemonade-local";

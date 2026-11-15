@@ -24,6 +24,7 @@ import random
 import re
 import sys
 import time
+import tomllib
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -131,13 +132,93 @@ def env_default(name, fallback=None):
     return os.environ.get(ENV_PREFIX + name, fallback)
 
 
+CONFIG_VALUE_TYPES = {
+    "ollama_url": str,
+    "caption_model": str,
+    "critic_model": str,
+    "style": str,
+    "backend": str,
+    "comfyui_url": str,
+    "invokeai_url": str,
+    "template": str,
+    "from_image": str,
+    "rounds": int,
+    "target_score": int,
+    "out": str,
+}
+
+
+def select_config_path(argv):
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--config")
+    parsed, _ = pre_parser.parse_known_args(argv)
+    requested_path = parsed.config or env_default("CONFIG")
+    if requested_path:
+        path = Path(requested_path).expanduser()
+        if not path.is_file():
+            raise SystemExit(f"Configuration file does not exist: {path}")
+        return path, True
+
+    config_home = Path(os.environ.get("XDG_CONFIG_HOME", "~/.config")).expanduser()
+    path = config_home / "image-prompt-loop" / "config.toml"
+    return path, path.is_file()
+
+
+def load_config_defaults(path, required):
+    if not required:
+        return {}
+    try:
+        with path.open("rb") as config_file:
+            config = tomllib.load(config_file)
+    except (OSError, tomllib.TOMLDecodeError) as error:
+        raise SystemExit(f"Cannot load configuration file {path}: {error}") from error
+
+    if set(config) - {"defaults"}:
+        raise SystemExit("Configuration file only supports a [defaults] table.")
+    defaults = config.get("defaults", {})
+    if not isinstance(defaults, dict):
+        raise SystemExit("Configuration [defaults] must be a table.")
+    unknown_keys = set(defaults) - set(CONFIG_VALUE_TYPES)
+    if unknown_keys:
+        raise SystemExit(f"Unknown configuration key(s): {', '.join(sorted(unknown_keys))}")
+    for key, value in defaults.items():
+        if type(value) is not CONFIG_VALUE_TYPES[key]:
+            expected = CONFIG_VALUE_TYPES[key].__name__
+            raise SystemExit(f"Configuration key '{key}' must be a {expected}.")
+    if defaults.get("style", "sd") not in CAPTION_STYLES:
+        raise SystemExit(f"Invalid configured style: {defaults['style']}")
+    if defaults.get("backend", "comfyui") not in ("comfyui", "invokeai"):
+        raise SystemExit(f"Invalid configured backend: {defaults['backend']}")
+    if defaults.get("rounds", 5) < 1:
+        raise SystemExit("Configured rounds must be at least 1.")
+    if not 0 <= defaults.get("target_score", 9) <= 10:
+        raise SystemExit("Configured target_score must be between 0 and 10.")
+
+    resolved = dict(defaults)
+    for key in ("template", "out"):
+        if key in resolved:
+            configured_path = Path(resolved[key]).expanduser()
+            if not configured_path.is_absolute():
+                configured_path = path.parent / configured_path
+            resolved[key] = str(configured_path)
+    return resolved
+
+
+def configured_default(config, key, environment_name, fallback):
+    if key in config:
+        return config[key]
+    return env_default(environment_name, fallback) if environment_name else fallback
+
+
 def log(message):
     print(message, file=sys.stderr, flush=True)
 
 
-def http_json(url, payload=None, timeout_seconds=600):
+def http_json(url, payload=None, timeout_seconds=600, headers=None):
     data = None if payload is None else json.dumps(payload).encode()
-    request = urllib.request.Request(url, data=data, headers={"Content-Type": "application/json"})
+    request_headers = {"Content-Type": "application/json"}
+    request_headers.update(headers or {})
+    request = urllib.request.Request(url, data=data, headers=request_headers)
     try:
         with urllib.request.urlopen(request, timeout=timeout_seconds) as response:
             return json.loads(response.read())
@@ -171,7 +252,16 @@ def ollama_chat(ollama_url, model, system_prompt, user_prompt, images, response_
     }
     if response_schema is not None:
         payload["format"] = response_schema
-    reply = http_json(ollama_url.rstrip("/") + "/api/chat", payload)
+    headers = {}
+    api_key_file = env_default("API_KEY_FILE")
+    if api_key_file:
+        try:
+            api_key = Path(api_key_file).read_text().strip()
+        except OSError as error:
+            raise SystemExit(f"Cannot read Lemonade API key file {api_key_file}: {error}") from error
+        if api_key:
+            headers["Authorization"] = f"Bearer {api_key}"
+    reply = http_json(ollama_url.rstrip("/") + "/api/chat", payload, headers=headers)
     return reply["message"]["content"].strip()
 
 
@@ -475,22 +565,38 @@ def command_refine(args):
     print(best["prompt"])
 
 
-def main():
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    config_path, config_exists = select_config_path(argv)
+    config_defaults = load_config_defaults(config_path, config_exists)
+
     # Shared options go on every subcommand, so they can be given after it
     # (image-prompt-loop describe --style booru photo.png)
     common = argparse.ArgumentParser(add_help=False)
-    common.add_argument("--ollama", default=env_default("OLLAMA_URL", "http://localhost:11434"), help="Ollama URL")
+    common.add_argument("--config", default=str(config_path), help="TOML configuration file")
+    common.add_argument(
+        "--ollama",
+        default=configured_default(config_defaults, "ollama_url", "OLLAMA_URL", "http://localhost:11434"),
+        help="Ollama-compatible URL",
+    )
     common.add_argument(
         "--caption-model",
-        default=env_default("CAPTION_MODEL", "aha2025/llama-joycaption-beta-one-hf-llava:Q6_K"),
+        default=configured_default(
+            config_defaults, "caption_model", "CAPTION_MODEL", "aha2025/llama-joycaption-beta-one-hf-llava:Q6_K"
+        ),
         help="vision model for image -> prompt",
     )
     common.add_argument(
         "--critic-model",
-        default=env_default("CRITIC_MODEL", "qwen3-vl:30b-a3b-instruct"),
+        default=configured_default(config_defaults, "critic_model", "CRITIC_MODEL", "qwen3-vl:30b-a3b-instruct"),
         help="vision model that reviews images and rewrites prompts",
     )
-    common.add_argument("--style", choices=sorted(CAPTION_STYLES), default="sd", help="prompt style for image -> prompt (default sd)")
+    common.add_argument(
+        "--style",
+        choices=sorted(CAPTION_STYLES),
+        default=configured_default(config_defaults, "style", "STYLE", "sd"),
+        help="prompt style for image -> prompt (default sd)",
+    )
 
     parser = argparse.ArgumentParser(prog="image-prompt-loop", description=__doc__.split("\n\n")[0])
     subcommands = parser.add_subparsers(dest="command", required=True)
@@ -503,19 +609,46 @@ def main():
     refine.add_argument("--prompt", help="what the image should show (the goal; kept for every round)")
     refine.add_argument("--reference", help="image to imitate; without --prompt it is described first")
     refine.add_argument("--negative", help="negative prompt (fixed across rounds)")
-    refine.add_argument("--backend", choices=["comfyui", "invokeai"], default=env_default("BACKEND", "comfyui"))
-    refine.add_argument("--comfyui", default=env_default("COMFYUI_URL"), help="ComfyUI URL")
-    refine.add_argument("--invokeai", default=env_default("INVOKEAI_URL"), help="InvokeAI URL")
-    refine.add_argument("--template", help="ComfyUI API-format workflow, or an InvokeAI graph JSON")
-    refine.add_argument("--from-image", help="InvokeAI: reuse the graph of this gallery image")
-    refine.add_argument("--rounds", type=int, default=5)
-    refine.add_argument("--target-score", type=int, default=9)
+    refine.add_argument(
+        "--backend",
+        choices=["comfyui", "invokeai"],
+        default=configured_default(config_defaults, "backend", "BACKEND", "comfyui"),
+    )
+    refine.add_argument(
+        "--comfyui",
+        default=configured_default(config_defaults, "comfyui_url", "COMFYUI_URL", None),
+        help="ComfyUI URL",
+    )
+    refine.add_argument(
+        "--invokeai",
+        default=configured_default(config_defaults, "invokeai_url", "INVOKEAI_URL", None),
+        help="InvokeAI URL",
+    )
+    refine.add_argument(
+        "--template",
+        default=configured_default(config_defaults, "template", None, None),
+        help="ComfyUI API-format workflow, or an InvokeAI graph JSON",
+    )
+    refine.add_argument(
+        "--from-image",
+        default=configured_default(config_defaults, "from_image", None, None),
+        help="InvokeAI: reuse the graph of this gallery image",
+    )
+    refine.add_argument("--rounds", type=int, default=configured_default(config_defaults, "rounds", None, 5))
+    refine.add_argument(
+        "--target-score", type=int, default=configured_default(config_defaults, "target_score", None, 9)
+    )
     refine.add_argument("--seed", type=int, help="fixed seed (default: random, then kept for every round)")
     refine.add_argument("--vary-seed", action="store_true", help="new seed every round instead of a fixed one")
-    refine.add_argument("--out", default=f"image-prompt-loop-{time.strftime('%Y%m%d-%H%M%S')}")
+    refine.add_argument(
+        "--out",
+        default=configured_default(
+            config_defaults, "out", None, f"image-prompt-loop-{time.strftime('%Y%m%d-%H%M%S')}"
+        ),
+    )
     refine.set_defaults(handler=command_refine)
 
-    args = parser.parse_args()
+    args = parser.parse_args(argv)
     args.handler(args)
 
 

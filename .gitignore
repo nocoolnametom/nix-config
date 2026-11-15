@@ -5,4 +5,5 @@ result
 .DS_Store
 .pre-commit-config.yaml
 .direnv
+*.pyc
 docs/migration-26.05

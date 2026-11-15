@@ -47,6 +47,7 @@ in
 
   # Kanidm OIDC secrets
   sops.secrets."homelab/kanidm/oidc/karakeep/client-secret" = { };
+  sops.secrets."homelab/lemonade/api-key" = { };
   sops.templates."karakeep-secrets.env" = {
     content = ''
       SMTP_HOST=${config.sops.placeholder."homelab/smtp/host"}
@@ -55,6 +56,7 @@ in
       SMTP_USER=${config.sops.placeholder."homelab/smtp/username"}
       SMTP_PASSWORD=${config.sops.placeholder."homelab/smtp/password"}
       SMTP_FROM=no-reply+karakeep@${config.sops.placeholder."homelab/smtp/sendingDomain"}
+      OPENAI_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
     ''
     + (
       if useKanidm then
@@ -89,28 +91,14 @@ in
   # Lets an OIDC login attach to the existing account with the same email,
   # which is how accounts survive a change of identity provider.
   services.karakeep.extraEnvironment.OAUTH_ALLOW_DANGEROUS_EMAIL_ACCOUNT_LINKING = "true";
-  # AI tagging and summaries run on barliman's Lemonade endpoint. Lemonade
-  # keeps the same /api/chat and /api/generate-style compatibility for
-  # Ollama-flavoured clients, but it serves them from the AMD AI stack instead
-  # of the standalone Ollama daemon.
-  #
-  # Both model slots get barliman's visual primary. It must NOT be a thinking
-  # model: Karakeep calls the native /api/generate-style path with `format` set
-  # to a JSON schema and never sends `think: false`, and under that grammar a
-  # thinking model puts its whole answer in the separate `thinking` field,
-  # leaving `response` empty. Karakeep reads only `response`, so every job dies
-  # with "The model ignored our prompt and didn't respond with the expected
-  # JSON" and a blank excerpt. This is why "_qwen3.5" was wrong here despite
-  # being vision-capable, and why Hermes is unaffected by the same model: it
-  # talks to /api/v1, where the endpoint folds thinking back into content.
-  services.karakeep.extraEnvironment.OLLAMA_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.lemonade}";
+  # Lemonade requires bearer auth for its API. Karakeep's Ollama integration
+  # has no API-key setting, so use its OpenAI-compatible client instead.
+  # Both model slots get barliman's visual primary.
+  services.karakeep.extraEnvironment.OPENAI_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.lemonade}/api/v1";
   services.karakeep.extraEnvironment.INFERENCE_TEXT_MODEL = visualModel;
   services.karakeep.extraEnvironment.INFERENCE_IMAGE_MODEL = visualModel;
-  # Karakeep sends this as Ollama's num_ctx. It no longer has to match
-  # barliman's OLLAMA_CONTEXT_LENGTH: that rule existed when this shared
-  # Hermes's model, where a differing num_ctx forced a reload and threw away
-  # Hermes's cached conversation. The visual model is Karakeep's alone, so it
-  # simply loads once at whatever size is asked for here.
+  # This is Karakeep's client-side context budget; it does not change the
+  # server's context setting or force a model reload.
   #
   # It is a cap on real work, though: Karakeep tokenises the page and keeps
   # only (this - prompt) tokens, so anything longer is dropped before the model
@@ -138,7 +126,7 @@ in
   #     width) and Karakeep rejects nomic's 768-wide vectors outright.
   #   * EMBEDDING_ENABLE_AUTO_INDEXING, left unset, resolves to
   #     "!OLLAMA_BASE_URL && !OPENAI_BASE_URL && !!OPENAI_API_KEY" - which is
-  #     false precisely because OLLAMA_BASE_URL is set. Ollama users have to
+  #     false precisely because OPENAI_BASE_URL is set. Custom endpoint users have to
   #     opt in explicitly or nothing is ever indexed.
   #   * EMBEDDING_CONTEXT_LENGTH: see embeddingContextLength above.
   #

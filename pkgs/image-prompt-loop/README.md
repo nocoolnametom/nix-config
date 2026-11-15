@@ -15,7 +15,40 @@ barliman downloads them through `my-sd-models/machineLLMs/barliman.nix`, which
 can list them under other names (e.g. `_qwen3-vl`). Those names, and the server
 URLs, are set in `hosts/common/optional/image-prompt-loop.nix` (the
 `programs.image-prompt-loop.*` options), which passes them on through
-`IMAGE_PROMPT_LOOP_*` environment variables. Command-line flags override them.
+`IMAGE_PROMPT_LOOP_*` environment variables.
+
+## Configuration
+
+The tool reads `~/.config/image-prompt-loop/config.toml` by default, or
+`$XDG_CONFIG_HOME/image-prompt-loop/config.toml` when `XDG_CONFIG_HOME` is set.
+Use `--config PATH` after a subcommand, or `IMAGE_PROMPT_LOOP_CONFIG`, to choose
+another file. Values are read from a `[defaults]` table. Command-line flags
+override file values, file values override environment variables, and
+environment variables override built-in defaults.
+
+```toml
+[defaults]
+ollama_url = "http://<llm-host>:13305"
+caption_model = "<caption-model-name>"
+critic_model = "<critic-model-name>"
+backend = "comfyui"
+comfyui_url = "http://<smeagol-host>:8188"
+invokeai_url = "http://<smeagol-host>:9090"
+template = "comfyui-workflow.json"
+rounds = 5
+target_score = 9
+```
+
+The same file can keep both renderers configured; choose one per run with
+`backend` or `--backend`. Configured `template` and `out` paths are relative to
+the config file's directory. Barliman's Nix defaults already point both
+ComfyUI and InvokeAI at Smeagol; this file can override those defaults.
+
+Remote renderers need to be reachable over HTTP from the machine running the
+CLI. The tool submits jobs to the configured host, then downloads the resulting
+image through ComfyUI's `/view` endpoint or InvokeAI's
+`/api/v1/images/.../full` endpoint into the local run directory. The hosts do
+not need a shared filesystem.
 
 ## Image to prompt
 

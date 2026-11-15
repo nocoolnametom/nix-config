@@ -21,6 +21,7 @@ in
 
   # Kanidm OIDC secrets
   sops.secrets."homelab/kanidm/oidc/mealie/client-secret" = { };
+  sops.secrets."homelab/lemonade/api-key" = { };
 
   services.mealie.enable = lib.mkDefault true;
   services.mealie.port = lib.mkDefault configVars.networking.ports.tcp.mealie;
@@ -39,7 +40,6 @@ in
       # barliman's Lemonade endpoint (same OpenAI-compatible API family,
       # but served by the local AMD AI runtime instead of the Ollama daemon).
       OPENAI_BASE_URL = "http://${configVars.networking.subnets.barliman.ip}:${builtins.toString configVars.networking.ports.tcp.lemonade}/api/v1";
-      OPENAI_API_KEY = "1234567890123456"; # Lemonade accepts a placeholder key here
       OPENAI_MODEL = "Qwen3.5-4B";
       OPENAI_ENABLE_IMAGE_SERVICES = "false";
       OPENAI_REQUEST_TIMEOUT = "180";
@@ -75,6 +75,7 @@ in
       SMTP_FROM_EMAIL=noreply+mealie@${config.sops.placeholder."homelab/smtp/sendingDomain"}
       SMTP_USER=${config.sops.placeholder."homelab/smtp/username"}
       SMTP_PASSWORD=${config.sops.placeholder."homelab/smtp/password"}
+      OPENAI_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
     ''
     + (
       if useKanidm then

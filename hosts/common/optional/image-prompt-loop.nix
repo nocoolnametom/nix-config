@@ -45,9 +45,14 @@ in
   };
 
   config = {
+    sops.secrets."homelab/lemonade/api-key" = {
+      owner = configVars.username;
+      mode = "0400";
+    };
     environment.systemPackages = [ pkgs.image-prompt-loop ];
     environment.variables = {
       IMAGE_PROMPT_LOOP_OLLAMA_URL = cfg.ollamaUrl;
+      IMAGE_PROMPT_LOOP_API_KEY_FILE = config.sops.secrets."homelab/lemonade/api-key".path;
       IMAGE_PROMPT_LOOP_COMFYUI_URL = cfg.comfyuiUrl;
       IMAGE_PROMPT_LOOP_INVOKEAI_URL = cfg.invokeaiUrl;
       IMAGE_PROMPT_LOOP_CAPTION_MODEL = cfg.captionModel;
