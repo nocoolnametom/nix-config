@@ -218,6 +218,15 @@
   '';
   systemd.services.lemond.serviceConfig.EnvironmentFile = config.sops.templates."lemonade.env".path;
 
+  # The model reconciler uses the Lemonade CLI, which reads its API key from the
+  # environment. Give it only the regular key needed for /api/v1 requests.
+  sops.templates."lemonade-model-sync.env".content = ''
+    LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
+  '';
+  sops.templates."lemonade-model-sync.env".restartUnits = [ "lemond-models.service" ];
+  systemd.services.lemond-models.serviceConfig.EnvironmentFile =
+    config.sops.templates."lemonade-model-sync.env".path;
+
   # Upstream nix-amd-ai cache to avoid expensive local backend rebuilds.
   nix.settings = {
     substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
