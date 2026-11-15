@@ -296,6 +296,10 @@ in
       # Large model snapshots can take hours, but must not wait forever. Failed
       # attempts resume from Hugging Face's .incomplete cache files.
       TimeoutStartSec = "4h";
+      # Stay "active" after a successful run. strata-prepare Requires this unit,
+      # and without this a finished oneshot is re-run every time strata-prepare
+      # pulls it in (OnSuccess above), until StartLimitBurst is hit.
+      RemainAfterExit = true;
       Restart = "on-failure";
       RestartSec = "5min";
     };
