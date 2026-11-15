@@ -25,10 +25,6 @@
     directories = [
       "/etc/NetworkManager/system-connections"
       "/var/db/sudo/lectured"
-      "/var/lib/bluetooth"
-      "/var/lib/chrony"
-      # "/var/lib/cups" # Handling via NixOS options
-      "/var/lib/docker"
       # agent-worker's clones and its own SSH keys (hosts/common/optional/services/agent-worker.nix)
       {
         directory = "/var/lib/agent-worker";
@@ -36,13 +32,21 @@
         group = "agent-worker";
         mode = "0700";
       }
+      "/var/lib/bluetooth"
+      "/var/lib/chrony"
+      "/var/lib/comin" # comin deployment state + repo checkout
+      # "/var/lib/cups" # Handling via NixOS options
+      "/var/lib/docker"
+      "/var/lib/fwupd" # LVFS firmware client: pending.db holds queued updates applied at reboot
+      "/var/lib/hermes"
+      "/var/lib/nixos"
+      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
+      "/var/lib/ollama"
       {
         directory = "/var/lib/private/open-webui";
         mode = "0700";
       }
-      "/var/lib/comin" # comin deployment state + repo checkout
-      "/var/lib/nixos"
-      "/var/lib/nixpkgs-downgrade-guard" # newest nixpkgs ever activated here
+      "/var/lib/strata"
       "/var/lib/systemd/coredump"
     ];
     files = [
@@ -82,9 +86,12 @@
     ];
   };
 
-  # Uses a blank snapshot to replace root so that all memory
-  # can be used as memory!
-  boot.initrd.postResumeCommands = lib.mkAfter ''
+  # DISABLED for now: this rollback deletes the root subvolume on every boot and
+  # restores root-blank, which is currently empty (an empty root would not boot).
+  # Re-enable only after root-blank is a verified blank template, and only with the
+  # systemd-initrd rollback-root pattern from hosts/bombadil/hardware-configuration.nix
+  # (postResumeCommands is rejected under systemd initrd).
+  /* boot.initrd.postResumeCommands = lib.mkAfter ''
     mkdir -p /mnt
     # We first mount the btrfs root to /mnt
     # so we can manipulate btrfs subvolumes.
@@ -120,5 +127,5 @@
     # Once we're done rolling back to a blank snapshot,
     # we can unmount /mnt and continue on the boot process.
     umount /mnt
-  '';
+  ''; */
 }

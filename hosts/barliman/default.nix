@@ -75,7 +75,7 @@ in
     inputs.nix-amd-ai.nixosModules.default
 
     ########################### Impermanence ##################################
-    # ./persistence.nix
+    ./persistence.nix
   ]
   ++ (map configLib.relativeToRoot [
     #################### Required Configs ####################
@@ -89,7 +89,6 @@ in
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/services/agent-worker.nix" # Low-privilege user for the coding agent's shell (PLAN.md)
-    "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"

@@ -102,7 +102,6 @@ in
 
     #################### Host-specific Optional Configs ####################
     common/optional/sops.nix
-    common/optional/flatpak.nix
     common/optional/git.nix
     common/optional/jj.nix
     common/optional/devenv.nix
