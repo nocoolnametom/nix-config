@@ -116,17 +116,6 @@
     neededForBoot = true;
   };
 
-  fileSystems."/gaming/prancing" = {
-    device = "/dev/disk/by-label/prancing";
-    fsType = "btrfs";
-    options = [
-      "subvol=games"
-      "compress=zstd"
-      "noatime"
-      "defaults"
-    ];
-  };
-
   fileSystems."/etc/nixos" = {
     device = "/dev/disk/by-label/prancing";
     fsType = "btrfs";

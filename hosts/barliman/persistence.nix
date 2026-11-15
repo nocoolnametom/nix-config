@@ -84,46 +84,39 @@
     ];
   };
 
-  # DISABLED for now: this rollback deletes the root subvolume on every boot and
-  # restores root-blank, which is currently empty (an empty root would not boot).
-  # Re-enable only after root-blank is a verified blank template, and only with the
-  # systemd-initrd rollback-root pattern from hosts/bombadil/hardware-configuration.nix
-  # (postResumeCommands is rejected under systemd initrd).
-  /* boot.initrd.postResumeCommands = lib.mkAfter ''
-    mkdir -p /mnt
-    # We first mount the btrfs root to /mnt
-    # so we can manipulate btrfs subvolumes.
-    mount -o subvol=/ /dev/disk/by-label/prancing /mnt
+  # Impermanence rollback: every boot deletes the root subvolume and restores it
+  # from root-blank (an empty, read-only template; see the notes in the repo).
+  # Uses the systemd-initrd pattern from hosts/bombadil/hardware-configuration.nix.
+  # postResumeCommands is rejected under systemd initrd, so it is not used here.
+  # Safety net: root-pre-impermanence (read-only copy of root taken before this
+  # was enabled) lives at the top level of the prancing pool; delete it once this
+  # boot is verified.
+  boot.initrd.systemd.services.rollback-root = {
+    description = "Rollback root filesystem to blank snapshot";
+    wantedBy = [ "initrd.target" ];
+    after = [ "initrd-root-device.target" ];
+    before = [ "sysroot.mount" ];
+    unitConfig.DefaultDependencies = "no";
+    serviceConfig.Type = "oneshot";
+    script = ''
+      mkdir -p /mnt
+      mount -o subvol=/ /dev/disk/by-label/prancing /mnt
 
-    # While we're tempted to just delte /root and create
-    # a new snapshot from /root-black, /root is already
-    # populated at this point with a number of subvolumes,
-    # which makes `btrfs subvolume delete` fail.
-    # So, we remove them first.
-    #
-    # /root contains subvolumes:
-    # - /root/var/lib/portables
-    # - /root/var/lib/machines
-    #
-    # I suspecte these are related to systemd-nspawn, but
-    # since I don't use it I'm not 100% sure.
-    # Anyhow, deleting these subvolumes hasn't resulted
-    # in any issues so far, except for fairly
-    # benign-looking error from systemd-tmpfiles.
-    btrfs subvolume list -o /mnt/root |
-    cut -f9 -d ' ' |
-    while read subvolume; do
-      echo "deleting /$subvolume subvolume..."
-      btrfs subvolume delete "/mnt/$subvolume"
-    done &&
-    echo "deleting /root subvolume..." &&
-    btrfs subvolume delete /mnt/root
+      # Nested subvolumes under /root (systemd-nspawn leftovers, tmp, srv) must go first.
+      btrfs subvolume list -o /mnt/root |
+      cut -f9 -d ' ' |
+      while read subvolume; do
+        echo "deleting /$subvolume subvolume..."
+        btrfs subvolume delete "/mnt/$subvolume"
+      done
 
-    echo "restoring blank /root subvolume..."
-    btrfs subvolume snapshot /mnt/root-blank /mnt/root
+      echo "deleting /root subvolume..."
+      btrfs subvolume delete /mnt/root
 
-    # Once we're done rolling back to a blank snapshot,
-    # we can unmount /mnt and continue on the boot process.
-    umount /mnt
-  ''; */
+      echo "restoring blank /root subvolume..."
+      btrfs subvolume snapshot /mnt/root-blank /mnt/root
+
+      umount /mnt
+    '';
+  };
 }
