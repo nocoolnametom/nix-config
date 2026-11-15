@@ -14,6 +14,46 @@
   configVars,
   ...
 }:
+let
+  # Lemonade and the auxiliary HF downloader share this cache root. Keep this
+  # aligned with the cacheDir passed to the Lemonade service below.
+  lemonadeCacheDir = "/var/lib/ai-models/lemonade";
+  lemonadeHfCacheDir = "${lemonadeCacheDir}/hf/hub";
+  machineLemonadeCatalogs = pkgs.my-sd-models.machineLemonadeModels or { };
+  machineLemonadeCatalog = lib.attrByPath [ config.networking.hostName ] [ ] machineLemonadeCatalogs;
+  machineLemonadeModels =
+    if builtins.isAttrs machineLemonadeCatalog then
+      machineLemonadeCatalog.models or [ ]
+    else if builtins.isList machineLemonadeCatalog then
+      machineLemonadeCatalog
+    else
+      [ ];
+  # These downloads are separate from Lemonade's model IDs: they are pinned
+  # snapshots consumed directly by services such as Strata.
+  machineLemonadeSnapshots =
+    if builtins.isAttrs machineLemonadeCatalog then machineLemonadeCatalog.snapshots or [ ] else [ ];
+  huggingfaceHub = pkgs.python3Packages."huggingface-hub";
+  snapshotDownloadCommand =
+    snapshot:
+    "hf download ${
+      lib.escapeShellArgs (
+        [
+          snapshot.repo
+          "--revision"
+          snapshot.revision
+          "--cache-dir"
+          lemonadeHfCacheDir
+        ]
+        ++ lib.concatMap (pattern: [
+          "--include"
+          pattern
+        ]) snapshot.include
+      )
+    }";
+  snapshotDownloadCommands =
+    lib.concatMapStringsSep "\n" snapshotDownloadCommand
+      machineLemonadeSnapshots;
+in
 {
   imports = [
     ######################## Every Host Needs This ############################
@@ -163,7 +203,7 @@
       # Keep Lemonade under the shared model root so it sits beside Ollama's cache,
       # but still keeps its own runtime metadata/index tree instead of sharing a
       # single model directory between two unrelated backends.
-      cacheDir = "/var/lib/ai-models/lemonade";
+      cacheDir = lemonadeCacheDir;
       # No Tauri desktop app: barliman is headless; avoids the Rust+npm build.
       desktopApp.enable = false;
       settings = {
@@ -175,21 +215,7 @@
       # declarative naming pattern used for Ollama applies here too. Older
       # my-sd-models revisions don't have the Lemonade registry yet, so fall back
       # to an empty list rather than crashing the host evaluation.
-      models =
-        let
-          machineLemonadeModels =
-            if builtins.hasAttr "machineLemonadeModels" pkgs.my-sd-models then
-              pkgs.my-sd-models.machineLemonadeModels
-            else
-              { };
-          machineModels = lib.attrByPath [ config.networking.hostName ] [ ] machineLemonadeModels;
-        in
-        if builtins.isAttrs machineModels then
-          machineModels.models or [ ]
-        else if builtins.isList machineModels then
-          machineModels
-        else
-          [ ];
+      models = machineLemonadeModels;
       pruneUnlistedModels = false;
       # Required for browser UI/API access from other machines.
       allowedOrigins = [
@@ -226,6 +252,36 @@
   sops.templates."lemonade-model-sync.env".restartUnits = [ "lemond-models.service" ];
   systemd.services.lemond-models.serviceConfig.EnvironmentFile =
     config.sops.templates."lemonade-model-sync.env".path;
+
+  # Lemonade cannot pull every backend's weights by its catalog model ID. Fetch
+  # the pinned snapshots declared in machineLemonadeModels/<host>.nix directly
+  # into the same HF cache used by Lemonade. Add future direct-download models
+  # to that `snapshots` list; keep their repo, revision, and include patterns in
+  # sync with the service that consumes their files. If a source is gated, add
+  # its token through SOPS here rather than putting credentials in the catalog.
+  systemd.services.lemonade-extra-snapshots = lib.mkIf (machineLemonadeSnapshots != [ ]) {
+    description = "Download pinned Hugging Face snapshots required by host services";
+    wants = [ "network-online.target" ];
+    after = [ "network-online.target" ];
+    path = [ huggingfaceHub ];
+    serviceConfig = {
+      Type = "oneshot";
+      User = configVars.username;
+      TimeoutStartSec = "infinity";
+    };
+    script = ''
+      set -euo pipefail
+      ${snapshotDownloadCommands}
+    '';
+  };
+
+  # Require the snapshot fetch to finish before strata-prepare checks its model
+  # path and builds the pack/MTP runtime. A failed download should fail Strata
+  # preparation visibly instead of racing it or silently using another revision.
+  systemd.services.strata-prepare = lib.mkIf (machineLemonadeSnapshots != [ ]) {
+    requires = [ "lemonade-extra-snapshots.service" ];
+    after = [ "lemonade-extra-snapshots.service" ];
+  };
 
   # Upstream nix-amd-ai cache to avoid expensive local backend rebuilds.
   nix.settings = {
