@@ -256,9 +256,9 @@ let
       domain = "domain";
     }
     {
-      host = "barliman";
+      host = "estel";
       service = "lemonade-api-key-page";
-      domain = "domain";
+      domain = "homeDomain";
       proxy = "oauth2";
     }
     # INACTIVE: Pinchflat is not running (disabled on durin); route kept for reference.
@@ -355,42 +355,43 @@ let
               # header, so a client-supplied value could otherwise bypass login
               # (CVE-2026-40575 / GHSA-7x63-xv5r-3p2x; 7.15.2-7.15.4 still need it).
               extraConfig =
-            lib.optionalString (healthCheck != null) ''
-              handle /healthz {
-                rewrite * ${healthCheck}
-                reverse_proxy ${serviceHostIp}:${servicePortNum} {
-                  @up status 2xx
-                  handle_response @up {
-                    respond "OK" 200
-                  }
-                }
-              }
-            ''
-            + lib.optionalString noXForwardedFor ''
-              handle {
-                header_up -X-Forwarded-For
-                header_up -X-Forwarded-Proto
-                reverse_proxy ${proxyTarget}
-              }
-            ''
-            + (
-              if useOAuth2 then
-                ''
-                  handle {
-                    reverse_proxy ${proxyTarget} {
-                      header_up X-Forwarded-Uri {uri}
+                lib.optionalString (healthCheck != null) ''
+                  handle /healthz {
+                    rewrite * ${healthCheck}
+                    reverse_proxy ${serviceHostIp}:${servicePortNum} {
+                      @up status 2xx
+                      handle_response @up {
+                        respond "OK" 200
+                      }
                     }
                   }
                 ''
-              else if noXForwardedFor then
-                ""
-              else
-                ''
+                + lib.optionalString noXForwardedFor ''
                   handle {
-                    reverse_proxy ${proxyTarget}
+                    reverse_proxy ${proxyTarget} {
+                      header_up -X-Forwarded-For
+                      header_up -X-Forwarded-Proto
+                    }
                   }
                 ''
-            );
+                + (
+                  if useOAuth2 then
+                    ''
+                      handle {
+                        reverse_proxy ${proxyTarget} {
+                          header_up X-Forwarded-Uri {uri}
+                        }
+                      }
+                    ''
+                  else if noXForwardedFor then
+                    ""
+                  else
+                    ''
+                      handle {
+                        reverse_proxy ${proxyTarget}
+                      }
+                    ''
+                );
             };
           };
         in
@@ -438,8 +439,8 @@ in
   # Most services are auto-generated from simpleServices list above
   # Complex configurations (websockets, basic auth, custom certs) are defined manually here
   services.caddy.virtualHosts = generatedHosts // {
-    "${configVars.networking.subdomains.lemonade}.${configVars.domain}" = {
-      useACMEHost = "wild-${configVars.domain}";
+    "${configVars.networking.subdomains.lemonade}.${configVars.homeDomain}" = {
+      useACMEHost = "wild-${configVars.homeDomain}";
       extraConfig = ''
         @lemonadeApi path /v1 /v1/* /mcp /mcp/*
         handle @lemonadeApi {

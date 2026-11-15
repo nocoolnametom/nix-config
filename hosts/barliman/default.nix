@@ -40,10 +40,10 @@
     "hosts/common/optional/services/agent-worker.nix" # Low-privilege user for the coding agent's shell (PLAN.md)
     "hosts/common/optional/services/flatpak.nix"
     "hosts/common/optional/services/ollama.nix"
-    "hosts/common/optional/services/lemonade-api-key-page.nix"
     "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/open-webui.nix"
+    "hosts/common/optional/services/obscura-web-loader.nix"
     "hosts/common/optional/services/podman.nix"
     "hosts/common/optional/services/systemd-failure-pushover.nix"
     "hosts/common/optional/home-wifi.nix" # Declarative home Wi-Fi profile (secrets from nix-secrets)
@@ -70,6 +70,7 @@
 
   # Native OIDC login through Kanidm (Authentik retires with cirdan).
   services.ssoProvider.openwebui = "kanidm-oidc";
+  services.obscuraWebLoader.enable = true;
 
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
@@ -132,7 +133,7 @@
   # (~300 tokens/s). It also lets an agent and a chat use the same model at
   # once. Costs one extra KV cache per model, the full context size each: at
   # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
-  services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "2";
+  services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "3";
 
   # Full AMD AI stack on Strix Halo: ROCm + Vulkan + XDNA-2 NPU + FLM +
   # vLLM ROCm + Strata (Qwen3.8-Flash-Next with custom attention). All backends
@@ -166,7 +167,7 @@
       # No Tauri desktop app: barliman is headless; avoids the Rust+npm build.
       desktopApp.enable = false;
       settings = {
-        max_loaded_models = 2;
+        max_loaded_models = 3;
         auto_evict = true;
         auto_evict_threshold_pct = 0.90; # start evicting at 90% VRAM pressure
       };
@@ -181,8 +182,14 @@
               pkgs.my-sd-models.machineLemonadeModels
             else
               { };
+          machineModels = lib.attrByPath [ config.networking.hostName ] [ ] machineLemonadeModels;
         in
-        lib.attrByPath [ config.networking.hostName ] [ ] machineLemonadeModels;
+        if builtins.isAttrs machineModels then
+          machineModels.models or [ ]
+        else if builtins.isList machineModels then
+          machineModels
+        else
+          [ ];
       pruneUnlistedModels = false;
       # Required for browser UI/API access from other machines.
       allowedOrigins = [
@@ -209,8 +216,7 @@
     LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
     LEMONADE_ADMIN_KEY=${config.sops.placeholder."homelab/lemonade/admin-key"}
   '';
-  systemd.services.lemond.serviceConfig.EnvironmentFile =
-    config.sops.templates."lemonade.env".path;
+  systemd.services.lemond.serviceConfig.EnvironmentFile = config.sops.templates."lemonade.env".path;
 
   # Upstream nix-amd-ai cache to avoid expensive local backend rebuilds.
   nix.settings = {

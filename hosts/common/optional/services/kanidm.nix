@@ -188,7 +188,6 @@ let
     };
     lemonade-api-key-page = makeClient "lemonade-api-key-page" {
       displayName = "Lemonade API Key";
-      domain = "domain";
     };
   };
   # Public clients and link-only tiles have no provisioned client secret.

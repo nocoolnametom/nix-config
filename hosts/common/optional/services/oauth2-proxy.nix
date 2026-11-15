@@ -29,6 +29,7 @@ let
     "navidrome"
     "seerr"
     "open-resume"
+    "lemonade-api-key-page"
   ];
   secret = name: config.sops.secrets.${name}.path;
 
@@ -122,7 +123,10 @@ let
 
   allInstances = {
     # Barliman services
-    lemonade-api-key-page = makeInstance "lemonade-api-key-page" "barliman" { };
+    # The page is served by Caddy on this host (see lemonade-api-key-page.nix).
+    lemonade-api-key-page = makeInstance "lemonade-api-key-page" "estel" {
+      upstreamUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.lemonade-api-key-page}";
+    };
 
     # estel services (2)
     navidrome = makeInstance "navidrome" "feanor" {

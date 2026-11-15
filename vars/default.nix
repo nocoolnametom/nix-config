@@ -38,7 +38,6 @@ in
   # (e.g., smeagol.doggett.home, estel.doggett.home)
   homeLanDomain = "doggett.home";
   use-hy3 = true;
-  enableKanidmSSO = false; # Kanidm and OAuth2-proxy services
 
   # SSO Proxy type constants - use these instead of magic strings
   proxyTypes = {

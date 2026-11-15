@@ -19,8 +19,8 @@
 }:
 let
   cfg = config.services.monline;
-    uid = "1000";
-    gid = "1000";
+  uid = "1000";
+  gid = "1000";
 in
 {
   imports = [ inputs.arion.nixosModules.arion ];

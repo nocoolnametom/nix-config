@@ -5,8 +5,7 @@
 }:
 let
   port = configVars.networking.ports.tcp.lemonade-api-key-page;
-  estelIp = configVars.networking.subnets.estel.ip;
-  apiBase = "https://${configVars.networking.subdomains.lemonade}.${configVars.domain}";
+  apiBase = "https://${configVars.networking.subdomains.lemonade}.${configVars.homeDomain}";
   page = config.sops.templates."lemonade-api-key-page.html".path;
 in
 {
@@ -26,6 +25,8 @@ in
             section { border-top: 1px solid #b8c5bd; padding: 1rem 0; }
             code { overflow-wrap: anywhere; font-size: 1rem; }
             .key { padding: .8rem; background: #e2e9e4; border-radius: 4px; }
+            .copy { margin-left: .5rem; padding: .3rem .6rem; font-size: 1.2rem; cursor: pointer; min-width: 2.5rem; min-height: 2.5rem; }
+            #copy-status { margin-left: .5rem; font-size: .9rem; }
           </style>
         </head>
         <body>
@@ -40,33 +41,60 @@ in
           </section>
           <section>
             <h2>Static API key</h2>
-            <p class="key"><code>${config.sops.placeholder."homelab/lemonade/api-key"}</code></p>
+            <p class="key"><code id="api-key">${config.sops.placeholder."homelab/lemonade/api-key"}</code>
+              <button type="button" id="copy-key" class="copy" aria-label="Copy API key to clipboard" title="Copy API key">📋</button>
+              <span id="copy-status" role="status" aria-live="polite"></span>
+            </p>
             <p>Send it in the <code>Authorization: Bearer …</code> header.</p>
           </section>
+          <script>
+            (function () {
+              var btn = document.getElementById("copy-key");
+              var status = document.getElementById("copy-status");
+              var key = document.getElementById("api-key").textContent.trim();
+              function done(ok) {
+                status.textContent = ok ? "Copied" : "Copy failed";
+                setTimeout(function () { status.textContent = ""; }, 2000);
+              }
+              function fallback() {
+                var area = document.createElement("textarea");
+                area.value = key;
+                area.setAttribute("readonly", "");
+                area.style.position = "fixed";
+                area.style.opacity = "0";
+                document.body.appendChild(area);
+                area.select();
+                var ok = false;
+                try { ok = document.execCommand("copy"); } catch (e) { ok = false; }
+                document.body.removeChild(area);
+                done(ok);
+              }
+              btn.addEventListener("click", function () {
+                if (navigator.clipboard && window.isSecureContext) {
+                  navigator.clipboard.writeText(key).then(function () { done(true); }, fallback);
+                } else {
+                  fallback();
+                }
+              });
+            })();
+          </script>
         </body>
       </html>
     '';
-    owner = "nginx";
-    group = "nginx";
+    owner = "caddy";
+    group = "caddy";
     mode = "0440";
   };
 
-  services.nginx = {
-    enable = true;
-    virtualHosts."_" = {
-      default = true;
-      listen = [ { addr = "0.0.0.0"; inherit port; } ];
-      extraConfig = ''
-        allow ${estelIp};
-        deny all;
-      '';
-      locations."= /" = {
-        alias = page;
-        extraConfig = "default_type text/html;";
-      };
-      locations."/".return = "404";
-    };
+  # Loopback only: oauth2-proxy on this host is the sole client, so no firewall port.
+  # Keyed by port (not 127.0.0.1) so it matches any Host header: oauth2-proxy
+  # forwards the public hostname, which a 127.0.0.1 site would not match.
+  services.caddy.virtualHosts.":${toString port}" = {
+    extraConfig = ''
+      bind 127.0.0.1
+      root * ${builtins.dirOf page}
+      rewrite * /${baseNameOf page}
+      file_server
+    '';
   };
-
-  networking.firewall.allowedTCPPorts = [ port ];
 }
