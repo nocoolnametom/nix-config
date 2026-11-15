@@ -474,20 +474,6 @@ in
     handbrake
   ];
 
-  # Flatpaks
-  services.flatpak.packages = [
-    # Until I figure out how to do this headlessly, this is like Flowframes
-    {
-      appId = "io.github.tntwise.REAL-Video-Enhancer";
-      origin = "flathub";
-    }
-    # Flat seal can help with file permissions
-    {
-      appId = "com.github.tchx84.Flatseal";
-      origin = "flathub";
-    }
-  ];
-
   home = {
     stateVersion = "26.05";
     username = configVars.username;

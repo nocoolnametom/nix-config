@@ -51,8 +51,6 @@
     ];
     files = [
       "/etc/machine-id"
-      "/etc/machine-info"
-      "/etc/nix/id_rsa"
       # "/var/lib/cups/printers.conf" # Handling via NixOS options
       # logrotate.status is NOT bind-mounted: logrotate writes via atomic rename
       # (write temp, rename into place) which fails on a bind-mount target with
