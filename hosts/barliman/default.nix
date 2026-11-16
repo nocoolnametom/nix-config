@@ -295,15 +295,6 @@ in
     after = [ "lemonade-extra-snapshots.service" ];
   };
 
-  # Upstream nix-amd-ai cache to avoid expensive local backend rebuilds.
-  nix.settings = {
-    substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
-    trusted-substituters = lib.mkAfter [ "https://nix-amd-ai.cachix.org" ];
-    trusted-public-keys = lib.mkAfter [
-      "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="
-    ];
-  };
-
   # The Hermes worker's model is machinePrimaryLLMs.barliman.worker (Qwen3.6
   # 35B-A3B on Lemonade's llama.cpp recipe). Its output cap is llama-server's
   # --n-predict as a server default: Hermes leaves max_tokens unset, so the

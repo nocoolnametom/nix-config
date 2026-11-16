@@ -44,19 +44,25 @@
         "https://ai.cachix.org"
         "https://cache.nixos-cuda.org"
         "https://nix-community.cachix.org"
-        # "https://nixos-raspberrypi.cachix.org"
+        "https://nix-amd-ai.cachix.org"
+        "https://numtide.cachix.org"
+        "https://cache.thalheim.io"
       ];
       trusted-substituters = [
         "https://ai.cachix.org"
         "https://cache.nixos-cuda.org"
         "https://nix-community.cachix.org"
-        # "https://nixos-raspberrypi.cachix.org"
+        "https://nix-amd-ai.cachix.org"
+        "https://numtide.cachix.org"
+        "https://cache.thalheim.io"
       ];
       trusted-public-keys = [
         "ai.cachix.org-1:N9dzRK+alWwoKXQlnn0H6aUx0lU/mspIoz8hMvGvbbc="
         "cache.nixos-cuda.org:74DUi4Ye579gUqzH4ziL9IyiJBlDpMRn9MBN8oNan9M="
         "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
-        # "nixos-raspberrypi.cachix.org-1:4iMO9LXa8BqhU+Rpg6LQKiGa2lsNh/j2oiYLNOQ5sPI="
+        "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="
+        "numtide.cachix.org-1:2ps1kLBUWjxIneOy1Ik6cQjb41X0iXVXeHigGmycPPE="
+        "cache.thalheim.io-1:R7msbosLEZKrxk/lKxf9BTjOOH7Ax3H0Qj0/6wiHOgc="
       ];
       trusted-users = [
         "root"
