@@ -222,10 +222,16 @@ in
   # the tdoggett user, so the default 0400 root-owned file is still readable.
   sops.secrets."homelab/lemonade/api-key" = { };
   sops.secrets."homelab/lemonade/admin-key" = { };
-  sops.templates."lemonade.env".content = ''
-    LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
-    LEMONADE_ADMIN_KEY=${config.sops.placeholder."homelab/lemonade/admin-key"}
-  '';
+  # lemond reads LEMONADE_ADMIN_API_KEY (not LEMONADE_ADMIN_KEY); the wrong name
+  # is silently ignored and /internal/* then accepts the regular key.
+  sops.templates."lemonade.env" = {
+    content = ''
+      LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
+      LEMONADE_ADMIN_API_KEY=${config.sops.placeholder."homelab/lemonade/admin-key"}
+    '';
+    # The env file is read at process start, so rotating either key must restart lemond.
+    restartUnits = [ "lemond.service" ];
+  };
   systemd.services.lemond.serviceConfig.EnvironmentFile = config.sops.templates."lemonade.env".path;
 
   # The model reconciler uses the Lemonade CLI, which reads its API key from the
