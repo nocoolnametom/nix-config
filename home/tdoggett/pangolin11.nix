@@ -2,6 +2,7 @@
   pkgs,
   lib,
   configVars,
+  inputs,
   osConfig,
   ...
 }:
@@ -39,6 +40,8 @@
     calibre
     gnumake
     helium-browser-flake
+    # Lemonade desktop app (Tauri client). Connects to a remote lemond over the network.
+    inputs.nix-amd-ai.packages.${pkgs.stdenv.hostPlatform.system}.lemonade.tauri-app
     orion-browser-flake
     megasync
     remmina
