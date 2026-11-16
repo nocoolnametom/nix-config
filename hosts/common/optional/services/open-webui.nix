@@ -134,7 +134,7 @@ in
           OAUTH_CLIENT_ID=openwebui
           OAUTH_CLIENT_SECRET=${config.sops.placeholder."homelab/kanidm/oidc/openwebui/client-secret"}
           OAUTH_SCOPES=openid email profile
-          OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.domain}/oauth/oidc/callback
+          OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}/oauth/oidc/callback
           # Kanidm requires PKCE.
           OAUTH_CODE_CHALLENGE_METHOD=S256
         ''
@@ -149,7 +149,7 @@ in
           OAUTH_CLIENT_ID=${config.sops.placeholder."open-webui-clientid"}
           OAUTH_CLIENT_SECRET=${config.sops.placeholder."open-webui-clientsecret"}
           OAUTH_SCOPES=openid email profile
-          OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.domain}/oauth/oidc/callback
+          OPENID_REDIRECT_URI=https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}/oauth/oidc/callback
         ''
     )
     + ''
