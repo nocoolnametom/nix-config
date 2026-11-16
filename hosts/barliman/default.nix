@@ -132,7 +132,6 @@ in
     "lemond"
     "lemonade-extra-snapshots"
     "strata-prepare"
-    "strata-server"
   ];
 
   # Using Rocm instead of Cuda since AMD APU/GPU
