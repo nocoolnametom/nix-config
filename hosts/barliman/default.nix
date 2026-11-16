@@ -28,6 +28,10 @@ let
       machineLemonadeCatalog
     else
       [ ];
+  # Models not in Lemonade's built-in registry, registered by Hugging Face
+  # checkpoint (lemond exposes them as user.<name>).
+  machineLemonadeCustomModels =
+    if builtins.isAttrs machineLemonadeCatalog then machineLemonadeCatalog.customModels or { } else { };
   # These downloads are separate from Lemonade's model IDs: they are pinned
   # snapshots consumed directly by services such as Strata.
   machineLemonadeSnapshots =
@@ -113,10 +117,9 @@ in
     "hosts/common/users/${configVars.username}"
   ]);
 
-  # barliman's Ollama lists these models under "_" names (my-sd-models'
-  # machineLLMs/barliman.nix); the original names are removed after copying
-  programs.image-prompt-loop.captionModel = "_llama-joycaption-beta-one-hf-llava";
-  programs.image-prompt-loop.criticModel = "_qwen3-vl";
+  # Caption and critic models come from my-sd-models' machinePrimaryLLMs/barliman.nix.
+  programs.image-prompt-loop.captionModel = pkgs.my-sd-models.machinePrimaryLLMs.barliman.caption;
+  programs.image-prompt-loop.criticModel = pkgs.my-sd-models.machinePrimaryLLMs.barliman.critic;
 
   # Native OIDC login through Kanidm (Authentik retires with cirdan).
   services.ssoProvider.openwebui = "kanidm-oidc";
@@ -228,6 +231,7 @@ in
       # my-sd-models revisions don't have the Lemonade registry yet, so fall back
       # to an empty list rather than crashing the host evaluation.
       models = machineLemonadeModels;
+      customModels = machineLemonadeCustomModels;
       pruneUnlistedModels = false;
       # Required for browser UI/API access from other machines.
       allowedOrigins = [

@@ -30,17 +30,15 @@ in
       default = "http://${smeagolLan}:${toString configVars.networking.ports.tcp.invokeai}";
       description = "InvokeAI server used by `refine --backend invokeai`.";
     };
-    # Defaults match the script's own. Set these when the Ollama server lists the
-    # models under other names (services.ollama.namedModels in ollama.nix).
+    # No defaults: the host names these from its my-sd-models primary roles
+    # (caption/critic in machinePrimaryLLMs/<host>.nix), so the names live in one place.
     captionModel = lib.mkOption {
       type = lib.types.str;
-      default = "aha2025/llama-joycaption-beta-one-hf-llava:Q6_K";
-      description = "Ollama model that writes the first prompt from a reference image.";
+      description = "Lemonade model that writes the first prompt from a reference image.";
     };
     criticModel = lib.mkOption {
       type = lib.types.str;
-      default = "qwen3-vl:30b-a3b-instruct";
-      description = "Ollama vision model that reviews each image and rewrites the prompt.";
+      description = "Lemonade vision model that reviews each image and rewrites the prompt.";
     };
   };
 

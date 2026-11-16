@@ -84,10 +84,8 @@ in
     settings.model = {
       provider = "custom";
       base_url = "http://127.0.0.1:${toString lemonadePort}/api/v1";
-      # This host's "planning" primary; on barliman that is "_qwen3.5", the
-      # abliterated Qwen3.5-35B-A3B (tools + vision + thinking, so images sent
-      # from Conduit work too), which ollama.nix installs under that name from
-      # my-sd-models' machineLLMs/<host>.nix.
+      # This host's "planning" primary from my-sd-models' machinePrimaryLLMs/<host>.nix,
+      # which names a Lemonade model on barliman.
       default = defaultModel;
       context_length = contextLength;
     };
