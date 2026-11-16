@@ -71,7 +71,7 @@ in
   # Where Open WebUI sends the browser after login (and builds links from).
   # The nixpkgs module defaults it to http://localhost:<port>.
   services.open-webui.environment = {
-    WEBUI_URL = "https://${configVars.networking.subdomains.openwebui}.${configVars.domain}";
+    WEBUI_URL = "https://${configVars.networking.subdomains.openwebui}.${configVars.homeDomain}";
     ENABLE_SIGNUP = "false";
     DEFAULT_USER_ROLE = "user";
     ENABLE_WEB_SEARCH = "true";

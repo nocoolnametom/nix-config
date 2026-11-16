@@ -188,6 +188,7 @@ let
     };
     lemonade-api-key-page = makeClient "lemonade-api-key-page" {
       displayName = "Lemonade API Key";
+      domain = "domain";
     };
   };
   # Public clients and link-only tiles have no provisioned client secret.
@@ -429,7 +430,6 @@ in
                     # Served on the personal domain (see estel's caddy.nix), not homeDomain.
                     openwebui = makeClient "openwebui" {
                       displayName = "Open WebUI";
-                      domain = "domain";
                       callbackPath = "/oauth/oidc/callback";
                     };
 

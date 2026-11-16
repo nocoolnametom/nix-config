@@ -240,7 +240,7 @@ let
     {
       host = "barliman";
       service = "openwebui";
-      domain = "domain";
+      domain = "homeDomain";
     }
     # Hermes Agent API server (Conduit). No SSO proxy: Conduit authenticates with
     # Hermes's own bearer key, which a login redirect would break.

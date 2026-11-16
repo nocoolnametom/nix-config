@@ -189,15 +189,9 @@ in
     # model.provider and model.default are only defaults (see hermesDefaultConfig),
     # so the dashboard's model picker sticks.
     settings.model = {
-      # Track whatever Ollama actually serves rather than restating it. The
-      # retired system module used a 65536 constant, but there it was the
-      # *floor* for an assertion ("Hermes refuses local model servers offering
-      # under 64K tokens") - as a context_length it would instead cap Hermes at
-      # a third of barliman's real 196608 window. Reading it from osConfig
-      # keeps the two from drifting apart.
-      context_length = lib.toInt (
-        osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
-      );
+      # The planning model's window on Lemonade. Hermes refuses local servers
+      # under 64K; this is the window it is told to use.
+      context_length = 196608;
     };
 
     # Web dashboard. The module defaults to mode "none" on 127.0.0.1:9119, and

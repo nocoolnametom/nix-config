@@ -93,7 +93,6 @@ in
     # "hosts/common/optional/lanzaboote.nix" # Lanzaboote Secure Bootloader
     "hosts/common/optional/gpg-agent.nix" # GPG-Agent with SSH support
     "hosts/common/optional/services/agent-worker.nix" # Low-privilege user for the coding agent's shell (PLAN.md)
-    "hosts/common/optional/services/ollama.nix"
     "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/open-webui.nix"
@@ -127,7 +126,6 @@ in
 
   # Send alerts on systemd service failures
   services.systemd-failure-alert.additional-services = [
-    "ollama"
     "open-webui"
     "lemond"
     "lemonade-extra-snapshots"
@@ -148,29 +146,11 @@ in
     })
   ];
 
-  # Open-WebUI is a web-frontend for chatting with ollama
+  # Open-WebUI is a web-frontend for chatting with Lemonade.
   services.open-webui.package = pkgs.open-webui;
-  # bleeding (nixpkgs master) since 2026-10-12: _qwen3.8's manifest asks for
-  # the "qwen3.8" renderer, which Ollama 0.32.3 - the default channel's
-  # version (nixos-26.05) - doesn't have, so it answers every request with
-  # HTTP 500 "unknown renderer". The renderer exists by 0.34.4, so
-  # pkgs.unstable.ollama-rocm (0.40.0 then) would also do. Go back to
-  # pkgs.ollama-rocm once 26.05 ships 0.34.4 or newer.
-  services.ollama.package = pkgs.bleeding.ollama-rocm;
-  # Keep all local AI payloads under the same root, but still use separate per-
-  # backend directories so Ollama and Lemonade do not try to share the same
-  # runtime metadata/index tree. This avoids double-writing the same model data
-  # while still keeping the storage layout coherent and easy to inspect.
-  services.ollama.models = "/var/lib/ai-models/ollama";
-  # Removed 2026-10-06 as no-ops: OLLAMA_LLAMA_GPU_LAYERS (not an Ollama
-  # variable; Ollama already offloads every layer that fits), OLLAMA_GPU_OVERHEAD="1"
-  # (1 byte, same as the default), HCC_AMDGPU_TARGET (a build-time setting), and
-  # serviceConfig.UnsetEnvironment (discarded by the lib.mkForce in ollama.nix).
-  services.ollama.environmentVariables.LD_LIBRARY_PATH = "/run/current-system/sw/lib";
-  services.ollama.rocmOverrideGfx = "11.5.1";
+  # Keep all local AI payloads under one root; Lemonade keeps its own tree below it.
   systemd.tmpfiles.rules = [
     "d '/var/lib/ai-models' 0755 root root - -"
-    "d '/var/lib/ai-models/ollama' 0777 root root - -"
     "d '/var/lib/ai-models/lemonade' 0777 root root - -"
   ];
 
@@ -179,15 +159,6 @@ in
   # hosts/common/optional/amd-unified-memory.nix for the reasoning.
   hardware.amdUnifiedMemory.gpuMemoryGiB = 52;
   hardware.amdUnifiedMemory.systemMemoryGiB = 62; # 64 GB minus the 0.5 GB BIOS carve-out
-
-  # Two slots per loaded model, so Open WebUI's background requests (titles,
-  # tags, follow-up suggestions) run in their own slot. They don't queue behind
-  # the chat or overwrite its cached history, which would force the next prompt
-  # to re-read the whole conversation, which takes minutes at long context
-  # (~300 tokens/s). It also lets an agent and a chat use the same model at
-  # once. Costs one extra KV cache per model, the full context size each: at
-  # 192K, qwen3:30b-a3b needs ~37 GiB with two slots versus ~27 GiB with one.
-  services.ollama.environmentVariables.OLLAMA_NUM_PARALLEL = "3";
 
   # Full AMD AI stack on Strix Halo: ROCm + Vulkan + XDNA-2 NPU + FLM +
   # vLLM ROCm + Strata (Qwen3.8-Flash-Next with custom attention). All backends
@@ -214,9 +185,8 @@ in
       autoStart = true;
       # Listen on LAN interfaces; firewall rules below keep it private.
       host = "0.0.0.0";
-      # Keep Lemonade under the shared model root so it sits beside Ollama's cache,
-      # but still keeps its own runtime metadata/index tree instead of sharing a
-      # single model directory between two unrelated backends.
+      # Keep Lemonade under the shared model root, with its own runtime metadata
+      # and index tree.
       cacheDir = lemonadeCacheDir;
       # No Tauri desktop app: barliman is headless; avoids the Rust+npm build.
       desktopApp.enable = false;
@@ -225,8 +195,7 @@ in
         auto_evict = true;
         auto_evict_threshold_pct = 0.90; # start evicting at 90% VRAM pressure
       };
-      # Machine-specific model list is tracked in my-sd-models so the same
-      # declarative naming pattern used for Ollama applies here too. Older
+      # Machine-specific model list is tracked in my-sd-models. Older
       # my-sd-models revisions don't have the Lemonade registry yet, so fall back
       # to an empty list rather than crashing the host evaluation.
       models = machineLemonadeModels;
@@ -327,23 +296,6 @@ in
     trusted-public-keys = lib.mkAfter [
       "nix-amd-ai.cachix.org-1:F4OU4vw/lV2oiG6SBHZ+nqjl4EFJuqI4X9A7pvaBmhQ="
     ];
-  };
-
-  # The coder model as the unattended worker uses it (PLAN.md, T4). Same
-  # weights; two settings differ:
-  #  - num_predict: the base model has no output cap, so one reply could run
-  #    to the 196K context. In T4 (2026-10-12) a reply generated ~52,800
-  #    tokens for 30 min (most likely a looping tool call) before a request
-  #    timeout ended it. 16384 bounds that at ~6 min at barliman's ~46 tok/s,
-  #    far above any real reply seen so far.
-  #  - top_p: the GGUF's own default is 0.95; requests ran at 1.0.
-  # Context size stays at the global value: T2's prompts reached ~70K.
-  services.ollama.modelVariants."_qwen3-coder-next-worker" = {
-    from = "_qwen3-coder-next";
-    parameters = {
-      num_predict = 16384;
-      top_p = "0.95"; # a string: Nix would print the float as 0.950000
-    };
   };
 
   # The Hermes worker's model is machinePrimaryLLMs.barliman.worker (Qwen3.6
