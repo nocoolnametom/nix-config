@@ -139,50 +139,66 @@ let
     open-resume = makeClient "open-resume" {
       displayName = "Open Resume";
     };
+    # Served on the personal domain from smeagol (see estel's caddy.nix), not homeDomain.
     comfyui = makeClient "comfyui" {
       displayName = "ComfyUI";
+      domain = "domain";
     };
     comfyuimini = makeClient "comfyuimini" {
       displayName = "ComfyUI Mini";
+      domain = "domain";
     };
     invokeai = makeClient "invokeai" {
       displayName = "InvokeAI";
+      domain = "domain";
     };
     archerstashvr = makeClient "archerstashvr" {
+      domain = "domain";
       displayName = "Archer Stash VR";
     };
     delugeweb = makeClient "delugeweb" {
+      domain = "domain";
       displayName = "Deluge Web UI";
     };
     flood = makeClient "flood" {
+      domain = "domain";
       displayName = "Flood Torrent UI";
     };
     nzbget = makeClient "nzbget" {
+      domain = "domain";
       displayName = "NZBGet";
     };
     nzbhydra = makeClient "nzbhydra" {
+      domain = "domain";
       displayName = "NZBHydra2 NZB Search";
     };
     pinchflat = makeClient "pinchflat" {
+      domain = "domain";
       displayName = "Pinchflat YouTube Download";
       callbackPath = "";
     };
     radarr = makeClient "radarr" {
+      domain = "domain";
       displayName = "Radarr Movies";
     };
     sonarr = makeClient "sonarr" {
+      domain = "domain";
       displayName = "Sonarr TV";
     };
     stashvr = makeClient "stashvr" {
+      domain = "domain";
       displayName = "Stash VR";
     };
     whisparr = makeClient "whisparr" {
+      domain = "domain";
       displayName = "Whisparr";
     };
     whisparr-eros = makeClient "whisparr-eros" {
+      domain = "domain";
       displayName = "Whisparr Eros";
     };
     tubearchivist = makeClient "tubearchivist" {
+      domain = "domain";
       displayName = "TubeArchivist";
       preferShortUsername = true;
     };
