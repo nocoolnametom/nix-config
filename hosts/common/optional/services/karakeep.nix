@@ -14,7 +14,7 @@ let
 
   # Semantic search. Karakeep compares every returned vector against
   # EMBEDDING_DIMENSIONS and throws on a mismatch, so the width below is part of
-  # the model choice rather than a tuneable: qwen3-embedding:0.6b emits 1024.
+  # the model choice rather than a tuneable: Qwen3-Embedding-0.6B emits 1024.
   embeddingModel = pkgs.my-sd-models.machinePrimaryLLMs.barliman.embedding;
   embeddingDimensions = 1024;
   # How much of a bookmark is folded into its one vector. The model accepts
@@ -105,12 +105,10 @@ in
   # sees it. 64K leaves room for roughly 49,000 words, far past any ordinary
   # article; an image costs about 1,000 tokens, so pictures are not a factor.
   #
-  # The ceiling is memory. Measured on barliman 2026-10-11, this model resident:
-  # 20.6 GB at 32K, 22.3 GB at 64K, 29.5 GB at 192K. Hermes keeps its own model
-  # loaded next to it (hermes-agent.nix, _qwen3.8, 18 GB at 192K), and the pair
-  # has to fit: 64K leaves about 9 GB spare, while 192K makes Ollama evict one
-  # to load the other. Raising this means re-checking that sum - and note it
-  # scales with whatever Hermes's "planning" model costs, not just this one.
+  # The ceiling is memory. Those figures were measured on barliman in 2026-10
+  # under Ollama, with the 30B-A3B vision model (no longer used); they don't
+  # apply to Lemonade's Qwen3-VL-8B. Re-measure before raising this, with
+  # Hermes's "planning" model (Huihui 27B on Lemonade) loaded alongside it.
   services.karakeep.extraEnvironment.INFERENCE_CONTEXT_LENGTH = "65536";
   # No OLLAMA_KEEP_ALIVE: each request resets the model's idle timer to the
   # value it sends, so a short one here would unload the model early.
@@ -120,8 +118,8 @@ in
   # true by default). All four of these have to be set together:
   #
   #   * EMBEDDING_TEXT_MODEL otherwise defaults to OpenAI's name
-  #     "text-embedding-3-small", which Karakeep then asks *Ollama* for, and
-  #     every job fails with 'model not found, try pulling it first'.
+  #     "text-embedding-3-small", which Karakeep would ask the endpoint for, and
+  #     every job fails with 'model not found'.
   #   * EMBEDDING_DIMENSIONS otherwise defaults to 1536 (that OpenAI model's
   #     width) and Karakeep rejects nomic's 768-wide vectors outright.
   #   * EMBEDDING_ENABLE_AUTO_INDEXING, left unset, resolves to

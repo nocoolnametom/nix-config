@@ -346,15 +346,15 @@ in
     };
   };
 
-  # The reasoning model as the worker uses it, and the worker's model since
-  # T2 runs 3-4 (2026-10-12): the only model to fix T2, and the only one
-  # that followed the worker's SOUL.md. Its own sampling defaults (top_p
-  # 0.95, top_k 20) are already right; only an output cap is added, larger
-  # than the coder's because the reasoning counts too. The longest reply in
-  # those runs was ~7K tokens; 32768 bounds a loop at ~12 min.
-  services.ollama.modelVariants."_qwen3.8-worker" = {
-    from = "_qwen3.8";
-    parameters.num_predict = 32768;
+  # The Hermes worker's model is machinePrimaryLLMs.barliman.worker (Qwen3.6
+  # 35B-A3B on Lemonade's llama.cpp recipe). Its output cap is llama-server's
+  # --n-predict as a server default: Hermes leaves max_tokens unset, so the
+  # default applies and bounds a looping run. 32768 is the cap the Ollama
+  # worker variant used; the longest reply seen was ~7K tokens. Strata
+  # (Qwen3.8-Flash-Next) can't take this flag through lemond, so it isn't used.
+  hardware.amd-npu.lemonade.recipeOptions."builtin.Qwen3.6-35B-A3B-MTP-GGUF" = {
+    llamacpp_args = "--n-predict 32768";
+    ctx_size = 131072;
   };
 
   # The Hermes "worker" profile logs in as agent-worker with this key. It is

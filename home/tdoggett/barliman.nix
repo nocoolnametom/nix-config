@@ -273,13 +273,11 @@ in
           };
           model = {
             provider = "lemonade-local";
-            # The reasoning model with an output cap (hosts/barliman/default.nix).
-            # Chosen over _qwen3-coder-next-worker after T2 (PLAN.md): slower,
-            # but the only one that found the right fix and followed SOUL.md.
-            default = "_qwen3.8-worker";
-            context_length = lib.toInt (
-              osConfig.services.ollama.environmentVariables.OLLAMA_CONTEXT_LENGTH or "65536"
-            );
+            # machinePrimaryLLMs.barliman.worker in my-sd-models. Its output cap
+            # is set in hosts/barliman/default.nix (recipeOptions).
+            default = pkgs.my-sd-models.machinePrimaryLLMs.barliman.worker;
+            # Matches the model's ctx_size in hosts/barliman/default.nix.
+            context_length = 131072;
           };
           terminal = {
             backend = "ssh";
