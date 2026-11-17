@@ -500,6 +500,9 @@ in
     Service = {
       Type = "oneshot";
       ExecStart = "${slkBgLauncher}/bin/slk-bg-launcher";
+      # tmux socket in the shared runtime dir, not /tmp: hermes-agent.service
+      # runs with PrivateTmp=yes and could not otherwise see the server.
+      Environment = [ "TMUX_TMPDIR=/run/user/1000" ];
     };
     Install.WantedBy = [ "default.target" ];
   };
@@ -512,6 +515,11 @@ in
     };
     Install.WantedBy = [ "timers.target" ];
   };
+
+  # Interactive shells must use the same socket as the launcher unit (which
+  # sets TMUX_TMPDIR itself, see above) so `tmux attach -t slk-bg` from SSH
+  # reaches the one server everyone shares.
+  home.sessionVariables.TMUX_TMPDIR = "/run/user/1000";
 
   home.activation = {
     # Before upstream's hermesAgentSetup, so its pinned `settings` still land
