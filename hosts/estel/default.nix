@@ -50,6 +50,7 @@
     # "hosts/common/optional/services/immich.nix"
     "hosts/common/optional/services/kanidm.nix"
     "hosts/common/optional/services/karakeep.nix"
+    "hosts/common/optional/services/hermes-api-key-page.nix" # OAuth-protected Hermes API key info page (served by Caddy)
     "hosts/common/optional/services/lemonade-api-key-page.nix" # OAuth-protected API key info page (served by Caddy)
     "hosts/common/optional/services/lan-presence-log.nix" # Wi-Fi investigation, see docs/wifi-diagnostics.md
     # Kavita and Kavitan run on feanor since 2026-10-05, next to their libraries.
@@ -275,6 +276,7 @@
     "comfyuimini"
     "delugeweb"
     "flood"
+    "hermes-api-key-page"
     "invokeai"
     "lemonade-api-key-page"
     "nzbget"

@@ -62,6 +62,7 @@ let
     "whisparr-eros"
     "tubearchivist"
     "lemonade-api-key-page"
+    "hermes-api-key-page"
   ];
 
   # Base secrets for every instance (Kanidm client secret + cookie secret).
@@ -126,6 +127,10 @@ let
     # The page is served by Caddy on this host (see lemonade-api-key-page.nix).
     lemonade-api-key-page = makeInstance "lemonade-api-key-page" "estel" {
       upstreamUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.lemonade-api-key-page}";
+    };
+    # Also served by Caddy on this host (see hermes-api-key-page.nix).
+    hermes-api-key-page = makeInstance "hermes-api-key-page" "estel" {
+      upstreamUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.hermes-api-key-page}";
     };
 
     # estel services (2)

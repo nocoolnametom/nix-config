@@ -261,6 +261,12 @@ let
       domain = "homeDomain";
       proxy = "oauth2";
     }
+    {
+      host = "estel";
+      service = "hermes-api-key-page";
+      domain = "domain";
+      proxy = "oauth2";
+    }
     # INACTIVE: Pinchflat is not running (disabled on durin); route kept for reference.
     # {
     #   host = "durin";

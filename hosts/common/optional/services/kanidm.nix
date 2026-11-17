@@ -205,6 +205,10 @@ let
     lemonade-api-key-page = makeClient "lemonade-api-key-page" {
       displayName = "Lemonade API Key";
     };
+    hermes-api-key-page = makeClient "hermes-api-key-page" {
+      domain = "domain";
+      displayName = "Hermes Agent API Key";
+    };
   };
   # Public clients and link-only tiles have no provisioned client secret.
   secretlessClients = [
