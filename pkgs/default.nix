@@ -11,6 +11,7 @@ rec {
   #################### Packages with external source ############################
   # These need to all be direct derivations for `nix flake check` to work!
 
+  beszel-agent-bin = pkgs.callPackage ./beszel-agent-bin { };
   display-info = pkgs.callPackage ./display-info { };
   split-my-cbz = pkgs.callPackage ./split-my-cbz { };
   stash-vr = pkgs.callPackage ./stash-vr { };
@@ -19,6 +20,7 @@ rec {
   update-cbz-tags = pkgs.callPackage ./update-cbz-tags { };
   mormoncanon = pkgs.callPackage ./mormoncanon { };
   mormonquotes = pkgs.callPackage ./mormonquotes { };
+  n8n-oidc = pkgs.callPackage ./n8n-oidc { };
   journalofdiscourses = pkgs.callPackage ./journalofdiscourses { };
   image-prompt-loop = pkgs.callPackage ./image-prompt-loop { };
   smolcoder = pkgs.callPackage ./smolcoder { };

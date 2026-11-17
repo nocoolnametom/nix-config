@@ -7,7 +7,8 @@
 #  from outside; the editor is LAN-only (see hosts/estel/caddy.nix).
 #
 #  Kanidm login (declarative.oidc): n8n's free edition has no SSO, so this
-#  loads the community kavdau/n8n-oidc external hook (MIT, pinned below). It
+#  loads the community kavdau/n8n-oidc external hook (MIT; packaged in
+#  pkgs/n8n-oidc, bump it after checking its changelog against n8n). It
 #  adds a "Sign in with SSO" button and the /auth/oidc/{login,callback}
 #  routes, and matches Kanidm users to n8n users by verified email, so the
 #  owner signs in as the owner. Its own caveats: it uses n8n internals rather
@@ -65,15 +66,6 @@ let
   decl = cfg.declarative;
 
   publicUrl = "https://${configVars.networking.subdomains.n8n}.${configVars.homeDomain}/";
-
-  # Community OIDC login hook (see the header). Bump rev and hash together,
-  # after checking its changelog against the running n8n version.
-  oidcHook = pkgs.fetchFromGitHub {
-    owner = "kavdau";
-    repo = "n8n-oidc";
-    rev = "bf432a1356cde1195b1048725a30b64d6bcf1b12"; # v2.1.1
-    hash = "sha256-BWDlwcCt+L1t7Q+f2s+m6wSVLNuzzaNOlD9e8D5Dwfk=";
-  };
 
   # n8n reads these from $CREDENTIALS_DIRECTORY. Workflow files must end in
   # .json (import:workflow --separate globs for them); the credentials file
@@ -235,6 +227,8 @@ in
     oidc = {
       enable = lib.mkEnableOption "Kanidm (OIDC) login through the community n8n-oidc hook";
 
+      package = lib.mkPackageOption pkgs "n8n-oidc" { };
+
       issuerUrl = lib.mkOption {
         type = lib.types.str;
         default = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/${decl.oidc.clientId}";
@@ -315,7 +309,7 @@ in
         N8N_LICENSE_ACTIVATION_KEY_FILE = config.sops.secrets.${decl.registrationKeySecret}.path;
       }
       // lib.optionalAttrs decl.oidc.enable {
-        EXTERNAL_HOOK_FILES = "${oidcHook}/hooks.js";
+        EXTERNAL_HOOK_FILES = "${decl.oidc.package}/lib/n8n-oidc/hooks.js";
         # The hook serves this script itself; n8n injects it into the editor.
         EXTERNAL_FRONTEND_HOOKS_URLS = "/assets/oidc-frontend-hook.js";
         N8N_ADDITIONAL_NON_UI_ROUTES = "auth";

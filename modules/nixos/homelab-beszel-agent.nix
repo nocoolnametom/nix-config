@@ -18,40 +18,13 @@ with lib;
 
 let
   cfg = config.services.homelab-beszel-agent;
-
-  # Fetch the latest Beszel agent binary
-  homelab-beszel-agent = pkgs.stdenv.mkDerivation rec {
-    pname = "beszel-agent";
-    version = "0.18.4";
-
-    src = pkgs.fetchurl {
-      url = "https://github.com/henrygd/beszel/releases/download/v${version}/beszel-agent_linux_amd64.tar.gz";
-      sha256 = "sha256-spjttayPRlN0aRtUr2wjmdWA2OvLUB/uURNw+nv5EPk=";
-    };
-
-    nativeBuildInputs = [ pkgs.autoPatchelfHook ];
-
-    unpackPhase = ''
-      tar xzf $src
-    '';
-
-    installPhase = ''
-      mkdir -p $out/bin
-      cp beszel-agent $out/bin/
-      chmod +x $out/bin/beszel-agent
-    '';
-
-    meta = {
-      description = "Lightweight server monitoring agent for Beszel";
-      homepage = "https://github.com/henrygd/beszel";
-      license = licenses.mit;
-      platforms = [ "x86_64-linux" ];
-    };
-  };
 in
 {
   options.services.homelab-beszel-agent = {
     enable = mkEnableOption "Homelab Beszel monitoring agent (custom implementation)";
+
+    # Upstream's release binary, packaged in pkgs/beszel-agent-bin.
+    package = mkPackageOption pkgs "beszel-agent-bin" { };
 
     port = mkOption {
       type = types.port;
@@ -192,7 +165,7 @@ in
               TOKEN_ARG="--token $(cat ${cfg.tokenFile})"
             fi
           ''}
-          exec ${homelab-beszel-agent}/bin/beszel-agent --listen :${toString cfg.port} \
+          exec ${lib.getExe cfg.package} --listen :${toString cfg.port} \
             --url ${cfg.hubUrl} \
             $TOKEN_ARG
         '';
