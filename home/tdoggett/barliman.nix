@@ -488,8 +488,14 @@ in
   # UI reports success while nothing is saved. "false" is upstream's explicit
   # opt-out value (HERMES_MANAGED=false). systemd uses the last assignment of
   # a repeated variable, hence mkAfter.
-  systemd.user.services.hermes-agent.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
-  systemd.user.services.hermes-backend.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
+  systemd.user.services.hermes-agent.Service.Environment = lib.mkAfter [
+    "HERMES_MANAGED=false"
+    "TMUX_TMPDIR=/run/user/1000"
+  ];
+  systemd.user.services.hermes-backend.Service.Environment = lib.mkAfter [
+    "HERMES_MANAGED=false"
+    "TMUX_TMPDIR=/run/user/1000"
+  ];
 
   # slk (Slack TUI) background session: the oneshot launcher is a no-op when
   # the slk-bg tmux session is alive and recreates it after a crash; the
@@ -499,6 +505,7 @@ in
     Unit.Description = "Ensure slk is running in a detached tmux session";
     Service = {
       Type = "oneshot";
+      KillMode = "process";
       ExecStart = "${slkBgLauncher}/bin/slk-bg-launcher";
       # tmux socket in the shared runtime dir, not /tmp: hermes-agent.service
       # runs with PrivateTmp=yes and could not otherwise see the server.
