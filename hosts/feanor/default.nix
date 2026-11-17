@@ -314,6 +314,10 @@ in
   # (hubitat/maker_api/*); vehicles (Bouncie IMEI -> Hubitat device) and the
   # home geo-zone name from configVars.vehicles / configVars.locations
   # (nix-secrets).
+  #
+  # Kanidm login through the community n8n-oidc hook (see the n8n module
+  # header); password login stays available.
+  services.n8n.declarative.oidc.enable = true;
 
   ######################## Container Layer (Komodo) ###########################
   #

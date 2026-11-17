@@ -4,8 +4,18 @@
 #
 #  Public ingress follows the usual path (bombadil -> estel Caddy -> this
 #  host over the LAN), but estel only lets /webhook/* and /healthz through
-#  from outside; the editor is LAN-only (see hosts/estel/caddy.nix). n8n's
-#  free edition has no OIDC login, so there is no Kanidm client for it.
+#  from outside; the editor is LAN-only (see hosts/estel/caddy.nix).
+#
+#  Kanidm login (declarative.oidc): n8n's free edition has no SSO, so this
+#  loads the community kavdau/n8n-oidc external hook (MIT, pinned below). It
+#  adds a "Sign in with SSO" button and the /auth/oidc/{login,callback}
+#  routes, and matches Kanidm users to n8n users by verified email, so the
+#  owner signs in as the owner. Its own caveats: it uses n8n internals rather
+#  than a public API, so an n8n upgrade can break it - it then logs why,
+#  disables itself, and password login keeps working (look for
+#  "[OIDC Hook] ... active on n8n <version>" in the journal after upgrades).
+#  Signing out of n8n does not sign out of Kanidm, and n8n's own SSO
+#  settings page stays locked (this is not the licensed feature).
 #
 #  Everything below is applied on every start of n8n.service, before n8n
 #  itself runs:
@@ -35,6 +45,9 @@
 #
 #  sops keys:
 #    homelab/n8n/owner-password-hash   bcrypt hash of the owner's password
+#    homelab/kanidm/oidc/n8n/client-secret
+#                                      Kanidm client secret (with oidc.enable;
+#                                      the same key kanidm.nix provisions)
 #
 ###############################################################################
 
@@ -50,6 +63,15 @@ let
   decl = cfg.declarative;
 
   publicUrl = "https://${configVars.networking.subdomains.n8n}.${configVars.homeDomain}/";
+
+  # Community OIDC login hook (see the header). Bump rev and hash together,
+  # after checking its changelog against the running n8n version.
+  oidcHook = pkgs.fetchFromGitHub {
+    owner = "kavdau";
+    repo = "n8n-oidc";
+    rev = "bf432a1356cde1195b1048725a30b64d6bcf1b12"; # v2.1.1
+    hash = "sha256-BWDlwcCt+L1t7Q+f2s+m6wSVLNuzzaNOlD9e8D5Dwfk=";
+  };
 
   # n8n reads these from $CREDENTIALS_DIRECTORY. Workflow files must end in
   # .json (import:workflow --separate globs for them); the credentials file
@@ -194,10 +216,50 @@ in
       default = { };
       description = "Workflows imported (and optionally published) on every start.";
     };
+
+    oidc = {
+      enable = lib.mkEnableOption "Kanidm (OIDC) login through the community n8n-oidc hook";
+
+      issuerUrl = lib.mkOption {
+        type = lib.types.str;
+        default = "https://${configVars.networking.subdomains.kanidm}.${configVars.homeDomain}/oauth2/openid/${decl.oidc.clientId}";
+        defaultText = lib.literalExpression ''"https://<kanidm>/oauth2/openid/''${clientId}"'';
+        description = "OIDC issuer; Kanidm's is per client.";
+      };
+
+      clientId = lib.mkOption {
+        type = lib.types.str;
+        default = "n8n";
+        description = "OIDC client id (the Kanidm client name).";
+      };
+
+      clientSecretKey = lib.mkOption {
+        type = lib.types.str;
+        default = "homelab/kanidm/oidc/${decl.oidc.clientId}/client-secret";
+        description = "sops key holding the client secret.";
+      };
+
+      autoProvision = lib.mkOption {
+        type = lib.types.bool;
+        default = false;
+        description = ''
+          Create n8n accounts for Kanidm users who have none. Off: only people
+          whose verified email already matches an n8n user (the owner, or
+          someone invited in the UI) can sign in this way.
+        '';
+      };
+    };
   };
 
   config = {
-    sops.secrets."homelab/n8n/owner-password-hash" = { };
+    sops.secrets = {
+      "homelab/n8n/owner-password-hash" = { };
+    }
+    // lib.optionalAttrs decl.oidc.enable {
+      # Shared with kanidm.nix when Kanidm runs on this host (it sets the
+      # owner); n8n reads it through LoadCredential, as root, either way.
+      ${decl.oidc.clientSecretKey} = { };
+    };
 
     sops.templates =
       lib.mapAttrs' (
@@ -230,6 +292,22 @@ in
         N8N_INSTANCE_OWNER_FIRST_NAME = configVars.username;
         N8N_INSTANCE_OWNER_LAST_NAME = "(n8n)";
         N8N_INSTANCE_OWNER_PASSWORD_HASH_FILE = config.sops.secrets."homelab/n8n/owner-password-hash".path;
+      }
+      // lib.optionalAttrs decl.oidc.enable {
+        EXTERNAL_HOOK_FILES = "${oidcHook}/hooks.js";
+        # The hook serves this script itself; n8n injects it into the editor.
+        EXTERNAL_FRONTEND_HOOKS_URLS = "/assets/oidc-frontend-hook.js";
+        N8N_ADDITIONAL_NON_UI_ROUTES = "auth";
+        # The hook looks for n8n's package by walking up from the binary; on
+        # Nix that is packages/cli inside the store path, so say so outright.
+        OIDC_N8N_PACKAGE_DIR = "${cfg.package}/lib/n8n/packages/cli";
+        OIDC_ISSUER_URL = decl.oidc.issuerUrl;
+        OIDC_CLIENT_ID = decl.oidc.clientId;
+        OIDC_CLIENT_SECRET_FILE = config.sops.secrets.${decl.oidc.clientSecretKey}.path;
+        OIDC_AUTO_PROVISION = decl.oidc.autoProvision;
+        # The owner's name and email come from N8N_INSTANCE_OWNER_* on every
+        # start; copying Kanidm's on each sign-in would just fight that.
+        OIDC_SYNC_PROFILE = false;
       };
     };
 

@@ -78,6 +78,7 @@ let
     jellyfin = config.services.jellyfin.enable;
     kavita = config.services.kavita.enable;
     kavitan = config.services.kavitan.enable or false;
+    n8n = config.services.n8n.enable;
     navidrome = config.services.navidrome.enable;
     pinchflat = config.services.pinchflat.enable or false; # would run here if revived
     podfetch = arionProjects ? podfetch;
@@ -354,6 +355,13 @@ in
                       callbackPath = "/auth/oauth2/callback";
                       preferShortUsername = true;
                       allowInsecureClientDisablePkce = true;
+                    };
+
+                    # n8n signs in through the community n8n-oidc hook (n8n/default.nix),
+                    # which uses PKCE and accepts ES256, and matches users by email.
+                    n8n = makeClient "n8n" {
+                      displayName = "n8n Automation";
+                      callbackPath = "/auth/oidc/callback";
                     };
 
                     # Mealie finishes the OIDC flow on its /login page and matches users
