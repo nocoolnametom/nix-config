@@ -42,6 +42,8 @@
     helium-browser-flake
     # Lemonade desktop app (Tauri client). Connects to a remote lemond over the network.
     inputs.nix-amd-ai.packages.${pkgs.stdenv.hostPlatform.system}.lemonade.tauri-app
+    # Hermes Agent desktop app (Electron). Add the remote Hermes as a connection in the app.
+    inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.desktop
     orion-browser-flake
     megasync
     remmina

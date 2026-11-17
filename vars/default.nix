@@ -19,6 +19,10 @@ in
     sso
     ;
   friendBlogDomain = inputs.nix-secrets.networking.blog.friends.domain;
+  # Named places (map coordinates, Bouncie geo-zone name) and vehicles (Bouncie
+  # IMEI, Hubitat device). Fallbacks keep older nix-secrets revisions evaluating.
+  locations = inputs.nix-secrets.locations or { };
+  vehicles = inputs.nix-secrets.vehicles or { };
 
   inherit username handle;
 

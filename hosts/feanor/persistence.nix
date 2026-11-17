@@ -60,6 +60,9 @@
       "/var/lib/redis-immich" # Immich job queue
       "/var/backup/postgresql" # nightly pg_dump of podfetch (backed up by borg)
       "/var/lib/private/webdav"
+      # n8n (DynamicUser): SQLite DB and execution history. Owner, credentials
+      # and workflows are re-provisioned from Nix on every start anyway.
+      "/var/lib/private/n8n"
       "/var/lib/samba"
       "/var/lib/syncthing" # index DB + device keys; losing this re-hashes everything
       "/var/lib/systemd/coredump"

@@ -482,6 +482,25 @@ in
       '';
     };
 
+    # Special: n8n on feanor. Outside callers (Bouncie, etc.) may reach only
+    # production webhooks and the health check; the editor and its API are
+    # LAN-only like Komodo above, since a workflow editor can run code on
+    # feanor. Webhooks check their own credentials inside n8n.
+    "${configVars.networking.subdomains.n8n}.${configVars.homeDomain}" = {
+      useACMEHost = "wild-${configVars.homeDomain}";
+      extraConfig = ''
+        @public path /webhook/* /healthz
+        @outside not remote_ip 192.168.0.0/16 ::ffff:192.168.0.0/112
+        handle @public {
+          reverse_proxy ${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.n8n}
+        }
+        handle {
+          respond @outside "LAN only" 403
+          reverse_proxy ${configVars.networking.subnets.feanor.ip}:${toString configVars.networking.ports.tcp.n8n}
+        }
+      '';
+    };
+
     # Special: Health check endpoint (not redirected during failover)
     "${configVars.healthDomain}" = {
       useACMEHost = "wild-${configVars.domain}";

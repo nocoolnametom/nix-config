@@ -100,6 +100,8 @@ in
     "hosts/common/optional/services/jellyfin.nix"
     "hosts/common/optional/services/kavita.nix"
     "hosts/common/optional/services/navidrome.nix"
+    "hosts/common/optional/services/n8n" # webhooks public via estel, editor LAN-only
+    "hosts/common/optional/services/n8n/workflows/bouncie-hubitat.nix"
     "hosts/common/optional/services/comin.nix" # follows this repo's main branch from GitHub and switches to it
     "hosts/common/optional/services/openssh.nix"
     "hosts/common/optional/services/syncthing.nix"
@@ -304,6 +306,14 @@ in
       "x-systemd.requires-mounts-for=${dataRoot}/syncthing"
     ];
   };
+
+  ################################# n8n #######################################
+  #
+  # Service and provisioning: hosts/common/optional/services/n8n/. Nothing
+  # here is host-specific: the Maker API instance comes from sops
+  # (hubitat/maker_api/*); vehicles (Bouncie IMEI -> Hubitat device) and the
+  # home geo-zone name from configVars.vehicles / configVars.locations
+  # (nix-secrets).
 
   ######################## Container Layer (Komodo) ###########################
   #
