@@ -94,6 +94,52 @@ let
             yaml.dump(merged, f, default_flow_style=False, sort_keys=False)
         config_path.chmod(0o600)
   '';
+
+  # Keeps slk (the Slack TUI) alive in a detached tmux session so its
+  # WebSocket connection to Slack stays open and the SQLite message cache
+  # (~/.local/share/slk/cache.db) stays current even when no terminal is
+  # attached. Mirrors the MacBook Pro's launchd slk-bg-launcher (see
+  # modules/darwin/slk-watcher.nix).
+  #
+  # ── Attaching to the live TUI ────────────────────────────────────────────
+  #   tmux attach -t slk-bg    # interactive use (first run: complete
+  #                            # onboarding / workspace auth here)
+  #   Ctrl-b d                 # detach (slk keeps running in the background)
+  #
+  # ── Other useful commands ────────────────────────────────────────────────
+  #   tmux has-session -t slk-bg && echo running || echo stopped
+  #   tmux kill-session -t slk-bg   # stop the background slk entirely
+  # ────────────────────────────────────────────────────────────────────────
+  slkBgLauncher = pkgs.writeShellApplication {
+    name = "slk-bg-launcher";
+    runtimeInputs = [
+      pkgs.slk
+      pkgs.tmux
+    ];
+    text = ''
+      # slk-bg-launcher — ensure slk is running in a detached tmux session.
+      #
+      # Run at boot/login (default.target) and again every 5 minutes by the
+      # slk-bg-launcher timer. If the session already exists, exit
+      # immediately as a no-op; if slk crashed or was killed, the next tick
+      # recreates the session. (The wrapper already sets errexit/nounset/
+      # pipefail.)
+      SESSION="slk-bg"
+
+      if tmux has-session -t "$SESSION" 2>/dev/null; then
+        # Session exists — slk is still running; nothing to do.
+        exit 0
+      fi
+
+      if ! command -v slk >/dev/null 2>&1; then
+        echo "[$(date)] slk-bg-launcher: slk not found on PATH; is the slk package available?" >&2
+        exit 1
+      fi
+
+      echo "[$(date)] slk-bg-launcher: (re)creating tmux session '$SESSION'"
+      tmux new-session -d -s "$SESSION" slk
+    '';
+  };
 in
 {
   imports = [
@@ -445,6 +491,36 @@ in
   systemd.user.services.hermes-agent.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
   systemd.user.services.hermes-backend.Service.Environment = lib.mkAfter [ "HERMES_MANAGED=false" ];
 
+  # slk (Slack TUI) background session: the oneshot launcher is a no-op when
+  # the slk-bg tmux session is alive and recreates it after a crash; the
+  # timer keeps checking. See the slkBgLauncher comment above. The user
+  # completes first-run auth by attaching (tmux attach -t slk-bg).
+  systemd.user.services.slk-bg-launcher = {
+    Unit.Description = "Ensure slk is running in a detached tmux session";
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${slkBgLauncher}/bin/slk-bg-launcher";
+      # tmux socket in the shared runtime dir, not /tmp: hermes-agent.service
+      # runs with PrivateTmp=yes and could not otherwise see the server.
+      Environment = [ "TMUX_TMPDIR=/run/user/1000" ];
+    };
+    Install.WantedBy = [ "default.target" ];
+  };
+
+  systemd.user.timers.slk-bg-launcher = {
+    Unit.Description = "Periodic liveness check for the slk-bg tmux session";
+    Timer = {
+      OnBootSec = "15s";
+      OnUnitActiveSec = "5min";
+    };
+    Install.WantedBy = [ "timers.target" ];
+  };
+
+  # Interactive shells must use the same socket as the launcher unit (which
+  # sets TMUX_TMPDIR itself, see above) so `tmux attach -t slk-bg` from SSH
+  # reaches the one server everyone shares.
+  home.sessionVariables.TMUX_TMPDIR = "/run/user/1000";
+
   home.activation = {
     # Before upstream's hermesAgentSetup, so its pinned `settings` still land
     # on top of these defaults.
@@ -464,6 +540,7 @@ in
   # Custom packages are already overlaid into the provided `pkgs`
   home.packages = with pkgs; [
     handbrake
+    slk
   ];
 
   home = {
