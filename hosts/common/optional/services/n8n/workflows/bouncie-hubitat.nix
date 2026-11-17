@@ -160,7 +160,7 @@ in
     services.n8n.declarative.credentials = {
       ${credentialIds.webhookKey} = {
         id = credentialIds.webhookKey;
-        name = "Bouncie webhook key";
+        name = "Bouncie webhook key (derived from nix-config)";
         type = "httpHeaderAuth";
         data = {
           name = cfg.webhookKeyHeader;
@@ -169,7 +169,7 @@ in
       };
       ${credentialIds.makerApi} = {
         id = credentialIds.makerApi;
-        name = "Hubitat Maker API";
+        name = "Hubitat Maker API (derived from nix-config)";
         type = "httpQueryAuth";
         data = {
           name = "access_token";
