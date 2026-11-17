@@ -318,6 +318,9 @@ in
   # Kanidm login through the community n8n-oidc hook (see the n8n module
   # header); password login stays available.
   services.n8n.declarative.oidc.enable = true;
+  # Free registered-Community licence (folders, debug in editor, custom
+  # execution data).
+  services.n8n.declarative.registrationKeySecret = "homelab/n8n/registration-key";
 
   ######################## Container Layer (Komodo) ###########################
   #

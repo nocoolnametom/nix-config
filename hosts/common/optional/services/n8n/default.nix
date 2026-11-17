@@ -48,6 +48,8 @@
 #    homelab/kanidm/oidc/n8n/client-secret
 #                                      Kanidm client secret (with oidc.enable;
 #                                      the same key kanidm.nix provisions)
+#    homelab/n8n/registration-key      free "registered Community" licence key
+#                                      (with registrationKeySecret set)
 #
 ###############################################################################
 
@@ -217,6 +219,19 @@ in
       description = "Workflows imported (and optionally published) on every start.";
     };
 
+    registrationKeySecret = lib.mkOption {
+      type = lib.types.nullOr lib.types.str;
+      default = null;
+      example = "homelab/n8n/registration-key";
+      description = ''
+        sops key holding the free licence key n8n emails when an instance is
+        registered (Settings > Plan & usage > Unlock); it unlocks folders,
+        debug in editor and custom execution data. n8n activates it once, on
+        a start with no licence stored yet, and keeps the licence in its data
+        directory after that. Null leaves the instance unregistered.
+      '';
+    };
+
     oidc = {
       enable = lib.mkEnableOption "Kanidm (OIDC) login through the community n8n-oidc hook";
 
@@ -255,6 +270,9 @@ in
     sops.secrets = {
       "homelab/n8n/owner-password-hash" = { };
     }
+    // lib.optionalAttrs (decl.registrationKeySecret != null) {
+      ${decl.registrationKeySecret} = { };
+    }
     // lib.optionalAttrs decl.oidc.enable {
       # Shared with kanidm.nix when Kanidm runs on this host (it sets the
       # owner); n8n reads it through LoadCredential, as root, either way.
@@ -292,6 +310,9 @@ in
         N8N_INSTANCE_OWNER_FIRST_NAME = configVars.username;
         N8N_INSTANCE_OWNER_LAST_NAME = "(n8n)";
         N8N_INSTANCE_OWNER_PASSWORD_HASH_FILE = config.sops.secrets."homelab/n8n/owner-password-hash".path;
+      }
+      // lib.optionalAttrs (decl.registrationKeySecret != null) {
+        N8N_LICENSE_ACTIVATION_KEY_FILE = config.sops.secrets.${decl.registrationKeySecret}.path;
       }
       // lib.optionalAttrs decl.oidc.enable {
         EXTERNAL_HOOK_FILES = "${oidcHook}/hooks.js";
