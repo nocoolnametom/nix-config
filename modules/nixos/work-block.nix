@@ -43,7 +43,14 @@
 #
 #   Blocked services carry an ExecCondition (see blockGuardScript) so that a
 #   start attempt during a session is skipped quietly instead of being killed
-#   mid-start by Conflicts= and left in a failed state.
+#   mid-start and left in a failed state.
+#
+#   No Conflicts= between work-block.service and the blocked services: it is
+#   symmetric, so every start attempt of a blocked service (a rebuild restarting
+#   it, its own Restart=) also stopped work-block.service, even when the guard
+#   then refused the start - leaving both down (seen on durin 2026-11-17).
+#   work-block.service instead stops the blocked services itself in
+#   ExecStartPre, and the guard alone keeps them from starting.
 #
 # Manual controls:
 #   Force a fresh block session for today:
@@ -221,8 +228,9 @@ let
 
   # Portless helper units belonging to a requested group. These get the start
   # guard but deliberately stay out of uniqueServiceNames: they have no port to
-  # serve a placeholder on, and no Conflicts= either, since being killed
-  # mid-start is what leaves a unit sitting in the failed state.
+  # serve a placeholder on, and are not stopped by work-block.service either,
+  # since being killed mid-start is what leaves a unit sitting in the failed
+  # state.
   requestedCompanions = flatten (
     map (
       friendlyName:
@@ -663,7 +671,14 @@ let
       fi
 
       echo "Session still active until $BLOCKED_UNTIL; starting work-block.service."
-      ${pkgs.systemd}/bin/systemctl start work-block.service
+      # A rebuild landing at the same moment can cancel this start job while it
+      # restarts work-block.service itself ("Job ... canceled"); try once more
+      # rather than failing the unit (and the rebuild) over it.
+      if ! ${pkgs.systemd}/bin/systemctl start work-block.service; then
+        echo "Start of work-block.service did not complete; retrying once."
+        ${pkgs.coreutils}/bin/sleep 3
+        ${pkgs.systemd}/bin/systemctl start work-block.service
+      fi
       exit 0
     fi
 
@@ -708,10 +723,17 @@ let
   # the unit stays inactive instead of failed, and OnFailure= does not fire.
   #
   # Without this, a start attempt during a session (a rebuild, a boot, or the
-  # unit's own Restart=) races work-block.service's Conflicts=: the start gets
+  # unit's own Restart=) races work-block.service stopping it: the start gets
   # SIGTERMed mid-flight, which leaves the unit *failed*, fires the failure
   # alert, and makes switch-to-configuration exit non-zero. Blocking is
   # intentional, so it should be quiet.
+  #
+  # The guard itself can be the thing that is running when work-block.service
+  # stops the unit (smeagol, 2026-11-17: a rebuild started stash just as
+  # work-block came back up). Systemd SIGTERMs the control process, and a
+  # control process killed by a signal fails the unit, so the trap exits
+  # cleanly instead and the stop completes with the unit merely inactive.
+  # Being stopped means "blocked" anyway.
   #
   # Two tests, in order of directness:
   #   1. work-block.service itself. While it is up it owns the ports, so a start
@@ -729,6 +751,11 @@ let
   blockGuardScript = pkgs.writeScript "work-block-guard.sh" ''
     #!${pkgs.bash}/bin/bash
     set -uo pipefail
+
+    # exit 0, not 1: by the time this runs systemd is already stopping the
+    # unit, and in that state only a clean exit counts as success (exit 1
+    # still fails it, just with Result=exit-code; tested 2026-11-17).
+    trap 'echo "Stopped while checking; leaving the unit inactive."; exit 0' TERM
 
     WB_STATE=$(${pkgs.systemd}/bin/systemctl show -p ActiveState --value work-block.service 2>/dev/null || echo "")
     case "$WB_STATE" in
@@ -912,19 +939,21 @@ in
       ];
 
       # Main work-block service: HTTP server on the blocked ports.
-      # Conflicts= stops the blocked services when this starts.
-      # ExecStopPost restarts them when this stops (via the helper below).
+      # ExecStartPre stops the blocked services (they must free their ports
+      # first); ExecStopPost restarts them when this stops (via the helper below).
+      # Deliberately not Conflicts= (see the header).
       systemd.services.work-block = {
         description = "Work Block - Disable distracting services during work hours (Python HTTP server)";
 
         before = uniqueServiceNamesWithSuffix;
-        conflicts = uniqueServiceNamesWithSuffix;
 
         serviceConfig = {
           Type = "simple";
           Restart = "on-failure";
           RestartSec = "10s";
 
+          # '+': full privileges (the unit itself is a sandboxed DynamicUser).
+          ExecStartPre = "+${pkgs.systemd}/bin/systemctl stop ${concatStringsSep " " uniqueServiceNamesWithSuffix}";
           ExecStart = "${serverScript}";
 
           # '-+' prefix: ignore failures, run with full privileges (bypass sandbox)
@@ -1087,8 +1116,15 @@ in
     # state) while a session is in effect. Each registry entry is gated on its
     # owning service's enable option, so these names always refer to units some
     # other module already defines.
+    #
+    # When a boot or rebuild starts them alongside work-block-check, they wait
+    # for it: the check decides first (and brings work-block.service up if a
+    # session is on), so the guard sees the outcome instead of racing it.
+    # Ordering only applies when both are queued together, so ordinary starts
+    # are unaffected.
     {
       systemd.services = genAttrs guardedServiceNames (_: {
+        after = [ "work-block-check.service" ];
         serviceConfig.ExecCondition = [ "${blockGuardScript}" ];
       });
     }
