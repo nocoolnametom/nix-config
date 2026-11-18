@@ -19,6 +19,14 @@ let
   # Use unstable to track the most recent stable-ish ntfy version.
   ntfyPackage = pkgs.unstable.ntfy-sh;
   ntfyBin = "${ntfyPackage}/bin/ntfy";
+
+  # Subscriber on the phone: the family admin account, which bypasses ACLs.
+  slkUser = configVars.username;
+  # Account that owns the Hermes gateway publisher token for the private
+  # Slack triage topic (created on bombadil with `ntfy token add`; the token
+  # lives in nix-secrets).
+  slkPublisherUser = "hermes-alerts";
+  slkTopic = configVars.ntfy.topics.important-slacks;
 in
 {
   services.ntfy-sh.enable = lib.mkDefault true;
@@ -31,6 +39,27 @@ in
   # while still enforcing credentials when provided.
   services.ntfy-sh.settings.auth-default-access = "read-write";
 
+  # Private Slack triage topic: published by the Hermes gateway (barliman)
+  # with the publisher token owned by ${slkPublisherUser}; subscribed to
+  # on the phone while authenticated as ${slkUser} (ntfy app -> Settings 
+  # -> Auth).
+  #
+  # ntfy's ACL resolver (user/access_cache.go) falls back to the * entry for
+  # ANY user without their own entry, before auth-default-access — so the
+  # wildcard entry below denies topic to anonymous clients AND to
+  # non-admin users without an explicit grant, while auth-default-access
+  # keeps read-write for all other topics (UnifiedPush, alerts, ...).
+  # Named-user grants cannot be declared here unless the users are also in
+  # auth-users, so ntfy-user-sync below applies them to user.db:
+  #   ${slkPublisherUser}:topic write-only (the gateway publisher)
+  #   ${slkUser}:topic read-write (belt and braces: ${slkUser} is an
+  #   admin, which already implies rw)
+  # Verified live on ntfy 2.37.2: anon publish/subscribe -> 403,
+  # token publish -> 200, anon publish/subscribe on other topics -> 200.
+  services.ntfy-sh.settings.auth-access = [
+    "*:${slkTopic}:deny-all"
+  ];
+
   # One sops secret per SSO user — each file contains only the plaintext password.
   # In nix-secrets, add these under the ntfy key in the relevant SOPS YAML, e.g.:
   #   ntfy:
@@ -41,8 +70,10 @@ in
 
   # Sync declared users into ntfy's SQLite DB on every boot/rebuild.
   # Idempotent: creates users that don't exist, updates passwords and roles for those that do.
+  # Also applies the explicit read-write grant for the private Slack triage
+  # topic (complementing the declarative anonymous-deny in auth-access above).
   systemd.services.ntfy-user-sync = {
-    description = "Sync ntfy users from declarative config";
+    description = "Sync ntfy users and the topic grant from declarative config";
     after = [
       "ntfy-sh.service"
       "sops-install-secrets.service"
@@ -70,6 +101,28 @@ in
         ${lib.concatMapStrings (u: ''
           setup_user "${u.name}" "${u.role}" "${config.sops.secrets."ntfy/${u.name}".path}"
         '') ntfyUsers}
+
+        # Explicit publisher/subscriber grant for the private Slack triage
+        # topic (idempotent): anonymous is denied by auth-access in
+        # server.yml, ${slkUser} keeps read-write on ${slkTopic}.
+        # The grant is belt-and-braces (${slkUser} is an admin and bypasses
+        # ACLs), and ntfy exits 1 with an "admin user" note in that case —
+        # tolerate exactly that outcome, fail on anything else.
+        if ! grant_out=$(${ntfyBin} access "${slkUser}" "${slkTopic}" read-write 2>&1); then
+          if printf '%s\n' "$grant_out" | grep -q 'access control entries have no effect'; then
+            echo "note: ${slkUser} is an admin; ACL grant on ${slkTopic} is a no-op (expected)"
+          else
+            printf 'unexpected failure applying ${slkUser} ACL grant on %s:\n%s\n' "${slkTopic}" "$grant_out" >&2
+            exit 1
+          fi
+        fi
+
+        # The gateway publisher account needs its own grant: ntfy's ACL
+        # resolver falls back to the * entry (which denies ${slkTopic}) for
+        # any user without an explicit entry, so without this the token
+        # publish 403s. ${slkPublisherUser} is a plain (non-admin) user, so
+        # the command succeeds normally.
+        ${ntfyBin} access "${slkPublisherUser}" "${slkTopic}" write-only
       '';
       User = "root";
     };

@@ -25,6 +25,7 @@ rec {
   image-prompt-loop = pkgs.callPackage ./image-prompt-loop { };
   smolcoder = pkgs.callPackage ./smolcoder { };
   slk = pkgs.callPackage ./slk { };
+  slack-watch = pkgs.callPackage ./slack-watch { };
   wakatime-zsh-plugin = pkgs.callPackage ./wakatime-zsh-plugin { };
   whisparr-eros = pkgs.callPackage ./whisparr-eros { };
   yknotify = pkgs.callPackage ./yknotify { };

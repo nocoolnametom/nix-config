@@ -17,6 +17,7 @@ in
     work
     calendars
     sso
+    ntfy
     ;
   friendBlogDomain = inputs.nix-secrets.networking.blog.friends.domain;
   # Named places (map coordinates, Bouncie geo-zone name) and vehicles (Bouncie
