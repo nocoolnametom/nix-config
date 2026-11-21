@@ -172,13 +172,15 @@ def scan(con, st, self_id):
 
 
 def make_event(con, kind, r):
-    # ts is TEXT with a fixed-width epoch; lexicographic <= matches numeric
-    # <=, and comparing the raw column keeps the (channel_id, ts) index in play.
+    # Compare raw timestamps to preserve the (channel_id, ts) index.
+    thread_ts = r["thread_ts"] if r["thread_ts"] != r["ts_raw"] else ""
     ctx = con.execute(
         """SELECT user_id, text FROM messages
-           WHERE channel_id=? AND is_deleted = 0 AND ts <= ?
+           WHERE channel_id=? AND is_deleted = 0 AND ts < ?
+             AND (? = '' OR ts = ? OR thread_ts = ?)
            ORDER BY ts DESC LIMIT ?""",
-        (r["channel_id"], r["ts_raw"], CONTEXT_MSGS + 1),
+        (r["channel_id"], r["ts_raw"], thread_ts, thread_ts, thread_ts,
+         CONTEXT_MSGS),
     ).fetchall()
     return {
         "kind": kind[0],
@@ -191,7 +193,7 @@ def make_event(con, kind, r):
         "text": (r["text"] or "")[:800],
         "context": [
             {"from": c["user_id"], "text": (c["text"] or "")[:200]}
-            for c in reversed(ctx) if c["user_id"] != r["user_id"]
+            for c in reversed(ctx)
         ],
     }
 
@@ -228,7 +230,7 @@ def fit_budget(candidates, con):
     Returns [(ca, uid, event)]."""
     batched = [(ca, uid, make_event(con, kind, r))
                for ca, uid, kind, r in candidates[:MAX_EVENTS]]
-    while batched and len(json.dumps(
+    while len(batched) > 1 and len(json.dumps(
             build_payload([e for _, _, e in batched]), indent=2)) > RENDER_BUDGET:
         batched.pop()
     while batched and len(json.dumps(
@@ -280,11 +282,16 @@ def main():
     daemon = "--daemon" in sys.argv
 
     st = load_state(backfill)
+    if daemon:
+        save_state(st)
     con = sqlite3.connect(f"file:{DB}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     self_id = find_self_id(con)
 
     if not daemon:
+        if "--backfill" in sys.argv:
+            st["last_ca"] = int(time.time() - backfill)
+            st["seen"] = set()
         # Inspection mode: READ-ONLY. Print the batch that would go out now;
         # delivery state belongs to the daemon alone (writing here could
         # skip undelivered candidates or race the daemon's state file).
@@ -330,6 +337,9 @@ def main():
                     time.sleep(min(poll * 4, 60))
                 continue
 
+            if not self_id:
+                time.sleep(poll)
+                continue
             candidates, max_ca, _ = scan(con, st, self_id)
             batched = fit_budget(candidates, con)
             if not batched:

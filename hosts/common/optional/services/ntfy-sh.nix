@@ -122,7 +122,7 @@ in
         # any user without an explicit entry, so without this the token
         # publish 403s. ${slkPublisherUser} is a plain (non-admin) user, so
         # the command succeeds normally.
-        ${ntfyBin} access "${slkPublisherUser}" "${slkTopic}" write-only
+        ${ntfyBin} access "${slkPublisherUser}" "${slkTopic}" read-write
       '';
       User = "root";
     };
