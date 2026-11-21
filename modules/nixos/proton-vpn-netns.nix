@@ -312,7 +312,7 @@ in
               set -eu
               prefer=$(jq -r '.server // empty' ${stateDir}/server.json 2>/dev/null || true)
               ${lib.getExe cfg.package} ${confgenArgs} ''${prefer:+--prefer "$prefer"}
-              ip netns exec ${ns} wg setconf ${ifname} ${runDir}/wg.conf
+              ip netns exec ${ns} wg syncconf ${ifname} ${runDir}/wg.conf
             '';
           };
         };
@@ -355,9 +355,11 @@ in
               # proton-vpn-tunnel's job (including its back-off when the sign-in
               # is refused), so don't poke it from here.
               tunnel_state=$(systemctl show -p ActiveState --value proton-vpn-tunnel.service)
+              tunnel_status=$(systemctl show -p ExecMainStatus --value proton-vpn-tunnel.service)
               if [ -f ${runDir}/wg.conf ] \
                 && [ $((now - $(stat -c %Y ${runDir}/wg.conf))) -ge ${toString cfg.handshakeTimeout} ] \
-                && [ "$tunnel_state" != activating ] && [ "$tunnel_state" != active ]; then
+                && [ "$tunnel_state" != activating ] && [ "$tunnel_state" != active ] \
+                && { [ "$tunnel_state" != failed ] || [ "$tunnel_status" != 2 ]; }; then
                 server=$(jq -r '.server // empty' ${stateDir}/server.json 2>/dev/null || true)
                 entry=$(jq -r '.entry_ip // empty' ${stateDir}/server.json 2>/dev/null || true)
                 if [ "$handshake" -gt 0 ]; then age="for $((now - handshake))s"; else age="at all"; fi
@@ -409,7 +411,7 @@ in
       (mkIf cfg.portForwarding.enable {
         proton-vpn-portforward = {
           description = "Keep a Proton VPN NAT-PMP port forward open";
-          wantedBy = [ "multi-user.target" ];
+          wantedBy = [ "multi-user.target" ] ++ map (s: "${s}.service") cfg.confinedServices;
           requires = [ "proton-vpn-netns.service" ];
           after = [
             "proton-vpn-netns.service"

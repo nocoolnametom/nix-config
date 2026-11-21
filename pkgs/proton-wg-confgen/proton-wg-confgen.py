@@ -139,6 +139,9 @@ async def refresh(session: VPNSession, args, state_file: Path) -> VPNSession:
             sys.exit(EXIT_NEEDS_HUMAN)
         except (ProtonAPIAuthenticationNeeded, ProtonAPIError) as error:
             http_code = getattr(error, "http_code", None)
+            if http_code == 422 and getattr(error, "body_code", None) == 9001:
+                log("Proton requires human verification; sign in with an official app before retrying")
+                sys.exit(EXIT_NEEDS_HUMAN)
             if attempt == 2 or not (
                 isinstance(error, ProtonAPIAuthenticationNeeded) or http_code in (401, 403)
             ):
@@ -218,7 +221,18 @@ def pick_server(session: VPNSession, args):
     chosen = next((s for s in candidates if s.name == args.prefer), None)
     if chosen is None:
         chosen = random.choice(candidates[: args.top])
-    physical = random.choice(usable_physicals(chosen, excluded))
+    physicals = usable_physicals(chosen, excluded)
+    previous_entry = None
+    if args.info and chosen.name == args.prefer:
+        try:
+            previous = json.loads(Path(args.info).read_text(encoding="utf-8"))
+            if isinstance(previous, dict) and previous.get("server") == chosen.name:
+                previous_entry = previous.get("entry_ip")
+        except (OSError, ValueError):
+            pass
+    physical = next((p for p in physicals if p.entry_ip == previous_entry), None)
+    if physical is None:
+        physical = random.choice(physicals)
     return chosen, physical
 
 
