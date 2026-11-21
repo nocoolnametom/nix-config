@@ -90,7 +90,12 @@ in
       detect-private-keys.enable = true;
       fix-byte-order-marker.enable = true;
       mixed-line-endings.enable = true;
-      trim-trailing-whitespace.enable = true;
+      trim-trailing-whitespace = {
+        enable = true;
+        # Unified diffs mark blank context lines with a single space; trimming
+        # it rewrites the patch (e.g. pkgs/mormonquotes/fix-php84.patch).
+        excludes = [ "\\.patch$" ];
+      };
 
       forbid-submodules = {
         enable = true;
