@@ -457,6 +457,7 @@ def main():
                     save_state(st)  # persist BEFORE POST: a lost POST retries
 
             if st["pending"]:
+                save_state(st)
                 # Retry the exact batch under the same X-Request-ID until
                 # the gateway acknowledges it.
                 status = post_batch(st["pending"]["payload"],
