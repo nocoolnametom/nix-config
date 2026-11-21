@@ -99,7 +99,16 @@ BULK_NOISE = ("datadog", "newrelic", "grafana", "watchdog", "sentry",
 ROW_SQL = """
     SELECT m.rowid AS seq, m.ts AS ts_raw, CAST(m.ts AS REAL) AS ts,
            m.workspace_id, m.channel_id, m.user_id, m.text, m.thread_ts,
-           m.is_deleted, c.id AS cid, c.name AS cname, c.last_read_ts,
+           m.is_deleted, c.id AS cid, c.name AS cname,
+           CASE
+               WHEN m.thread_ts <> '' AND m.thread_ts <> m.ts
+                    AND m.subtype <> 'thread_broadcast'
+               THEN (SELECT s.last_read FROM thread_subscriptions s
+                     WHERE s.workspace_id = m.workspace_id
+                       AND s.channel_id = m.channel_id
+                       AND s.thread_ts = m.thread_ts)
+               ELSE c.last_read_ts
+           END AS last_read_ts,
            CASE c.type WHEN 'dm' THEN 'im' WHEN 'group_dm' THEN 'mpim'
                 ELSE c.type END AS ctype,
            u.name AS uname
