@@ -11,54 +11,11 @@
 
     # Services to block during work hours
     # Only services that are actually enabled on each system will be blocked
-    services = [
-      "stash" # Stash media server
-      "stashvr" # Stash VR helper (local + external)
-      "invokeai" # InvokeAI AI image generation
-      "comfyui" # ComfyUI (native or Docker)
-      "comfyuimini" # ComfyUI Mini frontend
-      "kavitan" # Kavitan media reader (not kavita)
-      "openwebui" # Open WebUI
-    ];
+    services = configVars.work.workblock-services ++ [ ];
 
     # Holidays - days when work-block should NOT activate (even on work days)
     # Format: YYYY-MM-DD
-    holidays = [
-      # 2026 Paid Holidays
-      "2026-01-19" # Martin Luther King Jr. Day
-      "2026-05-25" # Memorial Day
-      "2026-06-19" # Juneteenth
-      "2026-07-03" # Independence Day (observed)
-      "2026-09-07" # Labor Day
-      "2026-11-26" # Thanksgiving
-      "2026-11-27" # Day after Thanksgiving
-      "2026-12-24" # Christmas Eve
-      "2026-12-25" # Christmas Day
-
-      # Time Off / Vacation Days
-      # Add your vacation days here as you schedule them
-      "2026-02-16"
-      "2026-04-16"
-      "2026-04-17"
-      "2026-04-20"
-      "2026-04-21"
-      "2026-04-22"
-      "2026-04-23"
-      "2026-04-24"
-      "2026-06-01"
-      "2026-06-02"
-      "2026-06-03"
-      "2026-06-04"
-      "2026-06-05"
-      "2026-07-27"
-      "2026-07-28"
-      "2026-07-29"
-      "2026-07-30"
-      "2026-07-31"
-      "2026-11-23"
-      "2026-11-24"
-      "2026-11-25"
-    ];
+    holidays = configVars.work.holidays ++ configVars.work.vacations ++ [ ];
 
     # Work hours (default: Mon-Fri 8am-5pm in system timezone)
     # Uncomment and adjust if you want different hours:
