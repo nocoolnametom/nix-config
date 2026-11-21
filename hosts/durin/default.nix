@@ -43,8 +43,8 @@ in
     "hosts/common/optional/gpg-agent.nix"
 
     # Copy the same optional service modules as bert; enable/disable as you prefer
-    "hosts/common/optional/per-user-vpn-setup.nix"
     "hosts/common/optional/services/deluge.nix"
+    "hosts/common/optional/services/deluge-proton-vpn.nix" # Deluge confined to a Proton WireGuard netns
     "hosts/common/optional/services/flood.nix"
     "hosts/common/optional/services/miniflux.nix"
     "hosts/common/optional/services/nzbget.nix"

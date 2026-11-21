@@ -62,7 +62,13 @@
     move_completed_paths_list = [ ];
     natpmp = false;
     new_release_check = false;
-    outgoing_interface = "tun-protonvpn";
+    # Bind torrent traffic to the VPN interface. `services.deluge.config` is a plain attrset
+    # (no per-key priorities), so pick the interface here rather than overriding it elsewhere.
+    outgoing_interface =
+      if config.services.proton-vpn-netns.enable then
+        config.services.proton-vpn-netns.interface
+      else
+        "tun-protonvpn";
     outgoing_ports = [
       0
       0

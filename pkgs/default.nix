@@ -23,6 +23,7 @@ rec {
   n8n-oidc = pkgs.callPackage ./n8n-oidc { };
   journalofdiscourses = pkgs.callPackage ./journalofdiscourses { };
   image-prompt-loop = pkgs.callPackage ./image-prompt-loop { };
+  proton-wg-confgen = pkgs.callPackage ./proton-wg-confgen { };
   smolcoder = pkgs.callPackage ./smolcoder { };
   slk = pkgs.callPackage ./slk { };
   slack-watch = pkgs.callPackage ./slack-watch { };
