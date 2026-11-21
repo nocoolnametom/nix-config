@@ -41,7 +41,7 @@ in
 
   # Private Slack triage topic: published by the Hermes gateway (barliman)
   # with the publisher token owned by ${slkPublisherUser}; subscribed to
-  # on the phone while authenticated as ${slkUser} (ntfy app -> Settings 
+  # on the phone while authenticated as ${slkUser} (ntfy app -> Settings
   # -> Auth).
   #
   # ntfy's ACL resolver (user/access_cache.go) falls back to the * entry for

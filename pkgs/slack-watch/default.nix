@@ -6,9 +6,11 @@
 }:
 
 # Watcher for the live slk Slack cache (~/.local/share/slk/cache.db).
-# Emits JSON candidate events (DMs, @mentions, alert-channel posts) newer
-# than a persisted watermark; Hermes cron triages the output and only pings
-# a human when something needs immediate attention. stdlib-only Python.
+# Emits JSON candidate events (DMs, @mentions, alert-channel posts) past a
+# persisted cursor (messages.rowid); the Hermes gateway triages them and only
+# pings a human when something needs immediate attention. Known gap: DMs
+# missed while slk is disconnected are not seen until opened (see the script).
+# stdlib-only Python.
 writeShellApplication {
   name = "slack-watch";
 

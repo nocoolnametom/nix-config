@@ -9,6 +9,15 @@
 }:
 let
   importantSlacksTopic = configVars.ntfy.topics.important-slacks;
+  # The owner's Slack handles (no "@"), from nix-secrets so they stay out of
+  # this public repo. Feeds slack-watch's text-mention detection and self
+  # lookup, and the triage prompt. Empty until nix-secrets defines it.
+  slackSelfHandles = configVars.work.slack.selfHandles or [ ];
+  # The owner's user ID in each Slack workspace ({ <team id> = "<user id>"; }),
+  # also from nix-secrets: the authoritative self identity per workspace,
+  # since slk does not record it. Workspaces missing here fall back to looking
+  # the handles up within that workspace.
+  slackSelfIds = configVars.work.slack.selfIds or { };
   # Ollama's OpenAI-compatible endpoint, shared by the provider declaration
   # and anything else that needs to reach it.
   ollamaUrl = "http://127.0.0.1:${toString configVars.networking.ports.tcp.ollama}/v1";
@@ -295,7 +304,11 @@ in
             events = [ "slack" ];
             signature = "generic";
             prompt = ''
-              You are a Slack triage sentry for Tom (Slack handles: tdogg, tdoggett). The payload below contains Slack candidate events as JSON (fields: kind, priority, channel, from, text, context). Decide which events Tom needs to see RIGHT NOW.
+              You are a Slack triage sentry for Tom${
+                lib.optionalString (
+                  slackSelfHandles != [ ]
+                ) " (Slack handles: ${lib.concatStringsSep ", " slackSelfHandles})"
+              }. The payload below contains Slack candidate events as JSON (fields: kind, priority, channel, from, text, context). Decide which events Tom needs to see RIGHT NOW.
 
               ALERT an event when: it is a DM or direct @mention of Tom; it is a production incident, outage, or on-call page; or someone is directly waiting on Tom.
 
@@ -630,8 +643,13 @@ in
   # Slack event bridge: polls the live slk cache and POSTs classified
   # candidate events to the gateway's webhook server (route slack-events),
   # whose agent turn triages them and pushes verdicts to the importantSlacksTopic
-  # ntfy topic. Quiet polls cost nothing; the watermark only advances after
+  # ntfy topic. Quiet polls cost nothing; the cursor only advances after
   # a successful POST.
+  #
+  # Known gap: a DM that arrives while slk is disconnected (or not running)
+  # is not alerted until that conversation is opened in slk, because slk's
+  # reconnect only refreshes the channel on screen (details in
+  # pkgs/slack-watch/slack-watch.py).
   systemd.user.services.slack-watch-bridge = {
     Unit = {
       Description = "Bridge Slack candidate events from the slk cache to the Hermes gateway";
@@ -641,6 +659,10 @@ in
       ExecStart = "${pkgs.slack-watch}/bin/slack-watch --daemon";
       Environment = [
         "SLACK_WATCH_WEBHOOK_URL=http://127.0.0.1:${toString configVars.networking.ports.tcp.hermesgateway}/webhooks/slack-events"
+        "SLACK_WATCH_SELF_HANDLES=${lib.concatStringsSep "," slackSelfHandles}"
+        "SLACK_WATCH_SELF_IDS=${
+          lib.concatStringsSep "," (lib.mapAttrsToList (team: user: "${team}:${user}") slackSelfIds)
+        }"
       ];
       # WEBHOOK_SECRET for the HMAC V2 signatures (same secret the gateway
       # verifies with). Least-privilege template: the bridge needs only this,
