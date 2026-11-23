@@ -448,7 +448,7 @@ in
     "${configVars.networking.subdomains.lemonade}.${configVars.homeDomain}" = {
       useACMEHost = "wild-${configVars.homeDomain}";
       extraConfig = ''
-        @lemonadeApi path /v1 /v1/* /mcp /mcp/*
+        @lemonadeApi path /v1 /v1/* /mcp /mcp/* /api/v1 /api/v1/*
         handle @lemonadeApi {
           reverse_proxy ${configVars.networking.subnets.barliman.ip}:${toString configVars.networking.ports.tcp.lemonade}
         }
