@@ -180,18 +180,14 @@ in
   # HERMES_DASHBOARD_OIDC_CLIENT_SECRET, but no such variable exists in 0.21.5
   # - it was silently ignored while Kanidm, provisioned as a confidential
   # client, rejected the unauthenticated code exchange with 401.
-  sops.secrets."homelab/hermes/api-server-key" = {
-    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
-  };
-  sops.secrets."homelab/lemonade/api-key" = {
-    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
-  };
-  sops.secrets."homelab/hermes/webhook-secret" = {
-    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
-  };
-  sops.secrets."homelab/ntfy/topics/${importantSlacksTopic}/token" = {
-    sopsFile = "${inputs.nix-secrets}/secrets.yaml";
-  };
+  sops.secrets."homelab/hermes/api-server-key" = { };
+  sops.secrets."homelab/lemonade/api-key" = { };
+  sops.secrets."homelab/hermes/webhook-secret" = { };
+  sops.secrets."homelab/ntfy/topics/${importantSlacksTopic}/token" = { };
+  # Bearer token shown in the hub's AI (MCP) Connector app UI (Integrations
+  # -> AI (MCP) Connector Integration). The hub's built-in first-party MCP
+  # server at http://<hub>/mcp (port 80, local-only) requires it.
+  sops.secrets."hubitat/mcp-bearer-token" = { };
 
   # The value has to reach the systemd *user* unit, which home.sessionVariables
   # cannot do (it only exports into interactive shells). Hermes reads this file
@@ -199,6 +195,11 @@ in
   sops.templates."hermes-agent.env".content = ''
     API_SERVER_KEY=${config.sops.placeholder."homelab/hermes/api-server-key"}
     LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
+    # Bearer for the hub's built-in MCP server (settings.mcp_servers.hubitat
+    # below references it as ${"$"}{MCP_HUBITAT_API_KEY}; the MCP header
+    # renderer expands ${"$"}{...} from this .env, same mechanism the
+    # dashboard's bearer auth flow uses for MCP servers).
+    MCP_HUBITAT_API_KEY=${config.sops.placeholder."hubitat/mcp-bearer-token"}
     WEBHOOK_SECRET=${config.sops.placeholder."homelab/hermes/webhook-secret"}
     # ntfy ACL token (tk_..., minted on bombadil for user hermes-alerts,
     # scoped rw to importantSlacksTopic). The ntfy adapter picks it up via
@@ -363,6 +364,20 @@ in
           client_id = "hermeswebui";
         };
       };
+    };
+
+    # Hubitat first-party MCP server: the hub's built-in "AI (MCP) Connector
+    # Integration" app turns the hub itself into a local MCP server (see the
+    # sops.secrets declaration above for the token's provenance). Endpoint is
+    # port 80 /mcp, not the :8080 admin UI; local-only, so the agent must be on
+    # the LAN (barliman is). The bearer token is NOT written here: it rides in
+    # the sops-rendered env file as MCP_HUBITAT_API_KEY (hermes-agent.env
+    # template above) and the ${...} placeholder is expanded from the process
+    # env at startup - the same mechanism the webhook `secret` below uses for
+    # ${WEBHOOK_SECRET} - so no secret lands in config.yaml on disk.
+    settings.mcp_servers.hubitat = {
+      url = "http://${configVars.networking.subnets.hubitat.ip}/mcp";
+      headers.Authorization = "Bearer ${"$"}{MCP_HUBITAT_API_KEY}";
     };
 
     # Approvals (YOLO on/off) are a default, not a pinned setting, so they can
