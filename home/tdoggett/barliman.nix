@@ -5,6 +5,7 @@
   configVars,
   osConfig,
   inputs,
+  hermesVersion,
   ...
 }:
 let
@@ -35,17 +36,6 @@ let
       or (throw "barliman.nix: ${hostName} has no 'planning' model in my-sd-models' machinePrimaryLLMs/${hostName}.nix");
 
   hermesHome = config.services.hermes-agent.hermesHome;
-
-  # Extract Hermes version from flake input URL (e.g., "v0.23.3" -> "0.23.3")
-  hermesVersion =
-    let
-      url = inputs.hermes-agent.url;
-      match = builtins.match ".*/(v?)([0-9]+\.[0-9]+\.[0-9]+)" url;
-    in
-    if match != null then
-      builtins.elemAt match 1
-    else
-      throw "Could not extract version from hermes-agent input URL: ${url}";
 
   # Hermes's config.yaml has two layers:
   #
