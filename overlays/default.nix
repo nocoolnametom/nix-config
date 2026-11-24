@@ -148,6 +148,25 @@ in
           gamescope = fixShadersPath jprev.gamescope;
         }
       );
+    }
+
+    // {
+      # hermes-agent: Set correct version for plugin semver compatibility.
+      # Upstream's pyproject.toml has hardcoded version = "0.0.0", which breaks
+      # plugin installation (plugins require >=0.23.0 but see 0.0.0 < 0.23.0).
+      # Extract version from the flake input's git ref tag (e.g., "v0.23.3" → "0.23.3").
+      hermes-agent = prev.hermes-agent.overridePythonAttrs (
+        old:
+        let
+          # Extract version from inputs.hermes-agent's original git ref (v0.23.3)
+          gitRef = inputs.hermes-agent.sourceInfo.ref or "v0.0.0";
+          # Remove leading 'v' if present
+          version = prev.lib.removePrefix "v" gitRef;
+        in
+        {
+          inherit version;
+        }
+      );
     };
 
   # When applied, the stable nixpkgs set (declared in the flake inputs) will

@@ -30,6 +30,14 @@
     common/optional/desktops/services/deskflow.nix
   ];
 
+  programs.hermes = {
+    enable = true;
+    profiles.default.plugins.enabled = [
+      "next-prompt"
+      "herald-push"
+    ];
+  };
+
   services.yubikey-touch-detector.enable = true;
 
   services.playerctld.enable = true;
