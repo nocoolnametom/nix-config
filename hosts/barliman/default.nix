@@ -36,6 +36,37 @@ let
   # snapshots consumed directly by services such as Strata.
   machineLemonadeSnapshots =
     if builtins.isAttrs machineLemonadeCatalog then machineLemonadeCatalog.snapshots or [ ] else [ ];
+
+  # Inkling-2-Mini models: GGUF variant (for llama.cpp) + Strata SQ-20 variant
+  # TODO: Remove these once my-sd-models catalog includes them (nixpkgs will handle versions)
+  inklingSnapshots = [
+    {
+      repo = "unsloth/Inkling-2-Mini-GGUF";
+      revision = "main";
+      include = [
+        "Inkling-2-Mini-UD-IQ4_XL.gguf"
+        "tokenizer.model"
+        "tokenizer.json"
+      ];
+      transport = "http";
+      maxWorkers = 4;
+    }
+    {
+      repo = "strata-engine/Inkling-2-Mini-Strata";
+      revision = "main";
+      include = [
+        "sq-20/*"
+        "tokenizer.json"
+        "chat_template.jinja"
+      ];
+      transport = "http";
+      maxWorkers = 4;
+    }
+  ];
+
+  # Merge inkling snapshots with existing machine snapshots
+  allMachineLemonadeSnapshots = machineLemonadeSnapshots ++ inklingSnapshots;
+
   huggingfaceHub = pkgs.python3Packages."huggingface-hub";
   snapshotDownloadCommand =
     snapshot:
@@ -67,7 +98,7 @@ let
     }";
   snapshotDownloadCommands =
     lib.concatMapStringsSep "\n" snapshotDownloadCommand
-      machineLemonadeSnapshots;
+      allMachineLemonadeSnapshots;
 in
 {
   imports = [
@@ -110,6 +141,7 @@ in
     "hosts/common/optional/llama-cpp.nix" # llama.cpp CLI tools (Vulkan)
     "hosts/common/optional/llmfit.nix" # LLM fit estimates, told the real GPU limit
     "hosts/common/optional/image-prompt-loop.nix" # ComfyUI/InvokeAI prompt refinement with vision models
+    "hosts/common/optional/inkling-2-mini.nix" # Inkling-2-Mini models (GGUF + Strata SQ-20); remove once nixpkgs catches up
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
@@ -249,7 +281,7 @@ in
   # to that `snapshots` list; keep their repo, revision, and include patterns in
   # sync with the service that consumes their files. If a source is gated, add
   # its token through SOPS here rather than putting credentials in the catalog.
-  systemd.services.lemonade-extra-snapshots = lib.mkIf (machineLemonadeSnapshots != [ ]) {
+  systemd.services.lemonade-extra-snapshots = lib.mkIf (allMachineLemonadeSnapshots != [ ]) {
     description = "Download pinned Hugging Face snapshots required by host services";
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
@@ -290,7 +322,7 @@ in
   # Require the snapshot fetch to finish before strata-prepare checks its model
   # path and builds the pack/MTP runtime. A failed download should fail Strata
   # preparation visibly instead of racing it or silently using another revision.
-  systemd.services.strata-prepare = lib.mkIf (machineLemonadeSnapshots != [ ]) {
+  systemd.services.strata-prepare = lib.mkIf (allMachineLemonadeSnapshots != [ ]) {
     requires = [ "lemonade-extra-snapshots.service" ];
     after = [ "lemonade-extra-snapshots.service" ];
   };
