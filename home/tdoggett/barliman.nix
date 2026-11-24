@@ -36,6 +36,17 @@ let
 
   hermesHome = config.services.hermes-agent.hermesHome;
 
+  # Extract Hermes version from flake input URL (e.g., "v0.23.3" -> "0.23.3")
+  hermesVersion =
+    let
+      url = inputs.hermes-agent.url;
+      match = builtins.match ".*/(v?)([0-9]+\.[0-9]+\.[0-9]+)" url;
+    in
+    if match != null then
+      builtins.elemAt match 1
+    else
+      throw "Could not extract version from hermes-agent input URL: ${url}";
+
   # Hermes's config.yaml has two layers:
   #
   #  * services.hermes-agent.settings (below) is re-applied on every switch.
@@ -173,6 +184,14 @@ in
     inputs.hermes-agent.homeManagerModules.default
   ];
 
+  programs.hermes = {
+    enable = true;
+    profiles.default.plugins.enabled = [
+      "next-prompt"
+      "herald-push"
+    ];
+  };
+
   # Only the gateway's bearer key is secret. The dashboard's Kanidm login is a
   # public OIDC client (authorization-code + PKCE), so there is deliberately no
   # client secret here: upstream exposes only HERMES_DASHBOARD_OIDC_{ISSUER,
@@ -230,6 +249,16 @@ in
   services.hermes-agent = {
     enable = true;
     gateway.enable = true;
+
+    # Upstream's Nix flake never wires the release version into the install
+    # stamp (the pyproject placeholder 0.0.0 survives all the way to the
+    # banner and the gateway API, which advertises that base version to
+    # clients). Label the build with the upstream release it corresponds to,
+    # so version-gated clients work. Version is extracted from the flake input.
+    package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+      version = hermesVersion;
+      distance = 0;
+    };
 
     # Local Lemonade through its OpenAI-compatible endpoint.
     #

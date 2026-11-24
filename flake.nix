@@ -89,7 +89,7 @@
     # main moves several times a day. nixpkgs is deliberately NOT followed:
     # the package is built with uv2nix against upstream's own lock, and
     # following ours risks breaking it.
-    hermes-agent.url = "github:NousResearch/hermes-agent/v0.23.3";
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.23.4";
 
     # Hermes plugins
     hermes-herald-push.url = "github:Giton22/hermes-herald-push";
