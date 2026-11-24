@@ -36,6 +36,17 @@ let
 
   hermesHome = config.services.hermes-agent.hermesHome;
 
+  # Extract Hermes version from flake input URL (e.g., "v0.23.3" -> "0.23.3")
+  hermesVersion =
+    let
+      url = inputs.hermes-agent.url;
+      match = builtins.match ".*/(v?)([0-9]+\.[0-9]+\.[0-9]+)" url;
+    in
+    if match != null then
+      builtins.elemAt match 1
+    else
+      throw "Could not extract version from hermes-agent input URL: ${url}";
+
   # Hermes's config.yaml has two layers:
   #
   #  * services.hermes-agent.settings (below) is re-applied on every switch.
@@ -243,11 +254,9 @@ in
     # stamp (the pyproject placeholder 0.0.0 survives all the way to the
     # banner and the gateway API, which advertises that base version to
     # clients). Label the build with the upstream release it corresponds to,
-    # so version-gated clients work: Kyllene's herald-push plugin requires
-    # Hermes >=0.21.5 (the v2026.9.24 tag). Re-check this label when the
-    # hermes-agent input is bumped past a release tag.
+    # so version-gated clients work. Version is extracted from the flake input.
     package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
-      version = "0.21.5";
+      version = hermesVersion;
       distance = 0;
     };
 
