@@ -209,6 +209,12 @@ in
     NTFY_TOKEN=${config.sops.placeholder."homelab/ntfy/topics/${importantSlacksTopic}/token"}
   '';
 
+  # slack-sentry profile environment: Hermes v0.23.3 enforces per-profile
+  # credential isolation, so this profile needs its own .env with LEMONADE_API_KEY.
+  sops.templates."hermes-slack-sentry.env".content = ''
+    LEMONADE_API_KEY=${config.sops.placeholder."homelab/lemonade/api-key"}
+  '';
+
   # Least-privilege env for the slack-watch bridge: HMAC secret only.
   sops.templates."hermes-agent-bridge.env".content = ''
     WEBHOOK_SECRET=${config.sops.placeholder."homelab/hermes/webhook-secret"}
@@ -271,45 +277,10 @@ in
 
     # ntfy delivers agent/cron output to the importantSlacksTopic topic (the
     # adapter also subscribes, so replies from the phone reach the agent).
+    # Enable multi-profile webhook routing: /p/<profile>/webhooks/<route>
+    settings.multiplex_profiles = true;
+
     settings.platforms = {
-      # Event-driven Slack triage. The slack-watch-bridge service POSTs
-      # HMAC-signed (generic V2) candidate events to the gateway's webhook
-      # server; this route runs an in-process agent turn (the triage tier)
-      # and delivers the verdict to ntfy. The route secret falls back to
-      # the global WEBHOOK_SECRET from the env template above.
-      #
-      # NOT `cron_job` mode: in the managed-gateway topology the event
-      # context (extra_prompt) is not serialized into the external-worker
-      # handoff payload, so the triage job runs blind (hermes-agent#141519,
-      # fix in PR #140938). The direct agent route keeps the payload in the
-      # prompt; [SILENT] suppresses delivery for no-attention verdicts.
-      # Cross-platform delivery to the ntfy *plugin* platform works on this
-      # path (verified end-to-end), unlike the deliver_only target parser.
-      webhook = {
-        enabled = true;
-        extra = {
-          # Triage turns are autonomous (no human waiting for a reply), so a
-          # [SILENT] verdict is a legitimate final — without this the gateway
-          # replaces it with an "unexpected silence" fallback notice that
-          # gets delivered to ntfy.
-          allow_silence = true;
-          port = configVars.networking.ports.tcp.hermesgateway;
-          # Global HMAC secret for webhook routes. The gateway config loader
-          # expands ${VAR} against the process env (~/.hermes/.env is loaded
-          # at startup), so the secret stays in the sops-rendered env file and
-          # never lands in config.yaml on disk.
-          secret = "$" + "{WEBHOOK_SECRET}";
-          routes.slack-events = {
-            description = "Slack candidate events from the slack-watch bridge";
-            events = [ "slack" ];
-            signature = "generic";
-            profile = "slack-sentry";
-            toolsets = [ ];
-            deliver = "ntfy";
-            deliver_extra.chat_id = importantSlacksTopic;
-          };
-        };
-      };
       ntfy = {
         enabled = true;
         extra = {
@@ -489,42 +460,42 @@ in
     # herald-push plugin: end-to-end encrypted notifications for the Herald app
     # Fetched from github:Giton22/hermes-herald-push via flake input
     hermesHomeFiles."profiles/worker/plugins/herald-push/__init__.py" =
-      "${inputs.hermes-herald-push}/__init__.py";
+      builtins.toPath "${inputs.hermes-herald-push}/__init__.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/plugin.yaml" =
-      "${inputs.hermes-herald-push}/plugin.yaml";
+      builtins.toPath "${inputs.hermes-herald-push}/plugin.yaml";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/__init__.py" =
-      "${inputs.hermes-herald-push}/herald_push/__init__.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/__init__.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/commands.py" =
-      "${inputs.hermes-herald-push}/herald_push/commands.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/commands.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/cron.py" =
-      "${inputs.hermes-herald-push}/herald_push/cron.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/cron.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/crypto.py" =
-      "${inputs.hermes-herald-push}/herald_push/crypto.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/crypto.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/phone.py" =
-      "${inputs.hermes-herald-push}/herald_push/phone.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/phone.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/plugin.py" =
-      "${inputs.hermes-herald-push}/herald_push/plugin.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/plugin.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/push.py" =
-      "${inputs.hermes-herald-push}/herald_push/push.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/push.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/store.py" =
-      "${inputs.hermes-herald-push}/herald_push/store.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/store.py";
     hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/watcher.py" =
-      "${inputs.hermes-herald-push}/herald_push/watcher.py";
+      builtins.toPath "${inputs.hermes-herald-push}/herald_push/watcher.py";
 
     # next-prompt plugin: AI-generated follow-up prompt suggestions
     # Fetched from github:soymarketing/hermes-plugin-next-prompt via flake input
     hermesHomeFiles."profiles/worker/plugins/next-prompt/__init__.py" =
-      "${inputs.hermes-plugin-next-prompt}/__init__.py";
+      builtins.toPath "${inputs.hermes-plugin-next-prompt}/__init__.py";
     hermesHomeFiles."profiles/worker/plugins/next-prompt/plugin.yaml" =
-      "${inputs.hermes-plugin-next-prompt}/plugin.yaml";
+      builtins.toPath "${inputs.hermes-plugin-next-prompt}/plugin.yaml";
     hermesHomeFiles."profiles/worker/plugins/next-prompt/store.py" =
-      "${inputs.hermes-plugin-next-prompt}/store.py";
+      builtins.toPath "${inputs.hermes-plugin-next-prompt}/store.py";
     hermesHomeFiles."profiles/worker/plugins/next-prompt/dashboard/manifest.json" =
-      "${inputs.hermes-plugin-next-prompt}/dashboard/manifest.json";
+      builtins.toPath "${inputs.hermes-plugin-next-prompt}/dashboard/manifest.json";
     hermesHomeFiles."profiles/worker/plugins/next-prompt/dashboard/plugin_api.py" =
-      "${inputs.hermes-plugin-next-prompt}/dashboard/plugin_api.py";
+      builtins.toPath "${inputs.hermes-plugin-next-prompt}/dashboard/plugin_api.py";
     hermesHomeFiles."profiles/worker/plugins/next-prompt/desktop/plugin.js" =
-      "${inputs.hermes-plugin-next-prompt}/desktop/plugin.js";
+      builtins.toPath "${inputs.hermes-plugin-next-prompt}/desktop/plugin.js";
 
     # slack-sentry profile: webhook-only Slack triage via LLM analysis
     hermesHomeFiles."profiles/slack-sentry/config.yaml" =
@@ -543,6 +514,34 @@ in
           };
           approvals.mode = "off";
           toolsets.webhook = [ ];
+          # Webhook platform: receives Slack events at /p/slack-sentry/webhooks/slack-events.
+          # Route binding check in v0.23.3 requires listener and route in same profile.
+          platforms.webhook = {
+            enabled = true;
+            extra = {
+              allow_silence = true;
+              port = configVars.networking.ports.tcp.hermesgateway;
+              secret = "$" + "{WEBHOOK_SECRET}";
+              routes.slack-events = {
+                description = "Slack candidate events from the slack-watch bridge";
+                events = [ "slack" ];
+                signature = "generic";
+                toolsets = [ ];
+                deliver = "ntfy";
+                deliver_extra.chat_id = importantSlacksTopic;
+              };
+            };
+          };
+          # ntfy platform for delivery of triage verdicts to notifications
+          platforms.ntfy = {
+            enabled = true;
+            extra = {
+              server = "$" + "{NTFY_SERVER_URL}";
+              topic = "$" + "{NTFY_TOPIC}";
+              publish_topic = "$" + "{NTFY_PUBLISH_TOPIC}";
+              markdown = true;
+            };
+          };
         };
 
     hermesHomeFiles."profiles/slack-sentry/SOUL.md" = ''
@@ -725,7 +724,7 @@ in
     Service = {
       ExecStart = "${pkgs.slack-watch}/bin/slack-watch --daemon";
       Environment = [
-        "SLACK_WATCH_WEBHOOK_URL=http://127.0.0.1:${toString configVars.networking.ports.tcp.hermesgateway}/webhooks/slack-events"
+        "SLACK_WATCH_WEBHOOK_URL=http://127.0.0.1:${toString configVars.networking.ports.tcp.hermesgateway}/p/slack-sentry/webhooks/slack-events"
         "SLACK_WATCH_SELF_HANDLES=${lib.concatStringsSep "," slackSelfHandles}"
         "SLACK_WATCH_SELF_IDS=${
           lib.concatStringsSep "," (lib.mapAttrsToList (team: user: "${team}:${user}") slackSelfIds)
@@ -759,6 +758,15 @@ in
     # overwrite it afterwards so the `hermes` CLI in a shell is unlocked too.
     hermesAgentUnmanage = lib.hm.dag.entryAfter [ "hermesAgentSetup" ] ''
       run install -m 0600 ${pkgs.writeText "hermes-unmanaged" "false"} ${lib.escapeShellArg "${hermesHome}/.managed"}
+    '';
+
+    # slack-sentry profile environment: install sops-rendered .env into the
+    # profile directory so Hermes loads profile-scoped credentials. Runs after
+    # hermesAgentSetup so the profile directory exists.
+    slackSentryProfileEnv = lib.hm.dag.entryAfter [ "hermesAgentSetup" ] ''
+      run install -m 0600 ${
+        config.sops.templates."hermes-slack-sentry.env".path
+      } ${lib.escapeShellArg "${hermesHome}/profiles/slack-sentry/.env"}
     '';
   };
 

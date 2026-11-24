@@ -14,11 +14,10 @@ in
 
   # Inkling-2-Mini GGUF variant via llama.cpp b12600+
   # NOTE: Strata SQ-20 variant deferred until nixpkgs updates to strata >= 0.2.20
-  # (Strata 0.2.15 in nixpkgs is too old; overriding it proved incompatible with nixpkgs build)
-  # TODO: Once nixpkgs strata >= 0.2.20, can re-enable strata-inkling services below
-  #       and add strata-inkling snapshots to barliman's snapshot list
+  # TODO: Re-enable once nixpkgs strata >= 0.2.20
 
   # Pin llama.cpp to b12600+ for Inkling-2-Mini GGUF support
+  # b12600 release has different directory structure; handle via postUnpack
   nixpkgs.overlays = [
     (
       final: prev:
@@ -29,8 +28,19 @@ in
             owner = "ggml-org";
             repo = "llama.cpp";
             rev = "b12600";
-            hash = "sha256-VFFVg4h9/EKcqZVVFVS1LKry0TAeXeK4ZZ9W35xirS0=";
+            hash = "sha256-6CcMhIEw2JzuQgAZqk0RnGuIXZ7/g4ofjLbQu9LRQAE=";
           };
+          # b12600 release doesn't have tools/ui directory structure
+          # Disable all npm-related infrastructure
+          npmDeps = null;
+          dontUseNpmConfigHook = true;
+
+          # Remove tools/ui references from build scripts
+          postUnpack = ''
+            if [ -f source/CMakeLists.txt ]; then
+              sed -i '/add_subdirectory.*tools\/ui/d' source/CMakeLists.txt || true
+            fi
+          '';
         });
       }
     )

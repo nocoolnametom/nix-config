@@ -37,35 +37,10 @@ let
   machineLemonadeSnapshots =
     if builtins.isAttrs machineLemonadeCatalog then machineLemonadeCatalog.snapshots or [ ] else [ ];
 
-  # Inkling-2-Mini models: GGUF variant (for llama.cpp) + Strata SQ-20 variant
-  # TODO: Remove these once my-sd-models catalog includes them (nixpkgs will handle versions)
-  inklingSnapshots = [
-    {
-      repo = "unsloth/Inkling-2-Mini-GGUF";
-      revision = "main";
-      include = [
-        "Inkling-2-Mini-UD-IQ4_XL.gguf"
-        "tokenizer.model"
-        "tokenizer.json"
-      ];
-      transport = "http";
-      maxWorkers = 4;
-    }
-    {
-      repo = "strata-engine/Inkling-2-Mini-Strata";
-      revision = "main";
-      include = [
-        "sq-20/*"
-        "tokenizer.json"
-        "chat_template.jinja"
-      ];
-      transport = "http";
-      maxWorkers = 4;
-    }
-  ];
-
-  # Merge inkling snapshots with existing machine snapshots
-  allMachineLemonadeSnapshots = machineLemonadeSnapshots ++ inklingSnapshots;
+  # Inkling-2-Mini snapshots deferred until nixpkgs catches up
+  # TODO: Re-enable once nixpkgs llama.cpp >= b12600 and strata >= 0.2.20
+  # inklingSnapshots = [ ... ];
+  # allMachineLemonadeSnapshots = machineLemonadeSnapshots ++ inklingSnapshots;
 
   huggingfaceHub = pkgs.python3Packages."huggingface-hub";
   snapshotDownloadCommand =
@@ -98,7 +73,7 @@ let
     }";
   snapshotDownloadCommands =
     lib.concatMapStringsSep "\n" snapshotDownloadCommand
-      allMachineLemonadeSnapshots;
+      machineLemonadeSnapshots;
 in
 {
   imports = [
@@ -141,7 +116,7 @@ in
     "hosts/common/optional/llama-cpp.nix" # llama.cpp CLI tools (Vulkan)
     "hosts/common/optional/llmfit.nix" # LLM fit estimates, told the real GPU limit
     "hosts/common/optional/image-prompt-loop.nix" # ComfyUI/InvokeAI prompt refinement with vision models
-    "hosts/common/optional/inkling-2-mini.nix" # Inkling-2-Mini models (GGUF + Strata SQ-20); remove once nixpkgs catches up
+    # "hosts/common/optional/inkling-2-mini.nix" # TODO: Re-enable once nixpkgs catches up to llama.cpp b12600+ and strata 0.2.20+
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
@@ -281,7 +256,7 @@ in
   # to that `snapshots` list; keep their repo, revision, and include patterns in
   # sync with the service that consumes their files. If a source is gated, add
   # its token through SOPS here rather than putting credentials in the catalog.
-  systemd.services.lemonade-extra-snapshots = lib.mkIf (allMachineLemonadeSnapshots != [ ]) {
+  systemd.services.lemonade-extra-snapshots = lib.mkIf (machineLemonadeSnapshots != [ ]) {
     description = "Download pinned Hugging Face snapshots required by host services";
     wants = [ "network-online.target" ];
     after = [ "network-online.target" ];
@@ -322,7 +297,7 @@ in
   # Require the snapshot fetch to finish before strata-prepare checks its model
   # path and builds the pack/MTP runtime. A failed download should fail Strata
   # preparation visibly instead of racing it or silently using another revision.
-  systemd.services.strata-prepare = lib.mkIf (allMachineLemonadeSnapshots != [ ]) {
+  systemd.services.strata-prepare = lib.mkIf (machineLemonadeSnapshots != [ ]) {
     requires = [ "lemonade-extra-snapshots.service" ];
     after = [ "lemonade-extra-snapshots.service" ];
   };
