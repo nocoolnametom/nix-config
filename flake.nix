@@ -89,7 +89,13 @@
     # main moves several times a day. nixpkgs is deliberately NOT followed:
     # the package is built with uv2nix against upstream's own lock, and
     # following ours risks breaking it.
-    hermes-agent.url = "github:NousResearch/hermes-agent";
+    hermes-agent.url = "github:NousResearch/hermes-agent/v0.23.3";
+
+    # Hermes plugins
+    hermes-herald-push.url = "github:Giton22/hermes-herald-push";
+    hermes-herald-push.flake = false;
+    hermes-plugin-next-prompt.url = "github:soymarketing/hermes-plugin-next-prompt";
+    hermes-plugin-next-prompt.flake = false;
 
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
@@ -142,6 +148,8 @@
       my-wordpress-plugins,
       my-sd-models,
       nix-secrets,
+      hermes-herald-push,
+      hermes-plugin-next-prompt,
       ...
     }@inputs:
     let

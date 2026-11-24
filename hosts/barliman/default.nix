@@ -36,6 +36,12 @@ let
   # snapshots consumed directly by services such as Strata.
   machineLemonadeSnapshots =
     if builtins.isAttrs machineLemonadeCatalog then machineLemonadeCatalog.snapshots or [ ] else [ ];
+
+  # Inkling-2-Mini snapshots deferred until nixpkgs catches up
+  # TODO: Re-enable once nixpkgs llama.cpp >= b12600 and strata >= 0.2.20
+  # inklingSnapshots = [ ... ];
+  # allMachineLemonadeSnapshots = machineLemonadeSnapshots ++ inklingSnapshots;
+
   huggingfaceHub = pkgs.python3Packages."huggingface-hub";
   snapshotDownloadCommand =
     snapshot:
@@ -110,6 +116,7 @@ in
     "hosts/common/optional/llama-cpp.nix" # llama.cpp CLI tools (Vulkan)
     "hosts/common/optional/llmfit.nix" # LLM fit estimates, told the real GPU limit
     "hosts/common/optional/image-prompt-loop.nix" # ComfyUI/InvokeAI prompt refinement with vision models
+    # "hosts/common/optional/inkling-2-mini.nix" # TODO: Re-enable once nixpkgs catches up to llama.cpp b12600+ and strata 0.2.20+
 
     #################### Users to Create ####################
     # "home/${configVars.username}/persistence/barliman.nix"
