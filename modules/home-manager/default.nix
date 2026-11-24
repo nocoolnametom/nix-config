@@ -4,6 +4,7 @@
   # List your module files here
   davmail-config = import ./davmail-config.nix;
   deskflow = import ./deskflow.nix;
+  hermes-config = import ./hermes-config.nix;
   notification-leds = import ./notification-leds.nix;
   repo-path = import ./repo-path.nix;
   waycorner = import ./waycorner.nix;

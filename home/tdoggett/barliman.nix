@@ -173,6 +173,14 @@ in
     inputs.hermes-agent.homeManagerModules.default
   ];
 
+  programs.hermes = {
+    enable = true;
+    profiles.default.plugins.enabled = [
+      "next-prompt"
+      "herald-push"
+    ];
+  };
+
   # Only the gateway's bearer key is secret. The dashboard's Kanidm login is a
   # public OIDC client (authorization-code + PKCE), so there is deliberately no
   # client secret here: upstream exposes only HERMES_DASHBOARD_OIDC_{ISSUER,
@@ -230,6 +238,18 @@ in
   services.hermes-agent = {
     enable = true;
     gateway.enable = true;
+
+    # Upstream's Nix flake never wires the release version into the install
+    # stamp (the pyproject placeholder 0.0.0 survives all the way to the
+    # banner and the gateway API, which advertises that base version to
+    # clients). Label the build with the upstream release it corresponds to,
+    # so version-gated clients work: Kyllene's herald-push plugin requires
+    # Hermes >=0.21.5 (the v2026.9.24 tag). Re-check this label when the
+    # hermes-agent input is bumped past a release tag.
+    package = inputs.hermes-agent.packages.${pkgs.stdenv.hostPlatform.system}.default.override {
+      version = "0.21.5";
+      distance = 0;
+    };
 
     # Local Lemonade through its OpenAI-compatible endpoint.
     #
