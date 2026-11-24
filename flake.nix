@@ -163,10 +163,14 @@
       configVars = import ./vars { inherit inputs lib; };
       configLib = import ./lib { inherit lib; };
       configurationRevision = self.rev or self.dirtyRev or null;
+      # Hermes version: sync this with the hermes-agent input tag in flake.nix
+      # (currently: github:NousResearch/hermes-agent/v0.23.3)
+      hermesVersion = "0.23.3";
       specialArgs = {
         inherit
           inputs
           outputs
+          hermesVersion
           configVars
           configLib
           nixpkgs
