@@ -493,43 +493,126 @@ in
 
     # herald-push plugin: end-to-end encrypted notifications for the Herald app
     # Fetched from github:Giton22/hermes-herald-push via flake input
-    hermesHomeFiles."profiles/worker/plugins/herald-push/__init__.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/__init__.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/plugin.yaml" =
-      builtins.toPath "${inputs.hermes-herald-push}/plugin.yaml";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/__init__.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/__init__.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/commands.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/commands.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/cron.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/cron.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/crypto.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/crypto.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/phone.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/phone.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/plugin.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/plugin.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/push.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/push.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/store.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/store.py";
-    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/watcher.py" =
-      builtins.toPath "${inputs.hermes-herald-push}/herald_push/watcher.py";
+    hermesHomeFiles."profiles/worker/plugins/herald-push/__init__.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/__init__.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/plugin.yaml" = builtins.readFile (
+      inputs.hermes-herald-push + "/plugin.yaml"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/__init__.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/__init__.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/commands.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/commands.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/cron.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/cron.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/crypto.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/crypto.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/phone.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/phone.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/plugin.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/plugin.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/push.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/push.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/store.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/store.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/herald-push/herald_push/watcher.py" = builtins.readFile (
+      inputs.hermes-herald-push + "/herald_push/watcher.py"
+    );
 
     # next-prompt plugin: AI-generated follow-up prompt suggestions
     # Fetched from github:soymarketing/hermes-plugin-next-prompt via flake input
-    hermesHomeFiles."profiles/worker/plugins/next-prompt/__init__.py" =
-      builtins.toPath "${inputs.hermes-plugin-next-prompt}/__init__.py";
-    hermesHomeFiles."profiles/worker/plugins/next-prompt/plugin.yaml" =
-      builtins.toPath "${inputs.hermes-plugin-next-prompt}/plugin.yaml";
-    hermesHomeFiles."profiles/worker/plugins/next-prompt/store.py" =
-      builtins.toPath "${inputs.hermes-plugin-next-prompt}/store.py";
-    hermesHomeFiles."profiles/worker/plugins/next-prompt/dashboard/manifest.json" =
-      builtins.toPath "${inputs.hermes-plugin-next-prompt}/dashboard/manifest.json";
-    hermesHomeFiles."profiles/worker/plugins/next-prompt/dashboard/plugin_api.py" =
-      builtins.toPath "${inputs.hermes-plugin-next-prompt}/dashboard/plugin_api.py";
-    hermesHomeFiles."profiles/worker/plugins/next-prompt/desktop/plugin.js" =
-      builtins.toPath "${inputs.hermes-plugin-next-prompt}/desktop/plugin.js";
+    hermesHomeFiles."profiles/worker/plugins/next-prompt/__init__.py" = builtins.readFile (
+      inputs.hermes-plugin-next-prompt + "/__init__.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/next-prompt/plugin.yaml" = builtins.readFile (
+      inputs.hermes-plugin-next-prompt + "/plugin.yaml"
+    );
+    hermesHomeFiles."profiles/worker/plugins/next-prompt/store.py" = builtins.readFile (
+      inputs.hermes-plugin-next-prompt + "/store.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/next-prompt/dashboard/manifest.json" = builtins.readFile (
+      inputs.hermes-plugin-next-prompt + "/dashboard/manifest.json"
+    );
+    hermesHomeFiles."profiles/worker/plugins/next-prompt/dashboard/plugin_api.py" = builtins.readFile (
+      inputs.hermes-plugin-next-prompt + "/dashboard/plugin_api.py"
+    );
+    hermesHomeFiles."profiles/worker/plugins/next-prompt/desktop/plugin.js" = builtins.readFile (
+      inputs.hermes-plugin-next-prompt + "/desktop/plugin.js"
+    );
+
+    # claude-subscription-directsdk plugin: Direct SDK access to Claude API
+    # Fetched from github:NousResearch/hermes-official-plugins via flake input
+    # For worker profile
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/__init__.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/__init__.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/plugin.yaml" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/plugin.yaml");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/admission.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/admission.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/concurrency.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/concurrency.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/directsdk.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/directsdk.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/directsdk_setup.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/directsdk_setup.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/extra_usage.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/extra_usage.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/inert_mcp.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/inert_mcp.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/model_catalog.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/model_catalog.py");
+    hermesHomeFiles."profiles/worker/plugins/claude-subscription-directsdk/process_tree.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/process_tree.py");
+
+    # For slack-sentry profile
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/__init__.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/__init__.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/plugin.yaml" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/plugin.yaml");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/admission.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/admission.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/concurrency.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/concurrency.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/directsdk.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/directsdk.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/directsdk_setup.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/directsdk_setup.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/extra_usage.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/extra_usage.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/inert_mcp.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/inert_mcp.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/model_catalog.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/model_catalog.py");
+    hermesHomeFiles."profiles/slack-sentry/plugins/claude-subscription-directsdk/process_tree.py" =
+      builtins.readFile
+        (inputs.hermes-official-plugins + "/claude-subscription-directsdk/process_tree.py");
 
     # slack-sentry profile: webhook-only Slack triage via LLM analysis
     hermesHomeFiles."profiles/slack-sentry/config.yaml" =

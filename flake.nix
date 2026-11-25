@@ -96,6 +96,8 @@
     hermes-herald-push.flake = false;
     hermes-plugin-next-prompt.url = "github:soymarketing/hermes-plugin-next-prompt";
     hermes-plugin-next-prompt.flake = false;
+    hermes-official-plugins.url = "github:NousResearch/hermes-official-plugins";
+    hermes-official-plugins.flake = false;
 
     # Disposable email list
     disposable-email-domains.url = "github:disposable-email-domains/disposable-email-domains";
@@ -150,6 +152,7 @@
       nix-secrets,
       hermes-herald-push,
       hermes-plugin-next-prompt,
+      hermes-official-plugins,
       ...
     }@inputs:
     let

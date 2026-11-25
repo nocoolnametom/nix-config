@@ -695,6 +695,22 @@
         "type": "github"
       }
     },
+    "hermes-official-plugins": {
+      "flake": false,
+      "locked": {
+        "lastModified": 1795554887,
+        "narHash": "sha256-Jdq7RHXyyBrXOdItVBLtXYbY/okv5hKpddZA2h1Yf8k=",
+        "owner": "NousResearch",
+        "repo": "hermes-official-plugins",
+        "rev": "610da681bc9d1ce86b7ce600ace33d3e614d09c9",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NousResearch",
+        "repo": "hermes-official-plugins",
+        "type": "github"
+      }
+    },
     "hermes-plugin-next-prompt": {
       "flake": false,
       "locked": {
@@ -1454,6 +1470,7 @@
         "helium": "helium",
         "hermes-agent": "hermes-agent",
         "hermes-herald-push": "hermes-herald-push",
+        "hermes-official-plugins": "hermes-official-plugins",
         "hermes-plugin-next-prompt": "hermes-plugin-next-prompt",
         "home-manager": "home-manager_2",
         "impermanence": "impermanence",
