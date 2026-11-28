@@ -30,7 +30,7 @@
         directory = "/var/lib/agent-worker";
         user = "agent-worker";
         group = "agent-worker";
-        mode = "0700";
+        mode = "0770";
       }
       "/var/lib/bluetooth"
       "/var/lib/chrony"

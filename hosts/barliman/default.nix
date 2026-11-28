@@ -358,6 +358,9 @@ in
     ];
   };
 
+  # Enabling agent-worker group for main user.
+  users.users."${configVars.username}".extraGroups = [ "agent-worker" ];
+
   # barliman has no Ethernet cable, so a dropped Wi-Fi link means it is
   # unreachable. Its MediaTek MT7925 card is known to drop and stay down on
   # Linux; turn off its PCIe power saving and let the watchdog recover it.
